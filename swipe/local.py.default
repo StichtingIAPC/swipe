@@ -1,0 +1,3 @@
+# Debugging mode for Django
+# Set this to True if you want debugging mode enabled
+DEBUG = True
