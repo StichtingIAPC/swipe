@@ -21,5 +21,8 @@ urlpatterns = [
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Django administration panel
-    url(r'^admin/', include(admin.site.urls))
+    url(r'^admin/', include(admin.site.urls)),
+
+    # Main website
+    url(r'^', include('www.urls'))
 ]

@@ -1,0 +1,40 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}
+    {% url 'supplier_delete' object.pk as delete %}
+    {% url 'supplier_undelete' object.pk as undelete %}
+    {% if request.path == delete %}
+        {% trans 'Delete' %}
+    {% elif request.path == undelete %}
+        {% trans 'Undelete' %}
+    {% endif %}
+    {{ object.name }}
+{% endblock %}
+
+{% block content %}
+    <h2>
+    {% url 'supplier_delete' object.pk as delete %}
+    {% url 'supplier_undelete' object.pk as undelete %}
+    {% if request.path == delete %}
+        {% trans 'Delete' %}
+    {% elif request.path == undelete %}
+        {% trans 'Undelete' %}
+    {% endif %}
+    {{ object.name }}
+    </h2>
+
+    <form action="" method="post">{% csrf_token %}
+        <p>Are you sure you want to
+    {% url 'supplier_delete' object.pk as delete %}
+    {% url 'supplier_undelete' object.pk as undelete %}
+    {% if request.path == delete %}
+        {% trans 'delete' %}
+    {% elif request.path == undelete %}
+        {% trans 'undelete' %}
+    {% endif %}
+     "{{ object.name }}"?</p>
+        <input type="submit" value="{% trans 'Yes' %}" />
+    </form>
+{% endblock %}

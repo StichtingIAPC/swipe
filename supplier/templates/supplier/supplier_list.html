@@ -1,0 +1,15 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Supplier list' %}{% endblock %}
+
+{% block content %}
+    {% url "supplier_add" as supplier_add %}
+    <h2>{% trans 'List of suppliers' %} (<a href="{{ supplier_add }}">{% trans 'add' %}</a>)</h2>
+    <ul>
+    {% for supplier in object_list %}
+        <li><a href="{% url 'supplier_detail' supplier.pk %}">{{ supplier }}</a>{% if supplier.is_deleted %} (deleted){% endif %}</li>
+    {% endfor %}
+    </ul>
+{% endblock %}
