@@ -7,5 +7,8 @@ from www.views import home
 
 urlpatterns = [
     # Home page
-    url(r'^$', home, name='home')
+    url(r'^$', home, name='home'),
+
+    # Include Supplier URLs
+    url(r'^supplier/', include('supplier.urls')),
 ]
