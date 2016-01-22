@@ -1,0 +1,130 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-01-22 01:40+0100\n"
+"PO-Revision-Date: 2016-01-22 01:41+0100\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.6\n"
+
+#: supplier/models.py:7
+msgid "Supplier"
+msgstr "Supplier"
+
+#: supplier/models.py:10 supplier/templates/supplier/supplier_detail.html.py:17
+msgid "Search URL"
+msgstr "Search URL"
+
+#: supplier/models.py:13 supplier/templates/supplier/supplier_detail.html.py:23
+msgid "Notes"
+msgstr "Notes"
+
+#: supplier/models.py:16
+msgid "This supplier is used"
+msgstr "This supplier is used"
+
+#: supplier/models.py:19
+msgid "This supplier is a backup supplier"
+msgstr "This supplier is a backup supplier"
+
+#: supplier/models.py:22 supplier/templates/supplier/supplier_detail.html.py:21
+msgid "Last modified"
+msgstr "Last modified"
+
+#: supplier/models.py:25
+msgid "This supplier is soft-deleted"
+msgstr "This supplier is soft-deleted"
+
+#: supplier/templates/supplier/supplier_confirm_delete.html:9
+#: supplier/templates/supplier/supplier_confirm_delete.html:21
+msgid "Delete"
+msgstr "Delete"
+
+#: supplier/templates/supplier/supplier_confirm_delete.html:11
+#: supplier/templates/supplier/supplier_confirm_delete.html:23
+msgid "Undelete"
+msgstr "Undelete"
+
+#: supplier/templates/supplier/supplier_confirm_delete.html:33
+#: supplier/templates/supplier/supplier_detail.html:14
+msgid "delete"
+msgstr "delete"
+
+#: supplier/templates/supplier/supplier_confirm_delete.html:35
+msgid "undelete"
+msgstr "undelete"
+
+#: supplier/templates/supplier/supplier_confirm_delete.html:38
+msgid "Yes"
+msgstr "Yes"
+
+#: supplier/templates/supplier/supplier_detail.html:5
+#: supplier/templates/supplier/supplier_detail.html:14
+#, python-format
+msgid "%(name)s"
+msgstr "%(name)s"
+
+#: supplier/templates/supplier/supplier_detail.html:14
+msgid "edit"
+msgstr "edit"
+
+#: supplier/templates/supplier/supplier_detail.html:14
+msgid "un"
+msgstr "un"
+
+#: supplier/templates/supplier/supplier_detail.html:16
+msgid "Name"
+msgstr "Name"
+
+#: supplier/templates/supplier/supplier_detail.html:18
+msgid "Used"
+msgstr "Used"
+
+#: supplier/templates/supplier/supplier_detail.html:19
+msgid "Backup-supplier"
+msgstr "Backup-supplier"
+
+#: supplier/templates/supplier/supplier_detail.html:20
+msgid "Deleted"
+msgstr "Deleted"
+
+#: supplier/templates/supplier/supplier_form.html:5
+#: supplier/templates/supplier/supplier_form.html:9
+msgid "Add Supplier"
+msgstr "Add Supplier"
+
+#: supplier/templates/supplier/supplier_form.html:5
+#: supplier/templates/supplier/supplier_form.html:9
+#, python-format
+msgid "Edit %(name)s"
+msgstr "Edit %(name)s"
+
+#: supplier/templates/supplier/supplier_form.html:14
+msgid "Create supplier"
+msgstr "Create supplier"
+
+#: supplier/templates/supplier/supplier_list.html:5
+msgid "Supplier list"
+msgstr "Supplier list"
+
+#: supplier/templates/supplier/supplier_list.html:9
+msgid "List of suppliers"
+msgstr "List of suppliers"
+
+#: supplier/templates/supplier/supplier_list.html:9
+msgid "add"
+msgstr "add"
+
+#: www/templates/www/base.html:11
+msgid "This page intentionally left almost blank."
+msgstr "This page intentionally left almost blank."
