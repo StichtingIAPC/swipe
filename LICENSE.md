@@ -47,3 +47,4 @@ List of contributors
 --------------------
 - Kevin Alberts
 - Léon van der Kaap
+- Nander Voortman
