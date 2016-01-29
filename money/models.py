@@ -11,9 +11,9 @@ from django.utils.translation import ugettext_lazy
 
 class VAT (models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
-    rate = models.DecimalField(decimal_places=6, verbose_name="VAT Rate")
+    rate = models.DecimalField(decimal_places=6, max_digits=7,verbose_name="VAT Rate")
     # What's this VAT level called?
-    name = models.CharField(max_lenth=255, verbose_name="VAT Name")
+    name = models.CharField(max_length=255, verbose_name="VAT Name")
     # Is this VAT level in use?
     active = models.BooleanField()
 
@@ -54,18 +54,18 @@ class Money:
 class MoneyProxy(object):
 
 # sets the correct column names for this field.
-    def __init__(self, field, returnClass):
+    def __init__(self, field):
         self.field = field
         self.amount_field_name = field.name
         self.currency_field_name = currency_field_name(field.name)
 
     def _get_values(self, obj):
-        return (obj.__dict__.get(self.field.amount_field_name, None),
-                obj.__dict__.get(self.field.currency_field_name, None))
+        return (obj.__dict__.get(self.amount_field_name, None),
+                obj.__dict__.get(self.currency_field_name, None))
 
     def _set_values(self, obj, amount, currency):
-        obj.__dict__[self.field.amount_field_name] = amount
-        obj.__dict__[self.field.currency_field_name] = currency
+        obj.__dict__[self.amount_field_name] = amount
+        obj.__dict__[self.currency_field_name] = currency
 
     def __get__(self, obj, *args):
         amount, currency = self._get_values(obj)
@@ -105,9 +105,11 @@ class MoneyProxy(object):
 # these are the droids you are looking for.
 class MoneyField(models.DecimalField):
     description = ugettext_lazy('An amount and type of currency')
-
     # currency: Which currency is this money in?
     def contribute_to_class(self, cls, name):
+        self.decimal_places = 5
+        self.max_digits = 26
+
         value = models.DecimalField(decimal_places=5)
         cls.add_to_class("currency", models.ForeignKey)
         value.creation_counter = self.creation_counter
@@ -115,6 +117,7 @@ class MoneyField(models.DecimalField):
         super(MoneyField, self).contribute_to_class(cls, name)
         setattr(cls, self.name, MoneyProxy(self))
 
+# The boiler needs some plating
     def get_db_prep_save(self, value, *args, **kwargs):
         if isinstance(value, Money):
             value = value.amount
@@ -126,18 +129,13 @@ class MoneyField(models.DecimalField):
             return super(MoneyField, self).get_prep_lookup(lookup_type, value)
 
     def value_to_string(self, obj):
-        """
-        When serializing this field, we will output both value and currency.
-        Here we only need to output the value. The contributed currency field
-        will get called to output itself
-        """
         value = self._get_val_from_obj(obj)
         return value.amount
 
 # Cost describes the cost made for a certain thing.
 # It could for instance describe the order cost related to a product on stock.
 class Cost(Money):
-    
+    a=1
 # A CostField represents a Cost object in the database.
 class CostField(MoneyField):
     def compare(item1, item2):
@@ -151,7 +149,7 @@ class CostField(MoneyField):
 
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
-
+    a=2
 class PriceField(MoneyField):
     # What VAT level is it on?
     vat = models.ForeignKey(VAT)
@@ -168,3 +166,6 @@ class PriceField(MoneyField):
 class SalesPriceField(models.Field):
     def contribute_to_class(self, cls, name, virtual_only=False):
         pass
+
+class TestMoneyType(models.Model):
+    money = MoneyField()

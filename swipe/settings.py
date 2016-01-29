@@ -35,7 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
     'www',
-    'supplier'
+    'supplier',
+    'money'
 ]
 
 MIDDLEWARE_CLASSES = [
