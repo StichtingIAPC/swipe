@@ -1,5 +1,4 @@
 from decimal import Decimal
-
 from django.db import models
 
 # Create your models here.
@@ -22,15 +21,18 @@ class VAT (models.Model):
 
 
 # Currency describes the currency of a monetary value. It's also used to describe the currency used in a till
-class Currency(models.Model):
-    # Currency name
-    name = models.CharField(max_length=255, verbose_name="Currency")
+class Currency:
+    def __init__(self, iso: str):
+        assert len(iso) == 3, "Valid ISO currency codes are exactly three characters long, given " + iso
+        self._iso = iso
 
-    # What symbol does this currency use?
-    iso = models.CharField(max_length=32, verbose_name="Iso Code")
+    @property
+    def iso(self):
+        return self._iso
 
-    # What symbol does this currency use?
-    symbol = models.CharField(max_length=32, verbose_name="Symbol")
+    def __eq__(self, other):
+        return other is not None and self.iso == other.iso
+
 
 def currency_field_name(name):
     return "%s_currency" % name
@@ -42,7 +44,7 @@ class Money:
         self.currency = currency
 
     def __str__(self):
-        return self.currency.iso+": "+self.amount
+        return self.currency.iso+": "+ str(self.amount)
 
     def compare(item1, item2):
         if type(item1) != type(item2):
@@ -54,10 +56,10 @@ class Money:
 class MoneyProxy(object):
 
 # sets the correct column names for this field.
-    def __init__(self, field):
+    def __init__(self, field, name):
         self.field = field
-        self.amount_field_name = field.name
-        self.currency_field_name = currency_field_name(field.name)
+        self.amount_field_name = name
+        self.currency_field_name = currency_field_name(name)
 
     def _get_values(self, obj):
         return (obj.__dict__.get(self.amount_field_name, None),
@@ -71,13 +73,13 @@ class MoneyProxy(object):
         amount, currency = self._get_values(obj)
         if amount is None:
             return None
-        return Money(amount, currency)
+        return Money(amount, Currency(currency))
 
     def __set__(self, obj, value):
         if value is None: # Money(0) is False
             self._set_values(obj, None, '')
         elif isinstance(value, Money):
-            self._set_values(obj, value.amount, value.currency)
+            self._set_values(obj, value.amount, value.currency.iso)
         elif isinstance(value, Decimal):
             _, currency = self._get_values(obj) # use what is currently set
             self._set_values(obj, value, currency)
@@ -105,17 +107,20 @@ class MoneyProxy(object):
 # these are the droids you are looking for.
 class MoneyField(models.DecimalField):
     description = ugettext_lazy('An amount and type of currency')
+
+    def __init__(self, *args, **kwargs):
+        kwargs['decimal_places'] = 5
+        super(MoneyField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(MoneyField, self).deconstruct()
+        return name, path, args, kwargs
+
     # currency: Which currency is this money in?
     def contribute_to_class(self, cls, name):
-        self.decimal_places = 5
-        self.max_digits = 26
-
-        value = models.DecimalField(decimal_places=5)
-        cls.add_to_class("currency", models.ForeignKey)
-        value.creation_counter = self.creation_counter
-        # add the date field normally
+        cls.add_to_class(currency_field_name(name), models.CharField(max_length=3))
         super(MoneyField, self).contribute_to_class(cls, name)
-        setattr(cls, self.name, MoneyProxy(self))
+        setattr(cls, name, MoneyProxy(self, name))
 
 # The boiler needs some plating
     def get_db_prep_save(self, value, *args, **kwargs):
