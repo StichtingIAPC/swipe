@@ -27,7 +27,7 @@ class Currency(models.Model):
     name = models.CharField(max_length=255, verbose_name="Currency")
 
     # What symbol does this currency use?
-    iso = models.CharField(max_length=32, verbose_name="Iso Code")
+    iso = models.CharField(max_length=32, verbose_name="Iso Code", primary_key=True)
 
     # What symbol does this currency use?
     symbol = models.CharField(max_length=32, verbose_name="Symbol")
