@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 # Create your models here.
@@ -9,9 +11,9 @@ from django.utils.translation import ugettext_lazy
 
 class VAT (models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
-    rate = models.DecimalField(decimal_places=6, verbose_name=("VAT Rate"))
+    rate = models.DecimalField(decimal_places=6, verbose_name="VAT Rate")
     # What's this VAT level called?
-    name = models.CharField(max_lenth=255, verbose_name=("VAT Name"))
+    name = models.CharField(max_lenth=255, verbose_name="VAT Name")
     # Is this VAT level in use?
     active = models.BooleanField()
 
@@ -22,13 +24,13 @@ class VAT (models.Model):
 # Currency describes the currency of a monetary value. It's also used to describe the currency used in a till
 class Currency(models.Model):
     # Currency name
-    name = models.CharField(max_length=255, verbose_name=_("Currency"))
+    name = models.CharField(max_length=255, verbose_name="Currency")
 
     # What symbol does this currency use?
-    iso = models.CharField(max_length=32, verbose_name=("Iso Code"))
+    iso = models.CharField(max_length=32, verbose_name="Iso Code")
 
     # What symbol does this currency use?
-    symbol = models.CharField(max_length=32, verbose_name=("Symbol"))
+    symbol = models.CharField(max_length=32, verbose_name="Symbol")
 
 def currency_field_name(name):
     return "%s_currency" % name
@@ -102,7 +104,7 @@ class MoneyProxy(object):
 # This is intended as a 'smart'  version of a decimal, but in most cases you should look at Price, CostPrice or Cost,
 # these are the droids you are looking for.
 class MoneyField(models.DecimalField):
-     description = ugettext_lazy('An amount and type of currency')
+    description = ugettext_lazy('An amount and type of currency')
 
     # currency: Which currency is this money in?
     def contribute_to_class(self, cls, name):
@@ -116,14 +118,12 @@ class MoneyField(models.DecimalField):
     def get_db_prep_save(self, value, *args, **kwargs):
         if isinstance(value, Money):
             value = value.amount
-
-        return super(MoneyField, self).get_db_prep_save(value, *args, **kwargs)
+            return super(MoneyField, self).get_db_prep_save(value, *args, **kwargs)
 
     def get_prep_lookup(self, lookup_type, value):
         if isinstance(value, Money):
             value = value.amount
-        return super(MoneyField, self).get_prep_lookup(lookup_type, value)
-
+            return super(MoneyField, self).get_prep_lookup(lookup_type, value)
 
     def value_to_string(self, obj):
         """
@@ -134,7 +134,10 @@ class MoneyField(models.DecimalField):
         value = self._get_val_from_obj(obj)
         return value.amount
 
-
+class Cost:
+    def __init__(self, value, currency):
+        self.value = value
+        self.currency = currency
 # Cost describes the cost made for a certain thing.
 # It could for instance describe the order cost related to a product on stock.
 class CostField(MoneyField):
@@ -145,11 +148,6 @@ class CostField(MoneyField):
             return item1 == item2
     # What VAT level is it on
 
-# TODO check for currency
-class SumPrice:
-    def __init__(self,prices):
-        for price in prices:
-            print price.money.value + " .." + price.vat
 
 
 # A price describes a monetary value which is intended to be used on the sales side
@@ -158,8 +156,9 @@ class PriceField(MoneyField):
     vat = models.ForeignKey(VAT)
     def __add__(self,oth):
         if oth.vat == self.vat:
-            c = Cost()
-            c.money = Money()
-            c.money.value = self.money.value + oth.money.value
+            if oth.currency== self.currency:
+                c = Cost(self.money.value+oth.money.value,self.currency)
+            else:
+                raise TypeError("Trying to add different currencies")
         else:
             raise ValueError("Trying to add different VAT levels, this is not yet implemented")
