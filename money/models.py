@@ -136,6 +136,7 @@ class MoneyField(models.DecimalField):
 # It could for instance describe the order cost related to a product on stock.
 class Cost(Money):
     a=1
+
 # A CostField represents a Cost object in the database.
 class CostField(MoneyField):
     def compare(item1, item2):
@@ -150,6 +151,7 @@ class CostField(MoneyField):
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
     a=2
+
 class PriceField(MoneyField):
     # What VAT level is it on?
     vat = models.ForeignKey(VAT)
