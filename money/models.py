@@ -134,12 +134,11 @@ class MoneyField(models.DecimalField):
         value = self._get_val_from_obj(obj)
         return value.amount
 
-class Cost:
-    def __init__(self, value, currency):
-        self.value = value
-        self.currency = currency
 # Cost describes the cost made for a certain thing.
 # It could for instance describe the order cost related to a product on stock.
+class Cost(Money):
+    
+# A CostField represents a Cost object in the database.
 class CostField(MoneyField):
     def compare(item1, item2):
         if type(item1) != type(item2):
@@ -151,6 +150,8 @@ class CostField(MoneyField):
 
 
 # A price describes a monetary value which is intended to be used on the sales side
+class Price(Money):
+
 class PriceField(MoneyField):
     # What VAT level is it on?
     vat = models.ForeignKey(VAT)
@@ -162,3 +163,8 @@ class PriceField(MoneyField):
                 raise TypeError("Trying to add different currencies")
         else:
             raise ValueError("Trying to add different VAT levels, this is not yet implemented")
+
+
+class SalesPriceField(models.Field):
+    def contribute_to_class(self, cls, name, virtual_only=False):
+        pass
