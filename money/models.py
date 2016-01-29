@@ -100,6 +100,11 @@ class MoneyProxy(object):
                     msg = 'Cannot assign "%s"' % type(value)
                     raise TypeError(msg)
 
+class CurrencyField(models.CharField):
+
+    def value_to_string(self, obj):
+        value = self._get_val_from_obj(obj)
+        return value
 
 # Money describes a monetary value. It would be used to describe both cost and price values.
 # Generally Money itself isn't used in business logic, instead, price and cost are used.
@@ -110,15 +115,21 @@ class MoneyField(models.DecimalField):
 
     def __init__(self, *args, **kwargs):
         kwargs['decimal_places'] = 5
+        kwargs['max_digits'] = 28
+        self.add_currency_field = not kwargs.pop('no_currency_field', False)
         super(MoneyField, self).__init__(*args, **kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super(MoneyField, self).deconstruct()
+        kwargs['no_currency_field'] = True
         return name, path, args, kwargs
 
     # currency: Which currency is this money in?
-    def contribute_to_class(self, cls, name):
-        cls.add_to_class(currency_field_name(name), models.CharField(max_length=3))
+    def contribute_to_class(self, cls, name, virtual_only=False):
+        if self.add_currency_field:
+            c_field = CurrencyField(max_length=3)
+            c_field.creation_counter = self.creation_counter
+            cls.add_to_class(currency_field_name(name), c_field)
         super(MoneyField, self).contribute_to_class(cls, name)
         setattr(cls, name, MoneyProxy(self, name))
 
