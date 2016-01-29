@@ -162,8 +162,6 @@ class CostField(MoneyField):
             return item1 == item2
     # What VAT level is it on
 
-
-
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
     a=2
@@ -181,9 +179,24 @@ class PriceField(MoneyField):
             raise ValueError("Trying to add different VAT levels, this is not yet implemented")
 
 
-class SalesPriceField(models.Field):
-    def contribute_to_class(self, cls, name, virtual_only=False):
-        pass
+class SalesPrice():
+    pass
+
+
+class SalesPriceProxy():
+    pass
+
+
+def cost_field_name(name):
+    return "%cost" % name
+def price_field_name(name):
+    return "%price" % name
+class SalesPriceField(PriceField):
+    def contribute_to_class(self, cls, name):
+        super(SalesPriceField).contribute_to_class(cls,price_field_name(name))
+        cls.add_to_class(cost_field_name(name), CostField)
+        # add the date field normally
+        setattr(cls, self.name, SalesPriceProxy(self))
 
 class TestMoneyType(models.Model):
     money = MoneyField()
