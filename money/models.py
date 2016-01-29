@@ -27,7 +27,7 @@ class Currency(models.Model):
     name = models.CharField(max_length=255, verbose_name="Currency")
 
     # What symbol does this currency use?
-    iso = models.CharField(max_length=32, verbose_name="Iso Code", primary_key=True)
+    iso = models.CharField(max_length=32, verbose_name="Iso Code")
 
     # What symbol does this currency use?
     symbol = models.CharField(max_length=32, verbose_name="Symbol")
@@ -57,7 +57,7 @@ class MoneyProxy(object):
     def __init__(self, field):
         self.field = field
         self.amount_field_name = field.name
-        self.currency_field_name = currency_field_name(field.name)
+        self.curr ency_field_name = currency_field_name(field.name)
 
     def _get_values(self, obj):
         return (obj.__dict__.get(self.amount_field_name, None),
@@ -146,8 +146,6 @@ class CostField(MoneyField):
             return item1 == item2
     # What VAT level is it on
 
-
-
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
     a=2
@@ -165,9 +163,24 @@ class PriceField(MoneyField):
             raise ValueError("Trying to add different VAT levels, this is not yet implemented")
 
 
-class SalesPriceField(models.Field):
-    def contribute_to_class(self, cls, name, virtual_only=False):
-        pass
+class SalesPrice():
+    pass
+
+
+class SalesPriceProxy():
+    pass
+
+
+def cost_field_name(name):
+    return "%cost" % name
+def price_field_name(name):
+    return "%price" % name
+class SalesPriceField(PriceField):
+    def contribute_to_class(self, cls, name):
+        super(SalesPriceField).contribute_to_class(cls,price_field_name(name))
+        cls.add_to_class(cost_field_name(name), CostField)
+        # add the date field normally
+        setattr(cls, self.name, SalesPriceProxy(self))
 
 class TestMoneyType(models.Model):
     money = MoneyField()
