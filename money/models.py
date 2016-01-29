@@ -57,7 +57,7 @@ class MoneyProxy(object):
     def __init__(self, field):
         self.field = field
         self.amount_field_name = field.name
-        self.curr ency_field_name = currency_field_name(field.name)
+        self.currency_field_name = currency_field_name(field.name)
 
     def _get_values(self, obj):
         return (obj.__dict__.get(self.amount_field_name, None),
