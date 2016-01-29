@@ -31,7 +31,6 @@ class MoneyTest(TestCase):
             self.assertEqual(v.money.amount.__str__(), "5.21000")
             self.assertEqual(v.money.currency,vv)
 
-            i=i+1
 
         self.assertEqual(vv.iso,"EUR")
  #   def test_Euro(self):

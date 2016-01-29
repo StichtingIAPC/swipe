@@ -171,3 +171,4 @@ class SalesPriceField(models.Field):
 
 class TestMoneyType(models.Model):
     money = MoneyField()
+    name = models.CharField(max_length=255)
