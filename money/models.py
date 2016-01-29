@@ -111,7 +111,7 @@ class MoneyField(models.DecimalField):
         self.max_digits = 26
 
         value = models.DecimalField(decimal_places=5)
-        cls.add_to_class("currency", models.ForeignKey)
+        cls.add_to_class(currency_field_name(name), models.ForeignKey)
         value.creation_counter = self.creation_counter
         # add the date field normally
         super(MoneyField, self).contribute_to_class(cls, name)
