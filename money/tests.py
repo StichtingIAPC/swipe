@@ -30,7 +30,6 @@ class CostTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
         m = Cost(amount=Decimal("5.21"),currency=c)
-        print(m)
         t = TestCostType.objects.create(money=m)
 
     def testMoneyStorage(self):

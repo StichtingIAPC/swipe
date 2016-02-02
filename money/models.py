@@ -139,14 +139,13 @@ class CurrencyField(models.CharField):
 # these are the droids you are looking for.
 class MoneyField(models.DecimalField):
     description = ugettext_lazy('An amount and type of currency')
-    type = None
 
     def __init__(self, *args, **kwargs):
-        if self.type is None:
-            self.type = "money"
-        print(self.type)
+
         kwargs['decimal_places'] = 5
         kwargs['max_digits'] = 28
+        self.type = kwargs.pop('type', "money")
+
         self.add_currency_field = not kwargs.pop('no_currency_field', False)
         super(MoneyField, self).__init__(*args, **kwargs)
 
@@ -168,12 +167,12 @@ class MoneyField(models.DecimalField):
     def get_db_prep_save(self, value, *args, **kwargs):
         if isinstance(value, money_types[self.type]):
             value = value.amount
-            return super(money_field_types[self.type], self).get_db_prep_save(value, *args, **kwargs)
+            return super(MoneyField, self).get_db_prep_save(value, *args, **kwargs)
 
     def get_prep_lookup(self, lookup_type, value):
         if isinstance(value,  money_types[self.type]):
             value = value.amount
-            return super(money_field_types[self.type], self).get_prep_lookup(lookup_type, value)
+            return super(MoneyField.get_prep_lookup(lookup_type, value))
 
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
@@ -183,20 +182,36 @@ class MoneyField(models.DecimalField):
 # Cost describes the cost made for a certain thing.
 # It could for instance describe the order cost related to a product on stock.
 class Cost(Money):
-    pass
-
-
-# A CostField represents a Cost object in the database.
-class CostField(MoneyField):
-    def __init__(self, *args, **kwargs):
-        self.type = "cost"
-        super(CostField, self).__init__(args, kwargs)
-
     def compare(item1, item2):
         if type(item1) != type(item2):
             raise TypeError("Types of items compared not compatible")
         else:
             return item1 == item2
+
+    def __add__(self,oth):
+        if type(oth) != Cost:
+            raise TypeError("Cannot Add money to " + str(type(oth)))
+        if oth.currency== self.currency:
+            return Cost(self.amount + oth.amount, self.currency)
+        else:
+            raise TypeError("Trying to add different currencies")
+
+    def __sub__(self,oth):
+        if type(oth) != Cost:
+            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+        if oth.currency== self.currency:
+            return Cost(self.amount - oth.amount, self.currency)
+        else:
+            raise TypeError("Trying to subtract different currencies")
+
+    def __mul__(self, other):
+        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
+            return Cost(self.amount * other, self.currency)
+        else:
+            raise TypeError("Cannot Multiply money with" + str(type(other)))
+
+
+
     # What VAT level is it on
 
 
@@ -238,15 +253,16 @@ class SalesPriceField(PriceField):
 
 
 class TestMoneyType(models.Model):
-    money = MoneyField()
+    money = MoneyField(type="money")
 
 
 class TestOtherMoneyType(models.Model):
-    money = MoneyField()
+    money = MoneyField(type="money")
 
 
 class TestCostType(models.Model):
-    money = CostField()
+    money = MoneyField(type="cost")
+#
 
 
 # Define monetary types here
@@ -254,8 +270,3 @@ money_types = {}
 money_types["cost"]=Cost
 money_types["price"]= Price
 money_types["money"] = Money
-
-money_field_types = {}
-money_field_types["cost"]=CostField
-money_field_types["price"]= PriceField
-money_field_types["money"] = MoneyField
