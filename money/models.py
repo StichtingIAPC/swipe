@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy
 
 class VAT (models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
-    rate = models.DecimalField(decimal_places=6, max_digits=7,verbose_name="VAT Rate")
+    rate = models.DecimalField(decimal_places=6, max_digits=8,verbose_name="VAT Rate")
     # What's this VAT level called?
     name = models.CharField(max_length=255, verbose_name="VAT Name")
     # Is this VAT level in use?
@@ -19,6 +19,14 @@ class VAT (models.Model):
         return ((self.rate-1)*100)+"%"
 
 
+class VATLevelField(models.DecimalField):
+    description = "VAT level, in rate, not in percentage."
+    def __init__(self, *args, **kwargs):
+
+        kwargs['decimal_places'] = 6
+        kwargs['max_digits'] = 8
+
+        super(VATLevelField, self).__init__(*args, **kwargs)
 # Currency describes the currency of a monetary value. It's also used to describe the currency used in a till
 class Currency:
     def __init__(self, iso: str):
@@ -35,7 +43,8 @@ class Currency:
 
 def currency_field_name(name):
     return "%s_currency" % name
-
+def vat_field_name(name):
+    return "%s_vat" % name
 
 class Money:
     def __init__(self,amount, currency):
@@ -74,7 +83,7 @@ class Money:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
 
 
-class MoneyProxy(object):
+class MoneyProxy:
     # sets the correct column names for this field.
     def __init__(self, field, name,type):
         self.field = field
@@ -102,9 +111,6 @@ class MoneyProxy(object):
             self._set_values(obj, None, '')
         elif isinstance(value, money_types[self.type]):
             self._set_values(obj, value.amount, value.currency.iso)
-        elif isinstance(value, Decimal):
-            _, currency = self._get_values(obj) # use what is currently set
-            self._set_values(obj, value, currency)
         else:
 
             if type(value) in money_types.values():
@@ -211,21 +217,147 @@ class Cost(Money):
             raise TypeError("Cannot Multiply money with" + str(type(other)))
 
 
-
-    # What VAT level is it on
-
-
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
-    a=2
+    def __init__(self,amount, currency, vat):
+        self.amount = amount
+        self.currency = currency
+        self.vat = vat
+    def compare(item1, item2):
+        if type(item1) != type(item2):
+            raise TypeError("Types of items compared not compatible")
+        else:
+            return item1 == item2
+
+    def __add__(self,oth):
+        if type(oth) != Price:
+            raise TypeError("Cannot Add money to " + str(type(oth)))
+        if oth.vat != self.vat:
+            raise TypeError("Vat levels of numbers to be added not the same. Got "+ oth.vat+" and "+self.vat)
+        if oth.currency== self.currency:
+            return Price(self.amount + oth.amount, self.currency,self.vat)
+        else:
+            raise TypeError("Trying to add different currencies")
+
+    def __sub__(self,oth):
+        if type(oth) != Price:
+            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+        if oth.vat != self.vat:
+            raise TypeError("Vat levels of numbers to be subtracted not the same. Got "+ oth.vat+" and "+self.vat)
+        if oth.currency== self.currency:
+            return Price(self.amount - oth.amount, self.currency,self.vat)
+        else:
+            raise TypeError("Trying to subtract different currencies")
+
+    def __mul__(self, other):
+
+        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
+            return Price(self.amount * other, self.currency,self.vat)
+        else:
+            raise TypeError("Cannot Multiply money with" + str(type(other)))
 
 
-class PriceField(MoneyField):
+class PriceProxy:
+    # sets the correct column names for this field.
+    def __init__(self, field, name,type):
+        self.field = field
+        self.amount_field_name = name
+        self.type= type
+        self.currency_field_name = currency_field_name(name)
+        self.vat_field_name = vat_field_name(name)
+
+    def _get_values(self, obj):
+        return (obj.__dict__.get(self.amount_field_name, None),
+                obj.__dict__.get(self.currency_field_name, None),obj.__dict__.get(self.vat_field_name, None))
+
+    def _set_values(self, obj, amount, currency, vat):
+        obj.__dict__[self.amount_field_name] = amount
+        obj.__dict__[self.currency_field_name] = currency
+        obj.__dict__[self.vat_field_name] = vat
+
+    def __get__(self, obj, *args):
+        amount, currency, vat = self._get_values(obj)
+        if amount is None:
+            return None
+
+        return Price(amount, Currency(currency), vat)
+
+    def __set__(self, obj, value):
+        if value is None: # Money(0) is False
+            self._set_values(obj, None, '',Decimal("1.21"))
+        elif isinstance(value, Price):
+            self._set_values(obj, value.amount, value.currency.iso,value.vat)
+        else:
+
+            if type(value) in money_types.values():
+                raise TypeError("Trying to use " + str(type(value))+ ", expecting " + str(money_types[self.type]))
+            # It could be an int, or some other python native type
+            try:
+                amount = Decimal(str(value))
+                _, currency, vat = self._get_values(obj) # use what is currently set
+                self._set_values(obj, amount, currency, vat)
+            except TypeError:
+                # Lastly, assume string type 'XXX 123' or something Money can
+                # handle.
+                try:
+                    _, currency = self._get_values(obj) # use what is currently set
+                    m = money_types[self.type].from_string(str(value))
+                    self._set_values(obj, m.amount, m.currency,m.vat)
+                except TypeError:
+                    msg = 'Cannot assign "%s"' % type(value)
+                    raise TypeError(msg)
+
+
+class PriceField(models.DecimalField):
+    description = ugettext_lazy('An amount and type of currency')
+
     def __init__(self, *args, **kwargs):
-        self.type ="price"
-        super(MoneyField, self).__init__(args, kwargs)
+
+        kwargs['decimal_places'] = 5
+        kwargs['max_digits'] = 28
+        self.type = kwargs.pop('type', "money")
+
+        self.add_currency_field = not kwargs.pop('no_currency_field', False)
+        self.add_vat_field = not kwargs.pop('no_vat_field', False)
+
+        super(PriceField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(PriceField, self).deconstruct()
+        kwargs['no_currency_field'] = True
+        kwargs['no_vat_field'] = True
+
+        return name, path, args, kwargs
+
+    # currency: Which currency is this money in?
+    def contribute_to_class(self, cls, name, virtual_only=False):
+        if self.add_currency_field:
+            c_field = CurrencyField(max_length=3)
+            c_field.creation_counter = self.creation_counter
+            cls.add_to_class(currency_field_name(name), c_field)
+        if self.add_vat_field:
+            c_field = VATLevelField()
+            c_field.creation_counter = self.creation_counter
+            cls.add_to_class(vat_field_name(name), c_field)
+        super(PriceField, self).contribute_to_class(cls, name)
+        setattr(cls, name, PriceProxy(self, name,self.type))
+
+    # The boiler needs some plating
+    def get_db_prep_save(self, value, *args, **kwargs):
+        if isinstance(value, Price):
+            value = value.amount
+            return super(PriceField, self).get_db_prep_save(value, *args, **kwargs)
+
+    def get_prep_lookup(self, lookup_type, value):
+        if isinstance(value,  Price):
+            value = value.amount
+            return super(PriceField.get_prep_lookup(lookup_type, value))
+
+    def value_to_string(self, obj):
+        value = self._get_val_from_obj(obj)
+        return value.amount
+
     # What VAT level is it on?
-    vat = models.ForeignKey(VAT)
 
 
 class SalesPrice():
@@ -247,7 +379,7 @@ def price_field_name(name):
 class SalesPriceField(PriceField):
     def contribute_to_class(self, cls, name):
         super(SalesPriceField).contribute_to_class(cls,price_field_name(name))
-        cls.add_to_class(cost_field_name(name), CostField)
+        cls.add_to_class(cost_field_name(name), MoneyField)
         # add the date field normally
         setattr(cls, self.name, SalesPriceProxy(self))
 
@@ -262,8 +394,11 @@ class TestOtherMoneyType(models.Model):
 
 class TestCostType(models.Model):
     cost = MoneyField(type="cost")
-#
 
+
+#
+class TestPriceType(models.Model):
+    price = PriceField(type="cost")
 
 # Define monetary types here
 money_types = {}
