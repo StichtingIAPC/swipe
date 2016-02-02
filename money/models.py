@@ -52,6 +52,28 @@ class Money:
         else:
             return item1 == item2
 
+    def __add__(self,oth):
+        if type(oth) != Money:
+            raise TypeError("Cannot Add money to " + str(type(oth)))
+        if oth.currency== self.currency:
+            return  Money(self.amount + oth.amount, self.currency)
+        else:
+            raise TypeError("Trying to add different currencies")
+
+    def __sub__(self,oth):
+        if type(oth) != Money:
+            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+        if oth.currency== self.currency:
+            return Money(self.amount - oth.amount, self.currency)
+        else:
+            raise TypeError("Trying to subtract different currencies")
+
+    def __mul__(self, other):
+        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
+            return Money(self.amount * other, self.currency)
+        else:
+            raise TypeError("Cannot Multiply money with" + str(type(other)))
+
 
 class MoneyProxy(object):
 
@@ -169,14 +191,7 @@ class Price(Money):
 class PriceField(MoneyField):
     # What VAT level is it on?
     vat = models.ForeignKey(VAT)
-    def __add__(self,oth):
-        if oth.vat == self.vat:
-            if oth.currency== self.currency:
-                c = Cost(self.money.value+oth.money.value,self.currency)
-            else:
-                raise TypeError("Trying to add different currencies")
-        else:
-            raise ValueError("Trying to add different VAT levels, this is not yet implemented")
+
 
 
 class SalesPrice():
