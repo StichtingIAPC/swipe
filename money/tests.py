@@ -38,15 +38,21 @@ class MoneyMathTest(TestCase):
         except TypeError as err:
             t = True
         self.assertTrue(t)
+        t = False
+        try:
+            self.m2+self.num
+        except TypeError as err:
+            t = True
+        self.assertTrue(t)
 
     def testMoneyMult(self):
         eur = Currency("EUR")
-# Multiplying money times integer is valid
+        # Multiplying money times integer is valid
         self.assertEquals((self.m1*self.num).amount.__str__(),"4.00000")
         t = False
         try:
             self.m2*self.m3
-# Multiplying money times money is wrong
+        # Multiplying money times money is wrong
         except TypeError as err:
             t = True
         self.assertTrue(t)
@@ -56,6 +62,12 @@ class MoneyMathTest(TestCase):
         t = False
         try:
             self.m2-self.m3
+        except TypeError as err:
+            t = True
+        self.assertTrue(t)
+        t = False
+        try:
+            self.m2-self.num
         except TypeError as err:
             t = True
         self.assertTrue(t)
