@@ -3,8 +3,12 @@ from django.db import models
 
 # Create your models here.
 
+# Global money representation parameters
+
 # VAT : Pay the government, alas, we have to do this.
 from django.utils.translation import ugettext_lazy
+
+from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
 
 
 class VAT (models.Model):
@@ -43,8 +47,19 @@ class Currency:
 
 def currency_field_name(name):
     return "%s_currency" % name
+
+
 def vat_field_name(name):
     return "%s_vat" % name
+
+
+def cost_field_name(name):
+    return "%s_cost" % name
+
+
+def price_field_name(name):
+    return "%s_price" % name
+
 
 class Money:
     def __init__(self,amount, currency):
@@ -112,10 +127,6 @@ class MoneyProxy:
         elif isinstance(value, money_types[self.type]):
             self._set_values(obj, value.amount, value.currency.iso)
         else:
-
-            if type(value) in money_types.values():
-                raise TypeError("Trying to use " + str(type(value))+ ", expecting " + str(money_types[self.type]))
-            # It could be an int, or some other python native type
             try:
                 amount = Decimal(str(value))
                 _, currency = self._get_values(obj) # use what is currently set
@@ -148,8 +159,8 @@ class MoneyField(models.DecimalField):
 
     def __init__(self, *args, **kwargs):
 
-        kwargs['decimal_places'] = 5
-        kwargs['max_digits'] = 28
+        kwargs['decimal_places'] = DECIMAL_PLACES
+        kwargs['max_digits'] = MAX_DIGITS
         self.type = kwargs.pop('type', "money")
 
         self.add_currency_field = not kwargs.pop('no_currency_field', False)
@@ -215,6 +226,12 @@ class Cost(Money):
             return Cost(self.amount * other, self.currency)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
+
+
+class CostField(MoneyField):
+    def __init__(self, *args, **kwargs):
+        kwargs["type"] = "cost"
+        super(CostField, self).__init__(*args, **kwargs)
 
 
 # A price describes a monetary value which is intended to be used on the sales side
@@ -288,10 +305,6 @@ class PriceProxy:
         elif isinstance(value, Price):
             self._set_values(obj, value.amount, value.currency.iso,value.vat)
         else:
-
-            if type(value) in money_types.values():
-                raise TypeError("Trying to use " + str(type(value))+ ", expecting " + str(money_types[self.type]))
-            # It could be an int, or some other python native type
             try:
                 amount = Decimal(str(value))
                 _, currency, vat = self._get_values(obj) # use what is currently set
@@ -313,8 +326,8 @@ class PriceField(models.DecimalField):
 
     def __init__(self, *args, **kwargs):
 
-        kwargs['decimal_places'] = 5
-        kwargs['max_digits'] = 28
+        kwargs['decimal_places'] = DECIMAL_PLACES
+        kwargs['max_digits'] = MAX_DIGITS
         self.type = kwargs.pop('type', "money")
 
         self.add_currency_field = not kwargs.pop('no_currency_field', False)
@@ -357,31 +370,118 @@ class PriceField(models.DecimalField):
         value = self._get_val_from_obj(obj)
         return value.amount
 
+
     # What VAT level is it on?
+class SalesPrice:
+    def __init__(self,amount, currency, vat, cost):
+        self.amount = amount
+        self.currency = currency
+        self.vat = vat
+        self.cost = cost
 
 
-class SalesPrice():
-    pass
+class SalesPriceProxy:
+    # sets the correct column names for this field.
+    def __init__(self, field, name,type):
+        self.field = field
+        self.amount_field_name = name
+        self.type= type
+        self.currency_field_name = currency_field_name(name)
+        self.cost_field = cost_field_name(name)
+        self.vat_field_name = vat_field_name(name)
+
+    def _get_values(self, obj):
+        return (obj.__dict__.get(self.amount_field_name, None),
+                obj.__dict__.get(self.currency_field_name, None),obj.__dict__.get(self.vat_field_name, None),obj.__dict__.get(self.cost_field, None))
+
+    def _set_values(self, obj, amount, currency, vat, cost):
+        obj.__dict__[self.amount_field_name] = amount
+        obj.__dict__[self.currency_field_name] = currency
+        obj.__dict__[self.vat_field_name] = vat
+        obj.__dict__[self.cost_field] = cost
+
+    def __get__(self, obj, *args):
+        amount, currency, vat, cost = self._get_values(obj)
+        if amount is None:
+            return None
+
+        return SalesPrice(amount, Currency(currency), vat, cost)
+
+    def __set__(self, obj, value):
+        if value is None: # Money(0) is False
+            self._set_values(obj, None, '',Decimal("0"), Decimal("0"))
+        elif isinstance(value, SalesPrice):
+            self._set_values(obj, value.amount, value.currency.iso,value.vat, value.cost)
+        else:
+            try:
+                amount = Decimal(str(value))
+                _, currency, vat,cost = self._get_values(obj) # use what is currently set
+                self._set_values(obj, amount, currency, vat,cost)
+            except TypeError:
+                # Lastly, assume string type 'XXX 123' or something Money can
+                # handle.
+                try:
+                    _, currency = self._get_values(obj) # use what is currently set
+                    m = money_types[self.type].from_string(str(value))
+                    self._set_values(obj, m.amount, m.currency,m.vat,m.cost)
+                except TypeError:
+                    msg = 'Cannot assign "%s"' % type(value)
+                    raise TypeError(msg)
 
 
-class SalesPriceProxy():
-    pass
+class SalesPriceField(models.DecimalField):
+    description = ugettext_lazy('An amount and type of currency')
 
+    def __init__(self, *args, **kwargs):
 
-def cost_field_name(name):
-    return "%cost" % name
+        kwargs['decimal_places'] = DECIMAL_PLACES
+        kwargs['max_digits'] = MAX_DIGITS
+        self.type = kwargs.pop('type', "money")
 
+        self.add_currency_field = not kwargs.pop('no_currency_field', False)
+        self.add_vat_field = not kwargs.pop('no_vat_field', False)
+        self.add_cost_field = not kwargs.pop("no_cost_field", False)
+        super(SalesPriceField, self).__init__(*args, **kwargs)
 
-def price_field_name(name):
-    return "%price" % name
+    def deconstruct(self):
+        name, path, args, kwargs = super(SalesPriceField, self).deconstruct()
+        kwargs['no_currency_field'] = True
+        kwargs['no_vat_field'] = True
+        kwargs['no_cost_field'] = True
 
+        return name, path, args, kwargs
 
-class SalesPriceField(PriceField):
-    def contribute_to_class(self, cls, name):
-        super(SalesPriceField).contribute_to_class(cls,price_field_name(name))
-        cls.add_to_class(cost_field_name(name), MoneyField)
-        # add the date field normally
-        setattr(cls, self.name, SalesPriceProxy(self))
+    # currency: Which currency is this money in?
+    def contribute_to_class(self, cls, name, virtual_only=False):
+        if self.add_currency_field:
+            c_field = CurrencyField(max_length=3)
+            c_field.creation_counter = self.creation_counter
+            cls.add_to_class(currency_field_name(name), c_field)
+        if self.add_vat_field:
+            c_field = VATLevelField()
+            c_field.creation_counter = self.creation_counter
+            cls.add_to_class(vat_field_name(name), c_field)
+        if self.add_cost_field:
+            c_field = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES)
+            c_field.creation_counter = self.creation_counter
+            cls.add_to_class(cost_field_name(name), c_field)
+        super(SalesPriceField, self).contribute_to_class(cls, name)
+        setattr(cls, name, SalesPriceProxy(self, name,self.type))
+
+    # The boiler needs some plating
+    def get_db_prep_save(self, value, *args, **kwargs):
+        if isinstance(value, SalesPrice):
+            value = value.amount
+            return super(SalesPriceField, self).get_db_prep_save(value, *args, **kwargs)
+
+    def get_prep_lookup(self, lookup_type, value):
+        if isinstance(value,  SalesPrice):
+            value = value.amount
+            return super(SalesPriceField.get_prep_lookup(lookup_type, value))
+
+    def value_to_string(self, obj):
+        value = self._get_val_from_obj(obj)
+        return value.amount
 
 
 class TestMoneyType(models.Model):
@@ -394,6 +494,10 @@ class TestOtherMoneyType(models.Model):
 
 class TestCostType(models.Model):
     cost = MoneyField(type="cost")
+
+
+class TestSalesPriceType(models.Model):
+    price = SalesPriceField()
 
 
 #

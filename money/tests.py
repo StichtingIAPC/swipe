@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 # Create your tests here.
-from money.models import Currency
+from money.models import Currency, TestSalesPriceType, SalesPrice
 from money.models import TestMoneyType
 from money.models import Money
 from money.models import Cost
@@ -60,6 +60,27 @@ class PriceTest(TestCase):
             self.assertEqual(type(v.price),Price)
             self.assertEqual(v.price.amount.__str__(), "5.21000")
             self.assertEqual(v.price.vat.__str__(), "1.210000")
+            self.assertEqual(v.price.currency, Currency('EUR'))
+            i=i+1
+
+        self.assertEqual(i,1)
+
+
+class SalesPriceTest(TestCase):
+    def setUp(self):
+        c = Currency('EUR')
+        m = SalesPrice(amount=Decimal("5.21"),currency=c,vat=Decimal("1.93"),cost=Decimal("4.00"))
+
+        t = TestSalesPriceType.objects.create(price=m)
+
+    def testMoneyStorage(self):
+        val = TestSalesPriceType.objects.all()
+        i=0
+        for v in val:
+            self.assertEqual(type(v.price),SalesPrice)
+            self.assertEqual(v.price.amount.__str__(), "5.21000")
+            self.assertEqual(v.price.cost.__str__(), "4.00000")
+            self.assertEqual(v.price.vat.__str__(), "1.930000")
             self.assertEqual(v.price.currency, Currency('EUR'))
             i=i+1
 
