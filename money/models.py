@@ -261,7 +261,7 @@ class TestOtherMoneyType(models.Model):
 
 
 class TestCostType(models.Model):
-    money = MoneyField(type="cost")
+    cost = MoneyField(type="cost")
 #
 
 
