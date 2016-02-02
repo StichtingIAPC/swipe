@@ -3,6 +3,7 @@ from django.utils.translation import ugettext as _
 
 
 class Supplier(models.Model):
+
     # Supplier name
     name = models.CharField(max_length=255, verbose_name=_("Supplier"))
 
