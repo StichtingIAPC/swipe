@@ -3,7 +3,6 @@ from django.db import models
 
 # Create your models here.
 
-
 # VAT : Pay the government, alas, we have to do this.
 from django.utils.translation import ugettext_lazy
 
@@ -76,11 +75,11 @@ class Money:
 
 
 class MoneyProxy(object):
-
-# sets the correct column names for this field.
-    def __init__(self, field, name):
+    # sets the correct column names for this field.
+    def __init__(self, field, name,type):
         self.field = field
         self.amount_field_name = name
+        self.type= type
         self.currency_field_name = currency_field_name(name)
 
     def _get_values(self, obj):
@@ -95,17 +94,21 @@ class MoneyProxy(object):
         amount, currency = self._get_values(obj)
         if amount is None:
             return None
-        return Money(amount, Currency(currency))
+
+        return money_types[self.type](amount, Currency(currency))
 
     def __set__(self, obj, value):
         if value is None: # Money(0) is False
             self._set_values(obj, None, '')
-        elif isinstance(value, Money):
+        elif isinstance(value, money_types[self.type]):
             self._set_values(obj, value.amount, value.currency.iso)
         elif isinstance(value, Decimal):
             _, currency = self._get_values(obj) # use what is currently set
             self._set_values(obj, value, currency)
         else:
+
+            if type(value) in money_types.values():
+                raise TypeError("Trying to use " + str(type(value))+ ", expecting " + str(money_types[self.type]))
             # It could be an int, or some other python native type
             try:
                 amount = Decimal(str(value))
@@ -116,11 +119,12 @@ class MoneyProxy(object):
                 # handle.
                 try:
                     _, currency = self._get_values(obj) # use what is currently set
-                    m = Money.from_string(str(value))
+                    m = money_types[self.type].from_string(str(value))
                     self._set_values(obj, m.amount, m.currency)
                 except TypeError:
                     msg = 'Cannot assign "%s"' % type(value)
                     raise TypeError(msg)
+
 
 class CurrencyField(models.CharField):
 
@@ -128,14 +132,19 @@ class CurrencyField(models.CharField):
         value = self._get_val_from_obj(obj)
         return value
 
+
 # Money describes a monetary value. It would be used to describe both cost and price values.
 # Generally Money itself isn't used in business logic, instead, price and cost are used.
 # This is intended as a 'smart'  version of a decimal, but in most cases you should look at Price, CostPrice or Cost,
 # these are the droids you are looking for.
 class MoneyField(models.DecimalField):
     description = ugettext_lazy('An amount and type of currency')
+    type = None
 
     def __init__(self, *args, **kwargs):
+        if self.type is None:
+            self.type = "money"
+        print(self.type)
         kwargs['decimal_places'] = 5
         kwargs['max_digits'] = 28
         self.add_currency_field = not kwargs.pop('no_currency_field', False)
@@ -153,30 +162,36 @@ class MoneyField(models.DecimalField):
             c_field.creation_counter = self.creation_counter
             cls.add_to_class(currency_field_name(name), c_field)
         super(MoneyField, self).contribute_to_class(cls, name)
-        setattr(cls, name, MoneyProxy(self, name))
+        setattr(cls, name, MoneyProxy(self, name,self.type))
 
-# The boiler needs some plating
+    # The boiler needs some plating
     def get_db_prep_save(self, value, *args, **kwargs):
-        if isinstance(value, Money):
+        if isinstance(value, money_types[self.type]):
             value = value.amount
-            return super(MoneyField, self).get_db_prep_save(value, *args, **kwargs)
+            return super(money_field_types[self.type], self).get_db_prep_save(value, *args, **kwargs)
 
     def get_prep_lookup(self, lookup_type, value):
-        if isinstance(value, Money):
+        if isinstance(value,  money_types[self.type]):
             value = value.amount
-            return super(MoneyField, self).get_prep_lookup(lookup_type, value)
+            return super(money_field_types[self.type], self).get_prep_lookup(lookup_type, value)
 
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
         return value.amount
 
+
 # Cost describes the cost made for a certain thing.
 # It could for instance describe the order cost related to a product on stock.
 class Cost(Money):
-    a=1
+    pass
+
 
 # A CostField represents a Cost object in the database.
 class CostField(MoneyField):
+    def __init__(self, *args, **kwargs):
+        self.type = "cost"
+        super(CostField, self).__init__(args, kwargs)
+
     def compare(item1, item2):
         if type(item1) != type(item2):
             raise TypeError("Types of items compared not compatible")
@@ -184,14 +199,18 @@ class CostField(MoneyField):
             return item1 == item2
     # What VAT level is it on
 
+
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
     a=2
 
+
 class PriceField(MoneyField):
+    def __init__(self, *args, **kwargs):
+        self.type ="price"
+        super(MoneyField, self).__init__(args, kwargs)
     # What VAT level is it on?
     vat = models.ForeignKey(VAT)
-
 
 
 class SalesPrice():
@@ -204,8 +223,12 @@ class SalesPriceProxy():
 
 def cost_field_name(name):
     return "%cost" % name
+
+
 def price_field_name(name):
     return "%price" % name
+
+
 class SalesPriceField(PriceField):
     def contribute_to_class(self, cls, name):
         super(SalesPriceField).contribute_to_class(cls,price_field_name(name))
@@ -213,5 +236,26 @@ class SalesPriceField(PriceField):
         # add the date field normally
         setattr(cls, self.name, SalesPriceProxy(self))
 
+
 class TestMoneyType(models.Model):
     money = MoneyField()
+
+
+class TestOtherMoneyType(models.Model):
+    money = MoneyField()
+
+
+class TestCostType(models.Model):
+    money = CostField()
+
+
+# Define monetary types here
+money_types = {}
+money_types["cost"]=Cost
+money_types["price"]= Price
+money_types["money"] = Money
+
+money_field_types = {}
+money_field_types["cost"]=CostField
+money_field_types["price"]= PriceField
+money_field_types["money"] = MoneyField

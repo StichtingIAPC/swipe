@@ -6,6 +6,9 @@ from django.test import TestCase
 from money.models import Currency
 from money.models import TestMoneyType
 from money.models import Money
+from money.models import Cost
+from money.models import TestCostType
+
 
 
 class MoneyTest(TestCase):
@@ -19,7 +22,27 @@ class MoneyTest(TestCase):
         for v in val:
             self.assertEqual(v.money.amount.__str__(), "5.21000")
             self.assertEqual(v.money.currency, Currency('EUR'))
+            i=i+1
+        self.assertEqual(i,1)
 
+
+class CostTest(TestCase):
+    def setUp(self):
+        c = Currency('EUR')
+        m = Cost(amount=Decimal("5.21"),currency=c)
+        print(m)
+        t = TestCostType.objects.create(money=m)
+
+    def testMoneyStorage(self):
+        val = TestCostType.objects.all()
+        i=0
+        for v in val:
+            print(type(v.money))
+            self.assertEqual(v.money.amount.__str__(), "5.21000")
+            self.assertEqual(v.money.currency, Currency('EUR'))
+            i=i+1
+
+        self.assertEqual(i,1)
 
 class MoneyMathTest(TestCase):
     def setUp(self):
