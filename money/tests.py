@@ -14,7 +14,7 @@ from money.models import TestPriceType
 class MoneyTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
-        m = Money(amount=Decimal("5.21"),currency=c)
+        m = Money(Decimal("5.21"),c)
         t = TestMoneyType.objects.create(money=m)
 
     def testMoneyStorage(self):
@@ -32,7 +32,7 @@ class MoneyTest(TestCase):
 class CostTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
-        m = Cost(amount=Decimal("5.21"),currency=c)
+        m = Cost(Decimal("5.21"),c)
         t = TestCostType.objects.create(cost=m)
 
     def testMoneyStorage(self):
@@ -97,7 +97,7 @@ class MoneyMathTest(TestCase):
         self.num = 4
 
     def testMoneyAdd(self):
-        self.assertEquals((self.m1+self.m2).amount.__str__(),"1.50000")
+        self.assertEquals((self.m1+self.m2).amount.__str__(), "1.50000")
         t = False
         try:
             self.m2+self.m3
@@ -124,7 +124,7 @@ class MoneyMathTest(TestCase):
         self.assertTrue(t)
 
     def testMoneySub(self):
-        self.assertEquals((self.m1-self.m2).amount.__str__(),"0.50000")
+        self.assertEquals((self.m1-self.m2).amount.__str__(), "0.50000")
         t = False
         try:
             self.m2-self.m3
@@ -150,7 +150,7 @@ class CostMathTest(TestCase):
         self.num = 4
 
     def testMoneyAdd(self):
-        self.assertEquals((self.m1+self.m2).amount.__str__(),"1.50000")
+        self.assertEquals((self.m1+self.m2).amount.__str__(), "1.50000")
         self.assertEquals(type(self.m1+self.m2),Cost)
         t = False
         try:
@@ -178,7 +178,7 @@ class CostMathTest(TestCase):
         self.assertTrue(t)
 
     def testMoneySub(self):
-        self.assertEquals((self.m1-self.m2).amount.__str__(),"0.50000")
+        self.assertEquals((self.m1-self.m2).amount.__str__(), "0.50000")
         t = False
         try:
             self.m2-self.m3

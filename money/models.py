@@ -63,11 +63,20 @@ def price_field_name(name):
 
 class Money:
     def __init__(self,amount, currency):
-        self.amount = amount
-        self.currency = currency
+        self._amount = amount
+        self._currency = currency
+
+    @property
+    def amount(self):
+        i=1
+        return self._amount
+
+    @property
+    def currency(self):
+        return self._currency
 
     def __str__(self):
-        return self.currency.iso+": "+ str(self.amount)
+        return self.currency._iso+": "+ str(self._amount)
 
     def compare(item1, item2):
         if type(item1) != type(item2):
@@ -78,8 +87,8 @@ class Money:
     def __add__(self,oth):
         if type(oth) != Money:
             raise TypeError("Cannot Add money to " + str(type(oth)))
-        if oth.currency== self.currency:
-            return  Money(self.amount + oth.amount, self.currency)
+        if oth.currency == self.currency:
+            return Money(self.amount + oth.amount, self.currency)
         else:
             raise TypeError("Trying to add different currencies")
 
@@ -184,6 +193,7 @@ class MoneyField(models.DecimalField):
     def get_db_prep_save(self, value, *args, **kwargs):
         if isinstance(value, money_types[self.type]):
             value = value.amount
+
             return super(MoneyField, self).get_db_prep_save(value, *args, **kwargs)
 
     def get_prep_lookup(self, lookup_type, value):
@@ -237,9 +247,13 @@ class CostField(MoneyField):
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
     def __init__(self,amount, currency, vat):
-        self.amount = amount
-        self.currency = currency
-        self.vat = vat
+        self._amount = amount
+        self._currency = currency
+        self._vat = vat
+
+    @property
+    def vat(self):
+        return self._vat
     def compare(item1, item2):
         if type(item1) != type(item2):
             raise TypeError("Types of items compared not compatible")
@@ -372,12 +386,16 @@ class PriceField(models.DecimalField):
 
 
     # What VAT level is it on?
-class SalesPrice:
+class SalesPrice(Price):
     def __init__(self,amount, currency, vat, cost):
-        self.amount = amount
-        self.currency = currency
-        self.vat = vat
-        self.cost = cost
+        self._amount = amount
+        self._currency = currency
+        self._vat = vat
+        self._cost = cost
+
+    @property
+    def cost(self):
+        return self._cost
 
     def __add__(self,oth):
         if type(oth) != SalesPrice:
@@ -408,6 +426,7 @@ class SalesPrice:
         return self.amount/self.vat-self.cost
     def get_margin(self):
         return self.get_profit()/self.cost
+
 
 class SalesPriceProxy:
     # sets the correct column names for this field.
