@@ -404,7 +404,10 @@ class SalesPrice:
             return SalesPrice(self.amount * other, self.currency,self.vat, self.cost * other)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
-
+    def get_profit(self):
+        return self.amount/self.vat-self.cost
+    def get_margin(self):
+        return self.get_profit()/self.cost
 
 class SalesPriceProxy:
     # sets the correct column names for this field.

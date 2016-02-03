@@ -248,3 +248,8 @@ class SalesPriceMathTest(TestCase):
             except TypeError:
                 i = 1
             self.assertEqual(i,1,str(w) + " can't be multiplied with SalesPrice")
+
+    def testSalesPriceMargin(self):
+        t = SalesPrice(amount=Decimal("4.00000"),currency=Currency("EUR"),vat=Decimal("2"),cost=Decimal("0.50000"))
+        self.assertEquals(t.get_profit(),1.5)
+        self.assertEquals(t.get_margin(),3)
