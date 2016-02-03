@@ -369,6 +369,9 @@ class PriceField(models.DecimalField):
 
 
 class SalesPrice(Price):
+    """
+        The SalesPrice is the price of an object, for which a cost is known.
+    """
     def __init__(self, amount, currency, vat, cost):
         self._amount = amount
         self._currency = currency
@@ -413,7 +416,9 @@ class SalesPrice(Price):
 
 
 class SalesPriceProxy:
-    # sets the correct column names for this field.
+    """
+     The SalesPriceProxy is responsible for converting data from Django (SalesPriceField) to SalesPrice Objects.
+    """
     def __init__(self, field, name, type):
         self.field = field
         self.amount_field_name = name
@@ -453,6 +458,15 @@ class SalesPriceProxy:
 
 
 class SalesPriceField(models.DecimalField):
+    """
+        A SalesPriceField is the Django representation of a SalesPrice.
+        As such, it's responsible for properly creating the Django representation of the fields used to store a SalesPrice.
+        It contains the following fields:
+        currency : In what currency is this SalesPrice?
+        amount : What's the amount of currency?
+        vat : At what VAT is this currency?
+        cost : What's the cost made for this SalePrice?
+    """
     description = ugettext_lazy('An amount and type of currency')
 
     def __init__(self, *args, **kwargs):
@@ -474,7 +488,7 @@ class SalesPriceField(models.DecimalField):
 
         return name, path, args, kwargs
 
-    # currency: Which currency is this money in?
+
     def contribute_to_class(self, cls, name, virtual_only=False):
         if self.add_currency_field:
             c_field = CurrencyField(max_length=3)
