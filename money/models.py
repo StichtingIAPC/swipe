@@ -555,5 +555,4 @@ class TestPriceType(models.Model):
 # Define monetary types here
 money_types = {}
 money_types["cost"]=Cost
-money_types["price"]= Price
 money_types["money"] = Money
