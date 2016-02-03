@@ -10,13 +10,13 @@ class Stock(models.Model):
     count = models.IntegerField()
     salesprice = SalesPriceField()
 
-    def save(self, indirect=False,**kwargs):
+    def save(self,indirect=False, **kwargs):
         if not indirect:
             raise AssertionError("Stock modifications shouldn't be done directly, but rather, they should be done on StockLog.")
-        super(Stock,self).__init__(self,**kwargs)
+        super(Stock,self).save(self,**kwargs)
 
     def getMergeableLine(mod):
-        objects = Stock.options.filter(article=mod.article)
+        objects = Stock.objects.filter(article=mod.article)
         for object in objects:
             return object
         return None
@@ -24,20 +24,24 @@ class Stock(models.Model):
     def addModification(stockmod):
         mergeLine = Stock.getMergeableLine(stockmod)
         if not mergeLine:
-            Stock.save(indirect=True,article=stockmod.article,salesprice=stockmod.salesprice,count=stockmod.count)
+            s = Stock(article=stockmod.article,salesprice=stockmod.salesprice,count=stockmod.count)
+            s.save(True)
         else:
-            mergeCost = (mergeLine.salesPrice.cost*mergeLine.count+stockmod.salesprice.cost*stockmod.count)/(stockmod.count+mergeLine.count)
-            mergeLine.salesprice=SalesPrice(amount=Decimal(-1.0),currency=mergeLine.salesprice.currency, vat=mergeLine.salesPrice.vat,cost=mergeCost)
+            mergeCost = (mergeLine.salesprice.cost*mergeLine.count+stockmod.salesprice.cost*stockmod.count)/(stockmod.count+mergeLine.count)
+            mergeLine.salesprice=SalesPrice(amount=Decimal(-1.0),currency=mergeLine.salesprice.currency, vat=mergeLine.salesprice.vat,cost=mergeCost)
             mergeLine.count+= stockmod.count
 
 
 class StockLog(models.Model):
-    date = models.DateTimeField()
-    description = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=255)
 
-    def save(self,**kwargs):
-        super(StockLog,self).__init__(self,**kwargs)
-        entries = StockModification.objects.filter(log_entry=self.pk)
+    def log(desc, entries):
+        sl = StockLog.objects.create(description=desc)
+        for entry in entries:
+            entry.log_entry = sl
+            entry.save()
+        entries = StockModification.objects.filter(log_entry=sl.pk)
         for entry in entries:
             Stock.addModification(entry)
 

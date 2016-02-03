@@ -8,14 +8,14 @@ from django.db import models
 # VAT : Pay the government, alas, we have to do this.
 from django.utils.translation import ugettext_lazy
 
-from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
+from swipe.settings import *
 
 
 class VAT(models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
-    rate = models.DecimalField(decimal_places=6, max_digits=8, verbose_name="VAT Rate")
+    vatrate = models.DecimalField(decimal_places=6, max_digits=8)
     # What's this VAT level called?
-    name = models.CharField(max_length=255, verbose_name="VAT Name")
+    name = models.CharField(max_length=255)
     # Is this VAT level in use?
     active = models.BooleanField()
 
