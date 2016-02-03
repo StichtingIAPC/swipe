@@ -11,26 +11,28 @@ from django.utils.translation import ugettext_lazy
 from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
 
 
-class VAT (models.Model):
+class VAT(models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
-    rate = models.DecimalField(decimal_places=6, max_digits=8,verbose_name="VAT Rate")
+    rate = models.DecimalField(decimal_places=6, max_digits=8, verbose_name="VAT Rate")
     # What's this VAT level called?
     name = models.CharField(max_length=255, verbose_name="VAT Name")
     # Is this VAT level in use?
     active = models.BooleanField()
 
     def to_rate_string(self):
-        return ((self.rate-1)*100)+"%"
+        return ((self.rate - 1) * 100) + "%"
 
 
 class VATLevelField(models.DecimalField):
     description = "VAT level, in rate, not in percentage."
-    def __init__(self, *args, **kwargs):
 
+    def __init__(self, *args, **kwargs):
         kwargs['decimal_places'] = 6
         kwargs['max_digits'] = 8
 
         super(VATLevelField, self).__init__(*args, **kwargs)
+
+
 # Currency describes the currency of a monetary value. It's also used to describe the currency used in a till
 class Currency:
     def __init__(self, iso: str):
@@ -62,13 +64,13 @@ def price_field_name(name):
 
 
 class Money:
-    def __init__(self,amount, currency):
+    def __init__(self, amount, currency):
         self._amount = amount
         self._currency = currency
 
     @property
     def amount(self):
-        i=1
+        i = 1
         return self._amount
 
     @property
@@ -76,7 +78,7 @@ class Money:
         return self._currency
 
     def __str__(self):
-        return self.currency._iso+": "+ str(self._amount)
+        return self.currency._iso + ": " + str(self._amount)
 
     def compare(item1, item2):
         if type(item1) != type(item2):
@@ -84,7 +86,7 @@ class Money:
         else:
             return item1 == item2
 
-    def __add__(self,oth):
+    def __add__(self, oth):
         if type(oth) != Money:
             raise TypeError("Cannot Add money to " + str(type(oth)))
         if oth.currency == self.currency:
@@ -92,16 +94,16 @@ class Money:
         else:
             raise TypeError("Trying to add different currencies")
 
-    def __sub__(self,oth):
+    def __sub__(self, oth):
         if type(oth) != Money:
             raise TypeError("Cannot Subtract money to " + str(type(oth)))
-        if oth.currency== self.currency:
+        if oth.currency == self.currency:
             return Money(self.amount - oth.amount, self.currency)
         else:
             raise TypeError("Trying to subtract different currencies")
 
     def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
+        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
             return Money(self.amount * other, self.currency)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
@@ -109,10 +111,10 @@ class Money:
 
 class MoneyProxy:
     # sets the correct column names for this field.
-    def __init__(self, field, name,type):
+    def __init__(self, field, name, type):
         self.field = field
         self.amount_field_name = name
-        self.type= type
+        self.type = type
         self.currency_field_name = currency_field_name(name)
 
     def _get_values(self, obj):
@@ -131,29 +133,17 @@ class MoneyProxy:
         return money_types[self.type](amount, Currency(currency))
 
     def __set__(self, obj, value):
-        if value is None: # Money(0) is False
+        if value is None:  # Money(0) is False
             self._set_values(obj, None, '')
         elif isinstance(value, money_types[self.type]):
             self._set_values(obj, value.amount, value.currency.iso)
         else:
-            try:
-                amount = Decimal(str(value))
-                _, currency = self._get_values(obj) # use what is currently set
-                self._set_values(obj, amount, currency)
-            except TypeError:
-                # Lastly, assume string type 'XXX 123' or something Money can
-                # handle.
-                try:
-                    _, currency = self._get_values(obj) # use what is currently set
-                    m = money_types[self.type].from_string(str(value))
-                    self._set_values(obj, m.amount, m.currency)
-                except TypeError:
-                    msg = 'Cannot assign "%s"' % type(value)
-                    raise TypeError(msg)
+            amount = Decimal(str(value))
+            _, currency = self._get_values(obj)  # use what is currently set
+            self._set_values(obj, amount, currency)
 
 
 class CurrencyField(models.CharField):
-
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
         return value
@@ -187,7 +177,7 @@ class MoneyField(models.DecimalField):
             c_field.creation_counter = self.creation_counter
             cls.add_to_class(currency_field_name(name), c_field)
         super(MoneyField, self).contribute_to_class(cls, name)
-        setattr(cls, name, MoneyProxy(self, name,self.type))
+        setattr(cls, name, MoneyProxy(self, name, self.type))
 
     # The boiler needs some plating
     def get_db_prep_save(self, value, *args, **kwargs):
@@ -197,7 +187,7 @@ class MoneyField(models.DecimalField):
             return super(MoneyField, self).get_db_prep_save(value, *args, **kwargs)
 
     def get_prep_lookup(self, lookup_type, value):
-        if isinstance(value,  money_types[self.type]):
+        if isinstance(value, money_types[self.type]):
             value = value.amount
             return super(MoneyField.get_prep_lookup(lookup_type, value))
 
@@ -215,24 +205,24 @@ class Cost(Money):
         else:
             return item1 == item2
 
-    def __add__(self,oth):
+    def __add__(self, oth):
         if type(oth) != Cost:
             raise TypeError("Cannot Add money to " + str(type(oth)))
-        if oth.currency== self.currency:
+        if oth.currency == self.currency:
             return Cost(self.amount + oth.amount, self.currency)
         else:
             raise TypeError("Trying to add different currencies")
 
-    def __sub__(self,oth):
+    def __sub__(self, oth):
         if type(oth) != Cost:
             raise TypeError("Cannot Subtract money to " + str(type(oth)))
-        if oth.currency== self.currency:
+        if oth.currency == self.currency:
             return Cost(self.amount - oth.amount, self.currency)
         else:
             raise TypeError("Trying to subtract different currencies")
 
     def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
+        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
             return Cost(self.amount * other, self.currency)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
@@ -246,7 +236,7 @@ class CostField(MoneyField):
 
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
-    def __init__(self,amount, currency, vat):
+    def __init__(self, amount, currency, vat):
         self._amount = amount
         self._currency = currency
         self._vat = vat
@@ -254,52 +244,53 @@ class Price(Money):
     @property
     def vat(self):
         return self._vat
+
     def compare(item1, item2):
         if type(item1) != type(item2):
             raise TypeError("Types of items compared not compatible")
         else:
             return item1 == item2
 
-    def __add__(self,oth):
+    def __add__(self, oth):
         if type(oth) != Price:
             raise TypeError("Cannot Add money to " + str(type(oth)))
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be added not the same. Got "+ oth.vat+" and "+self.vat)
-        if oth.currency== self.currency:
-            return Price(self.amount + oth.amount, self.currency,self.vat)
+            raise TypeError("Vat levels of numbers to be added not the same. Got " + oth.vat + " and " + self.vat)
+        if oth.currency == self.currency:
+            return Price(self.amount + oth.amount, self.currency, self.vat)
         else:
             raise TypeError("Trying to add different currencies")
 
-    def __sub__(self,oth):
+    def __sub__(self, oth):
         if type(oth) != Price:
             raise TypeError("Cannot Subtract money to " + str(type(oth)))
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be subtracted not the same. Got "+ oth.vat+" and "+self.vat)
-        if oth.currency== self.currency:
-            return Price(self.amount - oth.amount, self.currency,self.vat)
+            raise TypeError("Vat levels of numbers to be subtracted not the same. Got " + oth.vat + " and " + self.vat)
+        if oth.currency == self.currency:
+            return Price(self.amount - oth.amount, self.currency, self.vat)
         else:
             raise TypeError("Trying to subtract different currencies")
 
     def __mul__(self, other):
 
-        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
-            return Price(self.amount * other, self.currency,self.vat)
+        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
+            return Price(self.amount * other, self.currency, self.vat)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
 
 
 class PriceProxy:
     # sets the correct column names for this field.
-    def __init__(self, field, name,type):
+    def __init__(self, field, name, type):
         self.field = field
         self.amount_field_name = name
-        self.type= type
+        self.type = type
         self.currency_field_name = currency_field_name(name)
         self.vat_field_name = vat_field_name(name)
 
     def _get_values(self, obj):
         return (obj.__dict__.get(self.amount_field_name, None),
-                obj.__dict__.get(self.currency_field_name, None),obj.__dict__.get(self.vat_field_name, None))
+                obj.__dict__.get(self.currency_field_name, None), obj.__dict__.get(self.vat_field_name, None))
 
     def _set_values(self, obj, amount, currency, vat):
         obj.__dict__[self.amount_field_name] = amount
@@ -314,25 +305,14 @@ class PriceProxy:
         return Price(amount, Currency(currency), vat)
 
     def __set__(self, obj, value):
-        if value is None: # Money(0) is False
-            self._set_values(obj, None, '',Decimal("1.21"))
+        if value is None:  # Money(0) is False
+            self._set_values(obj, None, '', Decimal("1.21"))
         elif isinstance(value, Price):
-            self._set_values(obj, value.amount, value.currency.iso,value.vat)
+            self._set_values(obj, value.amount, value.currency.iso, value.vat)
         else:
-            try:
-                amount = Decimal(str(value))
-                _, currency, vat = self._get_values(obj) # use what is currently set
-                self._set_values(obj, amount, currency, vat)
-            except TypeError:
-                # Lastly, assume string type 'XXX 123' or something Money can
-                # handle.
-                try:
-                    _, currency = self._get_values(obj) # use what is currently set
-                    m = money_types[self.type].from_string(str(value))
-                    self._set_values(obj, m.amount, m.currency,m.vat)
-                except TypeError:
-                    msg = 'Cannot assign "%s"' % type(value)
-                    raise TypeError(msg)
+            amount = Decimal(str(value))
+            _, currency, vat = self._get_values(obj)  # use what is currently set
+            self._set_values(obj, amount, currency, vat)
 
 
 class PriceField(models.DecimalField):
@@ -367,7 +347,7 @@ class PriceField(models.DecimalField):
             c_field.creation_counter = self.creation_counter
             cls.add_to_class(vat_field_name(name), c_field)
         super(PriceField, self).contribute_to_class(cls, name)
-        setattr(cls, name, PriceProxy(self, name,self.type))
+        setattr(cls, name, PriceProxy(self, name, self.type))
 
     # The boiler needs some plating
     def get_db_prep_save(self, value, *args, **kwargs):
@@ -376,7 +356,7 @@ class PriceField(models.DecimalField):
             return super(PriceField, self).get_db_prep_save(value, *args, **kwargs)
 
     def get_prep_lookup(self, lookup_type, value):
-        if isinstance(value,  Price):
+        if isinstance(value, Price):
             value = value.amount
             return super(PriceField.get_prep_lookup(lookup_type, value))
 
@@ -385,9 +365,11 @@ class PriceField(models.DecimalField):
         return value.amount
 
 
-    # What VAT level is it on?
+        # What VAT level is it on?
+
+
 class SalesPrice(Price):
-    def __init__(self,amount, currency, vat, cost):
+    def __init__(self, amount, currency, vat, cost):
         self._amount = amount
         self._currency = currency
         self._vat = vat
@@ -397,50 +379,53 @@ class SalesPrice(Price):
     def cost(self):
         return self._cost
 
-    def __add__(self,oth):
+    def __add__(self, oth):
         if type(oth) != SalesPrice:
             raise TypeError("Cannot Add money to " + str(type(oth)))
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be added not the same. Got "+ oth.vat+" and "+self.vat)
-        if oth.currency== self.currency:
-            return SalesPrice(self.amount + oth.amount, self.currency,self.vat, self.cost+oth.cost)
+            raise TypeError("Vat levels of numbers to be added not the same. Got " + oth.vat + " and " + self.vat)
+        if oth.currency == self.currency:
+            return SalesPrice(self.amount + oth.amount, self.currency, self.vat, self.cost + oth.cost)
         else:
             raise TypeError("Trying to add different currencies")
 
-    def __sub__(self,oth):
+    def __sub__(self, oth):
         if type(oth) != SalesPrice:
             raise TypeError("Cannot Subtract money to " + str(type(oth)))
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be subtracted not the same. Got "+ oth.vat+" and "+self.vat)
-        if oth.currency== self.currency:
-            return SalesPrice(self.amount - oth.amount, self.currency,self.vat, self.cost-oth.cost)
+            raise TypeError("Vat levels of numbers to be subtracted not the same. Got " + oth.vat + " and " + self.vat)
+        if oth.currency == self.currency:
+            return SalesPrice(self.amount - oth.amount, self.currency, self.vat, self.cost - oth.cost)
         else:
             raise TypeError("Trying to subtract different currencies")
 
     def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
-            return SalesPrice(self.amount * other, self.currency,self.vat, self.cost * other)
+        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
+            return SalesPrice(self.amount * other, self.currency, self.vat, self.cost * other)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
+
     def get_profit(self):
-        return self.amount/self.vat-self.cost
+        return self.amount / self.vat - self.cost
+
     def get_margin(self):
-        return self.get_profit()/self.cost
+        return self.get_profit() / self.cost
 
 
 class SalesPriceProxy:
     # sets the correct column names for this field.
-    def __init__(self, field, name,type):
+    def __init__(self, field, name, type):
         self.field = field
         self.amount_field_name = name
-        self.type= type
+        self.type = type
         self.currency_field_name = currency_field_name(name)
         self.cost_field = cost_field_name(name)
         self.vat_field_name = vat_field_name(name)
 
     def _get_values(self, obj):
         return (obj.__dict__.get(self.amount_field_name, None),
-                obj.__dict__.get(self.currency_field_name, None),obj.__dict__.get(self.vat_field_name, None),obj.__dict__.get(self.cost_field, None))
+                obj.__dict__.get(self.currency_field_name, None), obj.__dict__.get(self.vat_field_name, None),
+                obj.__dict__.get(self.cost_field, None))
 
     def _set_values(self, obj, amount, currency, vat, cost):
         obj.__dict__[self.amount_field_name] = amount
@@ -456,25 +441,15 @@ class SalesPriceProxy:
         return SalesPrice(amount, Currency(currency), vat, cost)
 
     def __set__(self, obj, value):
-        if value is None: # Money(0) is False
-            self._set_values(obj, None, '',Decimal("0"), Decimal("0"))
+        if value is None:  # Money(0) is False
+            self._set_values(obj, None, '', Decimal("0"), Decimal("0"))
         elif isinstance(value, SalesPrice):
-            self._set_values(obj, value.amount, value.currency.iso,value.vat, value.cost)
+            self._set_values(obj, value.amount, value.currency.iso, value.vat, value.cost)
         else:
-            try:
-                amount = Decimal(str(value))
-                _, currency, vat,cost = self._get_values(obj) # use what is currently set
-                self._set_values(obj, amount, currency, vat,cost)
-            except TypeError:
-                # Lastly, assume string type 'XXX 123' or something Money can
-                # handle.
-                try:
-                    _, currency = self._get_values(obj) # use what is currently set
-                    m = money_types[self.type].from_string(str(value))
-                    self._set_values(obj, m.amount, m.currency,m.vat,m.cost)
-                except TypeError:
-                    msg = 'Cannot assign "%s"' % type(value)
-                    raise TypeError(msg)
+
+            amount = Decimal(str(value))
+            _, currency, vat, cost = self._get_values(obj)  # use what is currently set
+            self._set_values(obj, amount, currency, vat, cost)
 
 
 class SalesPriceField(models.DecimalField):
@@ -514,7 +489,7 @@ class SalesPriceField(models.DecimalField):
             c_field.creation_counter = self.creation_counter
             cls.add_to_class(cost_field_name(name), c_field)
         super(SalesPriceField, self).contribute_to_class(cls, name)
-        setattr(cls, name, SalesPriceProxy(self, name,self.type))
+        setattr(cls, name, SalesPriceProxy(self, name, self.type))
 
     # The boiler needs some plating
     def get_db_prep_save(self, value, *args, **kwargs):
@@ -523,7 +498,7 @@ class SalesPriceField(models.DecimalField):
             return super(SalesPriceField, self).get_db_prep_save(value, *args, **kwargs)
 
     def get_prep_lookup(self, lookup_type, value):
-        if isinstance(value,  SalesPrice):
+        if isinstance(value, SalesPrice):
             value = value.amount
             return super(SalesPriceField.get_prep_lookup(lookup_type, value))
 
@@ -552,7 +527,6 @@ class TestSalesPriceType(models.Model):
 class TestPriceType(models.Model):
     price = PriceField(type="cost")
 
+
 # Define monetary types here
-money_types = {}
-money_types["cost"]=Cost
-money_types["money"] = Money
+money_types = {"cost": Cost, "money": Money}
