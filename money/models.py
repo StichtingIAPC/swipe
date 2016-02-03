@@ -379,6 +379,32 @@ class SalesPrice:
         self.vat = vat
         self.cost = cost
 
+    def __add__(self,oth):
+        if type(oth) != SalesPrice:
+            raise TypeError("Cannot Add money to " + str(type(oth)))
+        if oth.vat != self.vat:
+            raise TypeError("Vat levels of numbers to be added not the same. Got "+ oth.vat+" and "+self.vat)
+        if oth.currency== self.currency:
+            return SalesPrice(self.amount + oth.amount, self.currency,self.vat, self.cost+oth.cost)
+        else:
+            raise TypeError("Trying to add different currencies")
+
+    def __sub__(self,oth):
+        if type(oth) != SalesPrice:
+            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+        if oth.vat != self.vat:
+            raise TypeError("Vat levels of numbers to be subtracted not the same. Got "+ oth.vat+" and "+self.vat)
+        if oth.currency== self.currency:
+            return SalesPrice(self.amount - oth.amount, self.currency,self.vat, self.cost-oth.cost)
+        else:
+            raise TypeError("Trying to subtract different currencies")
+
+    def __mul__(self, other):
+        if isinstance(other, int) or isinstance(other,float) or isinstance(other,Decimal):
+            return SalesPrice(self.amount * other, self.currency,self.vat, self.cost * other)
+        else:
+            raise TypeError("Cannot Multiply money with" + str(type(other)))
+
 
 class SalesPriceProxy:
     # sets the correct column names for this field.
