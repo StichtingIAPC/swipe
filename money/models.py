@@ -414,6 +414,9 @@ class SalesPrice(Price):
     def get_margin(self):
         return self.get_profit() / self.cost
 
+    def __str__(self):
+        return str(self.currency.iso)+ " price: "+str(self.amount)+", cost: "+str(self.cost)
+
 
 class SalesPriceProxy:
     """
