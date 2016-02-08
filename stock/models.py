@@ -2,7 +2,6 @@ from decimal import Decimal
 from django.db import models
 # Create your models here.
 from django.db import transaction
-
 from article.models import ArticleType
 from money.models import SalesPriceField, SalesPrice
 
@@ -46,8 +45,6 @@ class Stock(models.Model):
         return merge_line
 
     def __str__(self):
-        if self is None:
-            return "Nonetype"
         return (
             str(self.pk) + "|" + str(self.article) + "; Count: " + str(self.count) + "; Price: " + str(self.salesprice))
 
@@ -58,7 +55,7 @@ class StockLog(models.Model):
 
     @transaction.atomic
     def log(desc, entries):
-        #TODO: check negative stock
+        # TODO: check negative stock
         sl = StockLog.objects.create(description=desc)
         for entry in entries:
             entry.log_entry = sl
