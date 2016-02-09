@@ -13,11 +13,11 @@ class Stock(models.Model):
 
         article: What product is this line about?
         count: How many are in stock?
-        salesprice: What's the salesprice for this product?
+        book_value: What's the cost per product for this product?
     """
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
-    cost = CostField()
+    book_value = CostField()
 
     def save(self, indirect=False, *args, **kwargs):
         if not indirect and not kwargs.get("force_update", False):
@@ -44,16 +44,16 @@ class Stock(models.Model):
                     save = False
         # Create new merge_line
         if not merge_line:
-            print("HERE")
             if stock_mod.get_count() < 0:
                 raise Exception("Stock levels can't be below zero.")
-            merge_line = Stock(article=stock_mod.article, cost=stock_mod.cost, count=stock_mod.get_count())
+            merge_line = Stock(article=stock_mod.article, book_value=stock_mod.book_value, count=stock_mod.get_count())
         else:
-            # Merge average cost
+            # Merge average book_value
+            if merge_line.book_value.currency != stock_mod.book_value.currency:
+                raise ValueError("Trying to use two different currencies in stock, transaction failed. Got "+str(merge_line.book_value.currency )+" and " +str(stock_mod.book_value.currency))
             merge_cost_total = (
-                merge_line.cost.amount* merge_line.count + stock_mod.cost.amount * stock_mod.get_count())
-            merge_line.cost = Cost(merge_cost_total / (stock_mod.get_count() + merge_line.count),
-                              currency=merge_line.cost.currency)
+                merge_line.book_value* merge_line.count + stock_mod.book_value * stock_mod.get_count())
+            merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
 
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
@@ -67,7 +67,7 @@ class Stock(models.Model):
 
     def __str__(self):
         return (
-            str(self.pk) + "|" + str(self.article) + "; Count: " + str(self.get_count()) + "; Price: " + str(self.salesprice))
+            str(self.pk) + "|" + str(self.article) + "; Count: " + str(self.count) + "; Cost: " + str(self.book_value))
 
 
 class StockLog(models.Model):
@@ -101,11 +101,12 @@ class StockModification(models.Model):
         Article: What article is this Stockmodification a part of
         count: How many articles is this modification?
         is_in: Is this an in  (True) or an out (False)
+        cost: What's the cost (per object) for this modification?
     """
     log_entry = models.ForeignKey(StockLog)
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
-    cost = CostField()
+    book_value = CostField()
     is_in = models.BooleanField()
 
     def get_count(self):

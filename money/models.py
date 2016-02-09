@@ -46,6 +46,9 @@ class Currency:
     def iso(self):
         return self._iso
 
+    def __str__(self):
+        return self.iso
+
     def __eq__(self, other):
         return other is not None and self.iso == other.iso
 
@@ -73,7 +76,6 @@ class Money:
 
     @property
     def amount(self):
-        i = 1
         return self._amount
 
     @property
@@ -111,6 +113,12 @@ class Money:
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
             return Money(self.amount * other, self.currency)
+        else:
+            raise TypeError("Cannot Multiply money with" + str(type(other)))
+
+    def __truediv__(self, other):
+        if isinstance(other, int) and isinstance(self,Money):
+            return Money(self.amount / Decimal(other), self.currency)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
 
@@ -228,8 +236,14 @@ class Cost(Money):
             raise TypeError("Trying to subtract different currencies")
 
     def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
+        if isinstance(other, int):
             return Cost(self.amount * other, self.currency)
+        else:
+            raise TypeError("Cannot Multiply money with" + str(type(other)))
+
+    def __truediv__(self, other):
+        if isinstance(other, int) and isinstance(self,Cost):
+            return Cost(self.amount / Decimal(other), self.currency)
         else:
             raise TypeError("Cannot Multiply money with" + str(type(other)))
 
