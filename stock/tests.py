@@ -16,7 +16,7 @@ class StockTest(TestCase):
 
     def testAddStockDirectly(self):
         i = 0
-        vat = VAT(vatrate=Decimal("1.21"),name="HIGH",active=True)
+        vat = VAT(vatrate=Decimal("1.21"), name="HIGH", active=True)
         vat.save()
         try:
             sp = SalesPrice(amount=Decimal("2.00000"), currency=Currency("USD"), vat=Decimal("1.21"),
@@ -41,9 +41,9 @@ class StockTest(TestCase):
 
         stocks = Stock.objects.all()
         for stock in stocks:
-            print(stock.article == art)
-            print(stock.count)
-            print(stock.article)
+            self.assertEqual(stock.count,2)
+            self.assertEquals(stock.article, art)
+            self.assertEquals(stock.salesprice,sp)
 
     def testAddMultipleToStock(self):
         vat = VAT(vatrate=Decimal("1.21"),name="HIGH",active=True)
@@ -60,9 +60,9 @@ class StockTest(TestCase):
         stocks = Stock.objects.all()
         print("Start multiple to stock")
         for stock in stocks:
-            print(stock.article == art)
-            print(stock.count)
-            print(stock)
+            self.assertEqual(stock.count,6)
+            self.assertEquals(stock.article, art)
+            self.assertEquals(stock.salesprice,sp)
 
     def testAddTwoDifferentArticlesToStock(self):
         vat = VAT(vatrate=Decimal("1.21"),name="HIGH",active=True)

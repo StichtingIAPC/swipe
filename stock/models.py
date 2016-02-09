@@ -43,6 +43,8 @@ class Stock(models.Model):
 
             # Update stockmod count
             merge_line.count += stock_mod.count
+
+            # TODO: Decide if we want this guard
             if merge_line.count < 0:
                 raise Exception("Stock levels can't be below zero.")
             return None
@@ -57,15 +59,11 @@ class StockLog(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=255)
 
+    @staticmethod
     @transaction.atomic
-    def log(desc, entries):
+    def log(description, entries):
         # TODO: check negative stock
-        sl = StockLog.objects.create(description=desc)
-        for entry in entries:
-            entry.log_entry = sl
-            entry.save()
-
-        entries = StockModification.objects.filter(log_entry=sl.pk)
+        sl = StockLog.objects.create(description=description)
         modifications = []
         for entry in entries:
             md = Stock.modify(entry, modifications)
@@ -73,6 +71,9 @@ class StockLog(models.Model):
                 modifications.append(md)
         for mod in modifications:
             mod.save(True)
+        for entry in entries:
+            entry.log_entry = sl
+            entry.save()
 
 
 class StockModification(models.Model):

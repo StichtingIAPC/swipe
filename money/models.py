@@ -77,6 +77,9 @@ class Money:
     def currency(self):
         return self._currency
 
+    def __eq__(self,other):
+        return type(other) == Money and self.amount == other.amount and self.currency == other.currency
+
     def __str__(self):
         return "{}: {}".format(self.currency.iso, self._amount)
 
@@ -245,6 +248,9 @@ class Price(Money):
     def vat(self):
         return self._vat
 
+    def __eq__(self,other):
+        return type(other) == Price and self.amount == other.amount and self.currency == other.currency and self.vat == other.vat
+
     def compare(item1, item2):
         if type(item1) != type(item2):
             raise TypeError("Types of items compared not compatible")
@@ -381,6 +387,9 @@ class SalesPrice(Price):
     @property
     def cost(self):
         return self._cost
+
+    def __eq__(self,other):
+        return type(other) == SalesPrice and self.amount == other.amount and self.currency == other.currency and self.vat == other.vat and self.cost == other.cost
 
     def __add__(self, oth):
         if type(oth) != SalesPrice:
