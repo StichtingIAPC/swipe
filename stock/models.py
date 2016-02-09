@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 from django.db import transaction
 from article.models import ArticleType
-from money.models import SalesPriceField, SalesPrice
+from money.models import SalesPriceField, SalesPrice, Cost
 
 
 class Stock(models.Model):
@@ -36,10 +36,9 @@ class Stock(models.Model):
         else:
             merge_cost_total = (
                 merge_line.salesprice.cost * merge_line.count + stock_mod.salesprice.cost * stock_mod.count)
-            merge_cost = merge_cost_total / (stock_mod.count + merge_line.count)
+            merge_cost = Cost(merge_cost_total / (stock_mod.count + merge_line.count), currency=merge_line.salesprice.currency)
             # Todo: recalculate salesprice; check VAT's; check currencies
-            merge_line.salesprice = SalesPrice(amount=Decimal(-1.0), currency=merge_line.salesprice.currency,
-                                               vat=merge_line.salesprice.vat, cost=merge_cost)
+            merge_line.salesprice = stock_mod.article.calculate_sales_price(merge_cost)
             merge_line.count += stock_mod.count
             return None
         return merge_line
