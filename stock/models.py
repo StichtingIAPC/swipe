@@ -3,13 +3,21 @@ from django.db import models
 # Create your models here.
 from django.db import transaction
 from article.models import ArticleType
-from money.models import SalesPriceField, SalesPrice, Cost
+from money.models import SalesPriceField, SalesPrice, Cost, CostField
 
 
 class Stock(models.Model):
+    """
+        Keeps track of the current state of the stock
+        Do not edit this thing directly, use StockLog.log istead.
+
+        article: What product is this line about?
+        count: How many are in stock?
+        salesprice: What's the salesprice for this product?
+    """
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
-    salesprice = SalesPriceField()
+    cost = CostField()
 
     def save(self, indirect=False, *args, **kwargs):
         if not indirect and not kwargs.get("force_update", False):
@@ -33,33 +41,40 @@ class Stock(models.Model):
             for mods in other_modifications:
                 if mods.article == stock_mod.article:
                     merge_line = mods
-                    save=False
+                    save = False
         # Create new merge_line
         if not merge_line:
-            merge_line = Stock(article=stock_mod.article, salesprice=stock_mod.salesprice, count=stock_mod.count)
+            print("HERE")
+            if stock_mod.get_count() < 0:
+                raise Exception("Stock levels can't be below zero.")
+            merge_line = Stock(article=stock_mod.article, cost=stock_mod.cost, count=stock_mod.get_count())
         else:
             # Merge average cost
             merge_cost_total = (
-                merge_line.salesprice.cost * merge_line.count + stock_mod.salesprice.cost * stock_mod.count)
-            merge_cost = Cost(merge_cost_total / (stock_mod.count + merge_line.count), currency=merge_line.salesprice.currency)
-            # Calculate new sales price based on the new cost.
-            merge_line.salesprice = stock_mod.article.calculate_sales_price(merge_cost)
+                merge_line.cost.amount* merge_line.count + stock_mod.cost.amount * stock_mod.get_count())
+            merge_line.cost = Cost(merge_cost_total / (stock_mod.get_count() + merge_line.count),
+                              currency=merge_line.cost.currency)
 
             # Update stockmod count
-            merge_line.count += stock_mod.count
+            merge_line.count += stock_mod.get_count()
 
             # TODO: Decide if we want this guard
             if merge_line.count < 0:
                 raise Exception("Stock levels can't be below zero.")
+
         merge_line.save(True)
         return merge_line
 
     def __str__(self):
         return (
-            str(self.pk) + "|" + str(self.article) + "; Count: " + str(self.count) + "; Price: " + str(self.salesprice))
+            str(self.pk) + "|" + str(self.article) + "; Count: " + str(self.get_count()) + "; Price: " + str(self.salesprice))
 
 
 class StockLog(models.Model):
+    """
+        date: When did this modification take place?
+        description: please describe what happened here.
+    """
     date = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=255)
 
@@ -81,10 +96,23 @@ class StockLog(models.Model):
 
 
 class StockModification(models.Model):
+    """
+        Log_entry: the Stocklog this Modification is a part of
+        Article: What article is this Stockmodification a part of
+        count: How many articles is this modification?
+        is_in: Is this an in  (True) or an out (False)
+    """
     log_entry = models.ForeignKey(StockLog)
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
-    salesprice = SalesPriceField()
+    cost = CostField()
+    is_in = models.BooleanField()
+
+    def get_count(self):
+        if self.is_in:
+            return self.count
+        else:
+            return -1*self.count
 
     def __str__(self):
         return str(self.pk) + ": " + str(self.count) + " x " + str(self.article)
