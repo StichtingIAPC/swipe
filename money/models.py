@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.db import models
-
+# Based on https://git.iapc.utwente.nl/swipe/swipe-design/issues/22
 # Create your models here.
 
 # Global money representation parameters
@@ -48,19 +48,19 @@ class Currency:
 
 
 def currency_field_name(name):
-    return "%s_currency" % name
+    return "{}_currency".format(name)
 
 
 def vat_field_name(name):
-    return "%s_vat" % name
+    return "{}_vat".format(name)
 
 
 def cost_field_name(name):
-    return "%s_cost" % name
+    return "{}_cost".format(name)
 
 
 def price_field_name(name):
-    return "%s_price" % name
+    return "{}_price".format(name)
 
 
 class Money:
@@ -78,13 +78,13 @@ class Money:
         return self._currency
 
     def __str__(self):
-        return self.currency._iso + ": " + str(self._amount)
+        return "{}: {}".format(self.currency.iso, self._amount)
 
-    def compare(item1, item2):
-        if type(item1) != type(item2):
+    def compare(self, item2):
+        if type(self) != type(item2):
             raise TypeError("Types of items compared not compatible")
         else:
-            return item1 == item2
+            return self == item2
 
     def __add__(self, oth):
         if type(oth) != Money:
