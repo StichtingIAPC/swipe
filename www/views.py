@@ -3,4 +3,4 @@ from django.shortcuts import render
 
 
 def home(request):
-    raise Http404()
+    return render(request, 'www/index.html')

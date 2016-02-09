@@ -1,0 +1,11 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Home '%}{% endblock %}`s
+
+{% block content %}
+    <p>{% if user.is_authenticated %}Logged in as {{ user }}{% else %}You are not logged in.{% endif %}</p>
+    <p><a href="{% url 'supplier_list' %}">Suppliers</a></p>
+    <p>{% if user.is_authenticated %}<a href="{% url 'logout' %}">Logout</a> - <a href="{% url 'switch_user' %}">Switch user</a>{% else %}<a href="{% url 'login' %}">Login</a>{% endif %}</p>
+{% endblock %}
