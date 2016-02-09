@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import ugettext as _
 
 
 class SoftDeletableQuerySet(models.QuerySet):
@@ -39,7 +40,7 @@ class SoftDeletable(models.Model):
     """
     SoftDeletable models the behaviour for a model to be soft deletable.
     """
-    is_deleted = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(verbose_name=_('is deleted'), default=False)
 
     objects = SoftDeletableManager()
 
