@@ -61,3 +61,12 @@ class SoftDeletable(models.Model):
 
     class Meta:
         abstract = True
+
+
+class Timestamped(models.Model):
+    create_date = models.DateTimeField(verbose_name=_('created'), auto_now_add=True, editable=False)
+    modify_date = models.DateTimeField(verbose_name=_('modified'), auto_now=True, editable=False)
+
+    class Meta:
+        ordering = ['-modify_date', '-create_date']
+        abstract = True
