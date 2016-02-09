@@ -33,16 +33,22 @@ class StockTest(TestCase):
         vat.save()
         sp = SalesPrice(amount=Decimal("2.00000"), currency=Currency("USD"), vat=Decimal("1.21"),
                         cost=Decimal("2.19000"))
+
         art = ArticleType(name="P1",vat=vat)
         art.save()
         ES = StockModification(article=art, salesprice=sp, count=2)
-        sl = StockLog.log("henk", [ES])
+        ES2 = StockModification(article=art, salesprice=sp, count=2)
 
+        StockLog.log("henk", [ES])
+        StockLog.log("henk", [ES])
+        print("end log)")
         stocks = Stock.objects.all()
         for stock in stocks:
-            self.assertEqual(stock.count,2)
+            print(stock)
             self.assertEquals(stock.article, art)
-            self.assertEquals(stock.salesprice,sp)
+
+            self.assertEquals(stock.salesprice.amount, Decimal("2.87514"))
+            self.assertEquals(stock.salesprice.cost,sp.cost)
 
     def testAddMultipleToStock(self):
         vat = VAT(vatrate=Decimal("1.21"),name="HIGH",active=True)

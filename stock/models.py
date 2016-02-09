@@ -11,11 +11,11 @@ class Stock(models.Model):
     count = models.IntegerField()
     salesprice = SalesPriceField()
 
-    def save(self, indirect=False, **kwargs):
+    def save(self, indirect=False, *args, **kwargs):
         if not indirect and not kwargs.get("force_update", False):
             raise AssertionError(
                 "Stock modifications shouldn't be done directly, but rather, they should be done on StockLog.")
-        super(Stock, self).save(self, kwargs)
+        super(Stock, self).save(args, kwargs)
 
     @staticmethod
     def get_merge_line(mod):
@@ -27,10 +27,14 @@ class Stock(models.Model):
     @staticmethod
     def modify(stock_mod, other_modifications):
         merge_line = Stock.get_merge_line(stock_mod)
+        save = True
+        # Check if it's already added this round
         if not merge_line:
             for mods in other_modifications:
                 if mods.article == stock_mod.article:
                     merge_line = mods
+                    save=False
+        # Create new merge_line
         if not merge_line:
             merge_line = Stock(article=stock_mod.article, salesprice=stock_mod.salesprice, count=stock_mod.count)
         else:
@@ -47,7 +51,7 @@ class Stock(models.Model):
             # TODO: Decide if we want this guard
             if merge_line.count < 0:
                 raise Exception("Stock levels can't be below zero.")
-            return None
+        merge_line.save(True)
         return merge_line
 
     def __str__(self):
@@ -69,11 +73,11 @@ class StockLog(models.Model):
             md = Stock.modify(entry, modifications)
             if md is not None:
                 modifications.append(md)
-        for mod in modifications:
-            mod.save(True)
+
         for entry in entries:
             entry.log_entry = sl
             entry.save()
+        return sl
 
 
 class StockModification(models.Model):
