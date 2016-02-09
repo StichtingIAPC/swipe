@@ -19,6 +19,9 @@ class VAT(models.Model):
     # Is this VAT level in use?
     active = models.BooleanField()
 
+    def __str__(self):
+        return self.name+":"+self.vatrate
+
     def to_rate_string(self):
         return ((self.rate - 1) * 100) + "%"
 

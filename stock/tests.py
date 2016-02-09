@@ -37,7 +37,6 @@ class StockTest(TestCase):
         art.save()
         ES = StockModification(article=art, salesprice=sp, count=2)
         sl = StockLog.log("henk", [ES])
-        print("Start single")
 
         stocks = Stock.objects.all()
         for stock in stocks:
@@ -58,11 +57,10 @@ class StockTest(TestCase):
         ES2 = StockModification(article=art, salesprice=sp2, count=1)
         sl = StockLog.log("henk", [ES, ES2])
         stocks = Stock.objects.all()
-        print("Start multiple to stock")
         for stock in stocks:
             self.assertEqual(stock.count,6)
             self.assertEquals(stock.article, art)
-            self.assertEquals(stock.salesprice,sp)
+            self.assertEquals(stock.salesprice,SalesPrice(amount=Decimal("3.28212"),currency=Currency("USD"),vat=Decimal("1.21"),cost=Decimal("2.50")))
 
     def testAddTwoDifferentArticlesToStock(self):
         vat = VAT(vatrate=Decimal("1.21"),name="HIGH",active=True)
@@ -76,8 +74,10 @@ class StockTest(TestCase):
         ES = StockModification(article=art, salesprice=sp, count=2)
         ES2 = StockModification(article=art2, salesprice=sp, count=3)
         stocks = Stock.objects.all()
-        print("Start two different")
         sl = StockLog.log("henk", [ES, ES2])
         for stock in stocks:
-            print(stock.article == art)
-            print(stock.count)
+            if stock.article == art:
+                self.assertEqual(stock.count,ES.count)
+            if stock.article == art2:
+                self.assertEqual(stock.count,ES2.count)
+
