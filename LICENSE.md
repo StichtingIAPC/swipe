@@ -49,3 +49,4 @@ List of contributors
 - Léon van der Kaap
 - Nander Voortman
 - Matthias van de Meent
+- Wilfried van Asten

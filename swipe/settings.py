@@ -24,6 +24,12 @@ DEBUG = False
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
+
+
+# Monetary precision. Don't change unless you know what you're doing.
+DECIMAL_PLACES = 5
+MAX_DIGITS = 28
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -35,7 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
     'www',
-    'supplier'
+    'supplier',
+    'money'
 ]
 
 MIDDLEWARE_CLASSES = [
