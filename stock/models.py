@@ -34,12 +34,17 @@ class Stock(models.Model):
         if not merge_line:
             merge_line = Stock(article=stock_mod.article, salesprice=stock_mod.salesprice, count=stock_mod.count)
         else:
+            # Merge average cost
             merge_cost_total = (
                 merge_line.salesprice.cost * merge_line.count + stock_mod.salesprice.cost * stock_mod.count)
             merge_cost = Cost(merge_cost_total / (stock_mod.count + merge_line.count), currency=merge_line.salesprice.currency)
-            # Todo: recalculate salesprice; check VAT's; check currencies
+            # Calculate new sales price based on the new cost.
             merge_line.salesprice = stock_mod.article.calculate_sales_price(merge_cost)
+
+            # Update stockmod count
             merge_line.count += stock_mod.count
+            if merge_line.count < 0:
+                raise Exception("Stock levels can't be below zero.")
             return None
         return merge_line
 

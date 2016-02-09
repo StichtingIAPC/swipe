@@ -11,9 +11,7 @@ from money.models import Currency, VAT, SalesPrice
 
 class StockTest(TestCase):
 
-
     def setup(self):
-
         pass
 
     def testAddStockDirectly(self):
