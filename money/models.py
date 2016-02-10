@@ -517,7 +517,6 @@ class SalesPriceField(models.DecimalField):
 
         return name, path, args, kwargs
 
-
     def contribute_to_class(self, cls, name, virtual_only=False):
         if self.add_currency_field:
             c_field = CurrencyField(max_length=3)

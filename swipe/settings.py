@@ -29,7 +29,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 # Monetary precision. Don't change unless you know what you're doing.
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
-
+ALLOW_NEGATIVE_STOCK = False
 # Application definition
 
 INSTALLED_APPS = [

@@ -5,6 +5,7 @@ from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
+from swipe.settings import ALLOW_NEGATIVE_STOCK
 
 
 class Stock(models.Model):
@@ -24,7 +25,7 @@ class Stock(models.Model):
         if not indirect and not kwargs.get("force_update", False):
             raise Id10TError(
                 "Stock modifications shouldn't be done directly, but rather, they should be done on StockLog.")
-        super(Stock, self).save(args, kwargs)
+        super(Stock, self).save(*args, **kwargs)
 
     @staticmethod
     def get_merge_line(mod):
@@ -34,20 +35,16 @@ class Stock(models.Model):
         return None
 
     @staticmethod
-    def modify(stock_mod, other_modifications):
+    def modify(stock_mod):
         merge_line = Stock.get_merge_line(stock_mod)
-        # Check if it's already added this round
-        if not merge_line:
-            for mods in other_modifications:
-                if mods.article == stock_mod.article:
-                    merge_line = mods
         # Create new merge_line
         if not merge_line:
             merge_line = Stock(article=stock_mod.article, book_value=stock_mod.book_value, count=stock_mod.get_count())
         else:
             # Merge average book_value
             if merge_line.book_value.currency != stock_mod.book_value.currency:
-                raise CurrencyInconsistencyError("Trying to use two different currencies in stock, transaction failed. Got "+str(merge_line.book_value.currency )+" and " +str(stock_mod.book_value.currency))
+                raise CurrencyInconsistencyError("GOT {} instead of {}".format(merge_line.book_value.currency,
+                        stock_mod.book_value.currency))
             merge_cost_total = (
                 merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
             merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
@@ -56,15 +53,14 @@ class Stock(models.Model):
             merge_line.count += stock_mod.get_count()
 
         # TODO: Decide if we want this guard
-        if merge_line.count < 0:
+        if merge_line.count < 0 and not ALLOW_NEGATIVE_STOCK:
             raise StockSmallerThanZeroError("Stock levels can't be below zero.")
 
         merge_line.save(True)
         return merge_line
 
     def __str__(self):
-        return (
-            str(self.pk) + "|" + str(self.article) + "; Count: " + str(self.count) + "; Cost: " + str(self.book_value))
+        return "{}| {}: {} @ {}".format(self.pk, self.article, self.count, self.book_value)
 
 
 class StockLog(models.Model):
@@ -74,21 +70,22 @@ class StockLog(models.Model):
     """
     date = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=255)
+    entries = None
 
-    @staticmethod
+    def __init__(self, *args, **kwargs):
+        # Remove the entries from the kwargs, super call doesn't accept them.
+        self.entries = kwargs.pop("entries",[])
+        super(StockLog, self).__init__(*args, **kwargs)
+
     @transaction.atomic
-    def log(description, entries):
-        sl = StockLog.objects.create(description=description)
-        modifications = []
-        for entry in entries:
-            md = Stock.modify(entry, modifications)
-            if md is not None:
-                modifications.append(md)
-
-        for entry in entries:
-            entry.log_entry = sl
+    def save(self, *args, **kwargs):
+        super(StockLog, self).save(*args, **kwargs)
+        for entry in self.entries:
+            Stock.modify(entry)
+        for entry in self.entries:
+            entry.log_entry = self
             entry.save()
-        return sl
+        return self
 
 
 class StockModification(models.Model):
@@ -109,7 +106,7 @@ class StockModification(models.Model):
         if self.is_in:
             return self.count
         else:
-            return -1*self.count
+            return -1 * self.count
 
     def __str__(self):
-        return str(self.pk) + ": " + str(self.count) + " x " + str(self.article)
+        return "{}| {} x {}".format(self.pk,self.count,self.article)
