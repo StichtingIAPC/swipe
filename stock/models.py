@@ -44,8 +44,6 @@ class Stock(models.Model):
                     save = False
         # Create new merge_line
         if not merge_line:
-            if stock_mod.get_count() < 0:
-                raise Exception("Stock levels can't be below zero.")
             merge_line = Stock(article=stock_mod.article, book_value=stock_mod.book_value, count=stock_mod.get_count())
         else:
             # Merge average book_value
@@ -59,8 +57,8 @@ class Stock(models.Model):
             merge_line.count += stock_mod.get_count()
 
             # TODO: Decide if we want this guard
-            if merge_line.count < 0:
-                raise Exception("Stock levels can't be below zero.")
+        if merge_line.count < 0:
+            raise Exception("Stock levels can't be below zero.")
 
         merge_line.save(True)
         return merge_line
