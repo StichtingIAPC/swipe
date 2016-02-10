@@ -3,6 +3,8 @@ from django.db import models
 from django.db import transaction
 from article.models import ArticleType
 from money.models import CostField
+from stock.exceptions import *
+from money.exceptions import CurrencyInconsistencyError
 
 
 class Stock(models.Model):
@@ -20,7 +22,7 @@ class Stock(models.Model):
 
     def save(self, indirect=False, *args, **kwargs):
         if not indirect and not kwargs.get("force_update", False):
-            raise AssertionError(
+            raise Id10TError(
                 "Stock modifications shouldn't be done directly, but rather, they should be done on StockLog.")
         super(Stock, self).save(args, kwargs)
 
@@ -45,7 +47,7 @@ class Stock(models.Model):
         else:
             # Merge average book_value
             if merge_line.book_value.currency != stock_mod.book_value.currency:
-                raise ValueError("Trying to use two different currencies in stock, transaction failed. Got "+str(merge_line.book_value.currency )+" and " +str(stock_mod.book_value.currency))
+                raise CurrencyInconsistencyError("Trying to use two different currencies in stock, transaction failed. Got "+str(merge_line.book_value.currency )+" and " +str(stock_mod.book_value.currency))
             merge_cost_total = (
                 merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
             merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
@@ -55,7 +57,7 @@ class Stock(models.Model):
 
         # TODO: Decide if we want this guard
         if merge_line.count < 0:
-            raise Exception("Stock levels can't be below zero.")
+            raise StockSmallerThanZeroError("Stock levels can't be below zero.")
 
         merge_line.save(True)
         return merge_line

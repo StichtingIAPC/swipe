@@ -4,6 +4,8 @@ from decimal import Decimal
 from datetime import time, datetime
 from django.test import TestCase
 
+from money.exceptions import CurrencyInconsistencyError
+from stock.exceptions import Id10TError, StockSmallerThanZeroError
 from stock.models import Stock, StockModification, StockLog
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost
@@ -24,7 +26,7 @@ class StockTest(TestCase):
             art = ArticleType(name="P1", vat=vat)
             art.save()
             Stock.objects.create(article=art, book_value=sp, count=2)
-        except AssertionError:
+        except Id10TError:
             i = 1
         self.assertEquals(i, 1)
 
@@ -138,13 +140,13 @@ class StockTest(TestCase):
 
         art = ArticleType(name="P1", vat=vat)
         art.save()
-        i=0
+        i = 0
         try:
             for i in range(1, 7):  # 1 to 6. Average: should be 3.5
                 sp = Cost(amount=Decimal(str(i)),currency=cur)
                 es = StockModification(article=art, book_value=sp, count=1, is_in=False)
                 StockLog.log("LOG" + str(i), [es])
-        except Exception:
+        except StockSmallerThanZeroError:
             pass
         self.assertEqual(i,1)
 
@@ -166,11 +168,11 @@ class StockTest(TestCase):
         es = StockModification(article=art, book_value=sp, count=1, is_in=True)
 
           # 1 to 6. Average: should be 3.5
-        i=0
+        i = 0
         try:
             StockLog.log("LOG", [es])
-        except Exception:
-            i=1
+        except CurrencyInconsistencyError:
+            i = 1
         self.assertEqual(i,1)
 
         #Interesting test: there should be no additional lines in Stocklog and Stockmodification
@@ -179,13 +181,11 @@ class StockTest(TestCase):
 
         sp = Cost(amount=Decimal(str(1)),currency=eur)
         es = StockModification(article=art, book_value=sp, count=1, is_in=True)
-        i=0
+        i = 0
         try:
             StockLog.log("LOG", [es])
-        except Exception:
-            i=1
+        except CurrencyInconsistencyError:
+            i = 1
         self.assertEqual(i,0)
         self.assertEqual(len(StockLog.objects.all()),2)
         self.assertEqual(len(StockModification.objects.all()),2)
-
-
