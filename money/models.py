@@ -23,7 +23,7 @@ class VAT(models.Model):
         return self.name+":"+self.vatrate
 
     def to_rate_string(self):
-        return ((self.rate - 1) * 100) + "%"
+        return "{}%".format((self.rate - 1) * 100)
 
 
 class VATLevelField(models.DecimalField):

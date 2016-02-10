@@ -11,7 +11,7 @@ from swipe.settings import ALLOW_NEGATIVE_STOCK
 class Stock(models.Model):
     """
         Keeps track of the current state of the stock
-        Do not edit this thing directly, use StockLog.log istead.
+        Do not edit this thing directly, use StockLog.log instead.
 
         article: What product is this line about?
         count: How many are in stock?
@@ -21,18 +21,18 @@ class Stock(models.Model):
     count = models.IntegerField()
     book_value = CostField()
 
-    def save(self, indirect=False, *args, **kwargs):
-        if not indirect and not kwargs.get("force_update", False):
+    def save(self, *args, indirect=False, **kwargs):
+        if not indirect:
             raise Id10TError(
                 "Stock modifications shouldn't be done directly, but rather, they should be done on StockLog.")
         super(Stock, self).save(*args, **kwargs)
 
     @staticmethod
     def get_merge_line(mod):
-        objects = Stock.objects.filter(article=mod.article)
-        for obj in objects:
-            return obj
-        return None
+        try:
+            return Stock.objects.get(article=mod.article)
+        except Stock.DoesNotExist:
+            return None
 
     @staticmethod
     def modify(stock_mod):
@@ -43,10 +43,9 @@ class Stock(models.Model):
         else:
             # Merge average book_value
             if merge_line.book_value.currency != stock_mod.book_value.currency:
-                raise CurrencyInconsistencyError("GOT {} instead of {}".format(merge_line.book_value.currency,
-                        stock_mod.book_value.currency))
-            merge_cost_total = (
-                merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
+                raise CurrencyInconsistencyError("GOT {} instead of {}".format(
+                    merge_line.book_value.currency, stock_mod.book_value.currency))
+            merge_cost_total = (merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
             merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
 
             # Update stockmod count
@@ -56,7 +55,7 @@ class Stock(models.Model):
         if merge_line.count < 0 and not ALLOW_NEGATIVE_STOCK:
             raise StockSmallerThanZeroError("Stock levels can't be below zero.")
 
-        merge_line.save(True)
+        merge_line.save(indirect=True)
         return merge_line
 
     def __str__(self):
@@ -82,7 +81,6 @@ class StockLog(models.Model):
         super(StockLog, self).save(*args, **kwargs)
         for entry in self.entries:
             Stock.modify(entry)
-        for entry in self.entries:
             entry.log_entry = self
             entry.save()
         return self
@@ -93,8 +91,8 @@ class StockModification(models.Model):
         Log_entry: the Stocklog this Modification is a part of
         Article: What article is this StockModification a part of
         count: How many articles is this modification?
+        book_value: What's the cost (per object) for this modification?
         is_in: Is this an in  (True) or an out (False)
-        cost: What's the cost (per object) for this modification?
     """
     log_entry = models.ForeignKey(StockLog)
     article = models.ForeignKey(ArticleType)
