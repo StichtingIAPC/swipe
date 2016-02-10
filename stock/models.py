@@ -1,9 +1,8 @@
-from decimal import Decimal
 from django.db import models
 # Create your models here.
 from django.db import transaction
 from article.models import ArticleType
-from money.models import SalesPriceField, SalesPrice, Cost, CostField
+from money.models import CostField
 
 
 class Stock(models.Model):
@@ -35,13 +34,11 @@ class Stock(models.Model):
     @staticmethod
     def modify(stock_mod, other_modifications):
         merge_line = Stock.get_merge_line(stock_mod)
-        save = True
         # Check if it's already added this round
         if not merge_line:
             for mods in other_modifications:
                 if mods.article == stock_mod.article:
                     merge_line = mods
-                    save = False
         # Create new merge_line
         if not merge_line:
             merge_line = Stock(article=stock_mod.article, book_value=stock_mod.book_value, count=stock_mod.get_count())
@@ -50,13 +47,13 @@ class Stock(models.Model):
             if merge_line.book_value.currency != stock_mod.book_value.currency:
                 raise ValueError("Trying to use two different currencies in stock, transaction failed. Got "+str(merge_line.book_value.currency )+" and " +str(stock_mod.book_value.currency))
             merge_cost_total = (
-                merge_line.book_value* merge_line.count + stock_mod.book_value * stock_mod.get_count())
+                merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
             merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
 
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
 
-            # TODO: Decide if we want this guard
+        # TODO: Decide if we want this guard
         if merge_line.count < 0:
             raise Exception("Stock levels can't be below zero.")
 
@@ -79,7 +76,6 @@ class StockLog(models.Model):
     @staticmethod
     @transaction.atomic
     def log(description, entries):
-        # TODO: check negative stock
         sl = StockLog.objects.create(description=description)
         modifications = []
         for entry in entries:
@@ -96,7 +92,7 @@ class StockLog(models.Model):
 class StockModification(models.Model):
     """
         Log_entry: the Stocklog this Modification is a part of
-        Article: What article is this Stockmodification a part of
+        Article: What article is this StockModification a part of
         count: How many articles is this modification?
         is_in: Is this an in  (True) or an out (False)
         cost: What's the cost (per object) for this modification?

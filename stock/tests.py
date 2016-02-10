@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from stock.models import Stock, StockModification, StockLog
 from article.models import ArticleType
-from money.models import Currency, VAT, SalesPrice, Cost
+from money.models import Currency, VAT, Cost
 
 
 class StockTest(TestCase):
