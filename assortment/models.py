@@ -1,101 +1,17 @@
 import re
 
-from decimal import Decimal
+
+import math
+
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 from django.db import models
 
+from assortment.config import labels as conf_labels
 
-COUNTING_TYPES = (
-    ('s', 'string'),
-    ('n', 'decimal'),
-    ('i', 'integer'),
-    ('b', 'boolean'),
-)
-
-COUNTING_PARSERS = {
-    's': lambda v: str(v) if re.match(
-        r'^.+$', v) else (_ for _ in ()).throw(
-        AssertionError('input string has to be a non-empty string')),
-    'n': lambda v: Decimal(v) if re.match(
-        r'^[0-9]+(?:\.[0-9]*)?$', v) else (_ for _ in ()).throw(
-        AssertionError('input string has to be a non-empty string, containing at least 1 digit (0-9), '
-                       'and using a dot as a decimal point')),
-    'i': lambda v: int(v) if re.match(
-        r'^[0-9]+$', v) else (_ for _ in ()).throw(
-        AssertionError('input string has to be a non-empty string of at least 1 digit (0-9)')),
-    'b': lambda v: bool(re.match(r'(?:[jty])|ja|true|yes', v)) if re.match(
-        r'^(?:[jntfy]|ja|nee|true|false|yes|no)$', v) else (_ for _ in ()).throw(
-        AssertionError('input string has to be a non-empty string which contains a true/false value matching "'
-                       '[jntfy]|ja|nee|true|false|yes|no"')),
-}
-
-SYMBOL_TYPES = (
-    ('SI', 'the SI standard is in powers of 1000, starting with 1000^-4: f, n, u, m, [], K, M, G, T, P, E, ...'),
-    ('ISQ', 'the ISQ standard is in powers of 1024 (2^10), starting with 1024^0: [], Ki, Mi, Gi, Ti, Pi, Ei, ...'),
-    ('EU', 'the EU millions and milliards `standard`'),
-    ('US', 'the US millions and billions `standard`'),
-)
-
-
-SYMBOL_EXTENDED = {
-    'SI': {
-        'factor': 1000,
-        'start': 1e-12,
-        'values': [
-            ('f', 'femto'),
-            ('n', 'nano'),
-            ('u', 'micro'),
-            ('m', 'milli'),
-            ('', ''),
-            ('K', 'kilo'),
-            ('M', 'mega'),
-            ('G', 'giga'),
-            ('T', 'tera'),
-            ('P', 'peta'),
-            ('E', 'exa')
-        ],
-        'seperator': ''
-    },
-    'ISQ': {
-        'factor': 1024,
-        'start': 1024,
-        'values': [
-            ('Ki', 'kibi'),
-            ('Mi', 'mibi'),
-            ('Gi', 'gibi'),
-            ('Ti', 'tebi'),
-            ('Pi', 'pebi'),
-            ('Ei', 'exbi')
-        ],
-        'seperator': ''
-    },
-    'EU': {
-        'factor': 1000,
-        'start': 1000,
-        'values': [
-            ('1e3', 'thousand'),
-            ('1e6', 'million'),
-            ('1e9', 'milliard'),
-            ('1e12', 'billion'),
-            ('1e15', 'billiard'),
-            ('1e18', 'trillion'),
-        ],
-        'seperator': ' '
-    },
-    'US': {
-        'factor': 1000,
-        'start': 1000,
-        'values': [
-            ('1e3', 'thousand'),
-            ('1e6', 'million'),
-            ('1e9', 'trillion'),
-            ('1e12', 'quadrillion'),
-            ('1e15', 'quintillion'),
-            ('1e18', 'sextillion'),
-        ],
-        'seperator': ' '
-    }
-}
-
+"""
+From here on: Labels
+"""
 
 class Label(models.Model):
     value = models.TextField(max_length=64, editable=False)
@@ -111,13 +27,17 @@ class Label(models.Model):
         super().__init__()
 
     def __str__(self):
-        return self.label_type.to_string(self.value)
+        return self.label_type.to_string(self._value)
 
     class Meta:
         ordering = ['label_type', 'value']
         unique_together = (
             ('value', 'label_type'),
         )
+
+    def save(self, *args, **kwargs):
+        if self.id is None:
+            super(Label, self).save(*args, **kwargs)
 
 
 class LabelType(models.Model):
@@ -131,8 +51,35 @@ class LabelType(models.Model):
     def __init__(self):
         super().__init__()
 
-    def to_string(self, value):
-        return "{}: {}{}".format(self.name_short, value, self.unit_type.type_short)
+    def to_string(self, value, *args, shortened=True):
+        return "{}: {}{}".format(
+            self.name_short,
+            self.to_value_string(value, shortened),
+            self.unit_type.type_short)
+
+    def to_value_string(self, value, shortened=True):
+        if (self.unit_type.counting_type not in ('n', 'i') or
+                self.unit_type.incremental_type is None):
+            return str(value)
+
+        incr_settings = conf_labels.SYMBOL_EXTENDED[self.unit_type.incremental_type]
+        # get the settings of the incrementation
+        rel_value = value / incr_settings['start']
+        # get the value relative to the start of the list
+        index = math.floor(math.log(rel_value, int(incr_settings['factor'])))
+        # calculate the index that the corresponding string is stored
+
+        if index < 0 or index > len(incr_settings['values']):
+            return str(value)
+
+        value_representation = rel_value * math.pow(int(incr_settings['factor']), index)
+        value_symbol, value_symbol_extended = list(incr_settings['values'])[index]
+
+        return "{} {}{}".format(
+            str(value_representation),
+            value_symbol if shortened else value_symbol_extended,
+            incr_settings['seperator']
+        )
 
     def label(self, val):
         value = self.unit_type.parse(val)
@@ -140,19 +87,40 @@ class LabelType(models.Model):
 
 
 class UnitType(models.Model):
-    type_short = models.CharField(max_length=32, unique=True, editable=False)
-    type_long = models.CharField(max_length=2, unique=True, editable=False)
-    counting_type = models.CharField(max_length=1, choices=COUNTING_TYPES, editable=False)
-    incremental_type = models.CharField(max_length=3, choices=SYMBOL_TYPES)
+    type_short = models.CharField(max_length=32, unique=True, editable=False)  # e.g. 'm' for meters, 'l' for liters
+    type_long = models.CharField(max_length=2, unique=True, editable=False)    # e.g. 'meter' or 'liter'
+    counting_type = models.CharField(max_length=1, choices=conf_labels.ENUMERATION_TYPES, editable=False)
+    # is it a string, an integer, a decimal or a boolean?
+    incremental_type = models.CharField(max_length=3, choices=conf_labels.SYMBOL_TYPES, blank=True, null=True)
+    # in case of integer or decimal, do you want it to be visualized in powers of something, like millions, billions,
+    # mega, mini, milliards, etc?
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def __str__(self):
-        return "{} seen as {} using type {}".format(self.type_long, self.type_short, self.get_counting_type_display())
+        if self.incremental_type:
+            return _("{} seen as {} using type {} and formatted using {}".format(
+                self.type_long,
+                self.type_short,
+                self.get_counting_type_display(),
+                self.incremental_type
+            ))
+        else:
+            return _("{} seen as {} using type {}".format(
+                self.type_long,
+                self.type_short,
+                self.get_counting_type_display()
+            ))
 
     def parse(self, value):
-        return COUNTING_PARSERS[self.counting_type](value)
+        return conf_labels.ENUMERATION_PARSERS[self.counting_type](value)
+
+    def clean(self):
+        if self.counting_type in conf_labels.NON_COUNTABLE_ENUMERATION_TYPES and self.incremental_type:
+            # string type etc.
+            raise ValidationError('When the type of the unit is not countable, '
+                                  'you cannot have an incremental_type specified')
 
     class Meta:
         ordering = ['type_short', 'type_long']
