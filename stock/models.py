@@ -64,26 +64,52 @@ class Stock(models.Model):
 
 class StockLog(models.Model):
     """
-        date: When did this modification take place?
-        description: please describe what happened here.
+    A log of one or multiple stock modifications
     """
+
+    # When did the modification occur, will be automatically set to now.
     date = models.DateTimeField(auto_now_add=True)
+    # Description of what happened
     description = models.CharField(max_length=255)
-    entries = None
 
-    def __init__(self, *args, **kwargs):
-        # Remove the entries from the kwargs, super call doesn't accept them.
-        self.entries = kwargs.pop("entries",[])
-        super(StockLog, self).__init__(*args, **kwargs)
+    @classmethod
+    @transaction.atomic()
+    def construct(cls, description, entries):
+        """
+        Construct a modification to the stock, and log it to the StockLog.
+        :param description: A description of what happened
+        :type description: str
+        :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have at least the keys "article", "count", "book_value" and "is_in". See StockModification.
+        :type entries: list(dict)
+        :return: A completed StockLog of the modification
+        :rtype: StockLog
+        """
+        # Check if the entry dictionaries are complete
+        for entry in entries:
+            stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
 
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        super(StockLog, self).save(*args, **kwargs)
-        for entry in self.entries:
-            Stock.modify(entry)
-            entry.log_entry = self
-            entry.save()
-        return self
+            if not all(key in entry.keys() for key in stock_modification_keys):
+                raise ValueError("Missing data in StockLog entry values.\n"
+                                 "Expected keys: {}\n"
+                                 "Entry: {},\n"
+                                 "StockLog description: {}".format(stock_modification_keys, entry, description))
+
+        # Create the StockLog instance to use as a foreign key in the StockModifications
+        sl = StockLog.objects.create(description=description)
+
+        # Create the StockModifications and set the StockLog in them.
+        for entry in entries:
+            try:
+                StockModification.objects.create(log_entry=sl, article=entry['article'], count=entry['count'], book_value=entry['book_value'], is_in=entry['is_in'])
+            except ValueError as e:
+                raise ValueError("Something went wrong while creating the a stock modification: {}".format(e))
+
+        # Modify the stock for each StockModification now linked to the StockLog we created
+        for modification in sl.stockmodification_set.all():
+            Stock.modify(modification)
+
+        # Return the created StockLog
+        return sl
 
 
 class StockModification(models.Model):
@@ -107,4 +133,4 @@ class StockModification(models.Model):
             return -1 * self.count
 
     def __str__(self):
-        return "{}| {} x {}".format(self.pk,self.count,self.article)
+        return "{}| {} x {}".format(self.pk, self.count, self.article)
