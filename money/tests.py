@@ -102,13 +102,13 @@ class MoneyMathTest(TestCase):
         t = False
         try:
             self.m2 + self.m3
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
         t = False
         try:
             self.m2 + self.num
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
 
@@ -120,7 +120,7 @@ class MoneyMathTest(TestCase):
         try:
             self.m2 * self.m3
         # Multiplying money times money is wrong
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
 
@@ -129,13 +129,13 @@ class MoneyMathTest(TestCase):
         t = False
         try:
             self.m2 - self.m3
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
         t = False
         try:
             self.m2 - self.num
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
 
@@ -156,13 +156,13 @@ class CostMathTest(TestCase):
         t = False
         try:
             self.m2 + self.m3
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
         t = False
         try:
             self.m2 + self.num
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
 
@@ -174,7 +174,7 @@ class CostMathTest(TestCase):
         try:
             self.m2 * self.m3
         # Multiplying money times money is wrong
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
 
@@ -183,13 +183,13 @@ class CostMathTest(TestCase):
         t = False
         try:
             self.m2 - self.m3
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
         t = False
         try:
             self.m2 - self.num
-        except TypeError as err:
+        except TypeError:
             t = True
         self.assertTrue(t)
 
@@ -218,7 +218,7 @@ class SalesPriceMathTest(TestCase):
                 self.m1 + w
             except TypeError:
                 i = 1
-            self.assertEqual(i, 1, str(w) + " can't be added to SalesPrice")
+            self.assertEqual(i, 1, "{} can't be added to SalesPrice".format(w))
 
     def testMoneySub(self):
         ans = self.m1 - self.m2
@@ -232,7 +232,7 @@ class SalesPriceMathTest(TestCase):
                 self.m1 - w
             except TypeError:
                 i = 1
-            self.assertEqual(i, 1, str(w) + " can't be subtracted from SalesPrice")
+            self.assertEqual(i, 1, "{} can't be subtracted from SalesPrice".format(w))
 
     def testMoneyMult(self):
         ans = self.m1 * self.num
@@ -246,7 +246,7 @@ class SalesPriceMathTest(TestCase):
                 self.m1 * w
             except TypeError:
                 i = 1
-            self.assertEqual(i, 1, str(w) + " can't be multiplied with SalesPrice")
+            self.assertEqual(i, 1, "{} can't be multiplied with SalesPrice".format(w))
 
     def testSalesPriceMargin(self):
         t = SalesPrice(amount=Decimal("4.00000"), currency=Currency("EUR"), vat=Decimal("2"), cost=Decimal("0.50000"))
