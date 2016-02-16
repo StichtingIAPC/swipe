@@ -434,7 +434,7 @@ class SalesPrice(Price):
         if oth.vat != self.vat:
             raise TypeError("VAT levels of numbers to be subtracted are not the same. Got {} and {}".format(oth.vat, self.vat))
 
-        if oth.currency == self.currency:
+        if oth.currency != self.currency:
             raise TypeError("Trying to subtract different currencies")
 
         return SalesPrice(self.amount - oth.amount, self.currency, self.vat, self.cost - oth.cost)
