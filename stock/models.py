@@ -66,6 +66,9 @@ class StockChangeSet(models.Model):
     """
     A log of one or multiple stock modifications
     """
+
+    date = models.DateTimeField(auto_now_add=True)
+
     # Description of what happened
     memo = models.CharField(max_length=255, null=True)
     # Number to describe what caused this change
@@ -133,7 +136,6 @@ class StockChange(models.Model):
     book_value = CostField()
     is_in = models.BooleanField()
     memo = models.CharField(null=True, max_length=255)
-    date = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -146,6 +148,8 @@ class StockChange(models.Model):
             return self.count
         else:
             return -1 * self.count
-
+    @property
+    def date(self):
+        return self.change_set.date
     def __str__(self):
         return "{}| {} x {}".format(self.pk, self.count, self.article)
