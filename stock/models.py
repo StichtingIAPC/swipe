@@ -11,7 +11,7 @@ from swipe.settings import ALLOW_NEGATIVE_STOCK
 class Stock(models.Model):
     """
         Keeps track of the current state of the stock
-        Do not edit this thing directly, use StockChangeSet.log instead.
+        Do not edit this thing directly, use StockChangeSet.construct instead.
 
         article: What product is this line about?
         count: How many are in stock?
