@@ -55,7 +55,7 @@ List of contributors
 - Léon van der Kaap
 - Matthias van de Meent
 - Wilfried van Asten
-- 
+
 
 
 Swipe Licentie (NIEUW)
