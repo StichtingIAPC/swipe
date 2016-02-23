@@ -34,6 +34,47 @@ class StockTest(TestCase):
 
         self.assertEquals(i, 1)
 
+
+
+    def testAddStockChangeDirectly(self):
+        """
+        Test that tries to add an item to the stock directly.
+        """
+
+        i = 0
+        cur = Currency("EUR")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+
+        try:
+            sp = Cost(amount=Decimal("1.00000"), currency=cur)
+            art = ArticleType.objects.create(name="P1", vat=vat)
+            StockChange.objects.create(article= art,book_value= sp,count= 2,is_in= True)
+
+        except Id10TError:
+            i = 1
+
+        self.assertEquals(i, 1)
+
+
+    def testAddStockChangeSetDirectly(self):
+        """
+        Test that tries to add an item to the stock directly.
+        """
+
+        i = 0
+        cur = Currency("EUR")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+
+        try:
+            sp = Cost(amount=Decimal("1.00000"), currency=cur)
+            art = ArticleType.objects.create(name="P1", vat=vat)
+            StockChangeSet.objects.create(memo="A")
+
+        except Id10TError:
+            i = 1
+
+        self.assertEquals(i, 1)
+
     def testAddToStock(self):
         """
         Test that tries to add 2 of the same articles to the stock properly.

@@ -73,6 +73,11 @@ class StockChangeSet(models.Model):
     memo = models.CharField(max_length=255)
     # Number to describe what caused this change
     enum = models.IntegerField(max_length=32)
+    def save(self, *args, indirect=False, **kwargs):
+        if not indirect:
+            raise Id10TError(
+                "Please use the StockChangeSet.construct function.")
+        super(StockChangeSet, self).save(*args, **kwargs)
 
     @classmethod
     @transaction.atomic()
@@ -97,12 +102,14 @@ class StockChangeSet(models.Model):
                                  "StockChangeSet description: {}".format(stock_modification_keys, entry, description))
 
         # Create the StockChangeSet instance to use as a foreign key in the Stockchanges
-        sl = StockChangeSet.objects.create(memo=description, enum=enum)
+        sl = StockChangeSet(memo=description, enum=enum)
+        sl.save(indirect=True)
 
         # Create the Stockchanges and set the StockChangeSet in them.
         for entry in entries:
             try:
-                StockChange.objects.create(change_set=sl, **entry)
+                s = StockChange(change_set=sl, **entry)
+                s.save(indirect=True)
             except ValueError as e:
                 raise ValueError("Something went wrong while creating the a stock modification: {}".format(e))
 
@@ -129,6 +136,12 @@ class StockChange(models.Model):
     book_value = CostField()
     is_in = models.BooleanField()
     date = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, indirect=False, **kwargs):
+        if not indirect:
+            raise Id10TError(
+                "Please use the StockChangeSet.construct function.")
+        super(StockChange, self).save(*args, **kwargs)
 
     def get_count(self):
         if self.is_in:
