@@ -51,8 +51,7 @@ class Stock(models.Model):
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
 
-        # TODO: Decide if we want this guard
-        if merge_line.count < 0 and not ALLOW_NEGATIVE_STOCK:
+        if merge_line.count < 0:
             raise StockSmallerThanZeroError("Stock levels can't be below zero.")
 
         merge_line.save(indirect=True)
