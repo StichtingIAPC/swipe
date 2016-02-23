@@ -66,13 +66,10 @@ class StockChangeSet(models.Model):
     """
     A log of one or multiple stock modifications
     """
-
-    # When did the modification occur, will be automatically set to now.
-    date = models.DateTimeField(auto_now_add=True)
     # Description of what happened
-    memo = models.CharField(max_length=255)
+    memo = models.CharField(max_length=255, null=True)
     # Number to describe what caused this change
-    enum = models.IntegerField(max_length=32)
+    enum = models.IntegerField()
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(
@@ -135,6 +132,7 @@ class StockChange(models.Model):
     count = models.IntegerField()
     book_value = CostField()
     is_in = models.BooleanField()
+    memo = models.CharField(null=True, max_length=255)
     date = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, indirect=False, **kwargs):
