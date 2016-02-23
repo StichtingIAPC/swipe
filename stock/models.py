@@ -11,7 +11,7 @@ from swipe.settings import ALLOW_NEGATIVE_STOCK
 class Stock(models.Model):
     """
         Keeps track of the current state of the stock
-        Do not edit this thing directly, use StockLog.log instead.
+        Do not edit this thing directly, use StockChangeSet.log instead.
 
         article: What product is this line about?
         count: How many are in stock?
@@ -24,7 +24,7 @@ class Stock(models.Model):
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(
-                "Stock modifications shouldn't be done directly, but rather, they should be done on StockLog.")
+                "Stock modifications shouldn't be done directly, but rather, they should be done on StockChangeSet.")
         super(Stock, self).save(*args, **kwargs)
 
     @staticmethod
@@ -62,7 +62,7 @@ class Stock(models.Model):
         return "{}| {}: {} @ {}".format(self.pk, self.article, self.count, self.book_value)
 
 
-class StockLog(models.Model):
+class StockChangeSet(models.Model):
     """
     A log of one or multiple stock modifications
     """
@@ -76,51 +76,51 @@ class StockLog(models.Model):
     @transaction.atomic()
     def construct(cls, description, entries):
         """
-        Construct a modification to the stock, and log it to the StockLog.
+        Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
         :type description: str
-        :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have at least the keys "article", "count", "book_value" and "is_in". See StockModification.
+        :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have at least the keys "article", "count", "book_value" and "is_in". See StockChange.
         :type entries: list(dict)
-        :return: A completed StockLog of the modification
-        :rtype: StockLog
+        :return: A completed StockChangeSet of the modification
+        :rtype: StockChangeSet
         """
         # Check if the entry dictionaries are complete
         for entry in entries:
             stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
 
             if not all(key in entry.keys() for key in stock_modification_keys):
-                raise ValueError("Missing data in StockLog entry values.\n"
+                raise ValueError("Missing data in StockChangeSet entry values.\n"
                                  "Expected keys: {}\n"
                                  "Entry: {},\n"
-                                 "StockLog description: {}".format(stock_modification_keys, entry, description))
+                                 "StockChangeSet description: {}".format(stock_modification_keys, entry, description))
 
-        # Create the StockLog instance to use as a foreign key in the StockModifications
-        sl = StockLog.objects.create(description=description)
+        # Create the StockChangeSet instance to use as a foreign key in the Stockchanges
+        sl = StockChangeSet.objects.create(description=description)
 
-        # Create the StockModifications and set the StockLog in them.
+        # Create the Stockchanges and set the StockChangeSet in them.
         for entry in entries:
             try:
-                StockModification.objects.create(log_entry=sl, article=entry['article'], count=entry['count'], book_value=entry['book_value'], is_in=entry['is_in'])
+                StockChange.objects.create(log_entry=sl, article=entry['article'], count=entry['count'], book_value=entry['book_value'], is_in=entry['is_in'])
             except ValueError as e:
                 raise ValueError("Something went wrong while creating the a stock modification: {}".format(e))
 
-        # Modify the stock for each StockModification now linked to the StockLog we created
-        for modification in sl.stockmodification_set.all():
+        # Modify the stock for each StockChange now linked to the StockChangeSet we created
+        for modification in sl.stockchange_set.all():
             Stock.modify(modification)
 
-        # Return the created StockLog
+        # Return the created StockChangeSet
         return sl
 
 
-class StockModification(models.Model):
+class StockChange(models.Model):
     """
         Log_entry: the Stocklog this Modification is a part of
-        Article: What article is this StockModification a part of
+        Article: What article is this StockChange a part of
         count: How many articles is this modification?
         book_value: What's the cost (per object) for this modification?
         is_in: Is this an in  (True) or an out (False)
     """
-    log_entry = models.ForeignKey(StockLog)
+    log_entry = models.ForeignKey(StockChangeSet)
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
     book_value = CostField()

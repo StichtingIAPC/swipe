@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
-from stock.models import Stock, StockModification, StockLog
+from stock.models import Stock, StockChange, StockChangeSet
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost
 
@@ -45,7 +45,7 @@ class StockTest(TestCase):
         art = ArticleType.objects.create(name="Product1", vat=vat)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
 
-        # Construct entry list for StockLog
+        # Construct entry list for StockChangeSet
         entries = [{
             'article': art,
             'book_value': sp,
@@ -54,18 +54,18 @@ class StockTest(TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockLog.construct(description="AddToStockTest1", entries=entries)
-        log_2 = StockLog.construct(description="AddToStockTest2", entries=entries)  # Re-using entries for test.
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries)  # Re-using entries for test.
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
 
-        # Check if number of items in StockLog is correct
-        self.assertEquals(len(log_1.stockmodification_set.all()), 1)
-        self.assertEquals(len(log_2.stockmodification_set.all()), 1)
+        # Check if number of items in StockChangeSet is correct
+        self.assertEquals(len(log_1. stockchange_set.all()), 1)
+        self.assertEquals(len(log_2. stockchange_set.all()), 1)
 
-        # Check if StockModification instance in log 1 is different from item in log 2
-        self.assertNotEquals(log_1.stockmodification_set.all()[0], log_2.stockmodification_set.all()[0])
+        # Check if StockChange instance in log 1 is different from item in log 2
+        self.assertNotEquals(log_1. stockchange_set.all()[0], log_2. stockchange_set.all()[0])
 
         # Get stock for article
         art_stock = Stock.objects.get(article=art)
@@ -91,7 +91,7 @@ class StockTest(TestCase):
         sp2 = Cost(amount=Decimal("1.00000"), currency=cur)
         art = ArticleType.objects.create(name="P1", vat=vat)
 
-        # Construct entry list for StockLog
+        # Construct entry list for StockChangeSet
         entries = [{
             'article': art,
             'book_value': sp,
@@ -104,17 +104,17 @@ class StockTest(TestCase):
             'is_in': True
         }]
 
-        # Execute the stock modification, creating a StockLog
-        log_1 = StockLog.construct(description="MultipleProductsTest", entries=entries)
+        # Execute the stock modification, creating a StockChangeSet
+        log_1 = StockChangeSet.construct(description="MultipleProductsTest", entries=entries)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
 
-        # Check if number of items in the StockLog is correct
-        self.assertEquals(len(log_1.stockmodification_set.all()), 2)
+        # Check if number of items in the StockChangeSet is correct
+        self.assertEquals(len(log_1. stockchange_set.all()), 2)
 
-        # Check if StockModification instances in the log are different from each other
-        self.assertNotEquals(log_1.stockmodification_set.all()[0], log_1.stockmodification_set.all()[1])
+        # Check if StockChange instances in the log are different from each other
+        self.assertNotEquals(log_1. stockchange_set.all()[0], log_1. stockchange_set.all()[1])
 
         # Get stock for article
         art_stock = Stock.objects.get(article=art)
@@ -140,7 +140,7 @@ class StockTest(TestCase):
         art = ArticleType.objects.create(name="Product1", vat=vat)
         art2 = ArticleType.objects.create(name="Product2", vat=vat)
 
-        # Construct entry list for StockLog
+        # Construct entry list for StockChangeSet
         entries = [{
             'article': art,
             'book_value': sp,
@@ -153,17 +153,17 @@ class StockTest(TestCase):
             'is_in': True
         }]
 
-        # Execute the stock modification, creating a StockLog
-        log_1 = StockLog.construct(description="MultipleArticlesTest", entries=entries)
+        # Execute the stock modification, creating a StockChangeSet
+        log_1 = StockChangeSet.construct(description="MultipleArticlesTest", entries=entries)
 
         # Check that we added two types of article to the stock
         self.assertEquals(len(Stock.objects.all()), 2)
 
-        # Check if number of items in the StockLog is correct
-        self.assertEquals(len(log_1.stockmodification_set.all()), 2)
+        # Check if number of items in the StockChangeSet is correct
+        self.assertEquals(len(log_1. stockchange_set.all()), 2)
 
-        # Check if StockModification instances in the log are different from each other
-        self.assertNotEquals(log_1.stockmodification_set.all()[0], log_1.stockmodification_set.all()[1])
+        # Check if StockChange instances in the log are different from each other
+        self.assertNotEquals(log_1. stockchange_set.all()[0], log_1. stockchange_set.all()[1])
 
         # Get stock for the two articles
         art_stock = Stock.objects.get(article=art)
@@ -211,21 +211,21 @@ class StockTest(TestCase):
         }
 
         # Execute the needed modifications
-        log_1 = StockLog.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2])
-        log_2 = StockLog.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2])
-        log_3 = StockLog.construct(description="Get 2xProduct1 3xProduct2 2xProduct1",
-                                   entries=[entry_1, entry_2, entry_1])
-        log_4 = StockLog.construct(description="Sell 1xProduct2", entries=[entry_3])
+        log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2])
+        log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2])
+        log_3 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2 2xProduct1",
+                                         entries=[entry_1, entry_2, entry_1])
+        log_4 = StockChangeSet.construct(description="Sell 1xProduct2", entries=[entry_3])
 
         # Get resulting stocks
         art_stock = Stock.objects.get(article=art)
         art2_stock = Stock.objects.get(article=art2)
 
-        # Check number of StockModifications in StockLogs
-        self.assertEqual(len(log_1.stockmodification_set.all()), 2)
-        self.assertEqual(len(log_2.stockmodification_set.all()), 2)
-        self.assertEqual(len(log_3.stockmodification_set.all()), 3)
-        self.assertEqual(len(log_4.stockmodification_set.all()), 1)
+        # Check number of  stockchanges in StockLogs
+        self.assertEqual(len(log_1. stockchange_set.all()), 2)
+        self.assertEqual(len(log_2. stockchange_set.all()), 2)
+        self.assertEqual(len(log_3. stockchange_set.all()), 3)
+        self.assertEqual(len(log_4. stockchange_set.all()), 1)
 
         # Check if number of items in stock is correct
         self.assertEqual(art_stock.count, 8)
@@ -253,7 +253,7 @@ class StockTest(TestCase):
             # Define book value
             book_value = Cost(amount=Decimal(str(i)), currency=cur)
 
-            # Construct entry for StockLog
+            # Construct entry for StockChangeSet
             entries = [{
                 'article': art,
                 'book_value': book_value,
@@ -262,7 +262,7 @@ class StockTest(TestCase):
             }]
 
             # Do stock modification
-            StockLog.construct(description="AverageTest{}".format(i), entries=entries)
+            StockChangeSet.construct(description="AverageTest{}".format(i), entries=entries)
 
         # Get stock for article
         st = Stock.objects.get(article=art)
@@ -288,7 +288,7 @@ class StockTest(TestCase):
                 # Define book value
                 book_value = Cost(amount=Decimal(str(i)), currency=cur)
 
-                # Construct entry for StockLog
+                # Construct entry for StockChangeSet
                 entries = [{
                     'article': art,
                     'book_value': book_value,
@@ -297,7 +297,7 @@ class StockTest(TestCase):
                 }]
 
                 # Do stock modification
-                StockLog.construct(description="NegativeStockTest{}".format(i), entries=entries)
+                StockChangeSet.construct(description="NegativeStockTest{}".format(i), entries=entries)
 
         except StockSmallerThanZeroError:
             i = 1
@@ -325,12 +325,12 @@ class StockTest(TestCase):
             'count': 1,
             'is_in': True
         }]
-        StockLog.construct(description="AddEuroStock", entries=entries)
+        StockChangeSet.construct(description="AddEuroStock", entries=entries)
 
         # Check if the product was successfully added to the stock
         self.assertEqual(len(Stock.objects.all()), 1)
-        self.assertEqual(len(StockLog.objects.all()), 1)
-        self.assertEqual(len(StockModification.objects.all()), 1)
+        self.assertEqual(len(StockChangeSet.objects.all()), 1)
+        self.assertEqual(len(StockChange.objects.all()), 1)
 
         # (Try to) add 1 article with cost 1 dollar
         entries = [{
@@ -340,17 +340,17 @@ class StockTest(TestCase):
             'is_in': True
         }]
         try:
-            StockLog.construct(description="AddDollarStock", entries=entries)
+            StockChangeSet.construct(description="AddDollarStock", entries=entries)
         except CurrencyInconsistencyError:
             i = 1
 
         # Check if the CurrencyInconsistencyError occurred
         self.assertEqual(i, 1)
 
-        # Check if there are no additional lines in the StockLog and StockModifications
+        # Check if there are no additional lines in the StockChangeSet and  stockchanges
         # The error should have rolled back the changes the second modification might have made
-        self.assertEqual(len(StockLog.objects.all()), 1)
-        self.assertEqual(len(StockModification.objects.all()), 1)
+        self.assertEqual(len(StockChangeSet.objects.all()), 1)
+        self.assertEqual(len(StockChange.objects.all()), 1)
 
         # Try to add another item with a price of 1 euro
         entries = [{
@@ -363,7 +363,7 @@ class StockTest(TestCase):
         i = 0
 
         try:
-            StockLog.construct(description="AddSecondEuroStock", entries=entries)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries)
         except CurrencyInconsistencyError:
             i = 1
 
@@ -371,5 +371,5 @@ class StockTest(TestCase):
         self.assertEqual(i, 0)
 
         # Check if the stock has indeed changed
-        self.assertEqual(len(StockLog.objects.all()),2)
-        self.assertEqual(len(StockModification.objects.all()),2)
+        self.assertEqual(len(StockChangeSet.objects.all()), 2)
+        self.assertEqual(len(StockChange.objects.all()), 2)
