@@ -5,7 +5,6 @@ from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
-from swipe.settings import ALLOW_NEGATIVE_STOCK
 
 
 class Stock(models.Model):
