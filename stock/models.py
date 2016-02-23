@@ -146,8 +146,10 @@ class StockChange(models.Model):
             return self.count
         else:
             return -1 * self.count
+        
     @property
     def date(self):
         return self.change_set.date
+
     def __str__(self):
         return "{}| {} x {}".format(self.pk, self.count, self.article)
