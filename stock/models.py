@@ -70,11 +70,13 @@ class StockChangeSet(models.Model):
     # When did the modification occur, will be automatically set to now.
     date = models.DateTimeField(auto_now_add=True)
     # Description of what happened
-    description = models.CharField(max_length=255)
+    memo = models.CharField(max_length=255)
+    # Number to describe what caused this change
+    enum = models.IntegerField(max_length=32)
 
     @classmethod
     @transaction.atomic()
-    def construct(cls, description, entries):
+    def construct(cls, description, entries, enum):
         """
         Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
@@ -95,12 +97,12 @@ class StockChangeSet(models.Model):
                                  "StockChangeSet description: {}".format(stock_modification_keys, entry, description))
 
         # Create the StockChangeSet instance to use as a foreign key in the Stockchanges
-        sl = StockChangeSet.objects.create(description=description)
+        sl = StockChangeSet.objects.create(memo=description, enum=enum)
 
         # Create the Stockchanges and set the StockChangeSet in them.
         for entry in entries:
             try:
-                StockChange.objects.create(log_entry=sl, article=entry['article'], count=entry['count'], book_value=entry['book_value'], is_in=entry['is_in'])
+                StockChange.objects.create(change_set=sl, **entry)
             except ValueError as e:
                 raise ValueError("Something went wrong while creating the a stock modification: {}".format(e))
 
@@ -115,16 +117,18 @@ class StockChangeSet(models.Model):
 class StockChange(models.Model):
     """
         Log_entry: the Stocklog this Modification is a part of
-        Article: What article is this StockChange a part of
+        change_set: What article is this StockChange a part of
         count: How many articles is this modification?
         book_value: What's the cost (per object) for this modification?
         is_in: Is this an in  (True) or an out (False)
+        :date
     """
-    log_entry = models.ForeignKey(StockChangeSet)
+    change_set = models.ForeignKey(StockChangeSet)
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
     book_value = CostField()
     is_in = models.BooleanField()
+    date = models.DateTimeField(auto_now_add=True)
 
     def get_count(self):
         if self.is_in:

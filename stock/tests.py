@@ -54,8 +54,8 @@ class StockTest(TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries)
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries)  # Re-using entries for test.
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)  # Re-using entries for test.
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -105,7 +105,7 @@ class StockTest(TestCase):
         }]
 
         # Execute the stock modification, creating a StockChangeSet
-        log_1 = StockChangeSet.construct(description="MultipleProductsTest", entries=entries)
+        log_1 = StockChangeSet.construct(description="MultipleProductsTest", entries=entries, enum=1)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -154,7 +154,7 @@ class StockTest(TestCase):
         }]
 
         # Execute the stock modification, creating a StockChangeSet
-        log_1 = StockChangeSet.construct(description="MultipleArticlesTest", entries=entries)
+        log_1 = StockChangeSet.construct(description="MultipleArticlesTest", entries=entries, enum=1)
 
         # Check that we added two types of article to the stock
         self.assertEquals(len(Stock.objects.all()), 2)
@@ -211,11 +211,11 @@ class StockTest(TestCase):
         }
 
         # Execute the needed modifications
-        log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2])
-        log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2])
+        log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
+        log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
         log_3 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2 2xProduct1",
-                                         entries=[entry_1, entry_2, entry_1])
-        log_4 = StockChangeSet.construct(description="Sell 1xProduct2", entries=[entry_3])
+                                         entries=[entry_1, entry_2, entry_1], enum=1)
+        log_4 = StockChangeSet.construct(description="Sell 1xProduct2", entries=[entry_3], enum=1)
 
         # Get resulting stocks
         art_stock = Stock.objects.get(article=art)
@@ -262,7 +262,7 @@ class StockTest(TestCase):
             }]
 
             # Do stock modification
-            StockChangeSet.construct(description="AverageTest{}".format(i), entries=entries)
+            StockChangeSet.construct(description="AverageTest{}".format(i), entries=entries, enum=1)
 
         # Get stock for article
         st = Stock.objects.get(article=art)
@@ -297,7 +297,7 @@ class StockTest(TestCase):
                 }]
 
                 # Do stock modification
-                StockChangeSet.construct(description="NegativeStockTest{}".format(i), entries=entries)
+                StockChangeSet.construct(description="NegativeStockTest{}".format(i), entries=entries, enum=1)
 
         except StockSmallerThanZeroError:
             i = 1
@@ -325,7 +325,7 @@ class StockTest(TestCase):
             'count': 1,
             'is_in': True
         }]
-        StockChangeSet.construct(description="AddEuroStock", entries=entries)
+        StockChangeSet.construct(description="AddEuroStock", entries=entries, enum=1)
 
         # Check if the product was successfully added to the stock
         self.assertEqual(len(Stock.objects.all()), 1)
@@ -340,7 +340,7 @@ class StockTest(TestCase):
             'is_in': True
         }]
         try:
-            StockChangeSet.construct(description="AddDollarStock", entries=entries)
+            StockChangeSet.construct(description="AddDollarStock", entries=entries, enum=1)
         except CurrencyInconsistencyError:
             i = 1
 
@@ -363,7 +363,7 @@ class StockTest(TestCase):
         i = 0
 
         try:
-            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
         except CurrencyInconsistencyError:
             i = 1
 
