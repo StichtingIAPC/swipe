@@ -62,7 +62,7 @@ class Stock(models.Model):
 
 class StockChangeSet(models.Model):
     """
-    A log of one or multiple stock modifications
+    A log of one or multiple stockchanges
     """
 
     date = models.DateTimeField(auto_now_add=True)
@@ -121,12 +121,11 @@ class StockChangeSet(models.Model):
 
 class StockChange(models.Model):
     """
-        Log_entry: the Stocklog this Modification is a part of
         change_set: What article is this StockChange a part of
         count: How many articles is this modification?
         book_value: What's the cost (per object) for this modification?
         is_in: Is this an in  (True) or an out (False)
-        :date
+        memo:  description of why this stock change happened. It's optional.
     """
     change_set = models.ForeignKey(StockChangeSet)
     article = models.ForeignKey(ArticleType)
