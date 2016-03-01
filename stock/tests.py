@@ -414,3 +414,43 @@ class StockTest(TestCase):
         # Check if the stock has indeed changed
         self.assertEqual(len(StockChangeSet.objects.all()), 2)
         self.assertEqual(len(StockChange.objects.all()), 2)
+    def testToZero(self):
+        """
+        Test that tries to sell 6 items with increasing book value from an empty stock.
+        """
+        # Create some objects to use in the tests
+        i = 0
+        cur = Currency("EUR")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        art = ArticleType.objects.create(name="Product1", vat=vat)
+
+        for i in range(1, 7):  # 1 to 6. Average should be 3.5
+            # Define book value
+            book_value = Cost(amount=Decimal(str(i)), currency=cur)
+
+            # Construct entry for StockChangeSet
+            entries = [{
+                'article': art,
+                'book_value': book_value,
+                'count': 1,
+                'is_in': True
+            }]
+
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+
+        for i in range(1, 7):  # 1 to 6. Average should be 3.5
+            # Define book value
+            book_value = Cost(amount=Decimal(str(i)), currency=cur)
+
+            # Construct entry for StockChangeSet
+            entries = [{
+                'article': art,
+                'book_value': book_value,
+                'count': 1,
+                'is_in': False
+            }]
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+
+        self.assertEqual(len(StockChange.objects.all()), 12)
+        st = Stock.objects.get(article=art)
+        self.assertEqual(st.count,0)

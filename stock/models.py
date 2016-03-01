@@ -44,8 +44,9 @@ class Stock(models.Model):
             if merge_line.book_value.currency != stock_mod.book_value.currency:
                 raise CurrencyInconsistencyError("GOT {} instead of {}".format(
                     merge_line.book_value.currency, stock_mod.book_value.currency))
-            merge_cost_total = (merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
-            merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
+            if stock_mod.get_count() + merge_line.count != 0:
+                merge_cost_total = (merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
+                merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
 
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
