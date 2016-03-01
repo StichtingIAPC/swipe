@@ -520,6 +520,26 @@ class SalesPriceField(models.DecimalField):
         value = self._get_val_from_obj(obj)
         return value.amount
 
+class CurrencyData(models.Model):
+    """
+    The data necessary to retrieve amongst others currency symbols and denomination is stored in here.
+    """
+    # ISO4217-name
+    iso = models.CharField(primary_key=True, max_length=3,unique=True)
+    # English name
+    name = models.CharField(max_length=255)
+    # Max digits for transaction
+    digits = models.DecimalField(max_length=3)
+    # Currency symbol
+    symbol = models.CharField(max_length=5)
+
+    def __init__(self,iso,name,digits,symbol):
+        self.iso=iso
+        assert(len(self.iso) == 3)
+        self.name=name
+        self.digits=digits
+        self.symbol=symbol
+
 
 class TestMoneyType(models.Model):
     money = MoneyField(type="money")
