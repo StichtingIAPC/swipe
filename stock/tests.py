@@ -414,6 +414,7 @@ class StockTest(TestCase):
         # Check if the stock has indeed changed
         self.assertEqual(len(StockChangeSet.objects.all()), 2)
         self.assertEqual(len(StockChange.objects.all()), 2)
+
     def testToZero(self):
         """
         Test that tries to sell 6 items with increasing book value from an empty stock.

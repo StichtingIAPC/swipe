@@ -107,6 +107,8 @@ class StockChangeSet(models.Model):
         # Create the Stockchanges and set the StockChangeSet in them.
         for entry in entries:
             try:
+                if not isinstance(entry["count"],int):
+                    raise ValueError("count isn't integer")
                 s = StockChange(change_set=sl, **entry)
                 s.save(indirect=True)
             except ValueError as e:
