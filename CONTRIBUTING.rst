@@ -28,7 +28,9 @@ For changes in the interface, it can be helpful to create a mockup first. If you
 Issue tracker guidelines
 ------------------------
 
-`Search the issue tracker <issues_>`_ for similar entries before submitting your own, there's a good chance somebody else had the same issue or feature proposal. Show your support and/or join the discussion.
+`Search the issue tracker`__ for similar entries before submitting your own, there's a good chance somebody else had the same issue or feature proposal. Show your support and/or join the discussion.
+
+__ issues_
 
 Merge requests
 ==============
