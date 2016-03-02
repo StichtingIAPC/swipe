@@ -1,0 +1,2 @@
+class CurrencyInconsistencyError(ValueError):
+    pass

@@ -13,14 +13,17 @@ from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
 
 class VAT(models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
-    rate = models.DecimalField(decimal_places=6, max_digits=8, verbose_name="VAT Rate")
+    vatrate = models.DecimalField(decimal_places=6, max_digits=8)
     # What's this VAT level called?
-    name = models.CharField(max_length=255, verbose_name="VAT Name")
+    name = models.CharField(max_length=255)
     # Is this VAT level in use?
     active = models.BooleanField()
 
+    def __str__(self):
+        return "{}:{}".format(self.name, self.vatrate)
+
     def to_rate_string(self):
-        return ((self.rate - 1) * 100) + "%"
+        return "{}%".format((self.rate - 1) * 100)
 
 
 class VATLevelField(models.DecimalField):
@@ -36,15 +39,18 @@ class VATLevelField(models.DecimalField):
 # Currency describes the currency of a monetary value. It's also used to describe the currency used in a till
 class Currency:
     def __init__(self, iso: str):
-        assert len(iso) == 3, "Valid ISO currency codes are exactly three characters long, given " + iso
+        assert len(iso) == 3, "Valid ISO currency codes are exactly three characters long, given {}".format(iso)
         self._iso = iso
 
     @property
     def iso(self):
         return self._iso
 
-    def __eq__(self, other):
-        return other is not None and self.iso == other.iso
+    def __str__(self):
+        return self.iso
+
+    def __eq__(self, oth):
+        return oth is not None and self.iso == oth.iso
 
 
 def currency_field_name(name):
@@ -70,25 +76,27 @@ class Money:
 
     @property
     def amount(self):
-        i = 1
         return self._amount
 
     @property
     def currency(self):
         return self._currency
 
+    def __eq__(self, oth):
+        return type(oth) == Money and self.amount == oth.amount and self.currency == oth.currency
+
     def __str__(self):
         return "{}: {}".format(self.currency.iso, self._amount)
 
     def compare(self, item2):
         if type(self) != type(item2):
-            raise TypeError("Types of items compared not compatible")
+            raise TypeError("Cannot compare objects of type {} and {}".format(type(self), type(item2)))
         else:
             return self == item2
 
     def __add__(self, oth):
         if type(oth) != Money:
-            raise TypeError("Cannot Add money to " + str(type(oth)))
+            raise TypeError("Cannot add Money to {}".format(type(oth)))
         if oth.currency == self.currency:
             return Money(self.amount + oth.amount, self.currency)
         else:
@@ -96,25 +104,31 @@ class Money:
 
     def __sub__(self, oth):
         if type(oth) != Money:
-            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+            raise TypeError("Cannot subtract Money from ".format(type(oth)))
         if oth.currency == self.currency:
             return Money(self.amount - oth.amount, self.currency)
         else:
             raise TypeError("Trying to subtract different currencies")
 
-    def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
-            return Money(self.amount * other, self.currency)
+    def __mul__(self, oth):
+        if isinstance(oth, int) or isinstance(oth, float) or isinstance(oth, Decimal):
+            return Money(self.amount * oth, self.currency)
         else:
-            raise TypeError("Cannot Multiply money with" + str(type(other)))
+            raise TypeError("Cannot multiply Money with {}".format(type(oth)))
+
+    def __truediv__(self, oth):
+        if isinstance(oth, int):
+            return Money(self.amount / Decimal(oth), self.currency)
+        else:
+            raise TypeError("Cannot divide Money by {}".format(type(oth)))
 
 
 class MoneyProxy:
     # sets the correct column names for this field.
-    def __init__(self, field, name, type):
+    def __init__(self, field, name, money_type):
         self.field = field
         self.amount_field_name = name
-        self.type = type
+        self.type = money_type
         self.currency_field_name = currency_field_name(name)
 
     def _get_values(self, obj):
@@ -189,7 +203,7 @@ class MoneyField(models.DecimalField):
     def get_prep_lookup(self, lookup_type, value):
         if isinstance(value, money_types[self.type]):
             value = value.amount
-            return super(MoneyField.get_prep_lookup(lookup_type, value))
+            return super(MoneyField.get_prep_lookup(self, lookup_type, value))
 
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
@@ -199,15 +213,16 @@ class MoneyField(models.DecimalField):
 # Cost describes the cost made for a certain thing.
 # It could for instance describe the order cost related to a product on stock.
 class Cost(Money):
-    def compare(item1, item2):
-        if type(item1) != type(item2):
-            raise TypeError("Types of items compared not compatible")
+    def compare(self, item2):
+        if type(self) != type(item2):
+            raise TypeError("Cannot compare objects of type {} and {}".format(type(self), type(item2)))
         else:
-            return item1 == item2
+            return self == item2
 
     def __add__(self, oth):
         if type(oth) != Cost:
-            raise TypeError("Cannot Add money to " + str(type(oth)))
+            raise TypeError("Cannot add Cost to {}".format(type(oth)))
+
         if oth.currency == self.currency:
             return Cost(self.amount + oth.amount, self.currency)
         else:
@@ -215,17 +230,24 @@ class Cost(Money):
 
     def __sub__(self, oth):
         if type(oth) != Cost:
-            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+            raise TypeError("Cannot subtract Cost from {}".format(type(oth)))
+
         if oth.currency == self.currency:
             return Cost(self.amount - oth.amount, self.currency)
         else:
             raise TypeError("Trying to subtract different currencies")
 
-    def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
-            return Cost(self.amount * other, self.currency)
+    def __mul__(self, oth):
+        if isinstance(oth, int):
+            return Cost(self.amount * oth, self.currency)
         else:
-            raise TypeError("Cannot Multiply money with" + str(type(other)))
+            raise TypeError("Cannot multiply Cost with {}".format(type(oth)))
+
+    def __truediv__(self, oth):
+        if isinstance(oth, int):
+            return Cost(self.amount / Decimal(oth), self.currency)
+        else:
+            raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
 
 class CostField(MoneyField):
@@ -237,6 +259,7 @@ class CostField(MoneyField):
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
     def __init__(self, amount, currency, vat):
+        super().__init__(amount, currency)
         self._amount = amount
         self._currency = currency
         self._vat = vat
@@ -245,46 +268,52 @@ class Price(Money):
     def vat(self):
         return self._vat
 
-    def compare(item1, item2):
-        if type(item1) != type(item2):
-            raise TypeError("Types of items compared not compatible")
+    def __eq__(self, other):
+        return type(other) == Price and self.amount == other.amount and self.currency == other.currency and self.vat == other.vat
+
+    def compare(self, item2):
+        if type(self) != type(item2):
+            raise TypeError("Cannot compare objects of type {} and {}".format(type(self), type(item2)))
         else:
-            return item1 == item2
+            return self == item2
 
     def __add__(self, oth):
         if type(oth) != Price:
-            raise TypeError("Cannot Add money to " + str(type(oth)))
+            raise TypeError("Cannot add Price to {}".format(type(oth)))
+
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be added not the same. Got " + oth.vat + " and " + self.vat)
-        if oth.currency == self.currency:
-            return Price(self.amount + oth.amount, self.currency, self.vat)
-        else:
+            raise TypeError("VAT levels of numbers to be added are not the same. Got {} and {}".format(oth.vat, self.vat))
+
+        if oth.currency != self.currency:
             raise TypeError("Trying to add different currencies")
 
+        return Price(self.amount + oth.amount, self.currency, self.vat)
+
     def __sub__(self, oth):
-        if type(oth) != Price:
-            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+        if not isinstance(oth, Price):
+            raise TypeError("Cannot subtract Price from {}".format(type(oth)))
+
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be subtracted not the same. Got " + oth.vat + " and " + self.vat)
-        if oth.currency == self.currency:
-            return Price(self.amount - oth.amount, self.currency, self.vat)
-        else:
+            raise TypeError("VAT levels of numbers to be subtracted are not the same. Got {} and {}".format(oth.vat, self.vat))
+
+        if oth.currency != self.currency:
             raise TypeError("Trying to subtract different currencies")
 
-    def __mul__(self, other):
+        return Price(self.amount - oth.amount, self.currency, self.vat)
 
-        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
-            return Price(self.amount * other, self.currency, self.vat)
+    def __mul__(self, oth):
+        if isinstance(oth, int) or isinstance(oth, float) or isinstance(oth, Decimal):
+            return Price(self.amount * oth, self.currency, self.vat)
         else:
-            raise TypeError("Cannot Multiply money with" + str(type(other)))
+            raise TypeError("Cannot multiply Price with {}".format(type(oth)))
 
 
 class PriceProxy:
     # sets the correct column names for this field.
-    def __init__(self, field, name, type):
+    def __init__(self, field, name, price_type):
         self.field = field
         self.amount_field_name = name
-        self.type = type
+        self.type = price_type
         self.currency_field_name = currency_field_name(name)
         self.vat_field_name = vat_field_name(name)
 
@@ -358,7 +387,7 @@ class PriceField(models.DecimalField):
     def get_prep_lookup(self, lookup_type, value):
         if isinstance(value, Price):
             value = value.amount
-            return super(PriceField.get_prep_lookup(lookup_type, value))
+            return super(PriceField.get_prep_lookup(self, lookup_type, value))
 
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
@@ -373,6 +402,7 @@ class SalesPrice(Price):
         The SalesPrice is the price of an object, for which a cost is known.
     """
     def __init__(self, amount, currency, vat, cost):
+        super().__init__(amount, currency, vat)
         self._amount = amount
         self._currency = currency
         self._vat = vat
@@ -382,31 +412,38 @@ class SalesPrice(Price):
     def cost(self):
         return self._cost
 
+    def __eq__(self, other):
+        return type(other) == SalesPrice and self.amount == other.amount and self.currency == other.currency and self.vat == other.vat and self.cost == other.cost
+
     def __add__(self, oth):
         if type(oth) != SalesPrice:
-            raise TypeError("Cannot Add money to " + str(type(oth)))
+            raise TypeError("Cannot add SalesPrice to {}".format(type(oth)))
+
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be added not the same. Got " + oth.vat + " and " + self.vat)
-        if oth.currency == self.currency:
-            return SalesPrice(self.amount + oth.amount, self.currency, self.vat, self.cost + oth.cost)
-        else:
+            raise TypeError("VAT levels of numbers to be added are not the same. Got {} and {}".format(oth.vat, self.vat))
+
+        if oth.currency != self.currency:
             raise TypeError("Trying to add different currencies")
+
+        return SalesPrice(self.amount + oth.amount, self.currency, self.vat, self.cost + oth.cost)
 
     def __sub__(self, oth):
         if type(oth) != SalesPrice:
-            raise TypeError("Cannot Subtract money to " + str(type(oth)))
+            raise TypeError("Cannot subtract SalesPrice from {}".format(type(oth)))
+
         if oth.vat != self.vat:
-            raise TypeError("Vat levels of numbers to be subtracted not the same. Got " + oth.vat + " and " + self.vat)
-        if oth.currency == self.currency:
-            return SalesPrice(self.amount - oth.amount, self.currency, self.vat, self.cost - oth.cost)
-        else:
+            raise TypeError("VAT levels of numbers to be subtracted are not the same. Got {} and {}".format(oth.vat, self.vat))
+
+        if oth.currency != self.currency:
             raise TypeError("Trying to subtract different currencies")
 
-    def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
-            return SalesPrice(self.amount * other, self.currency, self.vat, self.cost * other)
+        return SalesPrice(self.amount - oth.amount, self.currency, self.vat, self.cost - oth.cost)
+
+    def __mul__(self, oth):
+        if isinstance(oth, int) or isinstance(oth, float) or isinstance(oth, Decimal):
+            return SalesPrice(self.amount * oth, self.currency, self.vat, self.cost * oth)
         else:
-            raise TypeError("Cannot Multiply money with" + str(type(other)))
+            raise TypeError("Cannot multiply SalesPrice with {}".format(type(oth)))
 
     def get_profit(self):
         return self.amount / self.vat - self.cost
@@ -414,15 +451,18 @@ class SalesPrice(Price):
     def get_margin(self):
         return self.get_profit() / self.cost
 
+    def __str__(self):
+        return "{}, Price: {}, Cost: {}".format(self.currency.iso, self.amount, self.cost)
+
 
 class SalesPriceProxy:
     """
      The SalesPriceProxy is responsible for converting data from Django (SalesPriceField) to SalesPrice Objects.
     """
-    def __init__(self, field, name, type):
+    def __init__(self, field, name, price_type):
         self.field = field
         self.amount_field_name = name
-        self.type = type
+        self.type = price_type
         self.currency_field_name = currency_field_name(name)
         self.cost_field = cost_field_name(name)
         self.vat_field_name = vat_field_name(name)
@@ -488,7 +528,6 @@ class SalesPriceField(models.DecimalField):
 
         return name, path, args, kwargs
 
-
     def contribute_to_class(self, cls, name, virtual_only=False):
         if self.add_currency_field:
             c_field = CurrencyField(max_length=3)
@@ -514,7 +553,7 @@ class SalesPriceField(models.DecimalField):
     def get_prep_lookup(self, lookup_type, value):
         if isinstance(value, SalesPrice):
             value = value.amount
-            return super(SalesPriceField.get_prep_lookup(lookup_type, value))
+            return super(SalesPriceField.get_prep_lookup(self, lookup_type, value))
 
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
@@ -537,7 +576,6 @@ class TestSalesPriceType(models.Model):
     price = SalesPriceField()
 
 
-#
 class TestPriceType(models.Model):
     price = PriceField(type="cost")
 
