@@ -10,6 +10,8 @@ from money.models import Cost
 from money.models import TestCostType
 from money.models import Price
 from money.models import TestPriceType
+from money.models import CurrencyData
+from money.models import Denomination
 
 class MoneyTest(TestCase):
     def setUp(self):
@@ -253,3 +255,50 @@ class SalesPriceMathTest(TestCase):
         t = SalesPrice(amount=Decimal("4.00000"),currency=Currency("EUR"),vat=Decimal("2"),cost=Decimal("0.50000"))
         self.assertEquals(t.get_profit(),1.5)
         self.assertEquals(t.get_margin(),3)
+
+class CurrencyDenomTest(TestCase):
+
+    def setUp(self):
+        self.euro = CurrencyData("EUR","Euro",2,"€")
+        self.dollar = CurrencyData("USD","United States Dollar",2,"$")
+
+    def test_currency_iso(self):
+        try:
+            bar = False
+            foo = CurrencyData("EADD","Estonian Drak",4,"D&")
+        except AssertionError as err:
+            bar = True
+        assert(bar)
+
+    def test_currency_symbol(self):
+        try:
+            bar = False
+            foo = CurrencyData("EDD","Estonian Drak",4,"D&aaaa")
+        except AssertionError as err:
+            bar = True
+        assert(bar)
+
+    def test_currency_equals(self):
+        self.assertNotEquals(self.euro,self.dollar)
+        self.assertEquals(self.euro,self.euro)
+        self.assertNotEquals(self.euro,4)
+
+    def test_denomination_currency(self):
+        self.denom1 = Denomination(currency=self.euro,amount=2.2)
+        self.denom2 = Denomination(currency=self.euro,amount=2.2)
+        assert(self.denom1.has_same_currency(self.denom2))
+
+    def test_denomination_equals(self):
+        self.denom1 = Denomination(currency=self.euro,amount=2.2)
+        self.denom2 = Denomination(currency=self.euro,amount=2.2)
+        self.denom3 = Denomination(currency=self.dollar,amount=2.2)
+        assert(self.denom1 == self.denom2)
+        assert(self.denom1 != self.denom3)
+
+    def test_denom_srt(self):
+        denom1 = Denomination(currency=self.euro,amount=2.2)
+        assert(str(denom1)=="EUR 2.2")
+
+
+
+

@@ -520,6 +520,7 @@ class SalesPriceField(models.DecimalField):
         value = self._get_val_from_obj(obj)
         return value.amount
 
+
 class CurrencyData(models.Model):
     """
     The data necessary to retrieve amongst others currency symbols and denomination is stored in here.
@@ -529,16 +530,54 @@ class CurrencyData(models.Model):
     # English name
     name = models.CharField(max_length=255)
     # Max digits for transaction
-    digits = models.DecimalField(max_length=3)
+    digits = models.IntegerField()
     # Currency symbol
     symbol = models.CharField(max_length=5)
 
     def __init__(self,iso,name,digits,symbol):
-        self.iso=iso
+        super(CurrencyData,self).__init__()
+        self.iso = iso
         assert(len(self.iso) == 3)
-        self.name=name
-        self.digits=digits
-        self.symbol=symbol
+        self.name = name
+        self.digits = digits
+        self.symbol = symbol
+        assert(len(self.symbol) <= 5)
+
+    def __eq__(self,other):
+        if(isinstance(other,CurrencyData)):
+            return self.iso == other.iso
+        else:
+            return False
+
+    def __str__(self):
+        return self.iso
+
+
+class Denomination(models.Model):
+    """
+    The currency bundles that a currency has. A cash register can pay cash with only these means
+    """
+    currency = models.ForeignKey(CurrencyData)
+
+    amount = models.DecimalField(decimal_places=DECIMAL_PLACES,max_digits=MAX_DIGITS)
+
+    def __str__(self):
+        return "{} {}".format(self.currency.iso,self.amount)
+
+    def has_same_currency(self,other):
+        if isinstance(other,Denomination):
+            return self.currency == other.currency
+        else:
+            return False
+
+    def __eq__(self, other):
+        """
+        This function may be removed if different denominations with the same amount are not equal
+        """
+        if isinstance(other,Denomination):
+            return (self.amount == other.amount) and (self.currency == other.currency)
+        else:
+            return False
 
 
 class TestMoneyType(models.Model):
