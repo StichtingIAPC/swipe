@@ -34,8 +34,6 @@ class StockTest(TestCase):
 
         self.assertEquals(i, 1)
 
-
-
     def testAddStockChangeDirectly(self):
         """
         Test that tries to add an item to the stock directly.
