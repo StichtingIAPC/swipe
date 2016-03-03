@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.admindocs',
     'www',
     'supplier',
-    'money'
+    'money',
+    'register'
 ]
 
 MIDDLEWARE_CLASSES = [
