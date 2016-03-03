@@ -60,7 +60,7 @@ List of contributors
 
 Swipe Licentie (NIEUW)
 ----------------------
-Swipe wordt ontwikkeld onder BSD-licensie:
+Swipe wordt ontwikkeld onder de BSD-licensie. De contributor stemt er mee in dat zijn bijdrage wordt vrijgegeven onder deze licentie. Voor de volledigheid is de licentie hieronder bijgevoegd.
 
 
 Copyright (c) 2016, See below for contributors
@@ -88,3 +88,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 List of contributors
 --------------------
 - Nander Voortman
+- Léon van der Kaap
