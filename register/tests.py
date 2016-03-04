@@ -23,14 +23,33 @@ class BasicTest(TestCase):
         self.denom1.save()
         self.denom2.save()
         self.denom3.save()
-        print(Denomination.objects.all())
         if(self.reg1.is_cash_register):
             a=self.reg1.get_denominations()
             assert(len(a) == 3)
 
-    def test_zdatabase(self):
-        a=Denomination.objects.all()
-        print(a)
+    def test_checking_sales_periods(self):
+        assert (not RegisterManager.get_open_sales_period())
+        s = SalesPeriod()
+        s.save()
+        assert (RegisterManager.get_open_sales_period())
 
-
+    def test_open_registers(self):
+        assert(RegisterManager.number_of_open_registers() == 0)
+        sales_period = SalesPeriod()
+        sales_period.save()
+        self.reg1.save()
+        assert(RegisterManager.number_of_open_registers() == 0)
+        assert (len(RegisterManager.get_open_registers()) == 0)
+        assert(not self.reg1.is_open())
+        self.reg1.open()
+        assert(self.reg1.is_open())
+        assert(RegisterManager.number_of_open_registers() == 1)
+        val = False
+        try:
+            self.reg1.open()
+        except AlreadyOpenError:
+            val = True
+        assert val
+        k = RegisterManager.get_open_registers()
+        assert (len(RegisterManager.get_open_registers()) == 1)
 
