@@ -6,6 +6,7 @@ from django.test import TestCase
 
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
+from stock.labelfield import *
 from stock.models import Stock, StockChange, StockChangeSet
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost
@@ -453,3 +454,6 @@ class StockTest(TestCase):
         self.assertEqual(len(StockChange.objects.all()), 12)
         st = Stock.objects.get(article=art)
         self.assertEqual(st.count,0)
+
+
+

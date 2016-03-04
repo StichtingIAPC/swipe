@@ -5,9 +5,9 @@ from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
+from stock.labelfield import *
 
-
-class Stock(models.Model):
+class Stock(StockLabeledLine):
     """
         Keeps track of the current state of the stock
         Do not edit this thing directly, use StockChangeSet.construct instead.
@@ -19,7 +19,6 @@ class Stock(models.Model):
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
     book_value = CostField()
-
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(
@@ -106,6 +105,8 @@ class StockChangeSet(models.Model):
 
         # Create the Stockchanges and set the StockChangeSet in them.
         for entry in entries:
+            if "label" in entry.keys():
+                print("Z",entry["label"])
             try:
                 if not isinstance(entry["count"],int):
                     raise ValueError("count isn't integer")
@@ -122,7 +123,7 @@ class StockChangeSet(models.Model):
         return sl
 
 
-class StockChange(models.Model):
+class StockChange(StockLabeledLine):
     """
         change_set: What article is this StockChange a part of
         count: How many articles is this modification?
@@ -136,7 +137,6 @@ class StockChange(models.Model):
     book_value = CostField()
     is_in = models.BooleanField()
     memo = models.CharField(null=True, max_length=255)
-
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(
