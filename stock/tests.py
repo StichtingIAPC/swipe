@@ -456,4 +456,27 @@ class StockTest(TestCase):
         self.assertEqual(st.count,0)
 
 
+class LabelTest(TestCase):
+    def setUp(self):
+        self.label1a = Label("A",1)
 
+    def testBasicLabel(self):
+        eur = Currency("EUR")
+        usd = Currency("USD")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
+        cost_usd = Cost(amount=Decimal(str(1)), currency=usd)  # 1 dollar
+        art = ArticleType.objects.create(name="P1", vat=vat)
+
+        # Add 1 article with cost 1 euro
+        entries = [{
+            'article': art,
+            'book_value': cost_eur,
+            'count': 1,
+            'is_in': True,
+            'label': self.label1a
+        }]
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        print(StockChange.objects.get(labeltype=self.label1a.labeltype))
+        print(Stock.objects.get(labeltype=self.label1a.labeltype))
+        print(Stock.objects.get(label=self.label1a))

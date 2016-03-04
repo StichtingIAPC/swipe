@@ -28,7 +28,11 @@ class Stock(StockLabeledLine):
     @staticmethod
     def get_merge_line(mod):
         try:
-            return Stock.objects.get(article=mod.article)
+            if mod.label is None:
+                return Stock.objects.get(article=mod.article)
+            else:
+                print("AAAA||| {} ||| {} |||".format(mod.article,mod.label))
+                return Stock.objects.get(article=mod.article, labeltype=mod.labeltype, labelkey=mod.labelkey)
         except Stock.DoesNotExist:
             return None
 
@@ -37,7 +41,7 @@ class Stock(StockLabeledLine):
         merge_line = Stock.get_merge_line(stock_mod)
         # Create new merge_line
         if not merge_line:
-            merge_line = Stock(article=stock_mod.article, book_value=stock_mod.book_value, count=stock_mod.get_count())
+            merge_line = Stock(article=stock_mod.article, label=stock_mod.label, book_value=stock_mod.book_value, count=stock_mod.get_count())
         else:
             # Merge average book_value
             if merge_line.book_value.currency != stock_mod.book_value.currency:
@@ -105,8 +109,6 @@ class StockChangeSet(models.Model):
 
         # Create the Stockchanges and set the StockChangeSet in them.
         for entry in entries:
-            if "label" in entry.keys():
-                print("Z",entry["label"])
             try:
                 if not isinstance(entry["count"],int):
                     raise ValueError("count isn't integer")
@@ -137,6 +139,7 @@ class StockChange(StockLabeledLine):
     book_value = CostField()
     is_in = models.BooleanField()
     memo = models.CharField(null=True, max_length=255)
+
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(
