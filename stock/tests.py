@@ -391,7 +391,7 @@ class StockTest(TestCase):
         # The error should have rolled back the changes the second modification might have made
         self.assertEqual(len(StockChangeSet.objects.all()), 1)
         self.assertEqual(len(StockChange.objects.all()), 1)
-
+        print(Stock.objects.all()[0])
         # Try to add another item with a price of 1 euro
         entries = [{
             'article': art,
@@ -458,7 +458,7 @@ class StockTest(TestCase):
 
 class LabelTest(TestCase):
     def setUp(self):
-        self.label1a = Label("A",1)
+        self.label1a = ZLabel(1)
 
     def testBasicLabel(self):
         eur = Currency("EUR")
@@ -477,6 +477,17 @@ class LabelTest(TestCase):
             'label': self.label1a
         }]
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
-        print(StockChange.objects.get(labeltype=self.label1a.labeltype))
-        print(Stock.objects.get(labeltype=self.label1a.labeltype))
-        print(Stock.objects.get(label=self.label1a))
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+
+        self.assertEqual(len(StockChange.objects.filter(label=self.label1a)), 2)
+        self.assertEqual(len(StockChange.objects.filter(label=NoLabel())), 0)
+        self.assertEqual(len(StockChange.objects.all()), 2)
+        self.assertEqual(len(Stock.objects.all()), 1)
+        t = TestLabel(4)
+
+        entries[0]["label"]=t
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        entries[0]["label"]=None
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        print(Stock.objects.all())
+        print(Stock.objects.all_without_label())

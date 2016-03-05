@@ -29,9 +29,8 @@ class Stock(StockLabeledLine):
     def get_merge_line(mod):
         try:
             if mod.label is None:
-                return Stock.objects.get(article=mod.article)
+                return Stock.objects.get(article=mod.article,labeltype=None)
             else:
-                print("AAAA||| {} ||| {} |||".format(mod.article,mod.label))
                 return Stock.objects.get(article=mod.article, labeltype=mod.labeltype, labelkey=mod.labelkey)
         except Stock.DoesNotExist:
             return None
@@ -61,7 +60,7 @@ class Stock(StockLabeledLine):
         return merge_line
 
     def __str__(self):
-        return "{}| {}: {} @ {}".format(self.pk, self.article, self.count, self.book_value)
+        return "{}| {}: {} @ {} {}".format(self.pk, self.article, self.count, self.book_value, self.label)
 
 
 class StockChangeSet(models.Model):
