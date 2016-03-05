@@ -1,5 +1,6 @@
 from django.contrib.admin import actions
 from django.db import models,IntegrityError
+from django.utils import timezone
 
 # Create your models here.
 
@@ -14,12 +15,22 @@ class Register(models.Model):
     A register. This can be a cash register with denominations or a virtual register that accepts money
     in a general sense
     """
+    name = models.CharField(max_length=255, default="Missing")
 
     currency = models.ForeignKey(CurrencyData)
 
-    is_cash_register = models.BooleanField()
+    is_cash_register = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
+
+    payment_method = models.CharField(max_length=255, blank=False, default="Missing")
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        if 'is_cash_register' in kwargs:
+            if kwargs['is_cash_register']:
+                kwargs['payment_method'] = "Cash"
+        return cls(*args, **kwargs)
 
     def get_denominations(self):
         if self.is_cash_register:
@@ -33,7 +44,7 @@ class Register(models.Model):
             raise IntegrityError("Register had more than one register period open")
         return len(lst) == 1
 
-    def open(self):
+    def open(self, register_count=False):
         if self.is_active:
             if self.is_open():
                 raise AlreadyOpenError("Register is already open")
@@ -46,13 +57,18 @@ class Register(models.Model):
                     open_sales_period.save()
                 register_period = RegisterPeriod(register=self, sales_period=open_sales_period)
                 register_period.save()
-                register_count = RegisterCount(is_opening_count=True, register_period=register_period)
-                register_count.save()
+                if not register_count:
+                    register_count = RegisterCount(is_opening_count=True, register_period=register_period)
+                    register_count.save()
+                else:
+                    register_count = RegisterCount(register_count)
+                    register_count.register_period = register_period
+                    register_count.save()
 
         else:
             raise InactiveError("The register is inactive and cannot be opened")
 
-    def close(self, indirect=False):
+    def close(self, indirect=False, register_count=False):
         if not indirect:
             raise InvalidOperationError("You can only close a register when the entire sales period is closed")
         else:
@@ -66,6 +82,17 @@ class Register(models.Model):
                     reg_per = reg_period.first()
                     reg_per.endTime = reg_per.sales_period.endTime
                     reg_per.save()
+                    if not register_count:
+                        register_count = RegisterCount(is_opening_count=False, register_period=reg_per)
+                        register_count.save()
+                    else:
+                        register_count = RegisterCount(register_count)
+                        register_count.register_period = reg_per
+                        register_count.save()
+
+    def __str__(self):
+        return "Name: {}, Currency: {}, is_cash_register: {}, is_active: {}, Payment Method: {}".\
+            format(self.name, self.currency.name, self.is_cash_register, self.is_active, self.payment_method)
 
 
 class RegisterManager:
@@ -76,7 +103,7 @@ class RegisterManager:
     @staticmethod
     def sales_period_is_open():
         a = SalesPeriod.objects.last()
-        return not a.endTime
+        return a and not a.endTime
 
     @staticmethod
     def get_open_sales_period():
@@ -93,7 +120,16 @@ class RegisterManager:
 
     @staticmethod
     def get_open_registers():
-        return Register.objects.filter(registerperiod__endTime__isnull=True,registerperiod__isnull=False)
+        return Register.objects.filter(registerperiod__endTime__isnull=True, registerperiod__isnull=False)
+
+    @staticmethod
+    def get_payment_types_for_open_registers():
+        open_regs = Register.objects.filter(registerperiod__endTime__isnull=True, registerperiod__isnull=False)
+        payment_types = set()
+        for reg in open_regs:
+            if reg.payment_method not in payment_types:
+                payment_types.add(reg.payment_method)
+        return payment_types
 
 
 class ConsistencyChecker:
@@ -101,6 +137,11 @@ class ConsistencyChecker:
     Checks the consistency of the system. Will raise IntegrityErrors if the system is an inconsistent state.
     Fixes are required if any of these tests fail
     """
+    @staticmethod
+    def full_check():
+        ConsistencyChecker.check_open_sales_periods()
+        ConsistencyChecker.check_open_register_periods()
+        ConsistencyChecker.check_payment_types()
 
     @staticmethod
     def check_open_sales_periods():
@@ -118,6 +159,13 @@ class ConsistencyChecker:
             else:
                 raise IntegrityError("Register had more than one register period open")
 
+    @staticmethod
+    def check_payment_types():
+        registers = Register.objects.all()
+        for register in registers:
+            if register.is_cash_register and not register.payment_method == "Cash":
+                raise IntegrityError("Cash register can only have cash as payment method")
+
 
 class SalesPeriod(models.Model):
     """
@@ -129,6 +177,21 @@ class SalesPeriod(models.Model):
 
     def is_opened(self):
         return not self.endTime
+
+    @staticmethod
+    def close():
+        if RegisterManager.sales_period_is_open():
+            sales_period = RegisterManager.get_open_sales_period()
+            sales_period.endTime = timezone.now()
+            sales_period.save()
+            open_registers = RegisterManager.get_open_registers()
+            for register in open_registers:
+                register.close(indirect=True)
+        else:
+            raise AlreadyClosedError("Salesperiod is already closed")
+
+    def __str__(self):
+        return "Begin time: {}, End time: {}".format(self.beginTime, self.endTime)
 
 
 class RegisterPeriod(models.Model):
@@ -147,6 +210,10 @@ class RegisterPeriod(models.Model):
     def is_opened(self):
         return not self.endTime
 
+    def __str__(self):
+        return "Register_id:{}, Sales_period_id:{}, Begin time:{}, End time: {}".\
+            format(self.register.id, self.sales_period.id, self.beginTime, self.endTime)
+
 
 class RegisterCount(models.Model):
     """
@@ -157,10 +224,18 @@ class RegisterCount(models.Model):
 
     is_opening_count = models.BooleanField()
 
-    amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES,default=0.0)
+    amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES, default=-1.0)
 
     def is_cash_register_count(self):
         return self.register_period.register.is_cash_register
+
+    def get_amount_from_denominationcounts(self):
+        denom_counts = DenominationCount.objects.filter(register_count=self)
+        if len(denom_counts) > 0:
+            self.amount = 0.0
+            for count in denom_counts:
+                self.amount += count.amount
+            self.save()
 
     @staticmethod
     def get_last_register_count_for_register(register):
@@ -169,6 +244,10 @@ class RegisterCount(models.Model):
             return RegisterCount.objects.filter(register_period=last_register_period).last()
         else:
             raise TypeError("Type of register is not Register")
+
+    def __str__(self):
+        return "Register_period_id:{}, is_opening_count:{}, Amount:{}".\
+            format(self.register_period.id, self.is_opening_count, self.amount)
 
 
 class DenominationCount(models.Model):
@@ -188,7 +267,10 @@ class MoneyInOut(models.Model):
     """
     register_period = models.ForeignKey(RegisterPeriod)
 
-    amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES,default=0.0)
+    amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES, default=0.0)
+
+    def __str__(self):
+        return "Register Period:{}, Amount:{}".format(self.register_period, self.amount)
 
 
 class InactiveError(Exception):
@@ -198,8 +280,10 @@ class InactiveError(Exception):
 class AlreadyOpenError(Exception):
     pass
 
+
 class AlreadyClosedError(Exception):
     pass
+
 
 class InvalidOperationError(Exception):
     pass
