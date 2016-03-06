@@ -526,7 +526,7 @@ class CurrencyData(models.Model):
     The data necessary to retrieve amongst others currency symbols and denomination is stored in here.
     """
     # ISO4217-name
-    iso = models.CharField(primary_key=True, max_length=3,unique=True)
+    iso = models.CharField(primary_key=True, max_length=3, unique=True)
     # English name
     name = models.CharField(max_length=255)
     # Max digits for transaction
@@ -534,17 +534,17 @@ class CurrencyData(models.Model):
     # Currency symbol
     symbol = models.CharField(max_length=5)
 
-    def __init__(self,iso,name,digits,symbol):
-        super(CurrencyData,self).__init__()
-        self.iso = iso
-        assert(len(self.iso) == 3)
-        self.name = name
-        self.digits = digits
-        self.symbol = symbol
-        assert(len(self.symbol) <= 5)
+    @classmethod
+    def create(cls, *args, **kwargs):
+        if not len(kwargs) == 4:
+            raise TypeError("All arguments need to be specified")
+        else:
+            assert len(kwargs['iso']) == 3
+            assert len(kwargs['symbol']) <= 5
+            return cls(*args, **kwargs)
 
-    def __eq__(self,other):
-        if(isinstance(other,CurrencyData)):
+    def __eq__(self, other):
+        if isinstance(other, CurrencyData):
             return self.iso == other.iso
         else:
             return False
@@ -559,13 +559,20 @@ class Denomination(models.Model):
     """
     currency = models.ForeignKey(CurrencyData)
 
-    amount = models.DecimalField(decimal_places=DECIMAL_PLACES,max_digits=MAX_DIGITS)
+    amount = models.DecimalField(decimal_places=DECIMAL_PLACES, max_digits=MAX_DIGITS)
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        if not len(kwargs) == 2:
+            raise TypeError("All arguments need to be specified")
+        else:
+            return cls(*args, **kwargs)
 
     def __str__(self):
-        return "{} {}".format(self.currency.iso,self.amount)
+        return "{} {}".format(self.currency.iso, self.amount)
 
-    def has_same_currency(self,other):
-        if isinstance(other,Denomination):
+    def has_same_currency(self, other):
+        if isinstance(other, Denomination):
             return self.currency == other.currency
         else:
             return False
@@ -574,7 +581,7 @@ class Denomination(models.Model):
         """
         This function may be removed if different denominations with the same amount are not equal
         """
-        if isinstance(other,Denomination):
+        if isinstance(other, Denomination):
             return (self.amount == other.amount) and (self.currency == other.currency)
         else:
             return False

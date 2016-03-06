@@ -175,6 +175,10 @@ class SalesPeriod(models.Model):
 
     endTime = models.DateTimeField(null=True)
 
+    @classmethod
+    def create(cls, *args, **kwargs):
+        return cls(*args, **kwargs)
+
     def is_opened(self):
         return not self.endTime
 
@@ -207,6 +211,10 @@ class RegisterPeriod(models.Model):
 
     endTime = models.DateField(null=True)
 
+    @classmethod
+    def create(cls, *args, **kwargs):
+        return cls(*args, **kwargs)
+
     def is_opened(self):
         return not self.endTime
 
@@ -225,6 +233,10 @@ class RegisterCount(models.Model):
     is_opening_count = models.BooleanField()
 
     amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES, default=-1.0)
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        return cls(*args, **kwargs)
 
     def is_cash_register_count(self):
         return self.register_period.register.is_cash_register
@@ -260,6 +272,10 @@ class DenominationCount(models.Model):
 
     amount = models.IntegerField()
 
+    @classmethod
+    def create(cls, *args, **kwargs):
+        return cls(*args, **kwargs)
+
 
 class MoneyInOut(models.Model):
     """
@@ -268,6 +284,20 @@ class MoneyInOut(models.Model):
     register_period = models.ForeignKey(RegisterPeriod)
 
     amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES, default=0.0)
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        if 'register_period' not in kwargs:
+            raise InvalidOperationError("MoneyInOut requires an open register period")
+        else:
+            register_period = kwargs['register_period']
+            if not register_period:
+                raise InvalidOperationError("Invalid register period")
+            else:
+                if not register_period.is_open():
+                    InvalidOperationError("Register period should be open")
+                else:
+                    return cls(*args, **kwargs)
 
     def __str__(self):
         return "Register Period:{}, Amount:{}".format(self.register_period, self.amount)

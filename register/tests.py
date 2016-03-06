@@ -8,14 +8,14 @@ from money.models import *
 class BasicTest(TestCase):
 
     def setUp(self):
-        self.eu = CurrencyData("EUR", "Euro", 2, "€")
-        self.usd = CurrencyData("USD", "United States Dollar", 2, "$")
+        self.eu = CurrencyData.create(iso="EUR", name="Euro", digits=2, symbol="€")
+        self.usd = CurrencyData.create(iso="USD", name="United States Dollar", digits=2, symbol="$")
         self.reg1 = Register.create(currency=self.eu, is_cash_register=True, payment_method="Bloop")
         self.reg2 = Register.create(currency=self.eu, is_cash_register=False, payment_method="Foo")
         self.reg3 = Register.create(currency=self.usd, is_cash_register=False, payment_method="Foo")
-        self.denom1 = Denomination(currency=self.eu, amount=2.20371)
-        self.denom2 = Denomination(currency=self.eu, amount=2)
-        self.denom3 = Denomination(currency=self.eu, amount=0.02)
+        self.denom1 = Denomination.create(currency=self.eu, amount=2.20371)
+        self.denom2 = Denomination.create(currency=self.eu, amount=2)
+        self.denom3 = Denomination.create(currency=self.eu, amount=0.02)
 
     def test_register_init(self):
         reg = Register(currency=self.eu, is_cash_register=False)
@@ -114,7 +114,3 @@ class BasicTest(TestCase):
         payment_types = RegisterManager.get_payment_types_for_open_registers()
         assert len(payment_types) == 2
         ConsistencyChecker.full_check()
-
-
-
-
