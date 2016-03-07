@@ -2,25 +2,32 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy
 
+from django.db.models import Q
 
-class LabelQuerySet(models.QuerySet):
-    def get(self, *args, **kwargs):
+class StockLabelQuerySet(models.QuerySet):
+
+    def prepare_kwargs(self,kwargs):
         label = kwargs.pop("label",None)
-        if label:
+        if label is not None:
             kwargs["labeltype"]=label.labeltype
             kwargs["labelkey"] = label.key
+        if "labeltype" in kwargs.keys():
+            if kwargs["labeltype"]=="":
+                kwargs["labeltype"] = None
+            if  kwargs["labeltype"]==None:
+                kwargs.pop("labelkey", None)
+        return kwargs
+
+    def get(self, *args, **kwargs):
+        kwargs = self.prepare_kwargs(kwargs)
         return models.QuerySet.get(self,*args,**kwargs)
 
     def filter(self, *args, **kwargs):
-        label = kwargs.pop("label",None)
-        if label:
-            kwargs["labeltype"]=label.labeltype
-            kwargs["labelkey"] = label.key
-
+        kwargs = self.prepare_kwargs(kwargs)
         return models.QuerySet.filter(self,*args,**kwargs)
 
 
-class LabelManager(models.Manager):
+class StockLabelManager(models.Manager):
     """
     SoftDeletableManager modifies the default QuerySet to only return the active items.
     """
@@ -29,50 +36,55 @@ class LabelManager(models.Manager):
         """
         :return: only active items
         """
-        return LabelQuerySet(self.model)
+        return StockLabelQuerySet(self.model)
 
     def all_without_label(self):
-         return LabelQuerySet(self.model).filter(labeltype=None)
+         return StockLabelQuerySet(self.model).filter(labeltype=None)
 
 
-class Label:
+class StockLabel:
     labeltypes = {}
     _labeltype = None
 
     # Adds labeltype to reverse lookup table (labeltypes)
     @classmethod
-    def add_label_type(cls, name, type):
+    def add_label_type(cls, type):
+        name = type._labeltype
         if cls.labeltypes is None:
             cls.labeltypes = {}
+        if name in cls.labeltypes.keys():
+            raise ValueError("StockLabel name '{}'  already in used for class {}".format(name,type))
         cls.labeltypes[name] = type
-
-    # Registers label for use
-    def register(self):
-        Label.add_label_type(self.labeltype,type(self))
-        print(type(self))
 
     # Returns correct label type
     @classmethod
     def returnLabel(cls,labeltype, key):
+
         if labeltype in cls.labeltypes.keys():
             lt = cls.labeltypes[labeltype]
         else:
-            lt= Label
+            lt= StockLabel
         return lt(key)
 
     @property
     def labeltype(self):
         return self._labeltype
 
-    def __init__(self,labeltype="", key=0):
-        self._labeltype = labeltype
+    def __init__(self, key=0):
         self._key = key
+        if self._labeltype =="":
+            raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
 
     @property
     def key(self):
         return self._key
 
+    def __bool__(self):
+        return self.labeltype != ""
+
     def __eq__(self,other):
+        if other is None and (self.labeltype is None or self.labeltype == ""):
+            return True
         try:
             return other.key == self.key and other.labeltype == self.labeltype
         except Exception:
@@ -82,31 +94,16 @@ class Label:
         return "[{} : {}]".format(self.labeltype, self.key)
 
 
-class NoLabel(Label):
-    def __init__(self, key=0):
-        Label.__init__(self,"",key)
-        Label.register(self)
-
-    def __str__(self):
-        return "____"
-
-
-class ZLabel(Label):
-    def __init__(self, key=0):
-        Label.__init__(self,"Z",key)
-        Label.register(self)
-
-
-class TestLabel(Label):
-    def __init__(self, key=0):
-        Label.__init__(self,"test",key)
-        Label.register(self)
+# Example label: Explicit no-label
+class NoStockLabel(StockLabel):
+    _labeltype=None
+StockLabel.add_label_type(NoStockLabel)
 
 
 class StockLabeledLine(models.Model):
     labeltype = models.CharField(max_length=255,null=True)
     labelkey = models.IntegerField(null=True)
-    objects = LabelManager()
+    objects = StockLabelManager()
 
     def __init__(self, *args, **kwargs):
         label = kwargs.pop('label', False)
@@ -118,9 +115,8 @@ class StockLabeledLine(models.Model):
     @property
     def label(self):
         if self.labeltype:
-            return Label.returnLabel(self.labeltype, self.labelkey)
+            return StockLabel.returnLabel(self.labeltype, self.labelkey)
         return None
 
     class Meta:
         abstract = True
-

@@ -29,6 +29,9 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 # Monetary precision. Don't change unless you know what you're doing.
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
+
+#Should swipe delete stocklines at count zero?
+DELETE_STOCK_ZERO_LINES = True
 # Application definition
 
 INSTALLED_APPS = [

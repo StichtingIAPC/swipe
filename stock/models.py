@@ -6,7 +6,7 @@ from money.models import CostField
 from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
 from stock.labelfield import *
-
+from swipe.settings import DELETE_STOCK_ZERO_LINES
 class Stock(StockLabeledLine):
     """
         Keeps track of the current state of the stock
@@ -56,7 +56,12 @@ class Stock(StockLabeledLine):
         if merge_line.count < 0:
             raise StockSmallerThanZeroError("Stock levels can't be below zero.")
 
-        merge_line.save(indirect=True)
+        if merge_line.count == 0 and DELETE_STOCK_ZERO_LINES:
+            if merge_line.id is not None:
+                merge_line.delete()
+        else:
+            merge_line.save(indirect=True)
+
         return merge_line
 
     def __str__(self):
@@ -156,4 +161,4 @@ class StockChange(StockLabeledLine):
         return self.change_set.date
 
     def __str__(self):
-        return "{}| {} x {}".format(self.pk, self.count, self.article)
+        return "{}| {} x {} {}".format(self.pk, self.count, self.article, self.label)

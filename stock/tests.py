@@ -10,6 +10,7 @@ from stock.labelfield import *
 from stock.models import Stock, StockChange, StockChangeSet
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost
+from swipe.settings import DELETE_STOCK_ZERO_LINES
 
 
 class StockTest(TestCase):
@@ -391,7 +392,6 @@ class StockTest(TestCase):
         # The error should have rolled back the changes the second modification might have made
         self.assertEqual(len(StockChangeSet.objects.all()), 1)
         self.assertEqual(len(StockChange.objects.all()), 1)
-        print(Stock.objects.all()[0])
         # Try to add another item with a price of 1 euro
         entries = [{
             'article': art,
@@ -450,15 +450,37 @@ class StockTest(TestCase):
                 'is_in': False
             }]
             StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        entries = [{
+            'article': art,
+            'book_value': book_value,
+            'count': 0,
+            'is_in': False
+        }]
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        self.assertEqual(len(StockChange.objects.filter(label=NoStockLabel())), 13)
+        self.assertEqual(len(StockChange.objects.all_without_label()), 13)
 
-        self.assertEqual(len(StockChange.objects.all()), 12)
-        st = Stock.objects.get(article=art)
-        self.assertEqual(st.count,0)
+        self.assertEqual(len(StockChange.objects.all()), 13)
+        st = Stock.objects.all()
+        if DELETE_STOCK_ZERO_LINES:
+            self.assertEqual(st.__len__(),0)
+        else:
+            self.assertEqual(st.__len__(),1)
+
+
+class ZStockLabel(StockLabel):
+    _labeltype="Z"
+StockLabel.add_label_type(ZStockLabel)
+
+
+class TestStockLabel(StockLabel):
+    _labeltype="test"
+StockLabel.add_label_type(TestStockLabel)
 
 
 class LabelTest(TestCase):
     def setUp(self):
-        self.label1a = ZLabel(1)
+        self.label1a = ZStockLabel(1)
 
     def testBasicLabel(self):
         eur = Currency("EUR")
@@ -480,14 +502,56 @@ class LabelTest(TestCase):
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
 
         self.assertEqual(len(StockChange.objects.filter(label=self.label1a)), 2)
-        self.assertEqual(len(StockChange.objects.filter(label=NoLabel())), 0)
+        self.assertEqual(len(StockChange.objects.filter(label=NoStockLabel())), 0)
         self.assertEqual(len(StockChange.objects.all()), 2)
         self.assertEqual(len(Stock.objects.all()), 1)
-        t = TestLabel(4)
+        t = TestStockLabel(4)
 
         entries[0]["label"]=t
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
         entries[0]["label"]=None
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
-        print(Stock.objects.all())
-        print(Stock.objects.all_without_label())
+
+    def raisesTest(self):
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=self.entries, enum=1)
+
+    def testLabelFailBecauseNoLabel(self):
+        eur = Currency("EUR")
+        usd = Currency("USD")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
+        cost_usd = Cost(amount=Decimal(str(1)), currency=usd)  # 1 dollar
+        art = ArticleType.objects.create(name="P1", vat=vat)
+
+        # Add 1 article with cost 1 euro
+        entries = [{
+            'article': art,
+            'book_value': cost_eur,
+            'count': 1,
+            'is_in': True,
+            'label': self.label1a
+        }]
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        self.entries = [{
+            'article': art,
+            'book_value': cost_eur,
+            'count': 1,
+            'is_in': False,
+        }]
+        self.assertRaises(StockSmallerThanZeroError, self.raisesTest)
+        self.assertEqual(Stock.objects.get(label=self.label1a).count,1)
+        self.assertEqual(StockChange.objects.all().__len__(),1)
+        entries[0]['is_in']=False
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        if DELETE_STOCK_ZERO_LINES:
+            self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(),0)
+        else:
+            self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(),1)
+
+        self.entries = entries
+        self.assertRaises(StockSmallerThanZeroError, self.raisesTest)
+        self.assertEqual(StockChange.objects.all().__len__(),2)
+        if DELETE_STOCK_ZERO_LINES:
+            self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(),0)
+        else:
+            self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(),1)
