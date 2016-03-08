@@ -18,11 +18,11 @@ class StockLabelQuerySet(models.QuerySet):
 
     def get(self, *args, **kwargs):
         kwargs = self.prepare_kwargs(kwargs)
-        return models.QuerySet.get(self,*args,**kwargs)
+        return super().get(*args,**kwargs)
 
     def filter(self, *args, **kwargs):
         kwargs = self.prepare_kwargs(kwargs)
-        return models.QuerySet.filter(self,*args,**kwargs)
+        return super().filter(*args,**kwargs)
 
 
 class StockLabelManager(models.Manager):
@@ -47,6 +47,7 @@ class StockLabel:
     # Adds labeltype to reverse lookup table (labeltypes)
     @classmethod
     def register(cls, type):
+
         if type._labeltype == "":
             raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
 
