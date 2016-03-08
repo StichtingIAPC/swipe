@@ -78,6 +78,10 @@ class Stock(StockLabeledLine):
         return "{}| {}: {} @ {} {}".format(self.pk, self.article, self.count, self.book_value, self.label)
 
 
+    class Meta:
+        unique_together = ('labeltype', 'labelkey','article',)# This check  is only partly valid, because most databases don't enforce null uniqueness.
+
+
 class StockChangeSet(models.Model):
     """
     A log of one or multiple stockchanges
@@ -148,10 +152,11 @@ class StockChange(StockLabeledLine):
         is_in: Is this an in  (True) or an out (False)
         memo:  description of why this stock change happened. It's optional.
     """
-    change_set = models.ForeignKey(StockChangeSet)
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
     book_value = CostField()
+
+    change_set = models.ForeignKey(StockChangeSet)
     is_in = models.BooleanField()
     memo = models.CharField(null=True, max_length=255)
 

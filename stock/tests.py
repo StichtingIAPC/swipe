@@ -1,9 +1,7 @@
 from decimal import Decimal
 
 # Create your tests here.
-from datetime import time, datetime
 from django.test import TestCase
-
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
 from stock.stocklabel import *
@@ -414,7 +412,6 @@ class StockTest(TestCase):
         self.assertEqual(len(StockChangeSet.objects.all()), 2)
         self.assertEqual(len(StockChange.objects.all()), 2)
 
-
     def testToZero(self):
         """
         Test that tries to sell 6 items with increasing book value from an empty stock.
@@ -622,4 +619,59 @@ class LabelTest(TestCase):
         self.entries[0]['labeltype'] = "TEST"
         self.assertRaises(ValueError, self.raisesTest)
 
+    def testAverageStock(self):
+        entries = [{
+            'article': self.def_art,
+            'book_value': self.cost_eur,
+            'count': 1,
+            'is_in': True,
+            'label': None
+        },{
+            'article': self.def_art,
+            'book_value': self.cost_eur,
+            'count': 2,
+            'is_in': True,
+            'label': self.label1a
+        }]
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        self.cost_eur = self.cost_eur + self.cost_eur
+        entries = [{
+            'article': self.def_art,
+            'book_value': self.cost_eur,
+            'count': 1,
+            'is_in': True,
+            'label': None
+        },{
+            'article': self.def_art,
+            'book_value': self.cost_eur,
+            'count': 1,
+            'is_in': True,
+            'label': self.label1a
+        }]
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        without_label = Stock.objects.all_without_label()
+        without_line = without_label[0]
+        self.assertEqual(without_label.__len__(),1)
+        with_label = Stock.objects.filter(label=self.label1a)
+        self.assertEqual(with_label.__len__(),1)
+        with_line = with_label[0]
+        self.assertEqual(without_line.book_value.amount, Decimal("1.50000"))
+        self.assertEqual(with_line.book_value.amount, Decimal("1.33333"))
+        self.assertEqual(with_line.count,3)
+        self.assertEqual(without_line.count,2)
+        self.assertEqual(with_line.label,self.label1a)
+        self.assertEqual(without_line.label,None)
 
+    # THis function is NOT in accordance with how stock should be used, and is only used to verify uniqueness constraints on stock
+    def newDirectStockLine(self):
+        try:
+            # Indirect=True is only used for this test, DO NOT USE THIS ELSEWHERE.
+            Stock(article=self.def_art,book_value=self.cost_eur,count=2, label=self.label1a).save(indirect=True)
+            return True
+        except Exception:
+            return False
+
+    def testMultipleStockLinesWithSameLabel(self):
+        self.newDirectStockLine()
+        a = self.newDirectStockLine()
+        self.assertFalse(a)
