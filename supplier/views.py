@@ -1,34 +1,37 @@
-from django.core.urlresolvers import reverse_lazy, reverse
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
 
 # Create your views here.
-from django.views.generic import ListView, DetailView, View, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
 from supplier.models import Supplier
 
 
-class SupplierList(ListView):
+class SupplierList(LoginRequiredMixin, ListView):
     model = Supplier
 
 
-class SupplierDetail(DetailView):
+class SupplierDetail(LoginRequiredMixin, DetailView):
     model = Supplier
 
 
-class SupplierCreate(CreateView):
+class SupplierCreate(PermissionRequiredMixin, CreateView):
     model = Supplier
+    permission_required = 'supplier.add_supplier'
     fields = ['name', 'search_url', 'notes', 'is_used', 'is_backup']
     success_url = reverse_lazy('supplier_list')
 
 
-class SupplierEdit(UpdateView):
+class SupplierEdit(PermissionRequiredMixin, UpdateView):
     model = Supplier
+    permission_required = 'supplier.change_supplier'
     fields = ['name', 'search_url', 'notes', 'is_used', 'is_backup']
 
 
-class SupplierDelete(DeleteView):
+class SupplierDelete(PermissionRequiredMixin, DeleteView):
     model = Supplier
+    permission_required = 'supplier.delete_supplier'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

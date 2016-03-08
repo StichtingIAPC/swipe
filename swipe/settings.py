@@ -29,7 +29,6 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 # Monetary precision. Don't change unless you know what you're doing.
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,10 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
+    'core',
     'www',
-    'supplier',
     'money',
-    'register'
+    'supplier',
+    'register',
+    'article',
+    'stock'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -106,6 +108,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Login paths
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 
 
 # Internationalization

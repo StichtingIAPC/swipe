@@ -1,0 +1,28 @@
+{% extends "www/base.html" %}\
+{% load i18n %}
+
+{% block content %}
+    <h1>{% trans 'Login' %}</h1>
+    {% if next %}
+        {% if user.is_authenticated %}
+        <p>{% trans "Your account doesn't have access to this page. To proceed, please login with an account that has access." %}</p>
+        {% else %}
+        <p>{% trans "Please login to see this page." %}</p>
+        {% endif %}
+    {% endif %}
+    <form action="{{ app_path }}" method="post" id="login-form">
+        {% csrf_token %}
+        <div class="input-field">
+            {{ form.username.errors }}
+            {{ form.username.label_tag }} {{ form.username }}
+        </div>
+        <div class="input-field">
+            {{ form.password.errors }}
+            {{ form.password.label_tag }} {{ form.password }}
+            <input type="hidden" name="next" value="{{ next }}" />
+        </div>
+        <div class="submit-row">
+            <button class="btn waves-effect waves-light" type="submit" name="action">{% trans 'Log in' %}</button>
+        </div>
+    </form>
+{% endblock %}
