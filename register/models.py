@@ -49,8 +49,8 @@ class Register(models.Model):
             if self.is_open():
                 raise AlreadyOpenError("Register is already open")
             else:
-                if RegisterManager.sales_period_is_open():
-                    open_sales_period = RegisterManager.get_open_sales_period()
+                if RegisterMaster.sales_period_is_open():
+                    open_sales_period = RegisterMaster.get_open_sales_period()
 
                 else:
                     open_sales_period = SalesPeriod()
@@ -58,8 +58,7 @@ class Register(models.Model):
                 register_period = RegisterPeriod(register=self, sales_period=open_sales_period)
                 register_period.save()
                 if not register_count:
-                    register_count = RegisterCount(is_opening_count=True, register_period=register_period)
-                    register_count.save()
+                    RegisterCount(is_opening_count=True, register_period=register_period).create()
                 else:
                     register_count = RegisterCount(register_count)
                     register_count.register_period = register_period
@@ -95,26 +94,29 @@ class Register(models.Model):
             format(self.name, self.currency.name, self.is_cash_register, self.is_active, self.payment_method)
 
 
-class RegisterManager:
+class RegisterMaster:
     """
     A helper class that can do the necessary checks to see the state of the registers. Also, some commands can be given
     """
 
     @staticmethod
     def sales_period_is_open():
-        a = SalesPeriod.objects.last()
-        return a and not a.endTime
+        return RegisterMaster.get_open_sales_period()
 
     @staticmethod
     def get_open_sales_period():
-        return SalesPeriod.objects.last()
+        try:
+            a = SalesPeriod.objects.get(endTime__isnull=True)
+        except SalesPeriod.DoesNotExist:
+            return False
+        return a
 
     @staticmethod
     def number_of_open_registers():
         open_reg_periods = RegisterPeriod.objects.filter(endTime__isnull=True)
         number = len(open_reg_periods)
         if number > 0:
-            if not RegisterManager.sales_period_is_open():
+            if not RegisterMaster.sales_period_is_open():
                 raise IntegrityError("Registers are open while sales period is closed")
         return number
 
@@ -184,11 +186,11 @@ class SalesPeriod(models.Model):
 
     @staticmethod
     def close():
-        if RegisterManager.sales_period_is_open():
-            sales_period = RegisterManager.get_open_sales_period()
+        if RegisterMaster.sales_period_is_open():
+            sales_period = RegisterMaster.get_open_sales_period()
             sales_period.endTime = timezone.now()
             sales_period.save()
-            open_registers = RegisterManager.get_open_registers()
+            open_registers = RegisterMaster.get_open_registers()
             for register in open_registers:
                 register.close(indirect=True)
         else:

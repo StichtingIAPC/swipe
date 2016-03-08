@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db import models
+from django.core.validators import RegexValidator
 
 # Create your models here.
 
@@ -526,22 +527,14 @@ class CurrencyData(models.Model):
     The data necessary to retrieve amongst others currency symbols and denomination is stored in here.
     """
     # ISO4217-name
-    iso = models.CharField(primary_key=True, max_length=3, unique=True)
+    iso = models.CharField(primary_key=True, max_length=3, unique=True,
+                           validators=[RegexValidator(regex='^.{3}$', message='ISO length should be 3.')])
     # English name
     name = models.CharField(max_length=255)
     # Max digits for transaction
     digits = models.IntegerField()
     # Currency symbol
     symbol = models.CharField(max_length=5)
-
-    @classmethod
-    def create(cls, *args, **kwargs):
-        if not len(kwargs) == 4:
-            raise TypeError("All arguments need to be specified")
-        else:
-            assert len(kwargs['iso']) == 3
-            assert len(kwargs['symbol']) <= 5
-            return cls(*args, **kwargs)
 
     def __eq__(self, other):
         if isinstance(other, CurrencyData):
@@ -567,6 +560,11 @@ class Denomination(models.Model):
             raise TypeError("All arguments need to be specified")
         else:
             return cls(*args, **kwargs)
+
+    def save(self):
+        assert(self.currency and self.amount)
+        super(Denomination, self).save()
+
 
     def __str__(self):
         return "{} {}".format(self.currency.iso, self.amount)

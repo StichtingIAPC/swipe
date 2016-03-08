@@ -12,6 +12,7 @@ from money.models import Price
 from money.models import TestPriceType
 from money.models import CurrencyData
 from money.models import Denomination
+from django.core.exceptions import ValidationError
 
 class MoneyTest(TestCase):
     def setUp(self):
@@ -259,22 +260,30 @@ class SalesPriceMathTest(TestCase):
 class CurrencyDenomTest(TestCase):
 
     def setUp(self):
-        self.euro = CurrencyData.create(iso="EUR", name="Euro", digits=2, symbol="€")
-        self.dollar = CurrencyData.create(iso="USD", name="United States Dollar", digits=2, symbol="$")
+        self.euro = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
+        self.dollar = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
 
     def test_currency_iso(self):
         try:
             bar = False
-            foo = CurrencyData.create(iso="EADD", name="Estonian Drak", digits=4, symbol="D&")
+            foo = CurrencyData(iso="EADD", name="Estonian Drak", digits=4, symbol="D&")
+            foo.full_clean()
+            foo.save()
         except AssertionError as err:
+            bar = True
+        except ValidationError as err:
             bar = True
         assert bar
 
     def test_currency_symbol(self):
         try:
             bar = False
-            foo = CurrencyData.create(iso="EDD", name="Estonian Drak", digits=4, symbol="D&aaaa")
+            foo = CurrencyData(iso="EDD", name="Estonian Drak", digits=4, symbol="D&aaaa")
+            foo.full_clean()
+            foo.save()
         except AssertionError as err:
+            bar = True
+        except ValidationError as err:
             bar = True
         assert bar
 
