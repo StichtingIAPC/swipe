@@ -45,12 +45,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
+    'core',
     'www',
     'money',
     'supplier',
+    'register',
     'article',
-    'stock',
-
+    'stock'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -142,6 +143,10 @@ LOCALE_PATHS = (
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#Name of cash payment type
+
+CASH_PAYMENT_TYPE_NAME = "Cash"
 
 # Import local user settings from local.py
 try:
