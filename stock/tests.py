@@ -469,7 +469,7 @@ class StockTest(TestCase):
 
 @StockLabel.register
 class ZStockLabel(StockLabel):
-    _labeltype="Z"
+    _labeltype="Zz"
 
 @StockLabel.register
 class TestStockLabel(StockLabel):
