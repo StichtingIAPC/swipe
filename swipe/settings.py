@@ -32,6 +32,9 @@ MAX_DIGITS = 28
 
 #Should swipe delete stocklines at count zero?
 DELETE_STOCK_ZERO_LINES = True
+
+#Should swipe's stock model throw an error when the software attempts to remove stock at a different price from the stock on stock? Sensible: True
+FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 # Application definition
 
 INSTALLED_APPS = [

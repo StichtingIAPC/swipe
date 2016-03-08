@@ -5,8 +5,10 @@ from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
-from stock.labelfield import *
-from swipe.settings import DELETE_STOCK_ZERO_LINES
+from stock.stocklabel import *
+from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
+
+
 class Stock(StockLabeledLine):
     """
         Keeps track of the current state of the stock
@@ -19,6 +21,7 @@ class Stock(StockLabeledLine):
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
     book_value = CostField()
+
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(
@@ -46,16 +49,23 @@ class Stock(StockLabeledLine):
             if merge_line.book_value.currency != stock_mod.book_value.currency:
                 raise CurrencyInconsistencyError("GOT {} instead of {}".format(
                     merge_line.book_value.currency, stock_mod.book_value.currency))
+
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10**5) != 0 and stock_mod.get_count() < 0 :
+                raise ValueError("book value changed during negative line, from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount ) )
+
+            old_cost = merge_line.book_value
             if stock_mod.get_count() + merge_line.count != 0:
                 merge_cost_total = (merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
                 merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
-
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - old_cost.amount) * 10**5) != 0 and stock_mod.get_count() < 0 :
+                raise ValueError("book value changed during negative line, from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount ) )
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
 
         if merge_line.count < 0:
             raise StockSmallerThanZeroError("Stock levels can't be below zero.")
 
+        # Delete line if at zero and software wants to delete line
         if merge_line.count == 0 and DELETE_STOCK_ZERO_LINES:
             if merge_line.id is not None:
                 merge_line.delete()
@@ -79,6 +89,7 @@ class StockChangeSet(models.Model):
     memo = models.CharField(max_length=255, null=True)
     # Number to describe what caused this change
     enum = models.IntegerField()
+
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(

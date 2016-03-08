@@ -1,4 +1,5 @@
 #### Stock Labels
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy
 
@@ -49,6 +50,9 @@ class StockLabel:
     # Adds labeltype to reverse lookup table (labeltypes)
     @classmethod
     def add_label_type(cls, type):
+        if type._labeltype =="":
+            raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
+
         name = type._labeltype
         if cls.labeltypes is None:
             cls.labeltypes = {}
@@ -101,11 +105,17 @@ StockLabel.add_label_type(NoStockLabel)
 
 
 class StockLabeledLine(models.Model):
-    labeltype = models.CharField(max_length=255,null=True)
+    labeltype = models.CharField(max_length=255,null=True, validators=[
+    RegexValidator(regex='^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(_|[^\w])).+$',
+                   message='Labeltype should be longer than zero characters')])
     labelkey = models.IntegerField(null=True)
     objects = StockLabelManager()
 
     def __init__(self, *args, **kwargs):
+        if kwargs.pop('labeltype',None) is not None:
+            raise ValueError("labeltype should be kept at None, please use qualified argument 'label'")
+        if kwargs.pop('labelkey',None) is not None:
+            raise ValueError("labeltype should be kept at None, please use qualified argument 'label'")
         label = kwargs.pop('label', False)
         if label:
             kwargs["labeltype"] = label.labeltype
