@@ -8,11 +8,15 @@ from money.models import *
 class BasicTest(TestCase):
 
     def setUp(self):
+        self.cash = PaymentType(name="Cash")
+        self.pin = PaymentType(name="PIN")
+        self.cash.save()
+        self.pin.save()
         self.eu = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
         self.usd = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
-        self.reg1 = Register.create(currency=self.eu, is_cash_register=True, payment_method="Bloop")
-        self.reg2 = Register.create(currency=self.eu, is_cash_register=False, payment_method="Foo")
-        self.reg3 = Register.create(currency=self.usd, is_cash_register=False, payment_method="Foo")
+        self.reg1 = Register(currency=self.eu, is_cash_register=True, payment_type=self.cash)
+        self.reg2 = Register(currency=self.eu, is_cash_register=False, payment_type=self.pin)
+        self.reg3 = Register(currency=self.usd, is_cash_register=False, payment_type=self.pin)
         self.denom1 = Denomination.create(currency=self.eu, amount=2.20371)
         self.denom2 = Denomination.create(currency=self.eu, amount=2)
         self.denom3 = Denomination.create(currency=self.eu, amount=0.02)
@@ -92,11 +96,18 @@ class BasicTest(TestCase):
         assert (RegisterMaster.number_of_open_registers() == 2)
         ConsistencyChecker.full_check()
 
-    def test_payment_fixing(self):
-        self.reg1.save()
-        assert self.reg1.payment_method == "Cash"
+    def test_illegal_payment_type(self):
+        a = Register(currency=self.eu, is_cash_register=False, payment_type=self.pin)
+        a.save()
+        b = Register(currency=self.eu, is_cash_register=True, payment_type=self.pin)
+        foo = False
+        try:
+            b.save()
+        except AssertionError:
+            foo = True
+        assert foo
 
-    def test_payment_methods(self):
+    def test_payment_types(self):
         assert (RegisterMaster.number_of_open_registers() == 0)
         assert (not RegisterMaster.sales_period_is_open())
         self.reg1.save()

@@ -132,6 +132,10 @@ LOCALE_PATHS = (
 
 STATIC_URL = '/static/'
 
+#Name of cash payment type
+
+CASH_PAYMENT_TYPE_NAME = "Cash"
+
 # Import local user settings from local.py
 try:
     from swipe.local import *

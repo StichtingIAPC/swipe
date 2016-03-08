@@ -1,13 +1,18 @@
 from django.contrib.admin import actions
 from django.db import models,IntegrityError
 from django.utils import timezone
+from django.conf import settings
 
 # Create your models here.
 
 from django.utils.translation import ugettext_lazy
 from money.models import *
 
-from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
+
+
+class PaymentType(models.Model):
+
+    name = models.CharField(max_length=255, unique=True)
 
 
 class Register(models.Model):
@@ -23,14 +28,7 @@ class Register(models.Model):
 
     is_active = models.BooleanField(default=True)
 
-    payment_method = models.CharField(max_length=255, blank=False, default="Missing")
-
-    @classmethod
-    def create(cls, *args, **kwargs):
-        if 'is_cash_register' in kwargs:
-            if kwargs['is_cash_register']:
-                kwargs['payment_method'] = "Cash"
-        return cls(*args, **kwargs)
+    payment_type = models.ForeignKey(PaymentType)
 
     def get_denominations(self):
         if self.is_cash_register:
@@ -89,9 +87,14 @@ class Register(models.Model):
                         register_count.register_period = reg_per
                         register_count.save()
 
+    def save(self, **kwargs):
+        if self.is_cash_register:
+            assert(self.payment_type.name == "Cash")
+        super(Register, self).save()
+
     def __str__(self):
         return "Name: {}, Currency: {}, is_cash_register: {}, is_active: {}, Payment Method: {}".\
-            format(self.name, self.currency.name, self.is_cash_register, self.is_active, self.payment_method)
+            format(self.name, self.currency.name, self.is_cash_register, self.is_active, self.payment_type.name)
 
 
 class RegisterMaster:
@@ -126,12 +129,8 @@ class RegisterMaster:
 
     @staticmethod
     def get_payment_types_for_open_registers():
-        open_regs = Register.objects.filter(registerperiod__endTime__isnull=True, registerperiod__isnull=False)
-        payment_types = set()
-        for reg in open_regs:
-            if reg.payment_method not in payment_types:
-                payment_types.add(reg.payment_method)
-        return payment_types
+        return PaymentType.objects.filter(register__registerperiod__endTime__isnull=True,
+                                          register__registerperiod__isnull=False).distinct()
 
 
 class ConsistencyChecker:
@@ -165,7 +164,7 @@ class ConsistencyChecker:
     def check_payment_types():
         registers = Register.objects.all()
         for register in registers:
-            if register.is_cash_register and not register.payment_method == "Cash":
+            if register.is_cash_register and register.payment_type.name != settings.CASH_PAYMENT_TYPE_NAME:
                 raise IntegrityError("Cash register can only have cash as payment method")
 
 
@@ -234,7 +233,7 @@ class RegisterCount(models.Model):
 
     is_opening_count = models.BooleanField()
 
-    amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES, default=-1.0)
+    amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=-1.0)
 
     @classmethod
     def create(cls, *args, **kwargs):
@@ -285,7 +284,7 @@ class MoneyInOut(models.Model):
     """
     register_period = models.ForeignKey(RegisterPeriod)
 
-    amount = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=DECIMAL_PLACES, default=0.0)
+    amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
 
     @classmethod
     def create(cls, *args, **kwargs):
