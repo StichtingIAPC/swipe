@@ -73,6 +73,9 @@ class StockLabel:
 
     def __init__(self, key=0):
         self._key = key
+        if self._labeltype == None:
+            raise ValueError("StockLabel's can't be created without a labeltype, please create your own subclass of StockLabel")
+
         if self._labeltype =="":
             raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
 
@@ -93,12 +96,6 @@ class StockLabel:
 
     def __str__(self):
         return "[{} : {}]".format(self.labeltype, self.key)
-
-
-# Example label: Explicit no-label
-class NoStockLabel(StockLabel):
-    _labeltype=None
-StockLabel.add_label_type(NoStockLabel)
 
 
 class StockLabeledLine(models.Model):

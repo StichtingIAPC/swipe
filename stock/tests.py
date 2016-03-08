@@ -249,6 +249,7 @@ class StockTest(TestCase):
             'is_in': False
         }
 
+
         # Execute the needed modifications
         log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
         log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
@@ -456,7 +457,7 @@ class StockTest(TestCase):
             'is_in': False
         }]
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
-        self.assertEqual(len(StockChange.objects.filter(label=NoStockLabel())), 13)
+        self.assertEqual(len(StockChange.objects.all_without_label()), 13)
         self.assertEqual(len(StockChange.objects.all_without_label()), 13)
 
         self.assertEqual(len(StockChange.objects.all()), 13)
@@ -515,7 +516,7 @@ class LabelTest(TestCase):
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
 
         self.assertEqual(len(StockChange.objects.filter(label=self.label1a)), 2)
-        self.assertEqual(len(StockChange.objects.filter(label=NoStockLabel())), 0)
+        self.assertEqual(len(StockChange.objects.all_without_label()), 0)
         self.assertEqual(len(StockChange.objects.all()), 2)
         self.assertEqual(len(Stock.objects.all()), 1)
         t = TestStockLabel(4)
