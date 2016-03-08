@@ -27,7 +27,7 @@ class StockLabelQuerySet(models.QuerySet):
 
 class StockLabelManager(models.Manager):
     """
-    SoftDeletableManager modifies the default QuerySet to only return the active items.
+        StockLabelManager adds the option to get all Stock lines without a label. Shorthand for labeltype = None
     """
 
     def get_queryset(self):
@@ -47,14 +47,14 @@ class StockLabel:
     # Adds labeltype to reverse lookup table (labeltypes)
     @classmethod
     def add_label_type(cls, type):
-        if type._labeltype =="":
+        if type._labeltype == "":
             raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
 
         name = type._labeltype
         if cls.labeltypes is None:
             cls.labeltypes = {}
         if name in cls.labeltypes.keys():
-            raise ValueError("StockLabel name '{}'  already in used for class {}".format(name,type))
+            raise ValueError("StockLabel name '{}'  already in use for class {}".format(name,type))
         cls.labeltypes[name] = type
 
     # Returns correct label type
@@ -64,7 +64,7 @@ class StockLabel:
         if labeltype in cls.labeltypes.keys():
             lt = cls.labeltypes[labeltype]
         else:
-            lt= StockLabel
+            lt = StockLabel
         return lt(key)
 
     @property
@@ -73,10 +73,10 @@ class StockLabel:
 
     def __init__(self, key=0):
         self._key = key
-        if self._labeltype == None:
+        if self._labeltype is None:
             raise ValueError("StockLabel's can't be created without a labeltype, please create your own subclass of StockLabel")
 
-        if self._labeltype =="":
+        if self._labeltype == "":
             raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
 
     @property
