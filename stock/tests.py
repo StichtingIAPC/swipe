@@ -586,7 +586,6 @@ class LabelTest(TestCase):
         # Add 1 article with cost 1 euro
         entries = self.def_entries
 
-
         StockChangeSet.construct(description="AddFirstStock", entries=entries, enum=1)
         self.assertEqual(StockChange.objects.all().__len__(), 1)
         self.assertEqual(Stock.objects.all().__len__(), 1)
