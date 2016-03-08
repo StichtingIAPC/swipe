@@ -2,17 +2,19 @@
 from django.core.validators import RegexValidator
 from django.db import models
 
+
 class StockLabelQuerySet(models.QuerySet):
 
-    def prepare_kwargs(self,kwargs):
-        label = kwargs.pop("label",None)
+    @staticmethod
+    def prepare_kwargs(kwargs):
+        label = kwargs.pop("label", None)
         if label is not None:
-            kwargs["labeltype"]=label.labeltype
+            kwargs["labeltype"] = label.labeltype
             kwargs["labelkey"] = label.key
         if "labeltype" in kwargs.keys():
-            if kwargs["labeltype"]=="":
+            if kwargs["labeltype"] == "":
                 kwargs["labeltype"] = None
-            if  kwargs["labeltype"]==None:
+            if  kwargs["labeltype"] == None:
                 kwargs.pop("labelkey", None)
         return kwargs
 
@@ -88,7 +90,7 @@ class StockLabel:
     def __bool__(self):
         return self.labeltype != ""
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         if other is None and (self.labeltype is None or self.labeltype == ""):
             return True
         try:
@@ -108,15 +110,15 @@ class StockLabeledLine(models.Model):
     objects = StockLabelManager()
 
     def __init__(self, *args, **kwargs):
-        if kwargs.pop('labeltype',None) is not None:
+        if kwargs.pop('labeltype', None) is not None:
             raise ValueError("labeltype should be kept at None, please use qualified argument 'label'")
-        if kwargs.pop('labelkey',None) is not None:
+        if kwargs.pop('labelkey', None) is not None:
             raise ValueError("labeltype should be kept at None, please use qualified argument 'label'")
         label = kwargs.pop('label', False)
         if label:
             kwargs["labeltype"] = label.labeltype
             kwargs["labelkey"] = label.key
-        models.Model.__init__(self,*args,**kwargs)
+        models.Model.__init__(self, *args, **kwargs)
 
     @property
     def label(self):
