@@ -467,15 +467,13 @@ class StockTest(TestCase):
         else:
             self.assertEqual(st.__len__(), 1)
 
-
+@StockLabel.register
 class ZStockLabel(StockLabel):
     _labeltype="Z"
-StockLabel.add_label_type(ZStockLabel)
 
-
+@StockLabel.register
 class TestStockLabel(StockLabel):
     _labeltype="test"
-StockLabel.add_label_type(TestStockLabel)
 
 
 class LabelTest(TestCase):
@@ -571,7 +569,7 @@ class LabelTest(TestCase):
             self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(), 1)
 
     def raise_Invalid_Label_type_added(self):
-        StockLabel.add_label_type(self.labeltype)
+        StockLabel.register(self.labeltype)
 
     def testTestLabelWithoutName(self):
         class InValidLabel(StockLabel):

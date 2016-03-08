@@ -46,7 +46,7 @@ class StockLabel:
 
     # Adds labeltype to reverse lookup table (labeltypes)
     @classmethod
-    def add_label_type(cls, type):
+    def register(cls, type):
         if type._labeltype == "":
             raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
 
@@ -56,6 +56,7 @@ class StockLabel:
         if name in cls.labeltypes.keys():
             raise ValueError("StockLabel name '{}'  already in use for class {}".format(name,type))
         cls.labeltypes[name] = type
+        return type
 
     # Returns correct label type
     @classmethod
