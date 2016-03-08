@@ -1,9 +1,6 @@
 #### Stock Labels
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils.translation import ugettext_lazy
-
-from django.db.models import Q
 
 class StockLabelQuerySet(models.QuerySet):
 

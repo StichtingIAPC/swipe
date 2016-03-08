@@ -616,10 +616,7 @@ class LabelTest(TestCase):
         self.assertEqual(Stock.objects.all_without_label().__len__(),1)
 
     def testStockChangeCreateWithLabelTypeInsteadOfLabel(self):
-
-
         # Add 1 article with cost 1 euro
-
         self.entries = self.def_entries
         self.entries[0]['label'] = None
         self.entries[0]['labeltype'] = "TEST"
