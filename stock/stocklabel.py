@@ -2,6 +2,8 @@
 from django.core.validators import RegexValidator
 from django.db import models
 
+from stock.exceptions import StockLabelNotFoundException
+
 
 class StockLabelQuerySet(models.QuerySet):
 
@@ -68,7 +70,7 @@ class StockLabel:
         if labeltype in cls.labeltypes.keys():
             lt = cls.labeltypes[labeltype]
         else:
-            lt = StockLabel
+            raise StockLabelNotFoundException("Stock label {} not found".format(labeltype))
         return lt(key)
 
     @property
@@ -119,12 +121,11 @@ class StockLabeledLine(models.Model):
             kwargs["labeltype"] = label.labeltype
             kwargs["labelkey"] = label.key
         models.Model.__init__(self, *args, **kwargs)
-
-    @property
-    def label(self):
-        if self.labeltype:
-            return StockLabel.returnLabel(self.labeltype, self.labelkey)
-        return None
+        if hasattr(self,"id"):
+            if self.labeltype:
+                self.label = StockLabel.returnLabel(self.labeltype, self.labelkey)
+            else:
+                self.label = None
 
     class Meta:
         abstract = True

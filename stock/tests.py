@@ -471,9 +471,14 @@ class StockTest(TestCase):
 class ZStockLabel(StockLabel):
     _labeltype="Zz"
 
+
 @StockLabel.register
 class TestStockLabel(StockLabel):
     _labeltype="test"
+
+
+class ForgottenStockLabel(StockLabel):
+    _labeltype="forgotten"
 
 
 class LabelTest(TestCase):
@@ -673,3 +678,9 @@ class LabelTest(TestCase):
         self.newDirectStockLine()
         a = self.newDirectStockLine()
         self.assertFalse(a)
+
+    def create_forgotten_stock(self):
+        return Stock(article=self.def_art,book_value=self.cost_eur,count=2, label=ForgottenStockLabel(4)).save(indirect=True)
+
+    def testStockLabelNotRegistred(self):
+            self.assertRaises(StockLabelNotFoundException, self.create_forgotten_stock)
