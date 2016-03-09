@@ -2,7 +2,7 @@
 from django.core.validators import RegexValidator
 from django.db import models
 
-from stock.exceptions import StockLabelNotFoundException
+from stock.exceptions import StockLabelNotFoundError
 
 
 class StockLabelQuerySet(models.QuerySet):
@@ -70,7 +70,7 @@ class StockLabel:
         if labeltype in cls.labeltypes.keys():
             lt = cls.labeltypes[labeltype]
         else:
-            raise StockLabelNotFoundException("Stock label {} not found".format(labeltype))
+            raise StockLabelNotFoundError("Stock label {} not found".format(labeltype))
         return lt(key)
 
     @property

@@ -683,4 +683,4 @@ class LabelTest(TestCase):
         return Stock(article=self.def_art,book_value=self.cost_eur,count=2, label=ForgottenStockLabel(4)).save(indirect=True)
 
     def testStockLabelNotRegistred(self):
-        self.assertRaises(StockLabelNotFoundException, self.create_forgotten_stock)
+        self.assertRaises(StockLabelNotFoundError, self.create_forgotten_stock)
