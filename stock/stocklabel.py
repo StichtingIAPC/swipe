@@ -89,9 +89,6 @@ class StockLabel:
     def key(self):
         return self._key
 
-    def __bool__(self):
-        return self.labeltype != ""
-
     def __eq__(self, other):
         if other is None and (self.labeltype is None or self.labeltype == ""):
             return True
