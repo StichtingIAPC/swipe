@@ -30,6 +30,11 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
 
+#Should swipe delete stocklines at count zero?
+DELETE_STOCK_ZERO_LINES = True
+
+#Should swipe's stock model throw an error when the software attempts to remove stock at a different price from the stock on stock? Sensible: True
+FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,9 +45,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
+    'core',
     'www',
     'money',
     'supplier',
+    'register',
     'article',
     'stock',
     'assortment',
@@ -137,6 +144,10 @@ LOCALE_PATHS = (
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#Name of cash payment type
+
+CASH_PAYMENT_TYPE_NAME = "Cash"
 
 # Import local user settings from local.py
 try:
