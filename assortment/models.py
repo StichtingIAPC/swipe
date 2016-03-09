@@ -9,9 +9,27 @@ from django.db import models
 
 from assortment.config import labels as conf_labels
 
+
+"""
+From here on: Tags
+
+Tags will be used as the main way to generate a tree. Other components that can be used will be labels, but labels are
+a lot more complex to generate a tree from, so we pre-build the trunk from tags.
+"""
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    parent_tag = models.ForeignKey('Tag', blank=True, null=True)
+
+    class Meta:
+        pass
+
+
 """
 From here on: Labels
 """
+
 
 class Label(models.Model):
     value = models.TextField(max_length=64, editable=False)
@@ -29,15 +47,15 @@ class Label(models.Model):
     def __str__(self):
         return self.label_type.to_string(self._value)
 
+    def save(self, *args, **kwargs):
+        if self.id is None:
+            super(Label, self).save(*args, **kwargs)
+
     class Meta:
         ordering = ['label_type', 'value']
         unique_together = (
             ('value', 'label_type'),
         )
-
-    def save(self, *args, **kwargs):
-        if self.id is None:
-            super(Label, self).save(*args, **kwargs)
 
 
 class LabelType(models.Model):
@@ -84,6 +102,9 @@ class LabelType(models.Model):
     def label(self, val):
         value = self.unit_type.parse(val)
         return Label.objects.get_or_create(value=value, label_type=self.pk)
+
+    class Meta:
+        pass
 
 
 class UnitType(models.Model):
