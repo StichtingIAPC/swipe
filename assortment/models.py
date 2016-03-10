@@ -3,6 +3,7 @@ import re
 
 import math
 
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.db import models
@@ -35,21 +36,20 @@ class Label(models.Model):
     value = models.TextField(max_length=64, editable=False)
     label_type = models.ForeignKey('LabelType', on_delete=models.CASCADE, editable=False)
 
-    def __init__(self, value, label_type):
+    @classmethod
+    def get_or_create(cls, value, label_type):
         if not isinstance(value, str):
-            raise AssertionError('initial `value` must be of type str')
+            raise AssertionError('initial label_value must be of type str')
 
-        self.label_type = label_type
-        self._value = label_type.unit_type.parse(value)
-        self.value = str(self._value)
-        super().__init__()
+        obj, new = cls.objects.get_or_create(value=value, label_type=label_type)
+
+        obj._value = label_type.unit_type.parse(value)
+        obj.label_value = str(obj._value)
+        obj.save()
+        return obj, new
 
     def __str__(self):
         return self.label_type.to_string(self._value)
-
-    def save(self, *args, **kwargs):
-        if self.id is None:
-            super(Label, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ['label_type', 'value']
@@ -66,17 +66,14 @@ class LabelType(models.Model):
     unit_type = models.ForeignKey('UnitType', on_delete=models.CASCADE, editable=False)
     # the unittype this label uses
 
-    def __init__(self):
-        super().__init__()
-
     def to_string(self, value, *args, shortened=True):
         return "{}: {}{}".format(
             self.name_short,
-            self.to_value_string(value, shortened),
-            self.unit_type.type_short)
+            self.value_to_string(value, shortened),
+            self.unit_type.type_short if shortened else self.unit_type.type_long)
 
-    def to_value_string(self, value, shortened=True):
-        if (self.unit_type.counting_type not in ('n', 'i') or
+    def value_to_string(self, value, shortened=True):
+        if (self.unit_type.counting_type in conf_labels.NON_COUNTABLE_ENUMERATION_TYPES or
                 self.unit_type.incremental_type is None):
             return str(value)
 
@@ -90,34 +87,29 @@ class LabelType(models.Model):
         if index < 0 or index > len(incr_settings['values']):
             return str(value)
 
-        value_representation = rel_value * math.pow(int(incr_settings['factor']), index)
+        value_representation = rel_value / math.pow(int(incr_settings['factor']), index)
         value_symbol, value_symbol_extended = list(incr_settings['values'])[index]
 
         return "{} {}{}".format(
-            str(value_representation),
+            type(value)(value_representation),
             value_symbol if shortened else value_symbol_extended,
             incr_settings['seperator']
         )
 
     def label(self, val):
-        value = self.unit_type.parse(val)
-        return Label.objects.get_or_create(value=value, label_type=self.pk)
-
-    class Meta:
-        pass
+        value = self.unit_type.parse(str(val))
+        obj, new = Label.get_or_create(value=str(value), label_type=self)
+        return obj
 
 
 class UnitType(models.Model):
-    type_short = models.CharField(max_length=32, unique=True, editable=False)  # e.g. 'm' for meters, 'l' for liters
-    type_long = models.CharField(max_length=2, unique=True, editable=False)    # e.g. 'meter' or 'liter'
+    type_short = models.CharField(max_length=8, editable=False)  # e.g. 'm' for meters, 'l' for liters
+    type_long = models.CharField(max_length=255, editable=False)    # e.g. 'meter' or 'liter'
     counting_type = models.CharField(max_length=1, choices=conf_labels.ENUMERATION_TYPES, editable=False)
     # is it a string, an integer, a decimal or a boolean?
     incremental_type = models.CharField(max_length=3, choices=conf_labels.SYMBOL_TYPES, blank=True, null=True)
     # in case of integer or decimal, do you want it to be visualized in powers of something, like millions, billions,
     # mega, mini, milliards, etc?
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def __str__(self):
         if self.incremental_type:
@@ -145,3 +137,7 @@ class UnitType(models.Model):
 
     class Meta:
         ordering = ['type_short', 'type_long']
+        unique_together = (
+            ('type_short', 'counting_type'),
+            ('type_long', 'counting_type')
+        )
