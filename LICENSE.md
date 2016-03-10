@@ -53,7 +53,6 @@ List of contributors
 --------------------
 - Kevin Alberts
 - Léon van der Kaap
-- Matthias van de Meent
 - Wilfried van Asten
 
 
@@ -89,3 +88,4 @@ List of contributors
 --------------------
 - Nander Voortman
 - Léon van der Kaap
+- Matthias van de Meent
