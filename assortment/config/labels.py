@@ -19,20 +19,20 @@ ENUMERATION_PARSERS = {
     's': lambda v:
         str(v) if re.match(
             r'^.+$', v)
-        else (_ for _ in ()).throw(AssertionError(_('input string has to be a non-empty string'))),
+        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string'))),
     'n': lambda v:
         Decimal(v) if re.match(
             r'^[0-9]+(?:\.[0-9]*)?$', v)
-        else (_ for _ in ()).throw(AssertionError(_('input string has to be a non-empty string, containing at least 1 '
+        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string, containing at least 1 '
                                                   'digit (0-9), and using a dot as a decimal point'))),
     'i': lambda v:
         int(v) if re.match(
             r'^[0-9]+$', v)
-        else (_ for _ in ()).throw(AssertionError(_('input string has to be a non-empty string of at least 1 digit'))),
+        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string of at least 1 digit'))),
     'b': lambda v:
         bool(re.match(r'(?:[jty])|ja|true|yes', v)) if re.match(
             r'^(?:[jntfy]|ja|nee|true|false|yes|no)$', v)
-        else (_ for _ in ()).throw(AssertionError(_('input string has to be a non-empty string which contains a '
+        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string which contains a '
                                                   'true/false value matching "[jntfy]|ja|nee|true|false|yes|no"'))),
 }
 
