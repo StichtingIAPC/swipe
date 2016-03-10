@@ -12,7 +12,7 @@ ENUMERATION_TYPES = (
 )
 
 
-NON_COUNTABLE_ENUMERATION_TYPES = ('s',)
+NON_COUNTABLE_ENUMERATION_TYPES = ('s', 'b')
 
 
 ENUMERATION_PARSERS = {
@@ -47,7 +47,7 @@ SYMBOL_TYPES = (
 
 SYMBOL_EXTENDED = {
     'SI': {
-        'factor': 1000,
+        'factor': 1e3,
         'start': 1e-12,
         'values': [
             ('f', 'femto'),
