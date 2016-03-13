@@ -5,7 +5,7 @@ from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
-from stock.stocklabel import *
+from stock.stocklabel import StockLabeledLine
 from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
 
 

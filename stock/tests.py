@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.test import TestCase
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
-from stock.stocklabel import *
+from stock.stocklabel import StockLabeledLine, StockLabel, StockLabelNotFoundError
 from stock.models import Stock, StockChange, StockChangeSet
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost

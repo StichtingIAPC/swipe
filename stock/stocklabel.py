@@ -65,7 +65,7 @@ class StockLabel:
 
     # Returns correct label type
     @classmethod
-    def returnLabel(cls,labeltype, key):
+    def return_label(cls, labeltype, key):
 
         if labeltype in cls.labeltypes.keys():
             lt = cls.labeltypes[labeltype]
@@ -120,7 +120,7 @@ class StockLabeledLine(models.Model):
         models.Model.__init__(self, *args, **kwargs)
         if hasattr(self,"id"):
             if self.labeltype:
-                self.label = StockLabel.returnLabel(self.labeltype, self.labelkey)
+                self.label = StockLabel.return_label(self.labeltype, self.labelkey)
             else:
                 self.label = None
 
