@@ -1,3 +1,4 @@
+from django.core import checks
 from django.db import models
 # Create your models here.
 from django.db import transaction
@@ -27,6 +28,64 @@ class Stock(StockLabeledLine):
             raise Id10TError(
                 "Stock modifications shouldn't be done directly, but rather, they should be done on StockChangeSet.")
         super(Stock, self).save(*args, **kwargs)
+
+    def to_key(self):
+        return "{}_{}_{}".format(self.pk, self.labeltype, self.labelkey)
+
+    @classmethod
+    def do_check(cls):
+        errors = []
+        stock = Stock.objects.all()
+        required_result = {}
+        for st in stock:
+            key = "{}_{}_{}".format(st.pk, st.labeltype, st.labelkey)
+            if key in required_result.keys():
+                errors.append({"text": 'Label in use.', "location": 'Stock', "Line":st.pk})
+            required_result[key] = {"count":st.count,"bookvalue":st.book_value}
+        running_result = {}
+        changes = StockChange.objects.all()
+
+        for change in changes:
+            key = "{}_{}_{}".format(change.article_id, change.labeltype, change.labelkey)
+            if key in running_result.keys():
+                if change.count < 0:
+                    if change.cost != running_result[key]["cost"]:
+                        errors.append({"text": 'Inconsistency found in stock: negative stock, cost of removal differs: {} instead of {}'.format(change.cost,running_result[key]["cost"]), "location": 'StockChange', "Line":change.pk})
+                if change.get_count()+running_result[key]["count"] != 0:
+                    running_result[key]["bookvalue"] = (running_result[key]["bookvalue"]* running_result[key]["count"] + change.book_value*change.get_count())/(change.get_count()+running_result[key]["count"])
+                running_result[key]["count"] = running_result[key]["count"] + change.get_count()
+                if running_result[key]["count"] < 0:
+                    errors.append({"text": 'Inconsistency found in stock: stock levels turn (temporarily) negative in the past.', "location": 'StockChange', "Line":change.pk})
+
+            else:
+                running_result[key] = {"count":change.get_count(),"bookvalue":change.book_value}
+        q = required_result.keys()
+        aa = []
+        for zz in q:
+            aa.append(zz)
+        for z in aa:
+            a = required_result.pop(z,None)
+            b = running_result.pop(z,None)
+            if b is None or a["count"] != b["count"] or a["bookvalue"] != b["bookvalue"]:
+                if b is None and a["count"] != 0:
+                    errors.append({"text": 'Found no stock for {} when rerunning, but {} are still in Stock according to the Database'.format(z,a["count"]), "location": 'Recalculated Stock', "Line": z})
+                else:
+                    errors.append({"text": 'Different counts or costs found for {}: ({} {}) found, ({} {}) expected'.format(z,a["count"], a["bookvalue"],b["count"],b["bookvalue"]), "location": 'Recalculated Stock', "Line": z})
+        q = running_result.keys()
+        aa = []
+        for zz in q:
+            aa.append(zz)
+        for z in aa:
+            b = running_result.pop(z,None)
+            if b["count"] != 0:
+                errors.append({"text": 'Running result found stock not in normal Stock! Call for help, this is serious'.format(b["count"],b["bookvalue"]), "location": 'Recalculated Stock', "Line": z})
+
+        if errors != []:
+            print("#######")
+            print(changes)
+            print(errors)
+
+        return errors
 
     @staticmethod
     def get_merge_line(mod):

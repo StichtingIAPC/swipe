@@ -224,6 +224,9 @@ class Cost(Money):
         else:
             return self == item2
 
+    def __eq__(self, oth):
+        return type(oth) == Cost and self.amount == oth.amount and self.currency == oth.currency
+
     def __add__(self, oth):
         if type(oth) != Cost:
             raise TypeError("Cannot add Cost to {}".format(type(oth)))
@@ -250,7 +253,7 @@ class Cost(Money):
 
     def __truediv__(self, oth):
         if isinstance(oth, int):
-            return Cost(self.amount / Decimal(oth), self.currency)
+            return Cost(self.amount / oth, self.currency)
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
