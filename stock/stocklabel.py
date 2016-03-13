@@ -102,10 +102,10 @@ class StockLabel:
 
 
 class StockLabeledLine(models.Model):
-    labeltype = models.CharField(max_length=255,null=True, validators=[
+    labeltype = models.CharField(max_length=255,null=True, blank=True, validators=[
     RegexValidator(regex='^.+$',
                    message='Labeltype should be longer than zero characters')])
-    labelkey = models.IntegerField(null=True)
+    labelkey = models.IntegerField(null=True, blank=True)
     objects = StockLabelManager()
 
     def __init__(self, *args, **kwargs):
