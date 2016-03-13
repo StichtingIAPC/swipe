@@ -12,6 +12,7 @@ from article.models import ArticleType
 from money.models import Currency, VAT, Cost
 from swipe import settings
 from swipe.settings import DELETE_STOCK_ZERO_LINES
+from tools.management.commands.consistencycheck import Command
 
 
 class StockTest(TestCase):
@@ -19,7 +20,7 @@ class StockTest(TestCase):
         pass
 
     def tearDown(self):
-        Stock.do_check()
+        self.assertEqual(Stock.do_check(),[])
 
     def testAddStockDirectly(self):
         """
@@ -172,6 +173,15 @@ class StockTest(TestCase):
         tt = Stock.objects.get(pk=1)
         tt.count = tt.count +1 # Fuck over everything
         tt.save(indirect = True) # Nail in the coffin
+        print("")
+        print("Trying to find error in Stock with error")
+        err = Stock.do_check()
+        print("-- End of try --")
+        self.assertEqual(err.__len__(), 1 )
+        self.assertEqual(err[0]["Line"],'1_None_None')
+
+        tt.count = tt.count -1 # Unfuck everything
+        tt.save(indirect = True) # Save it again
 
     @skip("Really heavy test, comment this line if you want to run it")
     def testConsistencyCheckerPerformance(self):
@@ -211,6 +221,9 @@ class StockTest(TestCase):
 
         self.assertEqual(err.__len__(), 1 )
         self.assertEqual(err[0]["Line"],'1_None_None')
+
+        tt.count = tt.count -1 # Unfuck everything
+        tt.save(indirect = True) # Save it again
 
     def testAddMultipleToStock(self):
         """
@@ -593,6 +606,10 @@ class LabelTest(TestCase):
             'label': self.label1a
         }]
 
+    def tearDown(self):
+
+        self.assertEqual(Stock.do_check(),[])
+
     def testBasicLabel(self):
         eur = Currency("EUR")
         usd = Currency("USD")
@@ -767,7 +784,7 @@ class LabelTest(TestCase):
             return True
         except Exception:
             return False
-
+    @skip
     def testMultipleStockLinesWithSameLabel(self):
         self.newDirectStockLine()
         a = self.newDirectStockLine()

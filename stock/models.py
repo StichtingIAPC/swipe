@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.core import checks
 from django.db import models
 # Create your models here.
@@ -38,7 +39,9 @@ class Stock(StockLabeledLine):
         stock = Stock.objects.all()
         required_result = {}
         for st in stock:
-            key = "{}_{}_{}".format(st.pk, st.labeltype, st.labelkey)
+            if st.labeltype is not None and st.labeltype not in StockLabel.labeltypes:
+                errors.append({"text": "StockLabelType {} not currrently in use, but still in use in DB".format(st.labeltype), "location":"Stock","Line": st.pk})
+            key = "{}_{}_{}".format(st.article_id, st.labeltype, st.labelkey)
             if key in required_result.keys():
                 errors.append({"text": 'Label in use.', "location": 'Stock', "Line":st.pk})
             required_result[key] = {"count":st.count,"bookvalue":st.book_value}
@@ -47,6 +50,8 @@ class Stock(StockLabeledLine):
 
         for change in changes:
             key = "{}_{}_{}".format(change.article_id, change.labeltype, change.labelkey)
+            if change.labeltype is not None and change.labeltype not in StockLabel.labeltypes:
+                errors.append({"text": "StockLabelType {} not currrently in use, but still in use in DB".format(change.labeltype), "location":"StockChange","Line": change.pk})
             if key in running_result.keys():
                 if change.count < 0:
                     if change.cost != running_result[key]["cost"]:
