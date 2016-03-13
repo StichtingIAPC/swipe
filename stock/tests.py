@@ -174,12 +174,9 @@ class StockTest(TestCase):
         tt.count = tt.count +1 # Fuck over everything
         tt.save(indirect = True) # Nail in the coffin
         print("")
-        print("Trying to find error in Stock with error")
         err = Stock.do_check()
-        print("-- End of try --")
         self.assertEqual(err.__len__(), 1 )
-        self.assertEqual(err[0]["Line"],'1_None_None')
-
+        self.assertEqual(err[0]["line"],'1_None_None')
         tt.count = tt.count -1 # Unfuck everything
         tt.save(indirect = True) # Save it again
 

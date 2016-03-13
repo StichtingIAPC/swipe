@@ -138,6 +138,25 @@ class ConsistencyChecker:
     Checks the consistency of the system. Will raise IntegrityErrors if the system is an inconsistent state.
     Fixes are required if any of these tests fail
     """
+
+    #This test runs the tests, but rather than raising an error it appends the errors to an array
+    @staticmethod
+    def non_crashing_full_check():
+        errors = []
+        try:
+            ConsistencyChecker.check_open_sales_periods()
+        except IntegrityError:
+            errors.append({"text":"More than one sales period is open", "location":"SalesPeriods","line":-1})
+        try:
+            ConsistencyChecker.check_open_register_periods()
+        except IntegrityError:
+            errors.append({"text":"Register had more than one register period open", "location":"SalesPeriods","line":-1})
+        try:
+            ConsistencyChecker.check_payment_types()
+        except IntegrityError:
+            errors.append({"text":"Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1})
+        return errors
+
     @staticmethod
     def full_check():
         ConsistencyChecker.check_open_sales_periods()

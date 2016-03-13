@@ -60,7 +60,7 @@ class Stock(StockLabeledLine):
                     running_result[key]["bookvalue"] = (running_result[key]["bookvalue"]* running_result[key]["count"] + change.book_value*change.get_count())/(change.get_count()+running_result[key]["count"])
                 running_result[key]["count"] = running_result[key]["count"] + change.get_count()
                 if running_result[key]["count"] < 0:
-                    errors.append({"text": 'Inconsistency found in stock: stock levels turn (temporarily) negative in the past.', "location": 'StockChange', "Line":change.pk})
+                    errors.append({"text": 'Inconsistency found in stock: stock levels turn (temporarily) negative in the past.', "location": 'StockChange', "line":change.pk})
 
             else:
                 running_result[key] = {"count":change.get_count(),"bookvalue":change.book_value}
@@ -73,9 +73,9 @@ class Stock(StockLabeledLine):
             b = running_result.pop(z,None)
             if b is None or a["count"] != b["count"] or a["bookvalue"] != b["bookvalue"]:
                 if b is None and a["count"] != 0:
-                    errors.append({"text": 'Found no stock for {} when rerunning, but {} are still in Stock according to the Database'.format(z,a["count"]), "location": 'Recalculated Stock', "Line": z})
+                    errors.append({"text": 'Found no stock for {} when rerunning, but {} are still in Stock according to the Database'.format(z,a["count"]), "location": 'Recalculated Stock', "line": z})
                 else:
-                    errors.append({"text": 'Different counts or costs found for {}: ({} {}) found, ({} {}) expected'.format(z,a["count"], a["bookvalue"],b["count"],b["bookvalue"]), "location": 'Recalculated Stock', "Line": z})
+                    errors.append({"text": 'Different counts or costs found for {}: ({} {}) found, ({} {}) expected'.format(z,a["count"], a["bookvalue"],b["count"],b["bookvalue"]), "location": 'Stock', "line": z})
         q = running_result.keys()
         aa = []
         for zz in q:
@@ -83,13 +83,7 @@ class Stock(StockLabeledLine):
         for z in aa:
             b = running_result.pop(z,None)
             if b["count"] != 0:
-                errors.append({"text": 'Running result found stock not in normal Stock! Call for help, this is serious'.format(b["count"],b["bookvalue"]), "location": 'Recalculated Stock', "Line": z})
-
-        if errors != []:
-            print("#######")
-            print(changes)
-            print(errors)
-
+                errors.append({"text": 'Running result found stock not in normal Stock! Call for help, this is serious'.format(b["count"],b["bookvalue"]), "location": 'Recalculated Stock', "line": z})
         return errors
 
     @staticmethod
