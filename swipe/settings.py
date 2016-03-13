@@ -23,10 +23,6 @@ SECRET_KEY = '(&-^3hx6os!h^sxu(v2py(78zuqtp8pxtu_3f=jh$+c4hw1taw'
 DEBUG = False
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-
-
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -136,17 +132,6 @@ LOCALE_PATHS = (
 
 STATIC_URL = '/static/'
 
-#Name of cash payment type
-
-CASH_PAYMENT_TYPE_NAME = "Cash"
-
-# Import local user settings from local.py
-try:
-    from swipe.local import *
-except ImportError:
-    print("WARNING: You forgot to add your local settings. "
-          "Please copy local.py.default to local.py in the swipe directory and change it to fit your needs.")
-
 # SWIPE SETTINGS
 # Monetary precision. Don't change unless you know what you're doing.
 DECIMAL_PLACES = 5
@@ -157,3 +142,14 @@ DELETE_STOCK_ZERO_LINES = True
 
 #Should swipe's stock model throw an error when the software attempts to remove stock at a different price from the stock on stock? Sensible: True
 FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
+
+#Name of cash payment type
+CASH_PAYMENT_TYPE_NAME = "Cash"
+
+# Import local user settings from local.py
+try:
+    from swipe.local import *
+except ImportError:
+    print("WARNING: You forgot to add your local settings. "
+          "Please copy local.py.default to local.py in the swipe directory and change it to fit your needs.")
+
