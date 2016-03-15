@@ -1,5 +1,5 @@
 """
-hey hey
+This file contains the models that are used to index, sort and model the assortment pages.
 """
 
 
