@@ -12,7 +12,6 @@ from article.models import ArticleType
 from money.models import Currency, VAT, Cost
 from swipe import settings
 from swipe.settings import DELETE_STOCK_ZERO_LINES
-from tools.management.commands.consistencycheck import Command
 
 
 class StockTest(TestCase):
@@ -175,7 +174,6 @@ class StockTest(TestCase):
         tt.save(indirect = True) # Nail in the coffin
         print("")
         err = Stock.do_check()
-        Command().handle()
         self.assertEqual(err.__len__(), 1 )
         self.assertEqual(err[0]["line"],'1_None_None')
         tt.count = tt.count -1 # Unfuck everything
