@@ -34,9 +34,9 @@ class Stock(StockLabeledLine):
     def to_key(self):
         return "{}_{}_{}".format(self.pk, self.labeltype, self.labelkey)
 
-    @classmethod
+    @staticmethod
     @consistency_check
-    def do_check(cls=None):
+    def do_check():
         errors = []
         stock = Stock.objects.all()
         required_result = {}

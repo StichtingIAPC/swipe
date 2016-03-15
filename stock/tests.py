@@ -12,7 +12,6 @@ from article.models import ArticleType
 from money.models import Currency, VAT, Cost
 from swipe import settings
 from swipe.settings import DELETE_STOCK_ZERO_LINES
-from tools.management.commands.consistencycheck import Command
 
 
 class StockTest(TestCase):
