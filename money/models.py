@@ -77,8 +77,6 @@ def price_field_name(name):
 class Money:
     def __init__(self, amount, currency):
         self._amount = amount.quantize(Decimal(10)**(-DECIMAL_PLACES))
-
-
         self._currency = currency
 
     @property
@@ -270,8 +268,6 @@ class CostField(MoneyField):
 class Price(Money):
     def __init__(self, amount, currency, vat):
         super().__init__(amount, currency)
-        self._amount = amount.quantize(Decimal(10)*(-DECIMAL_PLACES))
-        self._currency = currency
         self._vat = vat
 
     @property
@@ -413,8 +409,6 @@ class SalesPrice(Price):
     """
     def __init__(self, amount, currency, vat, cost):
         super().__init__(amount, currency, vat)
-        self._amount = amount.quantize(Decimal(10)*(-DECIMAL_PLACES))
-        self._currency = currency
         self._vat = vat
         self._cost = cost
 

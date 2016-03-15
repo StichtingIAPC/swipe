@@ -18,7 +18,7 @@ class Command(BaseCommand):
                 if not errors:
                     errors=True
                     print("Errors found:")
-                    print("SEVERITY|TEST        | Location |    Line    | Texts")
+                    print("SEVERITY| Location |    Line    | Texts")
                     print("-------------------------------------------")
                 for res in result:
                     print("{:8s}|{:10s}|{:12s}|{}".format(res.pop("severity","")[0:8], res["location"].__str__()[0:10],res["line"].__str__()[0:12],res["text"]))

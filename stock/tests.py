@@ -123,6 +123,60 @@ class StockTest(TestCase):
         # Check if the book value of the item is equal to the cost of the article
         self.assertEquals(art_stock.book_value.amount,  sp.amount)
 
+    def testAddSevenProductsToStockToStock(self):
+        """
+        Test that tries to add 7 of the same articles to the stock properly, to test if money is rounded properly for prime counts
+        """
+
+        # Create some objects to use in the tests
+        cur = Currency("EUR")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        art = ArticleType.objects.create(name="Product1", vat=vat)
+        sp = Cost(amount=Decimal("1.50000"), currency=cur)
+
+        # Construct entry list for StockChangeSet
+        entries = [{
+            'article': art,
+            'book_value': sp,
+            'count': 6,
+            'is_in': True
+        }]
+
+        # Execute two stock modifications, creating two StockLogs
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        sp = Cost(amount=Decimal("1.00000"), currency=cur)
+
+        entries = [{
+            'article': art,
+            'book_value': sp,
+            'count': 1,
+            'is_in': True
+        }]
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)  # Re-using entries for test.
+
+        # Check that we only added one type of article to the stock
+        self.assertEquals(len(Stock.objects.all()), 1)
+
+        # Check if number of items in StockChangeSet is correct
+        self.assertEquals(len(log_1. stockchange_set.all()), 1)
+        self.assertEquals(len(log_2. stockchange_set.all()), 1)
+
+        # Check if StockChange instance in log 1 is different from item in log 2
+        self.assertNotEquals(log_1. stockchange_set.all()[0], log_2. stockchange_set.all()[0])
+
+        # Get stock for article
+        art_stock = Stock.objects.get(article=art)
+
+        # Check if the article in stock is the article we specified
+        self.assertEquals(art_stock.article, art)
+
+        # Check if the number of items in stock is correct
+        self.assertEquals(art_stock.count, 7)
+
+        # Check if the book value of the item is equal to the cost of the article
+
+        self.assertEquals(art_stock.book_value,  Cost(amount=Decimal(10/7),currency=cur))
+
     def testFuckOverDBAndTestConsistencyChecker(self):
         """
         Test that tries to add 2 of the same articles to the stock properly.
