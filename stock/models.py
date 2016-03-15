@@ -5,9 +5,11 @@ from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
+from stock.stocklabel import StockLabeledLine
+from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
 
 
-class Stock(models.Model):
+class Stock(StockLabeledLine):
     """
         Keeps track of the current state of the stock
         Do not edit this thing directly, use StockChangeSet.construct instead.
@@ -29,7 +31,10 @@ class Stock(models.Model):
     @staticmethod
     def get_merge_line(mod):
         try:
-            return Stock.objects.get(article=mod.article)
+            if mod.label is None:
+                return Stock.objects.get(article=mod.article,labeltype=None)
+            else:
+                return Stock.objects.get(article=mod.article, labeltype=mod.labeltype, labelkey=mod.labelkey)
         except Stock.DoesNotExist:
             return None
 
@@ -38,27 +43,43 @@ class Stock(models.Model):
         merge_line = Stock.get_merge_line(stock_mod)
         # Create new merge_line
         if not merge_line:
-            merge_line = Stock(article=stock_mod.article, book_value=stock_mod.book_value, count=stock_mod.get_count())
+            merge_line = Stock(article=stock_mod.article, label=stock_mod.label, book_value=stock_mod.book_value, count=stock_mod.get_count())
         else:
             # Merge average book_value
             if merge_line.book_value.currency != stock_mod.book_value.currency:
                 raise CurrencyInconsistencyError("GOT {} instead of {}".format(
                     merge_line.book_value.currency, stock_mod.book_value.currency))
+
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10**5) != 0 and stock_mod.get_count() < 0 :
+                raise ValueError("book value changed during negative line, from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount ) )
+
+            old_cost = merge_line.book_value
             if stock_mod.get_count() + merge_line.count != 0:
                 merge_cost_total = (merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
                 merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
-
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - old_cost.amount) * 10**5) != 0 and stock_mod.get_count() < 0 :
+                raise ValueError("book value changed during negative line, from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount ) )
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
 
         if merge_line.count < 0:
             raise StockSmallerThanZeroError("Stock levels can't be below zero.")
 
-        merge_line.save(indirect=True)
+        # Delete line if at zero and software wants to delete line
+        if merge_line.count == 0 and DELETE_STOCK_ZERO_LINES:
+            if merge_line.id is not None:
+                merge_line.delete()
+        else:
+            merge_line.save(indirect=True)
+
         return merge_line
 
     def __str__(self):
-        return "{}| {}: {} @ {}".format(self.pk, self.article, self.count, self.book_value)
+        return "{}| {}: {} @ {} {}".format(self.pk, self.article, self.count, self.book_value, self.label)
+
+
+    class Meta:
+        unique_together = ('labeltype', 'labelkey','article',)# This check  is only partly valid, because most databases don't enforce null uniqueness.
 
 
 class StockChangeSet(models.Model):
@@ -72,6 +93,7 @@ class StockChangeSet(models.Model):
     memo = models.CharField(max_length=255, null=True)
     # Number to describe what caused this change
     enum = models.IntegerField()
+
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError(
@@ -122,7 +144,7 @@ class StockChangeSet(models.Model):
         return sl
 
 
-class StockChange(models.Model):
+class StockChange(StockLabeledLine):
     """
         change_set: What article is this StockChange a part of
         count: How many articles is this modification?
@@ -130,10 +152,11 @@ class StockChange(models.Model):
         is_in: Is this an in  (True) or an out (False)
         memo:  description of why this stock change happened. It's optional.
     """
-    change_set = models.ForeignKey(StockChangeSet)
     article = models.ForeignKey(ArticleType)
     count = models.IntegerField()
     book_value = CostField()
+
+    change_set = models.ForeignKey(StockChangeSet)
     is_in = models.BooleanField()
     memo = models.CharField(null=True, max_length=255)
 
@@ -154,4 +177,4 @@ class StockChange(models.Model):
         return self.change_set.date
 
     def __str__(self):
-        return "{}| {} x {}".format(self.pk, self.count, self.article)
+        return "{}| {} x {} {}".format(self.pk, self.count, self.article, self.label)
