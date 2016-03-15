@@ -43,12 +43,18 @@ class AssortmentLabel(models.Model):
     value = models.TextField(max_length=64, editable=False)
     label_type = models.ForeignKey('AssortmentLabelType', on_delete=models.CASCADE, editable=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__value = None
+
     @property
     def typed_value(self):
         """
         The value of the AssortmentLabel, but then as the type specified by its label type
         :return: the value as a more specific type
         """
+        if not self.__value:
+            self.__value = None
         return self.__value
 
     @typed_value.setter
@@ -57,7 +63,7 @@ class AssortmentLabel(models.Model):
         set the typed value
         :param value: the value it has to be set to, either in the correct type or as a string.
         """
-        if not isinstance(value, type(self.__value)) and self.__value is not None:
+        if self.__value is not None and not isinstance(value, type(self.__value)):
             if type(value) is str:
                 self.__value = self.label_type.unit_type.parse(value)
             else:
@@ -195,11 +201,11 @@ class AssortmentUnitType(models.Model):
         :return: a string containing the parsed value
         """
         if (self.counting_type in
-                [enum['as_choice'] for enum in conf_labels.VALUE_TYPES if enum['countable'] is False] or
+                [enum['as_choice'][1] for a, enum in conf_labels.VALUE_TYPES.items() if enum['countable'] is False] or
                 self.incremental_type is None):
             return str(value)
 
-        incr_settings = conf_labels.COUNTING_TYPES[self.counting_type]
+        incr_settings = conf_labels.COUNTING_TYPES[self.incremental_type]
         # get the settings of the incrementation of this unit type
         rel_value = value / incr_settings['start']
         # get the value relative to the start of the list

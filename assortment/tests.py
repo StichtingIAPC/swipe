@@ -136,7 +136,7 @@ class BasicTest(TestCase):
                 self.cpu_five_khz and
                 self.cpu_fifteen_khz)
         self.assertEqual(self.cable_five_meters, self.labelType.label('5'))
-        self.assertRaises(AssertionError, AssortmentLabel.get_or_create, value=6, label_type=self.labelType)
+        self.assertRaises(AssertionError, AssortmentLabel.get, value=6, label_type=self.labelType)
         self.assertRaises(AssertionError, self.make_label, value='5', label_type=self.labelType)
 
     def make_label(self, value, label_type):
@@ -146,13 +146,13 @@ class BasicTest(TestCase):
             raise AssertionError(str(e))
 
     def test_value_to_string(self):
-        self.assertEqual('5 kilo', self.countableLabelType.value_to_string(5000, shortened=False))
-        self.assertEqual('5 K', self.countableLabelType.value_to_string(5000, shortened=True))
-        self.assertEqual('hello', self.non_countableLabelType.value_to_string('hello', shortened=False))
-        self.assertEqual('hello', self.non_countableLabelType.value_to_string('hello', shortened=True))
+        self.assertEqual('cpu speed: 5 kilohertz', self.countableLabelType.value_to_string(5000, shortened=False))
+        self.assertEqual('cpu speed: 5 KHz', self.countableLabelType.value_to_string(5000, shortened=True))
+        self.assertEqual('brand: hello', self.non_countableLabelType.value_to_string('hello', shortened=False))
+        self.assertEqual('brand: hello', self.non_countableLabelType.value_to_string('hello', shortened=True))
 
     def test_to_string(self):
-        self.assertEqual('cpu speed: 5 kilohertz', self.countableLabelType.to_string(5000, shortened=False))
-        self.assertEqual('cpu speed: 5 KHz', self.countableLabelType.to_string(5000, shortened=True))
-        self.assertEqual('brand: hello', self.non_countableLabelType.to_string('hello', shortened=False))
-        self.assertEqual('brand: hello', self.non_countableLabelType.to_string('hello', shortened=True))
+        self.assertEqual('5 kilohertz', self.countableIntTypeHerz.value_to_string(5000, shortened=False))
+        self.assertEqual('5 KHz', self.countableIntTypeHerz.value_to_string(5000, shortened=True))
+        self.assertEqual('hello', self.stringType.value_to_string('hello', shortened=False))
+        self.assertEqual('hello', self.stringType.value_to_string('hello', shortened=True))
