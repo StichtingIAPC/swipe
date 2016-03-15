@@ -89,3 +89,4 @@ List of contributors
 - Nander Voortman
 - Léon van der Kaap
 - Matthias van de Meent
+- Erik Gaal
