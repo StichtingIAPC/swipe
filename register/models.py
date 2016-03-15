@@ -146,15 +146,15 @@ class ConsistencyChecker:
         try:
             ConsistencyChecker.check_open_sales_periods()
         except IntegrityError:
-            errors.append({"text":"More than one sales period is open", "location":"SalesPeriods","line":-1})
+            errors.append({"text":"More than one sales period is open", "location":"SalesPeriods","line":-1,"severity":"BREAKING"})
         try:
             ConsistencyChecker.check_open_register_periods()
         except IntegrityError:
-            errors.append({"text":"Register had more than one register period open", "location":"SalesPeriods","line":-1})
+            errors.append({"text":"Register had more than one register period open", "location":"SalesPeriods","line":-1,"severity":"BREAKING"})
         try:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
-            errors.append({"text":"Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1})
+            errors.append({"text":"Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":"BREAKING"})
         return errors
 
     @staticmethod
