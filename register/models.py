@@ -7,7 +7,7 @@ from django.conf import settings
 
 from django.utils.translation import ugettext_lazy
 from money.models import *
-
+from tools.management.commands.consistencycheck import consistency_check
 
 
 class PaymentType(models.Model):
@@ -141,6 +141,7 @@ class ConsistencyChecker:
 
     #This test runs the tests, but rather than raising an error it appends the errors to an array
     @staticmethod
+    @consistency_check
     def non_crashing_full_check():
         errors = []
         try:

@@ -12,6 +12,7 @@ from article.models import ArticleType
 from money.models import Currency, VAT, Cost
 from swipe import settings
 from swipe.settings import DELETE_STOCK_ZERO_LINES
+from tools.management.commands.consistencycheck import Command
 
 
 class StockTest(TestCase):
@@ -172,7 +173,9 @@ class StockTest(TestCase):
         tt = Stock.objects.get(pk=1)
         tt.count = tt.count +1 # Fuck over everything
         tt.save(indirect = True) # Nail in the coffin
-        print("")
+
+        Command().handle()
+
         err = Stock.do_check()
         self.assertEqual(err.__len__(), 1 )
         self.assertEqual(err[0]["line"],'1_None_None')
@@ -599,7 +602,6 @@ class LabelTest(TestCase):
         }]
 
     def tearDown(self):
-
         self.assertEqual(Stock.do_check(),[])
 
     def testBasicLabel(self):

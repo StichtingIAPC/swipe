@@ -9,6 +9,7 @@ from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
 from stock.stocklabel import StockLabeledLine, StockLabel
 from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
+from tools.management.commands.consistencycheck import consistency_check
 
 
 class Stock(StockLabeledLine):
@@ -34,7 +35,8 @@ class Stock(StockLabeledLine):
         return "{}_{}_{}".format(self.pk, self.labeltype, self.labelkey)
 
     @classmethod
-    def do_check(cls):
+    @consistency_check
+    def do_check(cls=None):
         errors = []
         stock = Stock.objects.all()
         required_result = {}
