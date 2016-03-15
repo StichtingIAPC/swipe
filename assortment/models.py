@@ -57,7 +57,7 @@ class AssortmentLabel(models.Model):
         set the typed value
         :param value: the value it has to be set to, either in the correct type or as a string.
         """
-        if not isinstance(value, type(self.__value)):
+        if not isinstance(value, type(self.__value)) and self.__value is not None:
             if type(value) is str:
                 self.__value = self.label_type.unit_type.parse(value)
             else:
@@ -79,13 +79,13 @@ class AssortmentLabel(models.Model):
 
         obj, new = cls.objects.get_or_create(value=value, label_type=label_type)
 
-        obj._value = label_type.unit_type.parse(value)
-        obj.label_value = str(obj._value)
+        obj.typed_value = label_type.unit_type.parse(value)
+        obj.label_value = str(obj.typed_value)
         obj.save()
         return obj, new
 
     def __str__(self):
-        return self.label_type.to_string(self._value)
+        return self.label_type.to_string(self.typed_value)
 
     class Meta:
         ordering = ['label_type', 'value']
