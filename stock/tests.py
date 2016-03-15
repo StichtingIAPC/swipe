@@ -1,7 +1,9 @@
 from decimal import Decimal
 
 # Create your tests here.
+import time
 from django.test import TestCase
+from unittest import skip
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
 from stock.stocklabel import StockLabeledLine, StockLabel, StockLabelNotFoundError
@@ -15,6 +17,9 @@ from swipe.settings import DELETE_STOCK_ZERO_LINES
 class StockTest(TestCase):
     def setup(self):
         pass
+
+    def tearDown(self):
+        Stock.do_check()
 
     def testAddStockDirectly(self):
         """
@@ -117,6 +122,95 @@ class StockTest(TestCase):
 
         # Check if the book value of the item is equal to the cost of the article
         self.assertEquals(art_stock.book_value.amount,  sp.amount)
+
+    def testFuckOverDBAndTestConsistencyChecker(self):
+        """
+        Test that tries to add 2 of the same articles to the stock properly.
+        """
+
+        # Create some objects to use in the tests
+        cur = Currency("EUR")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        art = ArticleType.objects.create(name="Product1", vat=vat)
+        sp = Cost(amount=Decimal("2.00000"), currency=cur)
+
+        # Construct entry list for StockChangeSet
+        entries = [{
+            'article': art,
+            'book_value': sp,
+            'count': 2,
+            'is_in': True
+        }]
+
+        # Execute two stock modifications, creating two StockLogs
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)  # Re-using entries for test.
+
+        # Check that we only added one type of article to the stock
+        self.assertEquals(len(Stock.objects.all()), 1)
+
+        # Check if number of items in StockChangeSet is correct
+        self.assertEquals(len(log_1. stockchange_set.all()), 1)
+        self.assertEquals(len(log_2. stockchange_set.all()), 1)
+
+        # Check if StockChange instance in log 1 is different from item in log 2
+        self.assertNotEquals(log_1. stockchange_set.all()[0], log_2. stockchange_set.all()[0])
+
+        # Get stock for article
+        art_stock = Stock.objects.get(article=art)
+
+        # Check if the article in stock is the article we specified
+        self.assertEquals(art_stock.article, art)
+
+        # Check if the number of items in stock is correct
+        self.assertEquals(art_stock.count, 4)
+
+        # Check if the book value of the item is equal to the cost of the article
+        self.assertEquals(art_stock.book_value.amount,  sp.amount)
+
+        # Create stock inconsistency
+        tt = Stock.objects.get(pk=1)
+        tt.count = tt.count +1 # Fuck over everything
+        tt.save(indirect = True) # Nail in the coffin
+
+    @skip("Really heavy test, comment this line if you want to run it")
+    def testConsistencyCheckerPerformance(self):
+
+        """
+        Test that tries to add 2 of the same articles to the stock properly.
+        """
+
+        # Create some objects to use in the tests
+        cur = Currency("EUR")
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        art = ArticleType.objects.create(name="Product1", vat=vat)
+        sp = Cost(amount=Decimal("2.00000"), currency=cur)
+
+        # Construct entry list for StockChangeSet
+        entries = [{
+            'article': art,
+            'book_value': sp,
+            'count': 2,
+            'is_in': True
+        }]
+
+        # Execute two stock modifications, creating two StockLogs
+        start = time.clock()
+        for i in range(1, 100000):
+            log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        print("Time elapsed during generation: {}".format(time.clock() - start))
+
+        print("Generated")
+        # Create stock inconsistency
+        tt = Stock.objects.get(pk=1)
+        tt.count = tt.count +1 # Fuck over everything
+        tt.save(indirect = True) # Nail in the coffin]
+        start = time.clock()
+        err = Stock.do_check()
+        print("Time elapsed during checks: {}".format(time.clock() - start))
+
+        self.assertEqual(err.__len__(), 1 )
+        self.assertEqual(err[0]["Line"],'1_None_None')
 
     def testAddMultipleToStock(self):
         """
