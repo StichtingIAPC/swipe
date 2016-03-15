@@ -6,7 +6,7 @@ from django.test import TestCase
 from unittest import skip
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
-from stock.stocklabel import *
+from stock.stocklabel import StockLabeledLine, StockLabel, StockLabelNotFoundError
 from stock.models import Stock, StockChange, StockChangeSet
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost
@@ -541,12 +541,8 @@ class StockTest(TestCase):
 
             StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
         for i in range(1, 7):  # 1 to 6. Average should be 3.5
-            # Define book value
-            book_value = Cost(amount=Decimal(str(i)), currency=cur)
-
-            # Construct entry for StockChangeSet
-            if settings.FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST:
-                book_value._amount = Decimal(3.5000)
+            # Define book value, only remove for average cost.
+            book_value = Cost(amount=Decimal(3.5000), currency=cur)
             entries = [{
                     'article': art,
                     'book_value': book_value,

@@ -65,7 +65,7 @@ class StockLabel:
 
     # Returns correct label type
     @classmethod
-    def returnLabel(cls,labeltype, key):
+    def return_label(cls, labeltype, key):
 
         if labeltype in cls.labeltypes.keys():
             lt = cls.labeltypes[labeltype]
@@ -102,10 +102,10 @@ class StockLabel:
 
 
 class StockLabeledLine(models.Model):
-    labeltype = models.CharField(max_length=255,null=True, validators=[
+    labeltype = models.CharField(max_length=255,null=True, blank=True, validators=[
     RegexValidator(regex='^.+$',
                    message='Labeltype should be longer than zero characters')])
-    labelkey = models.IntegerField(null=True)
+    labelkey = models.IntegerField(null=True, blank=True)
     objects = StockLabelManager()
 
     def __init__(self, *args, **kwargs):
@@ -120,7 +120,7 @@ class StockLabeledLine(models.Model):
         models.Model.__init__(self, *args, **kwargs)
         if hasattr(self,"id"):
             if self.labeltype:
-                self.label = StockLabel.returnLabel(self.labeltype, self.labelkey)
+                self.label = StockLabel.return_label(self.labeltype, self.labelkey)
             else:
                 self.label = None
 
