@@ -12,45 +12,45 @@ class BasicTest(TestCase):
         self.make_labels()
 
     def make_unit_types(self):
-        self.stringType = UnitType.objects.create(
+        self.stringType = AssortmentUnitType.objects.create(
             type_short='',          # strings do not have a measurable dimension
             type_long='',           # description
             counting_type='s'       # s for string
         )
-        self.countableIntTypeHerz = UnitType.objects.create(
+        self.countableIntTypeHerz = AssortmentUnitType.objects.create(
             type_short='Hz',        # Hz is just an example of integer values.
-            type_long='herz',       #
+            type_long='hertz',       #
             counting_type='i',      # i for integer
             incremental_type='SI'   # SI counting for this unittype
         )
-        self.numberTypeMeter = UnitType.objects.create(
+        self.numberTypeMeter = AssortmentUnitType.objects.create(
             type_short='m',         # meter
             type_long='meter',      #
             counting_type='n'       # n for number
         )
-        self.booleanType = UnitType.objects.create(
+        self.booleanType = AssortmentUnitType.objects.create(
             type_short='',          # booleans do not have any long/short type either
             type_long='',           # as you might expect: it would not make sense
             counting_type='b'       # b for boolean
         )
-        self.normalInt = UnitType.objects.create(
+        self.normalInt = AssortmentUnitType.objects.create(
             type_short='s',
             type_long='seconds',
             counting_type='i'
         )
 
     def make_label_types(self):
-        self.labelType = LabelType.objects.create(
+        self.labelType = AssortmentLabelType.objects.create(
             name_long='Cable lengt',
             name_short='length',
             unit_type=self.numberTypeMeter
         )
-        self.countableLabelType = LabelType.objects.create(
+        self.countableLabelType = AssortmentLabelType.objects.create(
             name_long='CPU cycles per second',
             name_short='cpu speed',
             unit_type=self.countableIntTypeHerz
         )
-        self.non_countableLabelType = LabelType.objects.create(
+        self.non_countableLabelType = AssortmentLabelType.objects.create(
             name_long='GPU brand label',
             name_short='brand',
             unit_type=self.stringType
@@ -71,7 +71,7 @@ class BasicTest(TestCase):
 
     def validation_error_unit_type_create(self, **kwargs):
         try:
-            UnitType.objects.create(**kwargs)
+            AssortmentUnitType.objects.create(**kwargs)
         except Exception as e:
             raise ValidationError(str(e))
 
@@ -121,10 +121,10 @@ class BasicTest(TestCase):
 
     def test_stringify_unit_type(self):
         self.assertEqual(str(self.booleanType), ' seen as  using type {}'.format(_('boolean')))
-        self.assertEqual(str(self.countableIntTypeHerz), 'herz seen as Hz using type integer and formatted using SI')
+        self.assertEqual(str(self.countableIntTypeHerz), 'hertz seen as Hz using type integer and formatted using SI')
 
     def test_clean_unit_type(self):
-        test = UnitType(type_short='', type_long='', counting_type='b', incremental_type='SI')
+        test = AssortmentUnitType(type_short='', type_long='', counting_type='b', incremental_type='SI')
         self.assertRaises(ValidationError, test.clean)
 
     def test_label_type_creation(self):
@@ -136,12 +136,12 @@ class BasicTest(TestCase):
                 self.cpu_five_khz and
                 self.cpu_fifteen_khz)
         self.assertEqual(self.cable_five_meters, self.labelType.label('5'))
-        self.assertRaises(AssertionError, Label.get_or_create, value=6, label_type=self.labelType)
+        self.assertRaises(AssertionError, AssortmentLabel.get_or_create, value=6, label_type=self.labelType)
         self.assertRaises(AssertionError, self.make_label, value='5', label_type=self.labelType)
 
     def make_label(self, value, label_type):
         try:
-            Label.objects.create(value=value, label_type=label_type)
+            AssortmentLabel.objects.create(value=value, label_type=label_type)
         except Exception as e:
             raise AssertionError(str(e))
 
@@ -152,7 +152,7 @@ class BasicTest(TestCase):
         self.assertEqual('hello', self.non_countableLabelType.value_to_string('hello', shortened=True))
 
     def test_to_string(self):
-        self.assertEqual('cpu speed: 5 kiloherz', self.countableLabelType.to_string(5000, shortened=False))
+        self.assertEqual('cpu speed: 5 kilohertz', self.countableLabelType.to_string(5000, shortened=False))
         self.assertEqual('cpu speed: 5 KHz', self.countableLabelType.to_string(5000, shortened=True))
         self.assertEqual('brand: hello', self.non_countableLabelType.to_string('hello', shortened=False))
         self.assertEqual('brand: hello', self.non_countableLabelType.to_string('hello', shortened=True))
