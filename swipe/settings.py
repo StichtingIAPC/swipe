@@ -39,8 +39,7 @@ INSTALLED_APPS = [
     'supplier',
     'register',
     'article',
-    'stock',
-    'assortment',
+    'stock'
 ]
 
 MIDDLEWARE_CLASSES = [
