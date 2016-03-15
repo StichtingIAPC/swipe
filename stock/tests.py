@@ -174,7 +174,6 @@ class StockTest(TestCase):
         tt.count = tt.count +1 # Fuck over everything
         tt.save(indirect = True) # Nail in the coffin
 
-        Command().handle()
 
         err = Stock.do_check()
         self.assertEqual(err.__len__(), 1 )
