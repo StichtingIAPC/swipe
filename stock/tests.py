@@ -180,7 +180,7 @@ class StockTest(TestCase):
         tt.count = tt.count -1 # Unfuck everything
         tt.save(indirect = True) # Save it again
 
-    @skip("Really heavy test, comment this line if you want to run it")
+    #@skip("Really heavy test, comment this line if you want to run it")
     def testConsistencyCheckerPerformance(self):
 
         """
@@ -216,8 +216,8 @@ class StockTest(TestCase):
         err = Stock.do_check()
         print("Time elapsed during checks: {}".format(time.clock() - start))
 
-        self.assertEqual(err.__len__(), 1 )
-        self.assertEqual(err[0]["Line"],'1_None_None')
+        self.assertEqual(err.__len__(), 1)
+        self.assertEqual(err[0]["line"], '1_None_None')
 
         tt.count = tt.count -1 # Unfuck everything
         tt.save(indirect = True) # Save it again
