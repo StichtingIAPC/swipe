@@ -47,7 +47,7 @@ class Stock(StockLabeledLine):
                                "Line": st.pk, "severity":"HIGH"})
             key = "{}_{}_{}".format(st.article_id, st.labeltype, st.labelkey)
             if key in required_result.keys():
-                errors.append({"text": 'Label in use, but doesnt exist.', "location": 'Stock', "Line": st.pk, "severity":"HIGH"})
+                errors.append({"text": 'Same stockline exists twice, even though it should be unique: {}.'.format(key), "location": 'Stock', "Line": st.pk, "severity":"HIGH"})
             required_result[key] = {"count": st.count, "bookvalue": st.book_value}
         running_result = {}
         changes = StockChange.objects.all()
