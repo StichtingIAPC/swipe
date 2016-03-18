@@ -2,16 +2,19 @@ from django.core.management.base import BaseCommand, CommandError
 
 
 # Temporary formal format for errors: text: text description of error, location: part of program that has the error, line: reference to where the error can be found
-
-checkerz = []
+CRITICAL = "CRITICAL"
+HIGH = "HIGH"
+MEDIUM = "MEDIUM"
+LOW = "LOW"
+checkers = []
 def consistency_check(func):
-    checkerz.append(func)
+    checkers.append(func)
     return func
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         errors = False
-        for checker in checkerz:
+        for checker in checkers:
             result = checker()
             print (checker.__name__)
             if result:

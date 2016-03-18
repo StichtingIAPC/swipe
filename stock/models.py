@@ -9,7 +9,7 @@ from stock.exceptions import *
 from money.exceptions import CurrencyInconsistencyError
 from stock.stocklabel import StockLabeledLine, StockLabel
 from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
-from tools.management.commands.consistencycheck import consistency_check
+from tools.management.commands.consistencycheck import consistency_check, HIGH
 
 
 class Stock(StockLabeledLine):
@@ -44,10 +44,10 @@ class Stock(StockLabeledLine):
             if st.labeltype is not None and st.labeltype not in StockLabel.labeltypes:
                 errors.append({"text": "StockLabelType {} not currrently" +
                                        "in use, but still in use in DB".format(st.labeltype), "location": "Stock",
-                               "Line": st.pk, "severity":"HIGH"})
+                               "Line": st.pk, "severity":HIGH})
             key = "{}_{}_{}".format(st.article_id, st.labeltype, st.labelkey)
             if key in required_result.keys():
-                errors.append({"text": 'Same stockline exists twice, even though it should be unique: {}.'.format(key), "location": 'Stock', "Line": st.pk, "severity":"HIGH"})
+                errors.append({"text": 'Same stockline exists twice, even though it should be unique: {}.'.format(key), "location": 'Stock', "Line": st.pk, "severity":HIGH})
             required_result[key] = {"count": st.count, "bookvalue": st.book_value}
         running_result = {}
         changes = StockChange.objects.all()
@@ -57,14 +57,14 @@ class Stock(StockLabeledLine):
             if change.labeltype is not None and change.labeltype not in StockLabel.labeltypes:
                 errors.append({"text": "StockLabelType {} not currrently in use," +
                                        "but still in use in DB".format(change.labeltype),
-                               "location": "StockChange", "Line": change.pk, "severity":"HIGH"})
+                               "location": "StockChange", "Line": change.pk, "severity":HIGH})
             if key in running_result.keys():
                 if change.count < 0:
                     if change.cost != running_result[key]["cost"]:
                         errors.append({"text": 'Inconsistency found in stock:' +
                                                'negative stock, cost of removal differs:' +
                                                '{} instead of {}'.format(change.cost, running_result[key]["cost"]),
-                                       "location": 'StockChange', "Line": change.pk, "severity":"HIGH"})
+                                       "location": 'StockChange', "Line": change.pk, "severity":HIGH})
                 if change.get_count() + running_result[key]["count"] != 0:
                     running_result[key]["bookvalue"] = (
                                                        running_result[key]["bookvalue"] * running_result[key]["count"] +
@@ -74,27 +74,26 @@ class Stock(StockLabeledLine):
                 if running_result[key]["count"] < 0:
                     errors.append({"text": 'Inconsistency found in stock:' +
                                            " stock levels turn (temporarily) negative in the past.",
-                                   "location": 'StockChange', "line": change.pk, "severity":"HIGH"})
+                                   "location": 'StockChange', "line": change.pk, "severity":HIGH})
 
             else:
                 running_result[key] = {"count": change.get_count(), "bookvalue": change.book_value}
-        aa = list(required_result.keys())
-
-        for z in aa:
+        key_list = list(required_result.keys())
+        for z in key_list:
             a = required_result.pop(z, None)
             b = running_result.pop(z, None)
             if b is None or a["count"] != b["count"] or a["bookvalue"] != b["bookvalue"]:
                 if b is None and a["count"] != 0:
                     errors.append({"text": 'Found no stock for {} when rerunning, but {} are still in Stock according to the Database'.format(
-                                          z, a["count"]), "location": 'Recalculated Stock', "line": z, "severity":"HIGH"})
+                                          z, a["count"]), "location": 'Recalculated Stock', "line": z, "severity":HIGH})
                 else:
                     errors.append(dict(
                         text="Different counts or costs found for" +
                              "{}: ({} {}) found, ({} {}) expected".format(
-                                 z, a["count"], a["bookvalue"], b["count"], b["bookvalue"]), location='Stock', line=z, severity="HIGH"))
+                                 z, a["count"], a["bookvalue"], b["count"], b["bookvalue"]), location='Stock', line=z, severity=HIGH))
 
-        aa = list(running_result.keys())
-        for z in aa:
+        key_list = list(running_result.keys())
+        for z in key_list:
             b = running_result.pop(z, None)
             if b["count"] != 0:
                 errors.append({"text": 'Running result found stock not in normal Stock! Call for help, this is serious'.format(

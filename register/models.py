@@ -7,7 +7,7 @@ from django.conf import settings
 
 from django.utils.translation import ugettext_lazy
 from money.models import *
-from tools.management.commands.consistencycheck import consistency_check
+from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 
 
 class PaymentType(models.Model):
@@ -147,15 +147,15 @@ class ConsistencyChecker:
         try:
             ConsistencyChecker.check_open_sales_periods()
         except IntegrityError:
-            errors.append({"text":"More than one sales period is open", "location":"SalesPeriods","line":-1,"severity":"BREAKING"})
+            errors.append({"text":"More than one sales period is open", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
         try:
             ConsistencyChecker.check_open_register_periods()
         except IntegrityError:
-            errors.append({"text":"Register had more than one register period open", "location":"SalesPeriods","line":-1,"severity":"BREAKING"})
+            errors.append({"text":"Register had more than one register period open", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
         try:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
-            errors.append({"text":"Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":"BREAKING"})
+            errors.append({"text":"Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
         return errors
 
     @staticmethod
