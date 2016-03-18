@@ -78,32 +78,26 @@ class Stock(StockLabeledLine):
 
             else:
                 running_result[key] = {"count": change.get_count(), "bookvalue": change.book_value}
-        q = required_result.keys()
-        aa = []
-        for zz in q:
-            aa.append(zz)
+        aa = list(required_result.keys())
+
         for z in aa:
             a = required_result.pop(z, None)
             b = running_result.pop(z, None)
             if b is None or a["count"] != b["count"] or a["bookvalue"] != b["bookvalue"]:
                 if b is None and a["count"] != 0:
-                    errors.append({
-                                      "text": 'Found no stock for {} when rerunning, but {} are still in Stock according to the Database'.format(
+                    errors.append({"text": 'Found no stock for {} when rerunning, but {} are still in Stock according to the Database'.format(
                                           z, a["count"]), "location": 'Recalculated Stock', "line": z, "severity":"HIGH"})
                 else:
                     errors.append(dict(
                         text="Different counts or costs found for" +
                              "{}: ({} {}) found, ({} {}) expected".format(
                                  z, a["count"], a["bookvalue"], b["count"], b["bookvalue"]), location='Stock', line=z, severity="HIGH"))
-        q = running_result.keys()
-        aa = []
-        for zz in q:
-            aa.append(zz)
+
+        aa = list(running_result.keys())
         for z in aa:
             b = running_result.pop(z, None)
             if b["count"] != 0:
-                errors.append({
-                                  "text": 'Running result found stock not in normal Stock! Call for help, this is serious'.format(
+                errors.append({"text": 'Running result found stock not in normal Stock! Call for help, this is serious'.format(
                                       b["count"], b["bookvalue"]), "location": 'Recalculated Stock', "line": z})
         return errors
 

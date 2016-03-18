@@ -830,7 +830,8 @@ class LabelTest(TestCase):
             return True
         except Exception:
             return False
-    @skip
+
+    @skip("Test can't run with teardown turned on. This error is caused by a database-level failure, so can't be avoided.")
     def testMultipleStockLinesWithSameLabel(self):
         self.newDirectStockLine()
         a = self.newDirectStockLine()
