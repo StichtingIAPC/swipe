@@ -60,11 +60,8 @@ class BasicTest(TestCase):
 
     def make_labels(self):
         self.cable_five_meters = self.labelType.label(5)
-
         self.cable_four_meters = self.labelType.label(4)
-
         self.cpu_five_khz = self.countableLabelType.label(5000)
-
         self.cpu_fifteen_khz = self.countableLabelType.label(15000)
 
     def validation_error_unit_type_create(self, **kwargs):
