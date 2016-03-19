@@ -126,14 +126,11 @@ class BasicTest(TestCase):
                 self.cpu_fifteen_khz)
         self.assertEqual(self.cable_five_meters, self.labelType.label('5'))
         self.assertRaises(AssertionError, AssortmentLabel.get, value=6, label_type=self.labelType)
-        self.assertRaises(AssertionError, self.make_label, value='5', label_type=self.labelType)
+        self.assertRaises(IntegrityError, self.make_label, value='5', label_type=self.labelType)
 
     def make_label(self, value, label_type):
-        try:
-            AssortmentLabel.objects.create(value=value, label_type=label_type)
-            AssortmentLabel.objects.create(value=value, label_type=label_type)
-        except Exception as e:
-            raise AssertionError(str(e))
+        AssortmentLabel.objects.create(value=value, label_type=label_type)
+        AssortmentLabel.objects.create(value=value, label_type=label_type)
 
     def test_get_label(self):
         self.assertEqual(AssortmentLabel.get('5', self.countableLabelType),
