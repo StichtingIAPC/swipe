@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('type_short', models.CharField(editable=False, max_length=8)),
                 ('type_long', models.CharField(editable=False, max_length=255)),
-                ('counting_type', models.CharField(choices=[('b', 'boolean'), ('i', 'integer'), ('n', 'decimal'), ('s', 'string')], editable=False, max_length=1)),
+                ('value_type', models.CharField(choices=[('b', 'boolean'), ('i', 'integer'), ('n', 'decimal'), ('s', 'string')], editable=False, max_length=1)),
                 ('incremental_type', models.CharField(blank=True, choices=[('EU', 'the EU thousands, millions and milliards `standard`'), ('ISQ', 'the ISQ standard is in powers of 1024 (2^10), starting with 1024^0: [], Ki, Mi, ...'), ('SI', 'the SI standard is in powers of 1000, starting with 1000^-4: f, n, u, m, [], K, ...'), ('US', 'the US thousands, millions and billions `standard`')], max_length=3, null=True)),
             ],
             options={
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='assortmentunittype',
-            unique_together=set([('type_long', 'counting_type'), ('type_short', 'counting_type')]),
+            unique_together=set([('type_long', 'value_type'), ('type_short', 'value_type')]),
         ),
         migrations.AddField(
             model_name='assortmentlabeltype',

@@ -143,9 +143,9 @@ class AssortmentUnitType(models.Model):
     """
     type_short = models.CharField(max_length=8, editable=False)  # e.g. 'm' for meters, 'l' for liters
     type_long = models.CharField(max_length=255, editable=False)    # e.g. 'meter' or 'liter'
-    counting_type = models.CharField(max_length=1,
-                                     choices=sorted([enum['as_choice'] for n, enum in conf_labels.VALUE_TYPES.items()]),
-                                     editable=False)
+    value_type = models.CharField(max_length=1,
+                                  choices=sorted([enum['as_choice'] for n, enum in conf_labels.VALUE_TYPES.items()]),
+                                  editable=False)
     # is it a string, an integer, a decimal or a boolean?
     incremental_type = models.CharField(max_length=3,
                                         choices=sorted(
@@ -154,6 +154,14 @@ class AssortmentUnitType(models.Model):
                                         null=True)
     # in case of integer or decimal, do you want it to be visualized in powers of something, like millions, billions,
     # mega, mini, milliards, etc?
+
+    def __init__(self, *args, **kwargs):
+        if (kwargs.get('value_type') is not None and
+                not conf_labels.VALUE_TYPES[kwargs.get('value_type')]['countable'] and
+                kwargs.get('incremental_type') is not None):
+            raise ValidationError('You cannot create an AssortmentUnitType of which the value_type is not countable '
+                                  'and specify an incremental_type')
+        super().__init__(*args, **kwargs)
 
     def __str__(self):
         if self.incremental_type:
@@ -177,7 +185,7 @@ class AssortmentUnitType(models.Model):
         :return: the parsed value
         :raises: AssertionError: when the string does not match the expected regex
         """
-        vtype = conf_labels.VALUE_TYPES[self.counting_type]
+        vtype = conf_labels.VALUE_TYPES[self.value_type]
         if re.match(vtype['matcher'], value):
             return vtype['type'](value)
         else:
@@ -192,7 +200,7 @@ class AssortmentUnitType(models.Model):
         :param shortened: whether or not it should be shortened to a short-handed value
         :return: a string containing the parsed value
         """
-        if (self.counting_type in
+        if (self.value_type in
                 [enum['as_choice'][1] for a, enum in conf_labels.VALUE_TYPES.items() if enum['countable'] is False] or
                 self.incremental_type is None):
             return str(value)
@@ -222,9 +230,9 @@ class AssortmentUnitType(models.Model):
         Make sure that there is no counting type selected when the value type is not countable
         """
         super().clean()
-        if (self.counting_type in [short
-                                   for short, enum in conf_labels.VALUE_TYPES.items()
-                                   if enum['countable'] is False] and
+        if (self.value_type in [short
+                                for short, enum in conf_labels.VALUE_TYPES.items()
+                                if enum['countable'] is False] and
                 self.incremental_type):
             # string type etc.
             raise ValidationError('When the type of the unit is not countable, '
@@ -233,6 +241,6 @@ class AssortmentUnitType(models.Model):
     class Meta:
         ordering = ['type_short', 'type_long']
         unique_together = (
-            ('type_short', 'counting_type'),
-            ('type_long', 'counting_type')
+            ('type_short', 'value_type'),
+            ('type_long', 'value_type')
         )

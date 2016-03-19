@@ -1,5 +1,6 @@
 from unittest import skip
 
+from django.db import transaction, IntegrityError
 from django.test import TestCase
 from django.utils.translation import ugettext as _
 
@@ -17,28 +18,28 @@ class BasicTest(TestCase):
         self.stringType = AssortmentUnitType.objects.create(
             type_short='',          # strings do not have a measurable dimension
             type_long='',           # description
-            counting_type='s'       # s for string
+            value_type='s'          # s for string
         )
         self.countableIntTypeHertz = AssortmentUnitType.objects.create(
             type_short='Hz',        # Hz is just an example of integer values.
-            type_long='hertz',       #
-            counting_type='i',      # i for integer
+            type_long='hertz',      #
+            value_type='i',         # i for integer
             incremental_type='SI'   # SI counting for this unittype
         )
         self.numberTypeMeter = AssortmentUnitType.objects.create(
             type_short='m',         # meter
             type_long='meter',      #
-            counting_type='n'       # n for number
+            value_type='n'          # n for number
         )
         self.booleanType = AssortmentUnitType.objects.create(
             type_short='',          # booleans do not have any long/short type either
             type_long='',           # as you might expect: it would not make sense
-            counting_type='b'       # b for boolean
+            value_type='b'          # b for boolean
         )
         self.normalInt = AssortmentUnitType.objects.create(
             type_short='s',
             type_long='seconds',
-            counting_type='i'
+            value_type='i'
         )
 
     def make_label_types(self):
@@ -64,29 +65,25 @@ class BasicTest(TestCase):
         self.cpu_five_khz = self.countableLabelType.label(5000)
         self.cpu_fifteen_khz = self.countableLabelType.label(15000)
 
-    def validation_error_unit_type_create(self, **kwargs):
-        try:
-            AssortmentUnitType.objects.create(**kwargs)
-        except Exception as e:
-            raise ValidationError(str(e))
-
     def test_create_unit_type(self):
         assert (self.stringType and
                 self.countableIntTypeHertz and
                 self.numberTypeMeter and
                 self.booleanType and
                 self.normalInt)
-        self.assertRaises(ValidationError, self.validation_error_unit_type_create,
-                          type_short='',
-                          type_long='',
-                          counting_type='s'
-                          )  # fail to create a duplicate UnitType
-        self.assertRaises(ValidationError, self.validation_error_unit_type_create,
-                          type_short='s',
-                          type_long='seconds',
-                          counting_type='b',
-                          incremental_type='SI'
-                          )  # fail to create an UnitType which has an incremental type, but cannot be counted
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, AssortmentUnitType.objects.create,
+                              type_short='',
+                              type_long='',
+                              value_type='s'
+                              )  # fail to create a duplicate UnitType
+        with transaction.atomic():
+            self.assertRaises(ValidationError, AssortmentUnitType.objects.create,
+                              type_short='s',
+                              type_long='seconds',
+                              value_type='b',
+                              incremental_type='SI'
+                              )  # fail to create an UnitType which has an incremental type, but cannot be counted
 
     def test_unit_type_conversion(self):
         string = 'string'
@@ -115,7 +112,8 @@ class BasicTest(TestCase):
         assert isinstance(self.booleanType.parse(boolean), bool)
 
     def test_clean_unit_type(self):
-        test = AssortmentUnitType(type_short='', type_long='', counting_type='b', incremental_type='SI')
+        test = AssortmentUnitType(type_short='', type_long='', value_type='b')
+        test.incremental_type = 'SI'
         self.assertRaises(ValidationError, test.clean)
 
     def test_label_type_creation(self):
