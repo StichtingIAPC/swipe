@@ -36,8 +36,8 @@ class Migration(migrations.Migration):
             name='AssortmentLabelType',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name_long', models.CharField(max_length=64, unique=True)),
-                ('name_short', models.CharField(editable=False, max_length=16, unique=True)),
+                ('description', models.CharField(max_length=64, unique=True)),
+                ('name', models.CharField(editable=False, max_length=16, unique=True)),
             ],
         ),
         migrations.CreateModel(

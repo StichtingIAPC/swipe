@@ -4,7 +4,7 @@ This file contains the models that are used to index, sort and model the assortm
 
 
 import math
-
+import re
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
@@ -13,26 +13,13 @@ from django.db import models
 from assortment.config import labels as conf_labels
 
 
-"""
-From here on: Tags
-
-Tags will be used as the main way to generate a tree. Other components that can be used will be labels, but labels are
-a lot more complex to generate a tree from, so we pre-build the trunk from tags.
-"""
-
-
 class AssortmentArticleBranch(models.Model):
     """
-    A basic way to tag articles with some properties.
+    This is a way to group articles together, and group those groups together.
     """
     name = models.CharField(max_length=50, unique=True)
     parent_tag = models.ForeignKey('AssortmentArticleBranch', blank=True, null=True)
     presumed_labels = models.ManyToManyField('AssortmentLabelType')
-
-
-"""
-Here be Labels
-"""
 
 
 class AssortmentLabel(models.Model):
@@ -88,10 +75,15 @@ class AssortmentLabel(models.Model):
         obj.typed_value = label_type.unit_type.parse(value)
         obj.label_value = str(obj.typed_value)
         obj.save()
-        return obj, new
+        return obj
 
     def __str__(self):
-        return self.label_type.to_string(self.typed_value)
+        return self.label_type.value_to_string(self.typed_value)
+
+    def __eq__(self, other):
+        if isinstance(other, AssortmentLabel):
+            return self.label_type == other.label_type and self.typed_value == other.typed_value
+        return False
 
     class Meta:
         ordering = ['label_type', 'value']
@@ -111,9 +103,9 @@ class AssortmentLabelType(models.Model):
     they do not all have the same length, but they do all have the property 'length', which is the type of
     the label.
     """
-    name_long = models.CharField(max_length=64, unique=True)
+    description = models.CharField(max_length=64, unique=True)
     # a longer description of what this type of label does, e.g. 'the length of a cable'
-    name_short = models.CharField(max_length=16, unique=True, editable=False)
+    name = models.CharField(max_length=16, unique=True, editable=False)
     # the short representation that should be visible on the label, e.g. 'length'
     unit_type = models.ForeignKey('AssortmentUnitType', on_delete=models.CASCADE, editable=False)
     # the unittype this label uses
@@ -128,7 +120,7 @@ class AssortmentLabelType(models.Model):
         :return: a string containing the parsed value, using this LabelType as a template
         """
         return "{}: {}".format(
-            self.name_short,
+            self.name,
             self.unit_type.value_to_string(value, shortened)
         )
 
@@ -139,12 +131,8 @@ class AssortmentLabelType(models.Model):
         :return: a label which has this as the label type associated.
         """
         value = self.unit_type.parse(str(val))
-        obj, new = AssortmentLabel.get(value=str(value), label_type=self)
+        obj = AssortmentLabel.get(value=str(value), label_type=self)
         return obj
-
-"""
-Here be UnitTypes
-"""
 
 
 class AssortmentUnitType(models.Model):
@@ -169,14 +157,14 @@ class AssortmentUnitType(models.Model):
 
     def __str__(self):
         if self.incremental_type:
-            return _("{} seen as {} using type {} and formatted using {}".format(
+            return _("AssortmentUnitType<{} ({}) [{} {}]>".format(
                 self.type_long,
                 self.type_short,
                 self.get_counting_type_display(),
                 self.incremental_type
             ))
         else:
-            return _("{} seen as {} using type {}".format(
+            return _("AssortmentUnitType<{} ({}) [{}]>".format(
                 self.type_long,
                 self.type_short,
                 self.get_counting_type_display()
@@ -189,7 +177,11 @@ class AssortmentUnitType(models.Model):
         :return: the parsed value
         :raises: AssertionError: when the string does not match the expected regex
         """
-        return conf_labels.VALUE_TYPES[self.counting_type]['parser'](value)
+        vtype = conf_labels.VALUE_TYPES[self.counting_type]
+        if re.match(vtype['matcher'], value):
+            return vtype['type'](value)
+        else:
+            raise vtype['error']
 
     def value_to_string(self, value, shortened=True):
         """

@@ -23,34 +23,32 @@ raising an error inside a lambda is not easily done, but doable by using (x for 
 VALUE_TYPES = {
     's': {
         'as_choice': ('s', 'string'),
-        'parser': lambda v: str(v)
-        if re.match(r'^.+$', v)
-        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string'))),
+        'type': str,
+        'error': AssertionError(_('input string has to be a non-empty string')),
+        'matcher': r'^.+$',
         'countable': False,
     },
     'n': {
         'as_choice': ('n', 'decimal'),
-        'parser': lambda v: Decimal(v)
-        if re.match(r'^[0-9]+(?:\.[0-9]*)?$', v)
-        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string, containing at'
-                                                      ' least 1 digit (0-9), and using a dot as a decimal point'))),
+        'type': lambda a: Decimal(a).quantize(Decimal('1e-15')),
+        'error': AssertionError(_('input string has to be a non-empty string, containing at least 1 digit (0-9), and '
+                                  'using a dot as a decimal point')),
+        'matcher': r'^[0-9]+(?:\.[0-9]*)?$',
         'countable': True,
     },
     'i': {
         'as_choice': ('i', 'integer'),
-        'parser': lambda v: int(v)
-        if re.match(r'^[0-9]+$', v)
-        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string of at least 1 '
-                                                      'digit'))),
+        'type': int,
+        'error': AssertionError(_('input string has to be a non-empty string of at least 1 digit')),
+        'matcher': r'^[0-9]+$',
         'countable': True,
     },
     'b': {
         'as_choice': ('b', 'boolean'),
-        'parser': lambda v: bool(re.match(r'(?:[jty])|ja|true|yes', v))
-        if re.match(r'^(?:[jntfy]|ja|nee|true|false|yes|no)$', v)
-        else (__ for __ in ()).throw(AssertionError(_('input string has to be a non-empty string which contains'
-                                                      ' a true/false value matching "[jntfy]|ja|nee|true|false|'
-                                                      'yes|no"'))),
+        'type': lambda a: bool(re.match(r'^([ytj]|yes|true|ja)$', 'Ja', flags=re.IGNORECASE)),
+        'error': AssertionError(_('input string has to be a non-empty string which contains a true/false value matching'
+                                  ' "[jntfy]|ja|nee|true|false|yes|no"')),
+        'matcher': r'^(?:[jntfy]|ja|nee|true|false|yes|no)$',
         'countable': False,
     }
 }
@@ -127,10 +125,10 @@ COUNTING_TYPES = {
         'values': [
             ('1e3', _('thousand')),
             ('1e6', _('million')),
-            ('1e9', _('trillion')),
-            ('1e12', _('quadrillion')),
-            ('1e15', _('quintillion')),
-            ('1e18', _('sextillion')),
+            ('1e9', _('billion')),
+            ('1e12', _('trillion')),
+            ('1e15', _('quadrillion')),
+            ('1e18', _('quintillion')),
         ],
     }
 }
