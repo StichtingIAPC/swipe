@@ -409,7 +409,6 @@ class SalesPrice(Price):
     """
     def __init__(self, amount, currency, vat, cost):
         super().__init__(amount, currency, vat)
-        self._vat = vat
         self._cost = cost
 
     @property
