@@ -27,6 +27,7 @@ class SupplierEdit(PermissionRequiredMixin, UpdateView):
     model = Supplier
     permission_required = 'supplier.change_supplier'
     fields = ['name', 'search_url', 'notes', 'is_used', 'is_backup']
+    success_url = reverse_lazy('supplier_list')
 
 
 class SupplierDelete(PermissionRequiredMixin, DeleteView):
