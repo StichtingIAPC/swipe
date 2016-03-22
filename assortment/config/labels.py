@@ -103,21 +103,7 @@ COUNTING_TYPES = {
             ('Ei', 'exbi')
         ],
     },
-    'EU': {
-        'as_choice': ('EU', _('the EU thousands, millions and milliards `standard`')),
-        'seperator': ' ',
-        'factor': 1000,
-        'start': 1000,
-        'values': [
-            ('1e3', _('thousand')),
-            ('1e6', _('million')),
-            ('1e9', _('milliard')),
-            ('1e12', _('billion')),
-            ('1e15', _('billiard')),
-            ('1e18', _('trillion')),
-        ],
-    },
-    'US': {
+    'MIL': {
         'as_choice': ('US', _('the US thousands, millions and billions `standard`')),
         'seperator': ' ',
         'factor': 1000,
