@@ -1,4 +1,10 @@
-Swipe Contributors License
+Aan iedereen: graag je naam verwijderen bij de oude licensie en toevoegen bij de nieuwe.
+
+Aan nieuwe ontwikkelaars: graag je naam toevoegen aan de nieuwe licensie.
+
+Zodra er geen ontwikkelaars meer onder de oude licentie staan kan deze worden verwijderd.
+
+Swipe Contributors License (OUD)
 --------------------------
 Deze licentie is een Contributors License tussen specifiek Stichting IAPC (hierna IAPC) en de ontwikkelaars van Swipe.
 Op deze Contributors License is het Nederlandse recht van toepassing.
@@ -45,7 +51,42 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 List of contributors
 --------------------
-- Kevin Alberts
 - Léon van der Kaap
+- Wilfried van Asten
+
+
+
+Swipe Licentie (NIEUW)
+----------------------
+Swipe wordt ontwikkeld onder de BSD-licensie. De contributor stemt er mee in dat zijn bijdrage wordt vrijgegeven onder deze licentie. Voor de volledigheid is de licentie hieronder bijgevoegd.
+
+
+Copyright (c) 2016, See below for contributors
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+List of contributors
+--------------------
+- Kevin Alberts
 - Nander Voortman
+- Léon van der Kaap
 - Matthias van de Meent
+- Erik Gaal

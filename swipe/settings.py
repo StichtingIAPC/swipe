@@ -34,9 +34,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
+    'core',
     'www',
+    'money',
     'supplier',
-    'crm'
+    'crm',
+    'register',
+    'article',
+    'stock'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -128,6 +133,30 @@ LOCALE_PATHS = (
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+##
+# SWIPE SETTINGS
+##
+# Add new settings for swipe modules here.
+##
+
+# Monetary precision. Don't change unless you know what you're doing.
+DECIMAL_PLACES = 5
+MAX_DIGITS = 28
+
+#Should swipe delete stocklines at count zero?
+DELETE_STOCK_ZERO_LINES = True
+
+#Should swipe's stock model throw an error when the software attempts to remove stock at a different price from the stock on stock? Sensible: True
+FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
+
+#Name of cash payment type
+CASH_PAYMENT_TYPE_NAME = "Cash"
+
+##
+# WARNING: Add own settings ABOVE this comment.
+# The following lines are to load local settings.
+##
 
 # Import local user settings from local.py
 try:
