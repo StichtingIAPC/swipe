@@ -104,7 +104,7 @@ COUNTING_TYPES = {
         ],
     },
     'MIL': {
-        'as_choice': ('US', _('the US thousands, millions and billions `standard`')),
+        'as_choice': ('MIL', _('millions, billions, etc`')),
         'seperator': ' ',
         'factor': 1000,
         'start': 1000,
