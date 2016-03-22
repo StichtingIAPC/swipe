@@ -61,7 +61,7 @@ class Person(Customer):
     address = models.CharField(max_length=255, blank=True, verbose_name=_("Address"))
     zip_code = models.CharField(max_length=255, blank=True, verbose_name=_("Zip code"))
     city = models.CharField(max_length=255, blank=True, verbose_name=_("City"))
-    phone = models.CharField(max_length=12, blank=True, verbose_name=_("Phone number"))
+    phone = models.CharField(max_length=15, blank=True, verbose_name=_("Phone number"))
 
     memo = models.TextField(blank=True, verbose_name=_("Memo"))
 
