@@ -13,6 +13,14 @@ class Customer(models.Model):
         else:
             return super(Customer, self).__str__()
 
+    def save(self, **kwargs):
+        # You may only create customers if it is a Person or a ContactOrganisation
+        if not isinstance(self, Person) and not isinstance(self, ContactOrganisation):
+            raise AttributeError("You cannot create bare Customers. "
+                                 "Please create either a Person or a ContactOrganisation.")
+
+        super(Customer, self).save()
+
     def verify(self):
         """
         Verify if Customer is either a person or a contactorganisation.

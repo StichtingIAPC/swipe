@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from crm.exceptions import CyclicParenthoodError
-from crm.models import Organisation
+from crm.models import Organisation, Customer, Person, ContactOrganisation
 
 
 class OrganisationInheritanceTest(TestCase):
@@ -83,3 +83,44 @@ class OrganisationCycleDetectionTest(TestCase):
         with self.assertRaises(CyclicParenthoodError):
             self.iapc.save()
 
+
+class BareCustomerCreationTest(TestCase):
+    """
+    Tests if a bare customer (without Person or ContactOrganisation) cannot be created.
+    """
+
+    def testBareCustomer(self):
+        # Try to create a bare customer
+        with self.assertRaises(AttributeError):
+            Customer.objects.create()
+
+    def testPersonCustomer(self):
+        Person.objects.create(
+            name="Kevin Alberts",
+            email="kevin@iapc.utwente.nl"
+        )
+
+        # Assert if the customer is saved
+        self.assertEqual(len(Customer.objects.all()), 1)
+
+    def testContactOrganisationCustomer(self):
+        # Create person for the ContactOrganisation
+        p = Person.objects.create(
+            name="Kevin Alberts",
+            email="kevin@iapc.utwente.nl"
+        )
+
+        # Create organisation for the ContactOrganisation
+        o = Organisation.objects.create(
+            name="Kevin's Organisation",
+            email="organisation@kevinalberts.nl"
+        )
+
+        # Create the ContactOrganisation
+        ContactOrganisation.objects.create(
+            contact=p,
+            organisation=o
+        )
+
+        # Check if there are now 2 customers, the Person, and the ContactOrganisation
+        self.assertEqual(len(Customer.objects.all()), 2)
