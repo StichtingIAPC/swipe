@@ -1,0 +1,17 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Customer list' %}{% endblock %}
+
+{% block content %}
+    {% url "customer_add_person" as customer_add_person %}
+    {% url "customer_add_organisation" as customer_add_organisation %}
+    {% url "customer_add_contactorganisation" as customer_add_contactorganisation %}
+    <h2>{% trans 'List of customers' %} (<a href="{{ customer_add_person }}">{% trans 'add person' %}</a> | <a href="{{ customer_add_organisation }}">{% trans 'add organisation' %}</a> | <a href="{{ customer_add_contactorganisation }}">{% trans 'add contactorganisation' %}</a>)</h2>
+    <ul>
+    {% for customer in object_list %}
+        <li><a href="{% url 'customer_detail' customer.pk %}">{{ customer }}</a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}

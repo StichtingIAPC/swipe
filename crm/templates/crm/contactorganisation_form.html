@@ -1,0 +1,30 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title %}
+    {% url 'customer_add_contactorganisation' as add_contactorganisation %}
+    {% if request.path == add_contactorganisation %}
+        {% trans 'Add ContactOrganisation' %}
+    {% else %}
+        {% blocktrans with name=object.name %}Edit {{ name }}{% endblocktrans %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url 'customer_add_contactorganisation' as add_contactorganisation %}
+    <h2>
+        {% if request.path == add_contactorganisation %}
+            {% trans 'Add ContactOrganisation' %}
+        {% else %}
+            {% blocktrans with name=object.name %}Edit {{ name }}{% endblocktrans %}
+        {% endif %}
+    </h2>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <input type="submit" value="{% if request.path == add_customer %}{% trans 'Create customer' %}{% elif request.path == add_organisation %}{% trans 'Create organisation' %}{% else %}{% trans 'Save' %}{% endif %}" />
+    </form>
+{% endblock %}

@@ -35,7 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
     'www',
-    'supplier'
+    'supplier',
+    'crm'
 ]
 
 MIDDLEWARE_CLASSES = [
