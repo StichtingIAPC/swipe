@@ -76,7 +76,7 @@ def price_field_name(name):
 
 class Money:
     def __init__(self, amount, currency):
-        self._amount = amount
+        self._amount = amount.quantize(Decimal(10)**(-DECIMAL_PLACES))
         self._currency = currency
 
     @property
@@ -224,6 +224,9 @@ class Cost(Money):
         else:
             return self == item2
 
+    def __eq__(self, oth):
+        return type(oth) == Cost and self.amount == oth.amount and self.currency == oth.currency
+
     def __add__(self, oth):
         if type(oth) != Cost:
             raise TypeError("Cannot add Cost to {}".format(type(oth)))
@@ -250,7 +253,7 @@ class Cost(Money):
 
     def __truediv__(self, oth):
         if isinstance(oth, int):
-            return Cost(self.amount / Decimal(oth), self.currency)
+            return Cost(self.amount / oth, self.currency)
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
@@ -265,8 +268,6 @@ class CostField(MoneyField):
 class Price(Money):
     def __init__(self, amount, currency, vat):
         super().__init__(amount, currency)
-        self._amount = amount
-        self._currency = currency
         self._vat = vat
 
     @property
@@ -408,9 +409,6 @@ class SalesPrice(Price):
     """
     def __init__(self, amount, currency, vat, cost):
         super().__init__(amount, currency, vat)
-        self._amount = amount
-        self._currency = currency
-        self._vat = vat
         self._cost = cost
 
     @property

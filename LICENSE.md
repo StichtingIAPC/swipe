@@ -51,9 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 List of contributors
 --------------------
-- Kevin Alberts
 - Léon van der Kaap
-- Matthias van de Meent
 - Wilfried van Asten
 
 
@@ -87,5 +85,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 List of contributors
 --------------------
+- Kevin Alberts
 - Nander Voortman
 - Léon van der Kaap
+- Matthias van de Meent
+- Erik Gaal
