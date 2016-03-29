@@ -125,3 +125,18 @@ class BasicTest(TestCase):
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         assert len(payment_types) == 2
         ConsistencyChecker.full_check()
+
+
+class TestTransaction(TestCase):
+    def test_simple(self):
+        EUR = Currency("EUR")
+        cost = Cost(Decimal("1.21000"), EUR)
+
+        money = Money(Decimal("1.21000"), EUR)
+        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        price = Price(Decimal("1.21000"), EUR, vat=vat.vatrate)
+        art = ArticleType.objects.create(name="P1", vat=vat)
+        st = SalesTransactionLine(article=art, count=1, cost=cost, price = price, num=1)
+        sp = SalesPeriod.objects.create()
+        pay = Payment(salesperiod=sp, amount=money)
+        Transaction.construct([pay], [st])

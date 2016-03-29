@@ -1,6 +1,6 @@
 from django.contrib.admin import actions
 from django.db import models,IntegrityError
-from django.middleware import transaction
+from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
 
@@ -10,6 +10,8 @@ from django.utils.translation import ugettext_lazy
 
 from article.models import ArticleType
 from money.models import *
+from stock.enumeration import enum
+from stock.stocklabel import StockLabeledLine
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.exceptions import Id10TError
 from stock.models import StockChange, StockChangeSet
@@ -346,40 +348,55 @@ class InvalidOperationError(Exception):
 
 
 class Payment(models.Model):
-    transaction = models.ForeignKey("Transaction")
+    salesperiod = models.ForeignKey("SalesPeriod")
     amount = MoneyField()
 
 
 class TransactionLine(models.Model):
     transaction = models.ForeignKey("Transaction")
+    num = models.IntegerField()
     price = PriceField()
     count = models.IntegerField()
-    isRefunded = models.BooleanField()
-    text = models.CharField(max_length=8)
+    isRefunded = models.BooleanField(default=False)
+    text = models.CharField(max_length=128)
 
 
-class SalesTransactionLine(TransactionLine):
+class SalesTransactionLine(TransactionLine, StockLabeledLine):
     """
         Equivalent to one stock-modifying line on a Receipt
     """
     cost = CostField()
     article = models.ForeignKey(ArticleType)
-    label =  StockLabelField()
+
+    @staticmethod
+    def handle(changes, id):
+        # Create stockchange
+        to_change = []
+        for change in changes:
+            chan = {"count": change.count, "article": change.article, "is_in": True, "book_value":change.cost}
+            to_change.append(chan)
+        return StockChangeSet.construct("Register {}".format(id), to_change, enum["cash_register"])
 
 
 class OtherCostTransactionLine(models.Model):
-    pass
+    @staticmethod
+    def handle(changes):
+        # Create stockchange
+        return -1
 
 
 class OtherTransactionLine(models.Model):
     """
         One transaction-line for a text-specified reason.
     """
-    transaction = models.ForeignKey("Transaction")
-    description = models.CharField(max_length=64)
-    price = PriceField()
 
-transaction_line_types={"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine, "other": OtherTransactionLine}
+    @staticmethod
+    def handle(changes):
+        # Create stockchange
+        return -1
+
+
+transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine, "other": OtherTransactionLine}
 
 
 class Transaction(models.Model):
@@ -398,29 +415,47 @@ class Transaction(models.Model):
     @staticmethod
     @transaction.atomic()
     def construct(payments, transaction_lines):
+        sum = None
+        trans = Transaction()
+        transaction_store = {}
+        for transaction_line in transaction_lines:
+            key = (key for key, value in transaction_line_types.items() if value == type(transaction_line)).__next__()
+            if not transaction_store.get(key,None):
+                transaction_store[key] = []
+            transaction_store[key].append(transaction_line)
+        sl = None
+        for key in transaction_store.keys():
+            line = transaction_line_types[key].handle(transaction_store[key], trans.id)
+            if key == "sales":
+                sl = line
+        if sl is None:
+            sl = StockChange.construct(description="Empty stockchangeset for Receipt", entries=[], enum=0)
+
+        trans.stock_change_set = sl
+        trans.save(indirect=True)
+
         first = True
-        trans = Transaction.objects.create()
         for payment in payments:
             if first:
                 sum = payment.amount
             else:
                 sum += payment.amount
             first = False
-            payment.transaction=trans
+            payment.transaction = trans
             payment.save()
-        print(sum)
+
         assert(not first)
+
         first = True
-        stock_changes = []
+        sum2 = None
         for transaction_line in transaction_lines:
             if first:
-                sum2 = transaction_line.amount
+                sum2 = transaction_line.price
             else:
-                sum2 += transaction_line.amount
+                sum2 += transaction_line.price
             first = False
-            transaction_line.transaction=trans
+            transaction_line.transaction = trans
             transaction_line.save()
+
         assert (sum2.currency == sum.currency)
         assert (sum2.amount == sum.amount)
-
-
