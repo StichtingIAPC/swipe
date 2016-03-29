@@ -1,0 +1,29 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title %}
+    {% url 'organisationtype_add' as organisationtype_add %}
+    {% if request.path == organisationtype_add %}
+        {% trans 'Add OrganisationType' %}
+    {% else %}
+        {% blocktrans with name=object.name %}Edit {{ name }}{% endblocktrans %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url 'organisationtype_add' as organisationtype_add %}
+    <h2>
+        {% if request.path == organisationtype_add %}
+            {% trans 'Add OrganisationType' %}
+        {% else %}
+            {% blocktrans with name=object.name %}Edit {{ name }}{% endblocktrans %}
+        {% endif %}
+    </h2>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="{% if request.path == organisationtype_add %}{% trans 'Create OrganisationType' %}{% else %}{% trans 'Save' %}{% endif %}" />
+    </form>
+{% endblock %}

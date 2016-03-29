@@ -23,6 +23,7 @@ SECRET_KEY = '(&-^3hx6os!h^sxu(v2py(78zuqtp8pxtu_3f=jh$+c4hw1taw'
 DEBUG = False
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'www',
     'money',
     'supplier',
+    'crm',
     'register',
     'article',
     'stock',
@@ -133,7 +135,12 @@ LOCALE_PATHS = (
 
 STATIC_URL = '/static/'
 
+##
 # SWIPE SETTINGS
+##
+# Add new settings for swipe modules here.
+##
+
 # Monetary precision. Don't change unless you know what you're doing.
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
@@ -147,10 +154,14 @@ FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 #Name of cash payment type
 CASH_PAYMENT_TYPE_NAME = "Cash"
 
+##
+# WARNING: Add own settings ABOVE this comment.
+# The following lines are to load local settings.
+##
+
 # Import local user settings from local.py
 try:
     from swipe.local import *
 except ImportError:
     print("WARNING: You forgot to add your local settings. "
           "Please copy local.py.default to local.py in the swipe directory and change it to fit your needs.")
-
