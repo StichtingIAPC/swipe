@@ -1,0 +1,73 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% blocktrans with name=values.name %}{{ name }}{% endblocktrans %}{% endblock %}`s
+
+{% block content %}
+    {% url 'customer_edit_person' object.pk as customer_edit_person %}
+    {% url 'customer_edit_contactorganisation' object.pk as customer_edit_contactorganisation %}
+    {% url 'customer_edit_organisation' object.contactorganisation.organisation.pk as customer_edit_contactorganisation_organisation %}
+    {% url 'customer_edit_person' object.contactorganisation.contact.pk as customer_edit_contactorganisation_contact %}
+    {% url 'customer_delete' object.pk as customer_delete %}
+    <h2>
+        {% blocktrans with name=object.name %}{{ name }}{% endblocktrans %}
+        (<a href="{% if object.person %}{{ customer_edit_person }}{% elif object.contactorganisation %}{{ customer_edit_contactorganisation }}{% endif %}">{% trans 'edit' %}</a>)
+        (<a href="{{ customer_delete }}">{% trans 'delete' %}</a>)
+    </h2>
+
+    {% if object.contactorganisation %}
+    <h3>{% trans 'Organisation' %} (<a href="{{ customer_edit_contactorganisation_organisation }}">{% trans 'edit' %}</a>)</h3>
+    {% endif %}
+
+    <p><b>{% trans 'Name' %}</b>: {{ values.name }}</p>
+    <p><b>{% trans 'Email' %}</b>: {{ values.email}}</p>
+    <p><b>{% trans 'Address' %}</b>: {{ values.address }}</p>
+    <p><b>{% trans 'Zip code' %}</b>: {{ values.zip_code }}</p>
+    <p><b>{% trans 'City' %}</b>: {{ values.city }}</p>
+    <p><b>{% trans 'Phone' %}</b>: {{ values.phone }}</p>
+    {% if object.contactorganisation %}
+        <p><b>{% trans 'Fax' %}</b>: {{ values.fax }}</p>
+        <p><b>{% trans 'KvK number' %}</b>: {{ values.kvk }}</p>
+        <p><b>{% trans 'Parent organisation' %}</b>: {% if values.parent_organisation %}<a href="{% url 'customer_edit_organisation' values.parent_organisation.pk %}">{{ values.parent_organisation }}</a>{% endif %}</p>
+    {% endif %}
+    <p>
+        <b>{% trans 'Memo' %}</b>:<br />
+        {{ values.memo }}
+    </p>
+
+    <h3>{% trans "Organisation Groups" %}</h3>
+    {% for customer_type in types.values %}
+    <h4>{{ customer_type.type }}</h4>
+    <ul>
+    {% for field in customer_type.fields.values %}
+        <li><b>{{ field.field }}</b>: {{ field.value }}</li>
+    {% endfor %}
+    </ul>
+    {% empty %}
+    <p>{% trans 'This customer is not a part of any groups.' %}</p>
+    {% endfor %}
+
+    {% if object.contactorganisation %}
+        <h3>{% trans 'Contact' %} (<a href="{{ customer_edit_contactorganisation_contact }}">{% trans 'edit' %}</a>)</h3>
+        <p><b>{% trans 'Name' %}</b>: {{ object.contactorganisation.contact.name }}</p>
+        <p><b>{% trans 'Email' %}</b>: {{ object.contactorganisation.contact.email}}</p>
+        <p><b>{% trans 'Address' %}</b>: {{ object.contactorganisation.contact.address }}</p>
+        <p><b>{% trans 'Zip code' %}</b>: {{ object.contactorganisation.contact.zip_code }}</p>
+        <p><b>{% trans 'City' %}</b>: {{ object.contactorganisation.contact.city }}</p>
+        <p><b>{% trans 'Phone' %}</b>: {{ object.contactorganisation.contact.phone }}</p>
+
+        <h3>{% trans "Person Groups" %}</h3>
+        {% for customer_type in contact_types.values %}
+        <h4>{{ customer_type.type }}</h4>
+        <ul>
+        {% for field in customer_type.fields.values %}
+            <li><b>{{ field.field }}</b>: {{ field.value }}</li>
+        {% endfor %}
+        </ul>
+        {% empty %}
+        <p>{% trans 'This customer is not a part of any groups.' %}</p>
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}

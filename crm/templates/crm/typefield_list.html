@@ -1,0 +1,40 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title %}
+    {% url "persontypefield_list" as person_type_field_list %}
+    {% url "organisationtypefield_list" as organisation_type_field_list %}
+    {% if request.path == person_type_field_list %}
+        {% trans 'PersonTypeField list' %}
+    {% elif request.path == organisation_type_field_list %}
+        {% trans 'OrganisationTypeField list' %}
+    {% else %}
+        {% trans 'TypeField list' %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url "persontypefield_list" as person_type_field_list %}
+    {% url "organisationtypefield_list" as organisation_type_field_list %}
+    {% url "persontypefield_add" as person_type_field_add %}
+    {% url "organisationtypefield_add" as organisation_type_field_add %}
+    <h2>
+        {% if request.path == person_type_field_list %}
+            {% trans 'List of PersonTypeFields' %} (<a href="{{ person_type_field_add }}">{% trans 'add field' %}</a>)
+        {% elif request.path == organisation_type_field_list %}
+            {% trans 'OrganisationTypeFields' %} (<a href="{{ organisation_type_field_add }}">{% trans 'add field' %}</a>)
+        {% else %}
+            {% trans 'TypeFields' %}
+        {% endif %}
+    </h2>
+    <ul>
+    {% for typefield in object_list %}
+        {% if request.path == person_type_field_list %}
+            <li><a href="{% url 'persontypefield_detail' typefield.pk %}">{{ typefield }}</a></li>
+        {% elif request.path == organisation_type_field_list %}
+            <li><a href="{% url 'organisationtypefield_detail' typefield.pk %}">{{ typefield }}</a></li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+{% endblock %}

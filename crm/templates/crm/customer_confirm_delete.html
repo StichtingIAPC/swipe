@@ -1,0 +1,14 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Delete' %} {{ object }}{% endblock %}
+
+{% block content %}
+    <h2>Delete {{ object }}</h2>
+
+    <form action="" method="post">{% csrf_token %}
+        <p>Are you sure you want to delete "{{ object }}"?</p>
+        <input type="submit" value="{% trans 'Yes' %}" />
+    </form>
+{% endblock %}

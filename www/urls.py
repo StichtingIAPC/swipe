@@ -17,4 +17,7 @@ urlpatterns = [
 
     # Include Supplier URLs
     url(r'^supplier/', include('supplier.urls')),
+
+    # Include CRM URLs
+    url(r'^crm/', include('crm.urls')),
 ]
