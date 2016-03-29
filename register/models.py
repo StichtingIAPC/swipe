@@ -1,13 +1,17 @@
 from django.contrib.admin import actions
 from django.db import models,IntegrityError
+from django.middleware import transaction
 from django.utils import timezone
 from django.conf import settings
 
 # Create your models here.
 
 from django.utils.translation import ugettext_lazy
-from money.models import *
 
+from article.models import ArticleType
+from money.models import *
+from stock.exceptions import Id10TError
+from stock.models import StockChange, StockChangeSet
 
 
 class PaymentType(models.Model):
@@ -318,3 +322,84 @@ class AlreadyClosedError(Exception):
 
 class InvalidOperationError(Exception):
     pass
+
+
+class Payment(models.Model):
+    transaction = models.ForeignKey("Transaction")
+    amount = MoneyField()
+
+
+class TransactionLine(models.Model):
+    transaction = models.ForeignKey("Transaction")
+    price = PriceField()
+    count = models.IntegerField()
+    isRefunded = models.BooleanField()
+    text = models.CharField(max_length=8)
+
+
+class SalesTransactionLine(TransactionLine):
+    """
+        Equivalent to one stock-modifying line on a Receipt
+    """
+    cost = CostField()
+    article = models.ForeignKey(ArticleType)
+    label =  StockLabelField()
+
+
+class OtherCostTransactionLine(models.Model):
+    pass
+
+
+class OtherTransactionLine(models.Model):
+    """
+        One transaction-line for a text-specified reason.
+    """
+    transaction = models.ForeignKey("Transaction")
+    description = models.CharField(max_length=64)
+    price = PriceField()
+
+transaction_line_types={"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine, "other": OtherTransactionLine}
+
+
+class Transaction(models.Model):
+    """
+
+    """
+    time = models.DateTimeField(auto_now_add=True)
+    stock_change_set = models.ForeignKey(StockChangeSet)
+
+    def save(self, *args, indirect=False, **kwargs):
+        if not indirect:
+            raise Id10TError(
+                "Please use the Transaction.construct function.")
+        super(Transaction, self).save(*args, **kwargs)
+
+    @staticmethod
+    @transaction.atomic()
+    def construct(payments, transaction_lines):
+        first = True
+        trans = Transaction.objects.create()
+        for payment in payments:
+            if first:
+                sum = payment.amount
+            else:
+                sum += payment.amount
+            first = False
+            payment.transaction=trans
+            payment.save()
+        print(sum)
+        assert(not first)
+        first = True
+        stock_changes = []
+        for transaction_line in transaction_lines:
+            if first:
+                sum2 = transaction_line.amount
+            else:
+                sum2 += transaction_line.amount
+            first = False
+            transaction_line.transaction=trans
+            transaction_line.save()
+        assert (sum2.currency == sum.currency)
+        assert (sum2.amount == sum.amount)
+
+
