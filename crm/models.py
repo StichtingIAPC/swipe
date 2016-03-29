@@ -1,10 +1,11 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from core.models import SoftDeletable
 from crm.exceptions import CyclicParenthoodError
 
 
-class Customer(models.Model):
+class Customer(SoftDeletable):
     def __str__(self):
         if hasattr(self, 'person'):
             return self.person.name
@@ -172,7 +173,10 @@ class OrganisationType(models.Model):
         return self.name
 
 
-class Organisation(models.Model):
+class Organisation(SoftDeletable):
+    # CharFields which are inherited from parent organisations
+    inherited_fields = ["address", "zip_code", "city", "phone", "fax", "kvk"]
+
     name = models.CharField(max_length=255, verbose_name=_("Customer name"))
     email = models.EmailField(verbose_name=_("Email address"))
 
@@ -190,31 +194,26 @@ class Organisation(models.Model):
                                             verbose_name=_("Parent organisation"))
 
     types = models.ManyToManyField(OrganisationType, blank=True, verbose_name=_("Organisation types"))
+    
+    def __init__(self, *args, **kwargs):
+        super(Organisation, self).__init__(*args, **kwargs)
+
+        # Inherit values from parent if they are not already set.
+        if hasattr(self, "parent_organisation") and self.parent_organisation is not None:
+            for field in self.inherited_fields:
+                if getattr(self, field, "") == "":
+                    setattr(self, field, getattr(self.parent_organisation, field, ""))
 
     def save(self, **kwargs):
         # Cycle detection for parent organisation
         if self._has_cycle():
             raise CyclicParenthoodError(self)
 
-        # Inheritence of parent organisation field values
-        if self.parent_organisation:
-            if self.address is None or self.address == "":
-                self.address = self.parent_organisation.address
-
-            if self.zip_code is None or self.zip_code == "":
-                self.zip_code = self.parent_organisation.zip_code
-
-            if self.city is None or self.city == "":
-                self.city = self.parent_organisation.city
-
-            if self.phone is None or self.phone == "":
-                self.phone = self.parent_organisation.phone
-
-            if self.fax is None or self.fax == "":
-                self.fax = self.parent_organisation.fax
-
-            if self.kvk is None or self.kvk == "":
-                self.kvk = self.parent_organisation.kvk
+        # Empty the fields which are the same as the parent's fields, to avoid saving them.
+        if hasattr(self, "parent_organisation") and self.parent_organisation is not None:
+            for field in self.inherited_fields:
+                if getattr(self, field, "") == getattr(self.parent_organisation, field, ""):
+                    setattr(self, field, "")
 
         super(Organisation, self).save(**kwargs)
 

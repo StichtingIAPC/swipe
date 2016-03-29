@@ -30,10 +30,19 @@ class OrganisationInheritanceTest(TestCase):
             parent_organisation=self.iapc
         )
 
-        # Test if the values of beheer are the same as those of IAPC
+        schaduwbeheer = Organisation.objects.create(
+            name="Schaduwsysteembeheer",
+            email="schaduwbeheer@iapc.utwente.nl",
+            parent_organisation=beheer
+        )
+
+        # Test if the values of beheer and schaduwbeheer are the same as those of IAPC
         for attr in ['address', 'zip_code', 'city', 'phone', 'kvk']:
             self.assertEqual(getattr(self.iapc, attr), getattr(beheer, attr),
                              "IAPC's attribute {} is different from beheer's!".format(attr))
+
+            self.assertEqual(getattr(self.iapc, attr), getattr(schaduwbeheer, attr),
+                             "IAPC's attribute {} is different from schaduwbeheer's!".format(attr))
 
 
 class OrganisationCycleDetectionTest(TestCase):
