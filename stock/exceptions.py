@@ -5,5 +5,6 @@ class StockSmallerThanZeroError(ValueError):
 class Id10TError(ValueError):
     pass
 
+
 class StockLabelNotFoundError(ValueError):
     pass

@@ -1,14 +1,13 @@
-from decimal import Decimal
-from django.core import checks
 from django.db import models
-# Create your models here.
 from django.db import transaction
 from article.models import ArticleType
 from money.models import CostField
-from stock.exceptions import *
+from stock.exceptions import StockSmallerThanZeroError, Id10TError
 from money.exceptions import CurrencyInconsistencyError
 from stock.stocklabel import StockLabeledLine, StockLabel
 from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
+# Stop PyCharm from seeing tools as a package.
+# noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, HIGH
 
 
@@ -142,15 +141,18 @@ class Stock(StockLabeledLine):
                     merge_line.book_value.currency, stock_mod.book_value.currency))
 
             if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
-                raise ValueError("book value changed during negative line, from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
+                raise ValueError("book value changed during negative line, "
+                                 "from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
 
             old_cost = merge_line.book_value
             if stock_mod.get_count() + merge_line.count != 0:
                 merge_cost_total = (
-                merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
+                    merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count()
+                )
                 merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
             if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - old_cost.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
-                raise ValueError("book value changed during negative line, from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount))
+                raise ValueError("book value changed during negative line, "
+                                 "from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount))
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
 
@@ -170,7 +172,8 @@ class Stock(StockLabeledLine):
         return "{}| {}: {} @ {} {}".format(self.pk, self.article, self.count, self.book_value, self.label)
 
     class Meta:
-        unique_together = ('labeltype', 'labelkey', 'article',)  # This check  is only partly valid, because most databases don't enforce null uniqueness.
+        # This check  is only partly valid, because most databases don't enforce null uniqueness.
+        unique_together = ('labeltype', 'labelkey', 'article',)
 
 
 class StockChangeSet(models.Model):
@@ -198,7 +201,8 @@ class StockChangeSet(models.Model):
         Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
         :type description: str
-        :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have at least the keys "article", "count", "book_value" and "is_in". See StockChange.
+        :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have
+                        at least the keys "article", "count", "book_value" and "is_in". See StockChange.
         :type entries: list(dict)
         :param enum: Number to describe what caused this change
         :type enum: int
