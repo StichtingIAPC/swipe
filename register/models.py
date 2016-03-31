@@ -373,7 +373,7 @@ class SalesTransactionLine(TransactionLine, StockLabeledLine):
         # Create stockchange
         to_change = []
         for change in changes:
-            chan = {"count": change.count, "article": change.article, "is_in": True, "book_value":change.cost}
+            chan = {"count": change.count, "article": change.article, "is_in": False, "book_value":change.cost}
             to_change.append(chan)
         return StockChangeSet.construct("Register {}".format(id), to_change, enum["cash_register"])
 

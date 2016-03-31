@@ -134,9 +134,16 @@ class TestTransaction(TestCase):
 
         money = Money(Decimal("1.21000"), EUR)
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+
         price = Price(Decimal("1.21000"), EUR, vat=vat.vatrate)
         art = ArticleType.objects.create(name="P1", vat=vat)
         st = SalesTransactionLine(article=art, count=1, cost=cost, price = price, num=1)
         sp = SalesPeriod.objects.create()
         pay = Payment(salesperiod=sp, amount=money)
+        StockChangeSet.construct("HENK",[{
+            'article': art,
+            'book_value': cost,
+            'count': 1,
+            'is_in': True,
+        }],1)
         Transaction.construct([pay], [st])
