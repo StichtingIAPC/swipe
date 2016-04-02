@@ -137,13 +137,15 @@ class TestTransaction(TestCase):
 
         price = Price(Decimal("1.21000"), EUR, vat=vat.vatrate)
         art = ArticleType.objects.create(name="P1", vat=vat)
-        st = SalesTransactionLine(article=art, count=1, cost=cost, price = price, num=1)
+        st = SalesTransactionLine(article=art, count=1, cost=cost, price=price, num=1)
         sp = SalesPeriod.objects.create()
-        pay = Payment(salesperiod=sp, amount=money)
-        StockChangeSet.construct("HENK",[{
+        pt = PaymentType(name="PIN")
+        pt.save()
+        pay = Payment(amount=money, payment_type=pt)
+        StockChangeSet.construct("HENK", [{
             'article': art,
             'book_value': cost,
             'count': 1,
             'is_in': True,
-        }],1)
-        Transaction.construct([pay], [st])
+        }], 1)
+        Transaction.construct([pay], [st], sp)

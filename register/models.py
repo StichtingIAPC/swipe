@@ -146,7 +146,7 @@ class ConsistencyChecker:
     Fixes are required if any of these tests fail
     """
 
-    #This test runs the tests, but rather than raising an error it appends the errors to an array
+    # This test runs the tests, but rather than raising an error it appends the errors to an array
     @staticmethod
     @consistency_check
     def non_crashing_full_check():
@@ -154,15 +154,16 @@ class ConsistencyChecker:
         try:
             ConsistencyChecker.check_open_sales_periods()
         except IntegrityError:
-            errors.append({"text":"More than one sales period is open", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "More than one sales period is open", "location": "SalesPeriods", "line": -1,
+                           "severity": CRITICAL})
         try:
             ConsistencyChecker.check_open_register_periods()
         except IntegrityError:
-            errors.append({"text":"Register had more than one register period open", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "Register had more than one register period open", "location":"SalesPeriods","line": -1,"severity": CRITICAL})
         try:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
-            errors.append({"text":"Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
         return errors
 
     @staticmethod
@@ -348,11 +349,19 @@ class InvalidOperationError(Exception):
 
 
 class Payment(models.Model):
-    salesperiod = models.ForeignKey("SalesPeriod")
+    """
+    Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
+    transaction
+    """
+    transaction = models.ForeignKey("Transaction")
     amount = MoneyField()
+    payment_type = models.ForeignKey(PaymentType)
 
 
 class TransactionLine(models.Model):
+    """
+    Superclass of transaction line. Contains all the shared information of all transaction line types.
+    """
     transaction = models.ForeignKey("Transaction")
     num = models.IntegerField()
     price = PriceField()
@@ -373,19 +382,22 @@ class SalesTransactionLine(TransactionLine, StockLabeledLine):
         # Create stockchange
         to_change = []
         for change in changes:
-            chan = {"count": change.count, "article": change.article, "is_in": False, "book_value":change.cost}
+            chan = {"count": change.count, "article": change.article, "is_in": False, "book_value": change.cost}
             to_change.append(chan)
         return StockChangeSet.construct("Register {}".format(id), to_change, enum["cash_register"])
 
 
-class OtherCostTransactionLine(models.Model):
+class OtherCostTransactionLine(TransactionLine):
+    """
+        Transaction for a product that has no stock but is orderable.
+    """
     @staticmethod
     def handle(changes):
         # Create stockchange
         return -1
 
 
-class OtherTransactionLine(models.Model):
+class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
     """
@@ -395,16 +407,19 @@ class OtherTransactionLine(models.Model):
         # Create stockchange
         return -1
 
-
-transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine, "other": OtherTransactionLine}
+#List of all types of transaction lines
+transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
+                          "other": OtherTransactionLine}
 
 
 class Transaction(models.Model):
     """
-
+        General transaction for the use in a sales period. Contains a number of transaction lines that could be any form
+        of sales.
     """
     time = models.DateTimeField(auto_now_add=True)
     stock_change_set = models.ForeignKey(StockChangeSet)
+    salesperiod = models.ForeignKey("SalesPeriod")
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -414,13 +429,13 @@ class Transaction(models.Model):
 
     @staticmethod
     @transaction.atomic()
-    def construct(payments, transaction_lines):
-        sum = None
+    def construct(payments, transaction_lines, salesperiod):
+        sum_of_payments = None
         trans = Transaction()
         transaction_store = {}
         for transaction_line in transaction_lines:
             key = (key for key, value in transaction_line_types.items() if value == type(transaction_line)).__next__()
-            if not transaction_store.get(key,None):
+            if not transaction_store.get(key, None):
                 transaction_store[key] = []
             transaction_store[key].append(transaction_line)
         sl = None
@@ -432,17 +447,14 @@ class Transaction(models.Model):
             sl = StockChange.construct(description="Empty stockchangeset for Receipt", entries=[], enum=0)
 
         trans.stock_change_set = sl
-        trans.save(indirect=True)
 
         first = True
         for payment in payments:
             if first:
-                sum = payment.amount
+                sum_of_payments = payment.amount
             else:
-                sum += payment.amount
+                sum_of_payments += payment.amount
             first = False
-            payment.transaction = trans
-            payment.save()
 
         assert(not first)
 
@@ -454,8 +466,19 @@ class Transaction(models.Model):
             else:
                 sum2 += transaction_line.price
             first = False
+
+
+        assert (sum2.currency == sum_of_payments.currency)
+        assert (sum2.amount == sum_of_payments.amount)
+        assert salesperiod
+
+        trans.salesperiod=salesperiod
+        trans.save(indirect=True)
+        for payment in payments:
+            payment.transaction = trans
+            payment.save()
+
+        for transaction_line in transaction_lines:
             transaction_line.transaction = trans
             transaction_line.save()
 
-        assert (sum2.currency == sum.currency)
-        assert (sum2.amount == sum.amount)
