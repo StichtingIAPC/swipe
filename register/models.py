@@ -72,7 +72,7 @@ class Register(models.Model):
         else:
             raise InactiveError("The register is inactive and cannot be opened")
 
-    def close(self, indirect=False, register_count=False):
+    def close(self, indirect=False, register_count=False, denomination_counts=False):
         if not indirect:
             raise InvalidOperationError("You can only close a register when the entire sales period is closed")
         else:
@@ -87,12 +87,17 @@ class Register(models.Model):
                     reg_per.endTime = reg_per.sales_period.endTime
                     reg_per.save()
                     if not register_count:
-                        register_count = RegisterCount(is_opening_count=False, register_period=reg_per)
-                        register_count.save()
+                        raise InvalidOperationError("A close without an register count is not accepted.")
                     else:
-                        register_count = RegisterCount(register_count)
                         register_count.register_period = reg_per
                         register_count.save()
+                        for denom in denomination_counts:
+                            denom.save()
+
+    def get_current_open_register_period(self):
+        if not self.is_open():
+            raise InvalidOperationError("Register is not opened")
+        return RegisterPeriod.objects.get(register=self,endTime__isnull=True)
 
     def save(self, **kwargs):
         if self.is_cash_register:
@@ -212,14 +217,58 @@ class SalesPeriod(models.Model):
         return not self.endTime
 
     @staticmethod
-    def close():
+    def close(registercounts,denominationcounts):
         if RegisterMaster.sales_period_is_open():
             sales_period = RegisterMaster.get_open_sales_period()
-            sales_period.endTime = timezone.now()
-            sales_period.save()
             open_registers = RegisterMaster.get_open_registers()
+            if not len(registercounts) == len(open_registers):
+                raise InvalidOperationError("Not all registers are counted. Aborting close.")
+            # Loop over salesperiods and denominationcounts. Check if all things match. If yes, push all transactions.
+            reg_periods = RegisterPeriod.objects.filter(endTime__isnull=True)
+            # Second check which compares open register periods to open registers. Should always be equals./
+            stop = False
+            if not len(reg_periods) == len(open_registers):
+                raise IntegrityError("Registers open not equal to unstopped register periods. Database inconsistent.")
+
+            # Check if the right registers are counted
+            # Also checks the denominations
+            for reg_per in reg_periods:
+                found = False
+                for registercount in registercounts:
+                    registercount.is_opening_count = False
+                    if registercount.register_period == reg_per:
+                        found = True
+                        if reg_per.register.is_cash_register:
+                            assert registercount.amount >= 0
+                            for denom in denominationcounts:
+                                if denom.register_count == registercount:
+                                    if not reg_per.register.is_cash_register:
+                                        raise InvalidOperationError("Denomination count found for non-cash register. Aborting close")
+                        break
+
+                if not found:
+                    stop = True
+                    break
+
+            if stop:
+                raise InvalidOperationError("Register counts do not match register periods. Aborting close.")
+
+            sales_period.endTime = timezone.now()
+            # Saving magic happens after this line
+            sales_period.save()
+            # Iterates over registers and connects them to the correct register counts.
+            # Also adds the correct denomination counts
             for register in open_registers:
-                register.close(indirect=True)
+                selected_register_count = False
+                for registercount in registercounts:
+                    if registercount.register_period.register == register:
+                        selected_register_count = registercount
+                        break
+                matching_denom_counts = []
+                for denom in denominationcounts:
+                    if denom.register_count == selected_register_count:
+                        matching_denom_counts.append(denom)
+                register.close(indirect=True,register_count=selected_register_count,denomination_counts= matching_denom_counts)
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
 

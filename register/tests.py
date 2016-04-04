@@ -77,7 +77,15 @@ class BasicTest(TestCase):
         self.reg2.open()
         assert (RegisterMaster.sales_period_is_open())
         assert (RegisterMaster.number_of_open_registers() == 2)
-        SalesPeriod.close()
+        reg_count_1 = RegisterCount()
+        reg_count_1.register_period = self.reg1.get_current_open_register_period()
+        reg_count_1.amount=3.14
+        reg_count_2 = RegisterCount()
+        reg_count_2.register_period = self.reg2.get_current_open_register_period()
+        reg_count_2.amount=0
+        reg_counts = [reg_count_1, reg_count_2]
+        denom_counts = []
+        SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts)
         assert (RegisterMaster.number_of_open_registers() == 0)
         assert (not RegisterMaster.sales_period_is_open())
         ConsistencyChecker.full_check()
