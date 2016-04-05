@@ -528,7 +528,7 @@ class Transaction(models.Model):
         assert salesperiod
 
         # save all data
-        trans.salesperiod=salesperiod
+        trans.salesperiod = salesperiod
         trans.save(indirect=True)
         for payment in payments:
             payment.transaction = trans
