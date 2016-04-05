@@ -442,9 +442,7 @@ class OtherCostTransactionLine(TransactionLine):
     """
     @staticmethod
     def handle(changes):
-        # Create stockchange
-        return -1
-
+        pass
 
 class OtherTransactionLine(TransactionLine):
     """
@@ -453,8 +451,7 @@ class OtherTransactionLine(TransactionLine):
 
     @staticmethod
     def handle(changes):
-        # Create stockchange
-        return -1
+        pass
 
 #List of all types of transaction lines
 transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
@@ -479,14 +476,20 @@ class Transaction(models.Model):
     @staticmethod
     @transaction.atomic()
     def construct(payments, transaction_lines, salesperiod):
+
+        #
         sum_of_payments = None
         trans = Transaction()
         transaction_store = {}
+
+        #Get all stockchangeset lines
         for transaction_line in transaction_lines:
             key = (key for key, value in transaction_line_types.items() if value == type(transaction_line)).__next__()
             if not transaction_store.get(key, None):
                 transaction_store[key] = []
             transaction_store[key].append(transaction_line)
+
+        # Create stockchangeset; here final handling for other types of changesets might be done.
         sl = None
         for key in transaction_store.keys():
             line = transaction_line_types[key].handle(transaction_store[key], trans.id)
@@ -497,6 +500,7 @@ class Transaction(models.Model):
 
         trans.stock_change_set = sl
 
+        # Count payments
         first = True
         for payment in payments:
             if first:
@@ -509,6 +513,8 @@ class Transaction(models.Model):
 
         first = True
         sum2 = None
+
+        # Count sum of transactions
         for transaction_line in transaction_lines:
             if first:
                 sum2 = transaction_line.price
@@ -516,11 +522,12 @@ class Transaction(models.Model):
                 sum2 += transaction_line.price
             first = False
 
-
+        # Check Quid pro Quo
         assert (sum2.currency == sum_of_payments.currency)
         assert (sum2.amount == sum_of_payments.amount)
         assert salesperiod
 
+        # save all data
         trans.salesperiod=salesperiod
         trans.save(indirect=True)
         for payment in payments:
@@ -530,4 +537,4 @@ class Transaction(models.Model):
         for transaction_line in transaction_lines:
             transaction_line.transaction = trans
             transaction_line.save()
-
+        return trans

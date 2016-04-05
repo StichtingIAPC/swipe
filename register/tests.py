@@ -5,6 +5,7 @@ from register.models import *
 from money.models import *
 
 # Create your tests here.
+from stock.models import Stock
 
 
 class BasicTest(TestCase):
@@ -163,11 +164,15 @@ class TestTransaction(TestCase):
             'is_in': True,
         }],1)
         self.do_transaction()
+        self.assertEqual(2, StockChange.objects.all().__len__())
+        self.assertEqual(1, Payment.objects.all().__len__())
 
     def test_fail_no_stock(self):
         st = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price = self.price, num=1)
         pay = Payment(amount=self.money, payment_type=self.pt)
         self.assertRaises(stock.exceptions.StockSmallerThanZeroError, self.do_transaction)
+        self.assertEqual(0, StockChange.objects.all().__len__())
+        self.assertEqual(0, Payment.objects.all().__len__())
 
     def test_fail_no_consistent_pay(self):
         self.simple_payment = Payment(amount=self.money*2)
@@ -177,4 +182,7 @@ class TestTransaction(TestCase):
             'count': 1,
             'is_in': True,
         }],1)
+        # A payment with different amount of Payment than products should FAIL
         self.assertRaises(AssertionError, self.do_transaction)
+        self.assertEqual(1, StockChange.objects.all().__len__())
+        self.assertEqual(0, Payment.objects.all().__len__())
