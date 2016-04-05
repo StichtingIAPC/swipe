@@ -72,7 +72,7 @@ class Register(models.Model):
         else:
             raise InactiveError("The register is inactive and cannot be opened")
 
-    def close(self, indirect=False, register_count=False):
+    def close(self, indirect=False, register_count=False, denomination_counts=False):
         if not indirect:
             raise InvalidOperationError("You can only close a register when the entire sales period is closed")
         else:
@@ -87,12 +87,17 @@ class Register(models.Model):
                     reg_per.endTime = reg_per.sales_period.endTime
                     reg_per.save()
                     if not register_count:
-                        register_count = RegisterCount(is_opening_count=False, register_period=reg_per)
-                        register_count.save()
+                        raise InvalidOperationError("A close without an register count is not accepted.")
                     else:
-                        register_count = RegisterCount(register_count)
                         register_count.register_period = reg_per
                         register_count.save()
+                        for denom in denomination_counts:
+                            denom.save()
+
+    def get_current_open_register_period(self):
+        if not self.is_open():
+            raise InvalidOperationError("Register is not opened")
+        return RegisterPeriod.objects.get(register=self,endTime__isnull=True)
 
     def save(self, **kwargs):
         if self.is_cash_register:
@@ -146,7 +151,7 @@ class ConsistencyChecker:
     Fixes are required if any of these tests fail
     """
 
-    #This test runs the tests, but rather than raising an error it appends the errors to an array
+    # This test runs the tests, but rather than raising an error it appends the errors to an array
     @staticmethod
     @consistency_check
     def non_crashing_full_check():
@@ -154,15 +159,16 @@ class ConsistencyChecker:
         try:
             ConsistencyChecker.check_open_sales_periods()
         except IntegrityError:
-            errors.append({"text":"More than one sales period is open", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "More than one sales period is open", "location": "SalesPeriods", "line": -1,
+                           "severity": CRITICAL})
         try:
             ConsistencyChecker.check_open_register_periods()
         except IntegrityError:
-            errors.append({"text":"Register had more than one register period open", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "Register had more than one register period open", "location":"SalesPeriods","line": -1,"severity": CRITICAL})
         try:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
-            errors.append({"text":"Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
         return errors
 
     @staticmethod
@@ -211,14 +217,58 @@ class SalesPeriod(models.Model):
         return not self.endTime
 
     @staticmethod
-    def close():
+    def close(registercounts,denominationcounts):
         if RegisterMaster.sales_period_is_open():
             sales_period = RegisterMaster.get_open_sales_period()
-            sales_period.endTime = timezone.now()
-            sales_period.save()
             open_registers = RegisterMaster.get_open_registers()
+            if not len(registercounts) == len(open_registers):
+                raise InvalidOperationError("Not all registers are counted. Aborting close.")
+            # Loop over salesperiods and denominationcounts. Check if all things match. If yes, push all transactions.
+            reg_periods = RegisterPeriod.objects.filter(endTime__isnull=True)
+            # Second check which compares open register periods to open registers. Should always be equals./
+            stop = False
+            if not len(reg_periods) == len(open_registers):
+                raise IntegrityError("Registers open not equal to unstopped register periods. Database inconsistent.")
+
+            # Check if the right registers are counted
+            # Also checks the denominations
+            for reg_per in reg_periods:
+                found = False
+                for registercount in registercounts:
+                    registercount.is_opening_count = False
+                    if registercount.register_period == reg_per:
+                        found = True
+                        if reg_per.register.is_cash_register:
+                            assert registercount.amount >= 0
+                            for denom in denominationcounts:
+                                if denom.register_count == registercount:
+                                    if not reg_per.register.is_cash_register:
+                                        raise InvalidOperationError("Denomination count found for non-cash register. Aborting close")
+                        break
+
+                if not found:
+                    stop = True
+                    break
+
+            if stop:
+                raise InvalidOperationError("Register counts do not match register periods. Aborting close.")
+
+            sales_period.endTime = timezone.now()
+            # Saving magic happens after this line
+            sales_period.save()
+            # Iterates over registers and connects them to the correct register counts.
+            # Also adds the correct denomination counts
             for register in open_registers:
-                register.close(indirect=True)
+                selected_register_count = False
+                for registercount in registercounts:
+                    if registercount.register_period.register == register:
+                        selected_register_count = registercount
+                        break
+                matching_denom_counts = []
+                for denom in denominationcounts:
+                    if denom.register_count == selected_register_count:
+                        matching_denom_counts.append(denom)
+                register.close(indirect=True,register_count=selected_register_count,denomination_counts= matching_denom_counts)
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
 
@@ -348,11 +398,19 @@ class InvalidOperationError(Exception):
 
 
 class Payment(models.Model):
-    salesperiod = models.ForeignKey("SalesPeriod")
+    """
+    Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
+    transaction
+    """
+    transaction = models.ForeignKey("Transaction")
     amount = MoneyField()
+    payment_type = models.ForeignKey(PaymentType)
 
 
 class TransactionLine(models.Model):
+    """
+    Superclass of transaction line. Contains all the shared information of all transaction line types.
+    """
     transaction = models.ForeignKey("Transaction")
     num = models.IntegerField()
     price = PriceField()
@@ -373,19 +431,22 @@ class SalesTransactionLine(TransactionLine, StockLabeledLine):
         # Create stockchange
         to_change = []
         for change in changes:
-            chan = {"count": change.count, "article": change.article, "is_in": False, "book_value":change.cost}
+            chan = {"count": change.count, "article": change.article, "is_in": False, "book_value": change.cost}
             to_change.append(chan)
         return StockChangeSet.construct("Register {}".format(id), to_change, enum["cash_register"])
 
 
-class OtherCostTransactionLine(models.Model):
+class OtherCostTransactionLine(TransactionLine):
+    """
+        Transaction for a product that has no stock but is orderable.
+    """
     @staticmethod
     def handle(changes):
         # Create stockchange
         return -1
 
 
-class OtherTransactionLine(models.Model):
+class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
     """
@@ -395,16 +456,19 @@ class OtherTransactionLine(models.Model):
         # Create stockchange
         return -1
 
-
-transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine, "other": OtherTransactionLine}
+#List of all types of transaction lines
+transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
+                          "other": OtherTransactionLine}
 
 
 class Transaction(models.Model):
     """
-
+        General transaction for the use in a sales period. Contains a number of transaction lines that could be any form
+        of sales.
     """
     time = models.DateTimeField(auto_now_add=True)
     stock_change_set = models.ForeignKey(StockChangeSet)
+    salesperiod = models.ForeignKey("SalesPeriod")
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -414,13 +478,13 @@ class Transaction(models.Model):
 
     @staticmethod
     @transaction.atomic()
-    def construct(payments, transaction_lines):
-        sum = None
+    def construct(payments, transaction_lines, salesperiod):
+        sum_of_payments = None
         trans = Transaction()
         transaction_store = {}
         for transaction_line in transaction_lines:
             key = (key for key, value in transaction_line_types.items() if value == type(transaction_line)).__next__()
-            if not transaction_store.get(key,None):
+            if not transaction_store.get(key, None):
                 transaction_store[key] = []
             transaction_store[key].append(transaction_line)
         sl = None
@@ -432,17 +496,14 @@ class Transaction(models.Model):
             sl = StockChange.construct(description="Empty stockchangeset for Receipt", entries=[], enum=0)
 
         trans.stock_change_set = sl
-        trans.save(indirect=True)
 
         first = True
         for payment in payments:
             if first:
-                sum = payment.amount
+                sum_of_payments = payment.amount
             else:
-                sum += payment.amount
+                sum_of_payments += payment.amount
             first = False
-            payment.transaction = trans
-            payment.save()
 
         assert(not first)
 
@@ -454,8 +515,19 @@ class Transaction(models.Model):
             else:
                 sum2 += transaction_line.price
             first = False
+
+
+        assert (sum2.currency == sum_of_payments.currency)
+        assert (sum2.amount == sum_of_payments.amount)
+        assert salesperiod
+
+        trans.salesperiod=salesperiod
+        trans.save(indirect=True)
+        for payment in payments:
+            payment.transaction = trans
+            payment.save()
+
+        for transaction_line in transaction_lines:
             transaction_line.transaction = trans
             transaction_line.save()
 
-        assert (sum2.currency == sum.currency)
-        assert (sum2.amount == sum.amount)

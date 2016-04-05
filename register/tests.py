@@ -79,7 +79,15 @@ class BasicTest(TestCase):
         self.reg2.open()
         assert (RegisterMaster.sales_period_is_open())
         assert (RegisterMaster.number_of_open_registers() == 2)
-        SalesPeriod.close()
+        reg_count_1 = RegisterCount()
+        reg_count_1.register_period = self.reg1.get_current_open_register_period()
+        reg_count_1.amount=3.14
+        reg_count_2 = RegisterCount()
+        reg_count_2.register_period = self.reg2.get_current_open_register_period()
+        reg_count_2.amount=0
+        reg_counts = [reg_count_1, reg_count_2]
+        denom_counts = []
+        SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts)
         assert (RegisterMaster.number_of_open_registers() == 0)
         assert (not RegisterMaster.sales_period_is_open())
         ConsistencyChecker.full_check()
@@ -134,19 +142,20 @@ class TestTransaction(TestCase):
         self.EUR = Currency("EUR")
         self.cost = Cost(Decimal("1.21000"),self.EUR)
         self.money = Money(Decimal("1.21000"), self.EUR)
+        self.pt = PaymentType.objects.create()
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         self.price = Price(Decimal("1.21000"), self.EUR, vat=self.vat.vatrate)
         self.art = ArticleType.objects.create(name="P1", vat=self.vat)
         self.sp = SalesPeriod.objects.create()
         self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price = self.price, num=1)
-        self.simple_payment = Payment(salesperiod=self.sp, amount=self.money)
+        self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
 
     def do_transaction(self):
-        Transaction.construct([self.simple_payment], [self.simplest])
+        Transaction.construct([self.simple_payment], [self.simplest], self.sp)
 
     def test_simple(self):
         st = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price = self.price, num=1)
-        pay = Payment(salesperiod=self.sp, amount=self.money)
+        pay = Payment(amount=self.money)
         StockChangeSet.construct("HENK",[{
             'article': self.art,
             'book_value': self.cost,
@@ -157,11 +166,11 @@ class TestTransaction(TestCase):
 
     def test_fail_no_stock(self):
         st = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price = self.price, num=1)
-        pay = Payment(salesperiod=self.sp, amount=self.money)
+        pay = Payment(amount=self.money, payment_type=self.pt)
         self.assertRaises(stock.exceptions.StockSmallerThanZeroError, self.do_transaction)
 
     def test_fail_no_consistent_pay(self):
-        self.simple_payment =  Payment(salesperiod=self.sp, amount=self.money*2)
+        self.simple_payment = Payment(amount=self.money*2)
         StockChangeSet.construct("HENK",[{
             'article': self.art,
             'book_value': self.cost,
