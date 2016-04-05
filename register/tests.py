@@ -1,4 +1,6 @@
 from django.test import TestCase
+
+import stock
 from register.models import *
 from money.models import *
 
@@ -128,22 +130,42 @@ class BasicTest(TestCase):
 
 
 class TestTransaction(TestCase):
+    def setUp(self):
+        self.EUR = Currency("EUR")
+        self.cost = Cost(Decimal("1.21000"),self.EUR)
+        self.money = Money(Decimal("1.21000"), self.EUR)
+        self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        self.price = Price(Decimal("1.21000"), self.EUR, vat=self.vat.vatrate)
+        self.art = ArticleType.objects.create(name="P1", vat=self.vat)
+        self.sp = SalesPeriod.objects.create()
+        self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price = self.price, num=1)
+        self.simple_payment = Payment(salesperiod=self.sp, amount=self.money)
+
+    def do_transaction(self):
+        Transaction.construct([self.simple_payment], [self.simplest])
+
     def test_simple(self):
-        EUR = Currency("EUR")
-        cost = Cost(Decimal("1.21000"), EUR)
-
-        money = Money(Decimal("1.21000"), EUR)
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-
-        price = Price(Decimal("1.21000"), EUR, vat=vat.vatrate)
-        art = ArticleType.objects.create(name="P1", vat=vat)
-        st = SalesTransactionLine(article=art, count=1, cost=cost, price = price, num=1)
-        sp = SalesPeriod.objects.create()
-        pay = Payment(salesperiod=sp, amount=money)
+        st = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price = self.price, num=1)
+        pay = Payment(salesperiod=self.sp, amount=self.money)
         StockChangeSet.construct("HENK",[{
-            'article': art,
-            'book_value': cost,
+            'article': self.art,
+            'book_value': self.cost,
             'count': 1,
             'is_in': True,
         }],1)
-        Transaction.construct([pay], [st])
+        self.do_transaction()
+
+    def test_fail_no_stock(self):
+        st = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price = self.price, num=1)
+        pay = Payment(salesperiod=self.sp, amount=self.money)
+        self.assertRaises(stock.exceptions.StockSmallerThanZeroError, self.do_transaction)
+
+    def test_fail_no_consistent_pay(self):
+        self.simple_payment =  Payment(salesperiod=self.sp, amount=self.money*2)
+        StockChangeSet.construct("HENK",[{
+            'article': self.art,
+            'book_value': self.cost,
+            'count': 1,
+            'is_in': True,
+        }],1)
+        self.assertRaises(AssertionError, self.do_transaction)
