@@ -51,15 +51,15 @@ module.exports = function(grunt){
   grunt.loadNpmTasks('grunt-sass');
 
   grunt.registerTask('default', [
-    'requirejs:dev'
-  // ,'sass:dev'
+    'requirejs:dev',
+    'sass:dev'
   ]);
   grunt.registerTask('deploy', [
-    'requirejs:deploy'
-  // ,'sass:deploy'
+    'requirejs:deploy',
+    'sass:deploy'
   ]);
   grunt.registerTask('dev', [
-    'requirejs:dev'
-  // ,'sass:dev'
+    'requirejs:dev',
+    'sass:dev'
   ])
 };
