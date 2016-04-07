@@ -112,3 +112,6 @@ swipe/local.py
 
 # Bower install directory
 static/build
+
+# Node package directory
+node_modules
