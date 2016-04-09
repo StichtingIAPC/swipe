@@ -97,7 +97,7 @@ class Register(models.Model):
     def get_current_open_register_period(self):
         if not self.is_open():
             raise InvalidOperationError("Register is not opened")
-        return RegisterPeriod.objects.get(register=self,endTime__isnull=True)
+        return RegisterPeriod.objects.get(register=self, endTime__isnull=True)
 
     def save(self, **kwargs):
         if self.is_cash_register:
@@ -164,11 +164,11 @@ class ConsistencyChecker:
         try:
             ConsistencyChecker.check_open_register_periods()
         except IntegrityError:
-            errors.append({"text": "Register had more than one register period open", "location":"SalesPeriods","line": -1,"severity": CRITICAL})
+            errors.append({"text": "Register had more than one register period open", "location": "SalesPeriods", "line": -1,"severity": CRITICAL})
         try:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
-            errors.append({"text": "Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "Cash register can only have cash as payment method", "location": "SalesPeriods", "line": -1, "severity": CRITICAL})
         return errors
 
     @staticmethod
@@ -209,6 +209,10 @@ class SalesPeriod(models.Model):
 
     endTime = models.DateTimeField(null=True)
 
+    opening_memo = models.CharField(max_length=255)
+
+    closing_memo = models.CharField(max_length=255)
+
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
@@ -217,7 +221,7 @@ class SalesPeriod(models.Model):
         return not self.endTime
 
     @staticmethod
-    def close(registercounts,denominationcounts):
+    def close(registercounts, denominationcounts, memo):
         if RegisterMaster.sales_period_is_open():
             sales_period = RegisterMaster.get_open_sales_period()
             open_registers = RegisterMaster.get_open_registers()
@@ -254,6 +258,8 @@ class SalesPeriod(models.Model):
                 raise InvalidOperationError("Register counts do not match register periods. Aborting close.")
 
             sales_period.endTime = timezone.now()
+
+            sales_period.closing_memo = memo
             # Saving magic happens after this line
             sales_period.save()
             # Iterates over registers and connects them to the correct register counts.
@@ -268,7 +274,7 @@ class SalesPeriod(models.Model):
                 for denom in denominationcounts:
                     if denom.register_count == selected_register_count:
                         matching_denom_counts.append(denom)
-                register.close(indirect=True,register_count=selected_register_count,denomination_counts= matching_denom_counts)
+                register.close(indirect=True, register_count=selected_register_count, denomination_counts= matching_denom_counts)
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
 
@@ -288,6 +294,10 @@ class RegisterPeriod(models.Model):
     beginTime = models.DateTimeField(auto_now_add=True)
 
     endTime = models.DateField(null=True)
+
+    opening_memo = models.CharField(max_length=255)
+
+    closing_memo = models.CharField(max_length=255)
 
     @classmethod
     def create(cls, *args, **kwargs):
@@ -381,6 +391,18 @@ class MoneyInOut(models.Model):
         return "Register Period:{}, Amount:{}".format(self.register_period, self.amount)
 
 
+class SalesPeriodDifference(models.Model):
+    """
+    Resolves differences between expected amounts of money in the combined opened registers and the actual amount of money.
+    Count is per type of money
+    """
+    sales_period = models.ForeignKey(SalesPeriod)
+
+    currency_data = models.ForeignKey(CurrencyData)
+
+    amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
+
+
 class InactiveError(Exception):
     pass
 
@@ -444,6 +466,7 @@ class OtherCostTransactionLine(TransactionLine):
     def handle(changes):
         pass
 
+
 class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
@@ -453,7 +476,7 @@ class OtherTransactionLine(TransactionLine):
     def handle(changes):
         pass
 
-#List of all types of transaction lines
+# List of all types of transaction lines
 transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
                           "other": OtherTransactionLine}
 
@@ -482,7 +505,7 @@ class Transaction(models.Model):
         trans = Transaction()
         transaction_store = {}
 
-        #Get all stockchangeset lines
+        # Get all stockchangeset lines
         for transaction_line in transaction_lines:
             key = (key for key, value in transaction_line_types.items() if value == type(transaction_line)).__next__()
             if not transaction_store.get(key, None):
