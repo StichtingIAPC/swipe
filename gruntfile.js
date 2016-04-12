@@ -2,30 +2,56 @@ module.exports = function(grunt){
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
+    bower: {
+      dev: {
+        options: {
+          copy: false,
+          install: true,
+          bowerOptions: {
+            production: false
+          }
+        }
+      },
+      deploy: {
+        options: {
+          copy: false,
+          install: true,
+          bowerOptions: {
+            production: true
+          },
+          verbose: false
+        }
+      },
+      debug: {
+        options: {
+          copy: false,
+          install: true,
+          verbose: true,
+          bowerOptions: {
+            production: false
+          }
+        }
+      }
+    },
+
     requirejs: {
       dev: {
         options: {
-          almond: true,
-          name: 'main',
-          optimize: 'none',
-
+          mainConfigFile: 'static/js/config.js',
+          include: ['main'],
           generateSourceMaps: true,
           preserveLicenseComments: false,
-
-          mainConfigFile: 'static/js/config.js',
+          name: '../build/bower_components/almond/almond',
           out: 'static/build/js/<%= pkg.name %>.min.js'
         }
       },
       deploy: {
         options: {
-          almond: true,
-          name: 'main',
-          optimize: 'none',
-
+          mainConfigFile: 'static/js/config.js',
+          include: ['main'],
           generateSourceMaps: false,
           preserveLicenseComments: true,
-
-          mainConfigFile: 'static/js/config.js',
+          name: '../build/bower_components/almond/almond',
           out: 'static/build/js/<%= pkg.name %>.min.js'
         }
       }
@@ -53,18 +79,27 @@ module.exports = function(grunt){
     }
   });
 
+  grunt.loadNpmTasks('grunt-bower-task');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-sass');
 
   grunt.registerTask('default', [
+    'bower:dev',
     'requirejs:dev',
     'sass:dev'
   ]);
   grunt.registerTask('deploy', [
+    'bower:install',
     'requirejs:deploy',
     'sass:deploy'
   ]);
   grunt.registerTask('dev', [
+    'bower:install',
+    'requirejs:dev',
+    'sass:dev'
+  ]);
+  grunt.registerTask('debug', [
+    'bower:debug',
     'requirejs:dev',
     'sass:dev'
   ])

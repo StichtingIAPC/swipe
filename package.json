@@ -2,11 +2,10 @@
   "licence": "BSD-3-Clause",
   "dependencies": {
     "bower": "^1.7.9",
-    "grunt-cli": "^1.2.0",
-    "grunt-contrib-requirejs": "^1.0.0"
-  },
-  "devDependencies": {
     "grunt": "^1.0.1",
+    "grunt-bower-task": "^0.4.0",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-requirejs": "^1.0.0",
     "grunt-sass": "^1.1.0"
   },
   "name": "swipe",
