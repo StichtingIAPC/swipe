@@ -5,21 +5,27 @@ module.exports = function(grunt){
     requirejs: {
       dev: {
         options: {
-          mainConfigFile: 'static/js/config.js',
-          include: ['main'],
+          almond: true,
+          name: 'main',
+          optimize: 'none',
+
           generateSourceMaps: true,
           preserveLicenseComments: false,
-          name: '../build/bower_components/almond/almond',
+
+          mainConfigFile: 'static/js/config.js',
           out: 'static/build/js/<%= pkg.name %>.min.js'
         }
       },
       deploy: {
         options: {
-          mainConfigFile: 'static/js/config.js',
-          include: ['main'],
+          almond: true,
+          name: 'main',
+          optimize: 'none',
+
           generateSourceMaps: false,
           preserveLicenseComments: true,
-          name: '../build/bower_components/almond/almond',
+
+          mainConfigFile: 'static/js/config.js',
           out: 'static/build/js/<%= pkg.name %>.min.js'
         }
       }
