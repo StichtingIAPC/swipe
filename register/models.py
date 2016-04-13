@@ -50,20 +50,47 @@ class Register(models.Model):
             raise IntegrityError("Register had more than one register period open")
         return len(lst) == 1
 
+    def get_prev_open_count(self):
+        periods = RegisterPeriod.objects.filter(register=self)
+        if len(periods) != 0:
+            period = periods.last()
+            count = RegisterCount.objects.filter(register_period=period,is_opening_count=False)
+            if len(count)!= 0:
+                return Money(Decimal(count[0].amount), self.currency)
+            else:
+                raise ValueError("WAT DE FUCK")
+        else:
+            return Money(Decimal("0.00000"),self.currency)
+
     @transaction.atomic
     def open(self, counted_amount, denominations=[]):
         if self.is_active:
             if self.is_open():
                 raise AlreadyOpenError("Register is already open")
             else:
+                # Calculate Cash Register Difference
+                if self.is_cash_register:
+                    first = True
+                    for denomination in denominations:
+                        if first:
+                            count = denomination.get_money_value()
+                        else:
+                            count += denomination.get_money_value()
+                        first = False
+                    diff = count - self.get_prev_open_count()
+
+                # Get or create SalesPeriod
                 if RegisterMaster.sales_period_is_open():
                     open_sales_period = RegisterMaster.get_open_sales_period()
 
                 else:
                     open_sales_period = SalesPeriod()
                     open_sales_period.save()
+                #Create register_period
                 register_period = RegisterPeriod(register=self, sales_period=open_sales_period)
                 register_period.save()
+
+                #Create cash register
                 if self.is_cash_register:
                     reg_count = RegisterCount(is_opening_count=True, register_period=register_period, amount=counted_amount)
                     reg_count.save(denominations)
@@ -74,11 +101,14 @@ class Register(models.Model):
                     assert(counted_amount == Decimal("0.00000"))
                     for denomination in denominations:
                         denomination.save()
-                else:
-                    register_count = RegisterCount(is_opening_count=True, amount=counted_amount)
-                    register_count.register_period = register_period
-                    register_count.save()
+                else: #Create Brief Register
+                    reg_count = RegisterCount(is_opening_count=True, amount=counted_amount)
+                    reg_count.register_period = register_period
+                    reg_count.save()
 
+                #Save Register Count Difference
+                if self.is_cash_register:
+                    OpeningCountDifference.objects.create(register_count=reg_count, difference=diff)
         else:
             raise InactiveError("The register is inactive and cannot be opened")
 
@@ -289,13 +319,44 @@ class SalesPeriod(models.Model):
                     for denom in denominationcounts:
                         if denom.register_count == selected_register_count:
                             matching_denom_counts.append(denom)
-                            counted = counted - denom.amount * denom.denomination.amount
-                assert(counted == Decimal("0.00000"))
+                            counted = counted - denom.get_money_value().amount
+
+                    if counted != Decimal("0.00000"):
+                        raise InvalidDenominationList("List not equal to expected count: {}, count: {}. Result: {}".format(matching_denom_counts, registercount, counted))
                 # Saving magic happens after this line
                 sales_period.save()
                 register.close(indirect=True, register_count=selected_register_count, denomination_counts=matching_denom_counts)
+
+                #Calculate register difference
+                totals = {}
+                for register in open_registers:
+                    for registercount in registercounts:
+                        if registercount.register_period.register == register:
+                            opening_count = RegisterCount.objects.filter(register_period=registercount.register_period).first()
+                            if totals.get(registercount.register_period.register.currency.iso,None):
+                                totals[registercount.register_period.register.currency.iso] += registercount.amount-opening_count.amount
+
+                            else:
+                                totals[registercount.register_period.register.currency.iso] = registercount.amount-opening_count.amount
+
+                # Run all transactions
+                for transation in Transaction.objects.filter(salesperiod=sales_period):
+                    for line in TransactionLine.objects.filter(transaction=transation):
+                        totals[line.price.currency.iso] -= line.price.amount*line.count
+
+                # Run all MoneyInOuts
+                for register in open_registers:
+                    for registercount in registercounts:
+                        if registercount.register_period.register == register:
+                            for inout in MoneyInOut.objects.filter(register_period=registercount.register_period):
+                                totals[register.currency.iso] += inout.amount
+
+                for currency in totals.keys():
+                    ClosingCountDifference.objects.create(difference=Money(totals[currency],Currency(currency)),sales_period=sales_period)
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
+
+
 
     def __str__(self):
         return "Begin time: {}, End time: {}".format(self.beginTime, self.endTime)
@@ -404,6 +465,8 @@ class DenominationCount(models.Model):
 
     amount = models.IntegerField()
 
+    def get_money_value(self):
+        return Money(self.denomination.amount*self.amount,self.denomination.currency)
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
@@ -418,6 +481,7 @@ class MoneyInOut(models.Model):
     """
     register_period = models.ForeignKey(RegisterPeriod)
 
+    #Positive: ADD, negative: REMOVE moneys
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
 
     @classmethod
@@ -468,12 +532,13 @@ class InvalidOperationError(Exception):
 
 class OpeningCountDifference(models.Model):
     difference = MoneyField()
-    registerCount = models.ForeignKey("RegisterCount")
-
+    register_count = models.ForeignKey("RegisterCount")
+    def __str__(self):
+        return "[{}] : {}".format(self.register_count,self.difference)
 
 class ClosingCountDifference(models.Model):
     difference = MoneyField()
-    RegisterPeriod = models.ForeignKey("RegisterPeriod")
+    sales_period = models.ForeignKey("SalesPeriod")
 
 class InvalidDenominationList(Exception):
     pass
@@ -524,7 +589,7 @@ class OtherCostTransactionLine(TransactionLine):
         Transaction for a product that has no stock but is orderable.
     """
     @staticmethod
-    def handle(changes):
+    def handle(changes, id):
         pass
 
 
@@ -534,7 +599,7 @@ class OtherTransactionLine(TransactionLine):
     """
 
     @staticmethod
-    def handle(changes):
+    def handle(changes, id):
         pass
 
 # List of all types of transaction lines
@@ -584,7 +649,7 @@ class Transaction(models.Model):
             if key == "sales":
                 sl = line
         if sl is None:
-            sl = StockChange.construct(description="Empty stockchangeset for Receipt", entries=[], enum=0)
+            sl = StockChangeSet.construct(description="Empty stockchangeset for Receipt", entries=[], enum=0)
 
         trans.stock_change_set = sl
 
