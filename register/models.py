@@ -15,6 +15,7 @@ from stock.stocklabel import StockLabeledLine
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.exceptions import Id10TError
 from stock.models import StockChange, StockChangeSet
+from swipe.settings import  USED_CURRENCY
 
 
 class PaymentType(models.Model):
@@ -92,6 +93,7 @@ class Register(models.Model):
                         register_count.register_period = reg_per
                         register_count.save()
                         for denom in denomination_counts:
+                            denom.register_count=register_count
                             denom.save()
 
     def get_current_open_register_period(self):
@@ -260,8 +262,8 @@ class SalesPeriod(models.Model):
             sales_period.endTime = timezone.now()
 
             sales_period.closing_memo = memo
-            # Saving magic happens after this line
-            sales_period.save()
+
+
             # Iterates over registers and connects them to the correct register counts.
             # Also adds the correct denomination counts
             for register in open_registers:
@@ -271,9 +273,26 @@ class SalesPeriod(models.Model):
                         selected_register_count = registercount
                         break
                 matching_denom_counts = []
-                for denom in denominationcounts:
-                    if denom.register_count == selected_register_count:
-                        matching_denom_counts.append(denom)
+                if register.is_cash_register:
+                    # Put all denominations for currency in a hashmap
+                    denoms_for_register = Denomination.objects.filter(currency=register.currency)
+                    all_denoms = {}
+                    for denom in denoms_for_register:
+                        all_denoms[str(denom.amount)] = 1
+
+                    #For all denominationcounts
+                    for denom in denominationcounts:
+                        if denom.register_count == selected_register_count:
+
+                            matching_denom_counts.append(denom)
+                            # Assert every denomination is available exactly once
+                            assert (all_denoms.pop(str(denom.denomination.amount),0) == 1)
+                    #Assert every denomination is used
+                    assert(all_denoms.__len__() == 0)
+
+
+                # Saving magic happens after this line
+                sales_period.save()
                 register.close(indirect=True, register_count=selected_register_count, denomination_counts= matching_denom_counts)
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
@@ -340,8 +359,15 @@ class RegisterCount(models.Model):
     @staticmethod
     def get_last_register_count_for_register(register):
         if isinstance(register, Register):
-            last_register_period = RegisterPeriod.objects.filter(register=register).last()
-            return RegisterCount.objects.filter(register_period=last_register_period).last()
+            last_register_period = RegisterPeriod.objects.filter(register=register).last("beginTime")
+            counts = RegisterCount.objects.filter(register_period=last_register_period)
+            if counts.length == 1:
+                return counts[0]
+            assert (counts.length ==2)
+            for count in counts:
+                if not count.is_opening_count:
+                    return count
+
         else:
             raise TypeError("Type of register is not Register")
 
@@ -498,12 +524,16 @@ class Transaction(models.Model):
 
     @staticmethod
     @transaction.atomic()
-    def construct(payments, transaction_lines, salesperiod):
+    def construct(payments, transaction_lines):
 
         #
         sum_of_payments = None
         trans = Transaction()
         transaction_store = {}
+        if not RegisterMaster.sales_period_is_open():
+            raise InactiveError("Sales period is closed")
+
+        salesperiod=RegisterMaster.get_open_sales_period()
 
         # Get all stockchangeset lines
         for transaction_line in transaction_lines:
@@ -547,6 +577,7 @@ class Transaction(models.Model):
 
         # Check Quid pro Quo
         assert (sum2.currency == sum_of_payments.currency)
+        assert(sum2.currency.iso == USED_CURRENCY)
         assert (sum2.amount == sum_of_payments.amount)
         assert salesperiod
 
