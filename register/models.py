@@ -444,6 +444,7 @@ class OtherCostTransactionLine(TransactionLine):
     def handle(changes):
         pass
 
+
 class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
@@ -453,7 +454,8 @@ class OtherTransactionLine(TransactionLine):
     def handle(changes):
         pass
 
-#List of all types of transaction lines
+
+# List of all types of transaction lines
 transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
                           "other": OtherTransactionLine}
 
@@ -482,7 +484,7 @@ class Transaction(models.Model):
         trans = Transaction()
         transaction_store = {}
 
-        #Get all stockchangeset lines
+        # Get all stockchangeset lines
         for transaction_line in transaction_lines:
             key = (key for key, value in transaction_line_types.items() if value == type(transaction_line)).__next__()
             if not transaction_store.get(key, None):
@@ -521,8 +523,7 @@ class Transaction(models.Model):
             else:
                 sum2 += transaction_line.price
             first = False
-
-        # Check Quid pro Quo
+# Check Quid pro Quo
         assert (sum2.currency == sum_of_payments.currency)
         assert (sum2.amount == sum_of_payments.amount)
         assert salesperiod
