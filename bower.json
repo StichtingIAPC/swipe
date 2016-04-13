@@ -1,0 +1,19 @@
+{
+  "name": "swipe",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.9.1",
+    "mini-signals": "^1.1.0",
+    "domchanger": "https://github.com/creationix/domchanger.git#^1.0.2",
+    "almond": "^0.3.2"
+  },
+  "description": "a POS (point of sale) system written in django",
+  "main": "",
+  "license": "BSD-3-Clause",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "static/build"
+  ]
+}
