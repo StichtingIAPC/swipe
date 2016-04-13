@@ -15,6 +15,7 @@ from stock.stocklabel import StockLabeledLine
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.exceptions import Id10TError
 from stock.models import StockChange, StockChangeSet
+from swipe.settings import USED_CURRENCY
 
 
 class PaymentType(models.Model):
@@ -49,7 +50,8 @@ class Register(models.Model):
             raise IntegrityError("Register had more than one register period open")
         return len(lst) == 1
 
-    def open(self, register_count=False):
+    @transaction.atomic
+    def open(self, counted_amount, denominations=[]):
         if self.is_active:
             if self.is_open():
                 raise AlreadyOpenError("Register is already open")
@@ -62,10 +64,18 @@ class Register(models.Model):
                     open_sales_period.save()
                 register_period = RegisterPeriod(register=self, sales_period=open_sales_period)
                 register_period.save()
-                if not register_count:
-                    RegisterCount(is_opening_count=True, register_period=register_period).create()
+                if self.is_cash_register:
+                    reg_count = RegisterCount(is_opening_count=True, register_period=register_period, amount=counted_amount)
+                    reg_count.save(denominations)
+
+                    for denomination in denominations:
+                        counted_amount -= denomination.amount * denomination.denomination.amount
+                        denomination.register_count = reg_count
+                    assert(counted_amount == Decimal("0.00000"))
+                    for denomination in denominations:
+                        denomination.save()
                 else:
-                    register_count = RegisterCount(register_count)
+                    register_count = RegisterCount(is_opening_count=True, amount=counted_amount)
                     register_count.register_period = register_period
                     register_count.save()
 
@@ -90,14 +100,15 @@ class Register(models.Model):
                         raise InvalidOperationError("A close without an register count is not accepted.")
                     else:
                         register_count.register_period = reg_per
-                        register_count.save()
+                        register_count.save(denomination_counts)
                         for denom in denomination_counts:
+                            denom.register_count=register_count
                             denom.save()
 
     def get_current_open_register_period(self):
         if not self.is_open():
             raise InvalidOperationError("Register is not opened")
-        return RegisterPeriod.objects.get(register=self,endTime__isnull=True)
+        return RegisterPeriod.objects.get(register=self, endTime__isnull=True)
 
     def save(self, **kwargs):
         if self.is_cash_register:
@@ -164,11 +175,11 @@ class ConsistencyChecker:
         try:
             ConsistencyChecker.check_open_register_periods()
         except IntegrityError:
-            errors.append({"text": "Register had more than one register period open", "location":"SalesPeriods","line": -1,"severity": CRITICAL})
+            errors.append({"text": "Register had more than one register period open", "location": "SalesPeriods", "line": -1, "severity": CRITICAL})
         try:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
-            errors.append({"text": "Cash register can only have cash as payment method", "location":"SalesPeriods","line":-1,"severity":CRITICAL})
+            errors.append({"text": "Cash register can only have cash as payment method", "location": "SalesPeriods", "line": -1, "severity": CRITICAL})
         return errors
 
     @staticmethod
@@ -209,6 +220,10 @@ class SalesPeriod(models.Model):
 
     endTime = models.DateTimeField(null=True)
 
+    opening_memo = models.CharField(max_length=255, default=None, null=True)
+
+    losing_memo = models.CharField(max_length=255, default=None, null=True)
+
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
@@ -217,7 +232,8 @@ class SalesPeriod(models.Model):
         return not self.endTime
 
     @staticmethod
-    def close(registercounts,denominationcounts):
+    @transaction.atomic
+    def close(registercounts, denominationcounts, memo):
         if RegisterMaster.sales_period_is_open():
             sales_period = RegisterMaster.get_open_sales_period()
             open_registers = RegisterMaster.get_open_registers()
@@ -254,8 +270,9 @@ class SalesPeriod(models.Model):
                 raise InvalidOperationError("Register counts do not match register periods. Aborting close.")
 
             sales_period.endTime = timezone.now()
-            # Saving magic happens after this line
-            sales_period.save()
+
+            sales_period.closing_memo = memo
+
             # Iterates over registers and connects them to the correct register counts.
             # Also adds the correct denomination counts
             for register in open_registers:
@@ -265,10 +282,18 @@ class SalesPeriod(models.Model):
                         selected_register_count = registercount
                         break
                 matching_denom_counts = []
-                for denom in denominationcounts:
-                    if denom.register_count == selected_register_count:
-                        matching_denom_counts.append(denom)
-                register.close(indirect=True,register_count=selected_register_count,denomination_counts= matching_denom_counts)
+                counted = selected_register_count.amount
+                if register.is_cash_register:
+                    # Put all denominations for currency in a hashmap
+                    # For all denominationcounts
+                    for denom in denominationcounts:
+                        if denom.register_count == selected_register_count:
+                            matching_denom_counts.append(denom)
+                            counted = counted - denom.amount * denom.denomination.amount
+                assert(counted == Decimal("0.00000"))
+                # Saving magic happens after this line
+                sales_period.save()
+                register.close(indirect=True, register_count=selected_register_count, denomination_counts=matching_denom_counts)
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
 
@@ -312,6 +337,28 @@ class RegisterCount(models.Model):
 
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=-1.0)
 
+    def save(self, denominations=[]):
+        register = self.register_period.register
+        if register.is_cash_register:
+            # Put all denominations for currency in a hashmap
+            denoms_for_register = Denomination.objects.filter(currency=register.currency)
+            all_denoms = {}
+            for denom in denoms_for_register:
+                all_denoms[str(denom.amount)] = 1
+
+            # For all denominationcounts
+            for denom_count in denominations:
+                    # Assert every denomination is available exactly once
+                    if all_denoms.pop(str(denom_count.denomination.amount), 0) == 0:
+                        raise InvalidDenominationList("Denominations invalid (Unexpected Denom): GOT {}, EXPECTED {}. Crashed at {} || {}".format(denominations, denoms_for_register, denom_count.denomination.amount, all_denoms))
+
+            # Assert every denomination is used
+            if all_denoms.__len__() != 0:
+                raise InvalidDenominationList("Denominations invalid: GOT {}, EXPECTED {}".format(denominations, denoms_for_register))
+        else:
+            assert(not denominations)
+        super().save()
+
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
@@ -330,8 +377,15 @@ class RegisterCount(models.Model):
     @staticmethod
     def get_last_register_count_for_register(register):
         if isinstance(register, Register):
-            last_register_period = RegisterPeriod.objects.filter(register=register).last()
-            return RegisterCount.objects.filter(register_period=last_register_period).last()
+            last_register_period = RegisterPeriod.objects.filter(register=register).last("beginTime")
+            counts = RegisterCount.objects.filter(register_period=last_register_period)
+            if counts.length == 1:
+                return counts[0]
+            assert (counts.length == 2)
+            for count in counts:
+                if not count.is_opening_count:
+                    return count
+
         else:
             raise TypeError("Type of register is not Register")
 
@@ -353,6 +407,9 @@ class DenominationCount(models.Model):
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
+
+    def __str__(self):
+        return "{} {} x {}".format(self.denomination.currency, self.denomination.amount, self.amount)
 
 
 class MoneyInOut(models.Model):
@@ -381,6 +438,18 @@ class MoneyInOut(models.Model):
         return "Register Period:{}, Amount:{}".format(self.register_period, self.amount)
 
 
+class SalesPeriodDifference(models.Model):
+    """
+    Resolves differences between expected amounts of money in the combined opened registers and the actual amount of money.
+    Count is per type of money
+    """
+    sales_period = models.ForeignKey(SalesPeriod)
+
+    currency_data = models.ForeignKey(CurrencyData)
+
+    amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
+
+
 class InactiveError(Exception):
     pass
 
@@ -406,6 +475,10 @@ class ClosingCountDifference(models.Model):
     difference = MoneyField()
     RegisterPeriod = models.ForeignKey("RegisterPeriod")
 
+class InvalidDenominationList(Exception):
+    pass
+
+
 class Payment(models.Model):
     """
     Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
@@ -428,6 +501,7 @@ class TransactionLine(models.Model):
     text = models.CharField(max_length=128)
 
 
+# noinspection PyShadowingBuiltins
 class SalesTransactionLine(TransactionLine, StockLabeledLine):
     """
         Equivalent to one stock-modifying line on a Receipt
@@ -463,7 +537,6 @@ class OtherTransactionLine(TransactionLine):
     def handle(changes):
         pass
 
-
 # List of all types of transaction lines
 transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
                           "other": OtherTransactionLine}
@@ -486,12 +559,16 @@ class Transaction(models.Model):
 
     @staticmethod
     @transaction.atomic()
-    def construct(payments, transaction_lines, salesperiod):
+    def construct(payments, transaction_lines):
 
         #
         sum_of_payments = None
         trans = Transaction()
         transaction_store = {}
+        if not RegisterMaster.sales_period_is_open():
+            raise InactiveError("Sales period is closed")
+
+        salesperiod = RegisterMaster.get_open_sales_period()
 
         # Get all stockchangeset lines
         for transaction_line in transaction_lines:
@@ -534,6 +611,7 @@ class Transaction(models.Model):
             first = False
 # Check Quid pro Quo
         assert (sum2.currency == sum_of_payments.currency)
+        assert(sum2.currency.iso == USED_CURRENCY)
         assert (sum2.amount == sum_of_payments.amount)
         assert salesperiod
 
