@@ -48,6 +48,7 @@ class BasicTest(TestCase):
         assert (RegisterMaster.get_open_sales_period())
 
     def test_open_registers(self):
+        self.eu.save()
         assert(RegisterMaster.number_of_open_registers() == 0)
         sales_period = SalesPeriod()
         sales_period.save()
@@ -55,12 +56,16 @@ class BasicTest(TestCase):
         assert(RegisterMaster.number_of_open_registers() == 0)
         assert (len(RegisterMaster.get_open_registers()) == 0)
         assert(not self.reg1.is_open())
-        self.reg1.open()
+        c1 = DenominationCount(denomination=self.denom1,amount=1)
+        c2 = DenominationCount(denomination=self.denom2,amount=1)
+        c3 = DenominationCount(denomination=self.denom3,amount=1)
+        denom_counts = [c1,c2,c3]
+        self.reg1.open(Decimal("4.22371"),denominations=denom_counts)
         assert(self.reg1.is_open())
         assert(RegisterMaster.number_of_open_registers() == 1)
         val = False
         try:
-            self.reg1.open()
+            self.reg1.open(Decimal("1.21"))
         except AlreadyOpenError:
             val = True
         assert val
@@ -77,16 +82,20 @@ class BasicTest(TestCase):
         assert (RegisterMaster.number_of_open_registers() == 0)
         assert (not RegisterMaster.sales_period_is_open())
         self.reg1.save()
-        self.reg1.open()
+        c1 = DenominationCount(denomination=self.denom1,amount=1)
+        c2 = DenominationCount(denomination=self.denom2,amount=1)
+        c3 = DenominationCount(denomination=self.denom3,amount=1)
+        denom_counts = [c1,c2,c3]
+        self.reg1.open(Decimal("4.22371"),denominations=denom_counts)
         assert (RegisterMaster.sales_period_is_open())
         assert (RegisterMaster.number_of_open_registers() == 1)
         self.reg2.save()
-        self.reg2.open()
+        self.reg2.open(Decimal("1.21"))
         assert (RegisterMaster.sales_period_is_open())
         assert (RegisterMaster.number_of_open_registers() == 2)
         reg_count_1 = RegisterCount()
         reg_count_1.register_period = self.reg1.get_current_open_register_period()
-        reg_count_1.amount=3.14
+        reg_count_1.amount=Decimal("4.22371")
         reg_count_2 = RegisterCount()
         reg_count_2.register_period = self.reg2.get_current_open_register_period()
         reg_count_2.amount=0
@@ -101,15 +110,21 @@ class BasicTest(TestCase):
         ConsistencyChecker.full_check()
 
     def test_mult_currency_registers(self):
+        self.eu.save()
         ConsistencyChecker.full_check()
         assert (RegisterMaster.number_of_open_registers() == 0)
         assert (not RegisterMaster.sales_period_is_open())
         self.reg1.save()
-        self.reg1.open()
+
+        c1 = DenominationCount(denomination=self.denom1,amount=1)
+        c2 = DenominationCount(denomination=self.denom2,amount=1)
+        c3 = DenominationCount(denomination=self.denom3,amount=1)
+        denom_counts = [c1,c2,c3]
+        self.reg1.open(Decimal("4.22371"),denominations=denom_counts)
         assert (RegisterMaster.sales_period_is_open())
         assert (RegisterMaster.number_of_open_registers() == 1)
         self.reg3.save()
-        self.reg3.open()
+        self.reg3.open(Decimal("1.21"))
         assert (RegisterMaster.sales_period_is_open())
         assert (RegisterMaster.number_of_open_registers() == 2)
         ConsistencyChecker.full_check()
@@ -126,6 +141,7 @@ class BasicTest(TestCase):
         assert foo
 
     def test_payment_types(self):
+        self.eu.save()
         assert (RegisterMaster.number_of_open_registers() == 0)
         assert (not RegisterMaster.sales_period_is_open())
         self.reg1.save()
@@ -133,13 +149,13 @@ class BasicTest(TestCase):
         self.reg3.save()
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         assert len(payment_types) == 0
-        self.reg1.open()
+        self.reg1.open(Decimal("4.22371"),denominations=[DenominationCount(denomination=self.denom1,amount=1),DenominationCount(denomination=self.denom2,amount=1),DenominationCount(denomination=self.denom3,amount=1)])
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         assert len(payment_types) == 1
-        self.reg2.open()
+        self.reg2.open(Decimal("1.21"))
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         assert len(payment_types) == 2
-        self.reg3.open()
+        self.reg3.open(Decimal("1.21"))
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         assert len(payment_types) == 2
         ConsistencyChecker.full_check()

@@ -50,7 +50,8 @@ class Register(models.Model):
             raise IntegrityError("Register had more than one register period open")
         return len(lst) == 1
 
-    def open(self, register_count=False):
+    @transaction.atomic
+    def open(self, counted_amount, denominations = []):
         if self.is_active:
             if self.is_open():
                 raise AlreadyOpenError("Register is already open")
@@ -63,10 +64,18 @@ class Register(models.Model):
                     open_sales_period.save()
                 register_period = RegisterPeriod(register=self, sales_period=open_sales_period)
                 register_period.save()
-                if not register_count:
-                    RegisterCount(is_opening_count=True, register_period=register_period).create()
+                if self.is_cash_register:
+                    reg_count = RegisterCount(is_opening_count=True, register_period=register_period,amount=counted_amount)
+                    reg_count.save(denominations)
+
+                    for denomination in denominations:
+                        counted_amount -= denomination.amount*denomination.denomination.amount
+                        denomination.register_count=reg_count
+                    assert(counted_amount == Decimal("0.00000"))
+                    for denomination in denominations:
+                        denomination.save()
                 else:
-                    register_count = RegisterCount(register_count)
+                    register_count = RegisterCount(is_opening_count=True, amount=counted_amount)
                     register_count.register_period = register_period
                     register_count.save()
 
@@ -91,7 +100,7 @@ class Register(models.Model):
                         raise InvalidOperationError("A close without an register count is not accepted.")
                     else:
                         register_count.register_period = reg_per
-                        register_count.save()
+                        register_count.save(denomination_counts)
                         for denom in denomination_counts:
                             denom.register_count=register_count
                             denom.save()
@@ -215,6 +224,8 @@ class SalesPeriod(models.Model):
 
     closing_memo = models.CharField(max_length=255)
 
+
+
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
@@ -223,6 +234,7 @@ class SalesPeriod(models.Model):
         return not self.endTime
 
     @staticmethod
+    @transaction.atomic
     def close(registercounts, denominationcounts, memo):
         if RegisterMaster.sales_period_is_open():
             sales_period = RegisterMaster.get_open_sales_period()
@@ -273,24 +285,15 @@ class SalesPeriod(models.Model):
                         selected_register_count = registercount
                         break
                 matching_denom_counts = []
+                counted = selected_register_count.amount
                 if register.is_cash_register:
                     # Put all denominations for currency in a hashmap
-                    denoms_for_register = Denomination.objects.filter(currency=register.currency)
-                    all_denoms = {}
-                    for denom in denoms_for_register:
-                        all_denoms[str(denom.amount)] = 1
-
                     #For all denominationcounts
                     for denom in denominationcounts:
                         if denom.register_count == selected_register_count:
-
                             matching_denom_counts.append(denom)
-                            # Assert every denomination is available exactly once
-                            assert (all_denoms.pop(str(denom.denomination.amount),0) == 1)
-                    #Assert every denomination is used
-                    assert(all_denoms.__len__() == 0)
-
-
+                            counted = counted - denom.amount*denom.denomination.amount
+                assert(counted == Decimal("0.00000"))
                 # Saving magic happens after this line
                 sales_period.save()
                 register.close(indirect=True, register_count=selected_register_count, denomination_counts= matching_denom_counts)
@@ -341,6 +344,28 @@ class RegisterCount(models.Model):
 
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=-1.0)
 
+    def save(self, denominations = []):
+        register = self.register_period.register
+        if register.is_cash_register:
+            # Put all denominations for currency in a hashmap
+            denoms_for_register = Denomination.objects.filter(currency=register.currency)
+            all_denoms = {}
+            for denom in denoms_for_register:
+                all_denoms[str(denom.amount)] = 1
+
+            #For all denominationcounts
+            for denom_count in denominations:
+                    # Assert every denomination is available exactly once
+                    if (all_denoms.pop(str(denom_count.denomination.amount),0) == 0):
+                        raise InvalidDenominationList("Denominations invalid (Unexpected Denom): GOT {}, EXPECTED {}. Crashed at {} || {}".format(denominations, denoms_for_register, denom_count.denomination.amount, all_denoms))
+
+            #Assert every denomination is used
+            if (all_denoms.__len__() != 0):
+                raise InvalidDenominationList("Denominations invalid: GOT {}, EXPECTED {}".format(denominations, denoms_for_register))
+        else:
+            assert(not denominations)
+        super().save()
+
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
@@ -389,7 +414,8 @@ class DenominationCount(models.Model):
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
-
+    def __str__(self):
+        return "{} {} x {}".format(self.denomination.currency, self.denomination.amount, self.amount)
 
 class MoneyInOut(models.Model):
     """
@@ -444,6 +470,9 @@ class AlreadyClosedError(Exception):
 class InvalidOperationError(Exception):
     pass
 
+
+class InvalidDenominationList(Exception):
+    pass
 
 class Payment(models.Model):
     """
