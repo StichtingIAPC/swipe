@@ -397,6 +397,15 @@ class InvalidOperationError(Exception):
     pass
 
 
+class OpeningCountDifference(models.Model):
+    difference = MoneyField()
+    registerCount = models.ForeignKey("RegisterCount")
+
+
+class ClosingCountDifference(models.Model):
+    difference = MoneyField()
+    RegisterPeriod = models.ForeignKey("RegisterPeriod")
+
 class Payment(models.Model):
     """
     Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
