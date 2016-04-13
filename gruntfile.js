@@ -2,6 +2,16 @@ module.exports = function(grunt){
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
+    dest: {
+      js: 'static/build/js',
+      css: 'static/build/css',
+      name: '<%= pkg.name %>'
+    },
+    src: {
+      js: 'static/js',
+      css: 'static/scss'
+    },
+
     bower: {
       dev: {
         options: {
@@ -34,25 +44,31 @@ module.exports = function(grunt){
       }
     },
 
-    requirejs: {
+    browserify: {
       dev: {
         options: {
-          mainConfigFile: 'static/js/config.js',
-          include: ['main'],
-          generateSourceMaps: true,
-          preserveLicenseComments: false,
-          name: '../build/bower_components/almond/almond',
-          out: 'static/build/js/<%= pkg.name %>.min.js'
+          browserifyOptions: {
+            debug: true
+          },
+          transform: [
+            ['babelify', {
+              sourceMaps: true
+            }]
+          ]
+        },
+        files: {
+          '<%= dest.js %>/raw/<%= dest.name %>.js': ['<%= src.js %>/main.js']
         }
       },
       deploy: {
         options: {
-          mainConfigFile: 'static/js/config.js',
-          include: ['main'],
-          generateSourceMaps: false,
-          preserveLicenseComments: true,
-          name: '../build/bower_components/almond/almond',
-          out: 'static/build/js/<%= pkg.name %>.min.js'
+          browserifyOptions: {},
+          transform: [
+            ['babelify', {}]
+          ]
+        },
+        files: {
+          '<%= dest.js %>/raw/<%= dest.name %>.js': ['<%= src.js %>/main.js']
         }
       }
     },
@@ -64,7 +80,7 @@ module.exports = function(grunt){
           sourceComments: true
         },
         files: {
-          'static/build/css/<%= pkg.name %>.min.css': 'static/scss/main.scss'
+          '<%= dest.css %>/<%= pkg.name %>.min.css': '<%= src.css %>/main.scss'
         }
       },
       deploy: {
@@ -73,34 +89,60 @@ module.exports = function(grunt){
           outputStyle: 'compressed'
         },
         files: {
-          'static/build/css/<%= pkg.name %>.min.css': 'static/scss/main.scss'
+          '<%= dest.css %>/<%= pkg.name %>.min.css': '<%= src.src %>/main.scss'
+        }
+      }
+    },
+
+    uglify: {
+      dev: {
+        options: {
+          sourceMap: true,
+          sourceMapIncludeSources: true
+        },
+        files: {
+          '<%= dest.js %>/<%= dest.name %>.min.js': '<%= dest.js %>/raw/<%= dest.name %>.js'
+        }
+      },
+      deploy: {
+        options: {
+          sourceMap: false,
+          sourceMapIncludeSources: false
+        },
+        files: {
+          '<%= dest.js %>/<%= dest.name %>.min.js': '<%= dest.js %>/raw/<%= dest.name %>.js'
         }
       }
     }
   });
 
   grunt.loadNpmTasks('grunt-bower-task');
-  grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-sass');
 
   grunt.registerTask('default', [
     'bower:dev',
-    'requirejs:dev',
+    'browserify:dev',
+    'uglify:dev',
     'sass:dev'
   ]);
   grunt.registerTask('deploy', [
-    'bower:install',
-    'requirejs:deploy',
+    'bower:deploy',
+    'browserify:dev',
+    'uglify:deploy',
     'sass:deploy'
   ]);
   grunt.registerTask('dev', [
-    'bower:install',
-    'requirejs:dev',
+    'bower:dev',
+    'browserify:dev',
+    'uglify:dev',
     'sass:dev'
   ]);
   grunt.registerTask('debug', [
     'bower:debug',
-    'requirejs:dev',
+    'browserify:dev',
+    'uglify:dev',
     'sass:dev'
   ])
 };
