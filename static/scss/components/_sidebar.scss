@@ -15,7 +15,7 @@ $sidebar-collapse-hover: true !default;
 $sidebar-primary-background-color: $black !default;
 $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !default;
 
-@mixin sidebar {
+@mixin side-bar {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -41,12 +41,12 @@ $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !de
     margin-right: $sidebar-closed-width - $sidebar-open-width;
   }
 
-  .close {
+  &.close {
     width: 0;
   }
 }
 
-@mixin sidebar-item($dimension: $sidebar-primary-height-unit, $background-color: $sidebar-primary-background-color) {
+@mixin side-bar-item($dimension: $sidebar-primary-height-unit, $background-color: $sidebar-primary-background-color) {
   flex-grow: 0;
   flex-shrink: 0;
 
@@ -70,7 +70,7 @@ $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !de
     height: $dimension;
     box-sizing: border-box;
 
-    .closed & {
+    .closed {
       height: 0;
     }
 
@@ -87,7 +87,7 @@ $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !de
   }
 }
 
-@mixin sidebar-collapse {
+@mixin side-bar-collapse {
   display: flex;
   flex-direction: column;
   justify-content: flex-start; // put the items at the top of the column
@@ -115,31 +115,31 @@ $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !de
 }
 
 @mixin collapse-hover {
-  &:hover {
-    .sidebar-collapse {
-      max-height: 100vh;
-    }
+  &:hover > .side-bar-collapse {
+    max-height: 100vh;
   }
 }
 
-@mixin swipe-sidebar {
-  .sidebar {
-    @include sidebar;
+@mixin swipe-side-bar {
+  .side-bar {
+    @include side-bar;
   }
 
-  .sidebar-item {
-    @include sidebar-item;
+  .side-bar-item {
+    @include side-bar-item;
+  }
 
-    @if($sidebar-collapse-hover) {
-      @include collapse-hover;
+  .side-bar-collapse {
+    @include side-bar-collapse;
+
+    .side-bar-item {
+      @include side-bar-item($sidebar-secondary-height-unit, $sidebar-secondary-background-color);
     }
   }
 
-  .sidebar-collapse {
-    @include sidebar-collapse;
-
-    .sidebar-item {
-      @include sidebar-item($sidebar-secondary-height-unit, $sidebar-secondary-background-color);
+  @if($sidebar-collapse-hover) {
+    .side-bar-item {
+      @include collapse-hover;
     }
   }
 }
