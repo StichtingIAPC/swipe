@@ -17,16 +17,13 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 import register
+from register.views import OpenFormView, CloseFormView, IsOpenStateView
 
 urlpatterns = [
     # Django internal documentation
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    url(r'^open/', OpenFormView.as_view(template_name="count.html")),
+    url(r'^close/', CloseFormView.as_view(template_name="count.html")),
+        url(r'^state/', IsOpenStateView.as_view(template_name="is_open_view.html")),
 
-    # Django administration panel
-    url(r'^admin/', include(admin.site.urls)),
-
-    # Main website
-    url(r'^', include('www.urls')),
-    url(r'^register/', include("register.urls")),
 
 ]

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>    <form method="POST">
+{%  csrf_token %}
+<table border="1px">
+<tr>
+{%  for i in form.columns %}
+
+
+       <td width="200px"><table><tr><td colspan="100%"><center>{{ i.name }}</center></td></tr>{{ i }}</table></td>
+{% endfor %}
+    <td width="200px"><table>{{ form }}</table></td>
+    </tr>    <tr><td colspan="100%">
+    <button type="submit">TAA</button></td>
+        </tr>
+    </table>        </form>
+
+</body>
+</html>

@@ -51,15 +51,14 @@ class Register(models.Model):
         return len(lst) == 1
 
     def get_prev_open_count(self):
+        # Get this registers previous count when it was closed.
+        #  This shouldn't be used for Brief Registers; they should start at zero instead.
         periods = RegisterPeriod.objects.filter(register=self)
         if len(periods) != 0:
             period = periods.last()
-            count = RegisterCount.objects.filter(register_period=period,is_opening_count=False)
-            if len(count)!= 0:
-                return Money(Decimal(count[0].amount), self.currency)
-            else:
-                raise ValueError("WAT DE FUCK")
-        else:
+            count = RegisterCount.objects.get(register_period=period,is_opening_count=False)
+            return Money(Decimal(count.amount), self.currency)
+        else: # Return zero. This prevents Swipe from crashing when a register is opened for the first time.
             return Money(Decimal("0.00000"),self.currency)
 
     @transaction.atomic
@@ -674,7 +673,7 @@ class Transaction(models.Model):
             else:
                 sum2 += transaction_line.price
             first = False
-# Check Quid pro Quo
+        # Check Quid pro Quo
         assert (sum2.currency == sum_of_payments.currency)
         assert(sum2.currency.iso == USED_CURRENCY)
         assert (sum2.amount == sum_of_payments.amount)
