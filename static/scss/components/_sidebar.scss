@@ -1,0 +1,145 @@
+@import '../../build/bower_components/foundation-sites/scss/util/util';
+
+$sidebar-closed-width: 64px !default;
+$sidebar-open-width: 288px !default;
+
+$sidebar-icon-size: 48px !default;
+
+$sidebar-primary-height-unit: 64px !default;
+$sidebar-secondary-height-unit: 48px !default;
+
+$sidebar-transition-duration: 0.2s !default;
+$sidebar-transition-delay: 0.4s !default;
+$sidebar-collapse-hover: true !default;
+
+$sidebar-primary-background-color: $black !default;
+$sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !default;
+
+@mixin sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start; // put the items at the top of the column
+  align-items: flex-end;       // and align at the right of the column
+
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  height: 100vh;
+  width: $sidebar-closed-width;
+  transition: width $sidebar-transition-duration;
+  transition-delay: $sidebar-transition-delay;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background-color: $sidebar-primary-background-color;
+
+  &:hover,
+  &:focus,
+  &.open {
+    width: $sidebar-open-width;
+  }
+
+  .close {
+    width: 0;
+  }
+}
+
+@mixin sidebar-item($dimension: $sidebar-primary-height-unit, $background-color: $sidebar-primary-background-color) {
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  width: $sidebar-open-width;
+  box-sizing: border-box;
+
+  color: $primary-color;
+  background-color: $background-color;
+
+  border-bottom: 1px solid $primary-color;
+
+  .title {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    flex-grow: 0;
+    flex-shrink: 0;
+
+    width: $sidebar-open-width;
+    height: $dimension;
+    box-sizing: border-box;
+
+    .closed & {
+      height: 0;
+    }
+
+    .text {
+      flex-grow: 1;
+    }
+
+    .icon {
+      width: $dimension;
+      flex-grow: 0;
+      box-sizing: border-box;
+      padding: ($dimension - $sidebar-icon-size) / 2;
+    }
+  }
+}
+
+@mixin sidebar-collapse {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; // put the items at the top of the column
+  align-items: flex-end;       // and align at the right of the column
+
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  width: 100%;
+  box-sizing: border-box;
+  transition: max-height ($sidebar-transition-duration * 5);
+  transition-delay: $sidebar-transition-delay;
+
+  overflow: hidden;
+
+  &.closed {
+    max-height: 0;
+  }
+
+  &.open,
+  &:hover,
+  &:active {
+    max-height: 100vh;
+  }
+}
+
+@mixin collapse-hover {
+  &:hover {
+    .sidebar-collapse {
+      max-height: 100vh;
+    }
+  }
+}
+
+@mixin swipe-sidebar {
+  .sidebar {
+    @include sidebar;
+  }
+
+  .sidebar-item {
+    @include sidebar-item;
+
+    @if($sidebar-collapse-hover) {
+      @include collapse-hover;
+    }
+  }
+
+  .sidebar-collapse {
+    @include sidebar-collapse;
+
+    .sidebar-item {
+      @include sidebar-item($sidebar-secondary-height-unit, $sidebar-secondary-background-color);
+    }
+  }
+}

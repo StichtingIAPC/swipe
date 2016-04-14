@@ -1,17 +1,154 @@
 {% load i18n %}
+{% load staticfiles %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Swipe - {% block page_title %}Page{% endblock %}</title>
+    <script src="{% static 'js/swipe.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/swipe.min.css' %}">
 </head>
 <body>
-{% block content %}
-    {% trans 'This page intentionally left almost blank.' %}
-{% endblock %}
-{% block back %}
-    <a href="javascript:history.go(-1);">Back</a>
-{% endblock %}
+<div class="container horizontal">
+    <div class="sidebar">
+        <div class="sidebar-item">
+            <div class="title">
+                <div class="text">
+                    text
+                </div>
+                <div class="icon">
+                    icon
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-item">
+            <div class="title">
+                <div class="text">
+                    text
+                </div>
+                <div class="icon">
+                    icon
+                </div>
+            </div>
+            <div class="sidebar-collapse closed">
+                <div class="sidebar-item">
+                    <div class="title">
+                        <div class="text">
+                            text
+                        </div>
+                        <div class="icon">
+                            icon
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-item">
+                    <div class="title">
+                        <div class="text">
+                            text
+                        </div>
+                        <div class="icon">
+                            icon
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-item">
+                    <div class="title">
+                        <div class="text">
+                            text
+                        </div>
+                        <div class="icon">
+                            icon
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-item">
+                    <div class="title">
+                        <div class="text">
+                            text
+                        </div>
+                        <div class="icon">
+                            icon
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-item">
+            <div class="title">
+                <div class="text">
+                    text
+                </div>
+                <div class="icon">
+                    icon
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-item">
+            <div class="title">
+                <div class="text">
+                    text
+                </div>
+                <div class="icon">
+                    icon
+                </div>
+            </div>
+            <div class="sidebar-collapse closed">
+                <div class="sidebar-item">
+                    <div class="title">
+                        <div class="text">
+                            text
+                        </div>
+                        <div class="icon">
+                            icon
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-item">
+                    <div class="title">
+                        <div class="text">
+                            text
+                        </div>
+                        <div class="icon">
+                            icon
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-item">
+            <div class="title">
+                <div class="text">
+                    text
+                </div>
+                <div class="icon">
+                    icon
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container vertical grow fit">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                Swipe
+            </div>
+            <div class="top-bar-title">
+                Swipe - Title
+            </div>
+            <div class="top-bar-right">
+                SuperUser
+            </div>
+        </div>
+        <div class="content">
+            {% block content %}
+                {% trans 'This page intentionally left almost blank.' %}
+            {% endblock content %}
+            <!-- close wrapper, no more content after this -->
+            {% block back %}
+                <a href="javascript:history.go(-1);">Back</a>
+            {% endblock back %}
+        </div>
+    </div>
+</div>
 </body>
 </html>
