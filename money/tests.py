@@ -2,7 +2,6 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-# Create your tests here.
 from money.models import Currency, TestSalesPriceType, SalesPrice
 from money.models import TestMoneyType
 from money.models import Money
@@ -19,7 +18,7 @@ class MoneyTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
         m = Money(Decimal("5.21"), c)
-        t = TestMoneyType.objects.create(money=m)
+        TestMoneyType.objects.create(money=m)
 
     def testMoneyStorage(self):
         val = TestMoneyType.objects.all()
@@ -37,7 +36,7 @@ class CostTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
         m = Cost(Decimal("5.21"), c)
-        t = TestCostType.objects.create(cost=m)
+        TestCostType.objects.create(cost=m)
 
     def testMoneyStorage(self):
         val = TestCostType.objects.all()
@@ -55,7 +54,7 @@ class PriceTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
         m = Price(amount=Decimal("5.21"), currency=c, vat=Decimal("1.21"))
-        t = TestPriceType.objects.create(price=m)
+        TestPriceType.objects.create(price=m)
 
     def testMoneyStorage(self):
         val = TestPriceType.objects.all()
@@ -74,8 +73,7 @@ class SalesPriceTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
         m = SalesPrice(amount=Decimal("5.21"), currency=c, vat=Decimal("1.93"), cost=Decimal("4.00"))
-
-        t = TestSalesPriceType.objects.create(price=m)
+        TestSalesPriceType.objects.create(price=m)
 
     def testMoneyStorage(self):
         val = TestSalesPriceType.objects.all()
@@ -116,7 +114,6 @@ class MoneyMathTest(TestCase):
         self.assertTrue(t)
 
     def testMoneyMult(self):
-        eur = Currency("EUR")
         # Multiplying money times integer is valid
         self.assertEquals((self.m1 * self.num).amount.__str__(), "4.00000")
         t = False
@@ -170,7 +167,6 @@ class CostMathTest(TestCase):
         self.assertTrue(t)
 
     def testMoneyMult(self):
-        eur = Currency("EUR")
         # Multiplying money times integer is valid
         self.assertEquals((self.m1 * self.num).amount.__str__(), "4.00000")
         t = False
@@ -253,9 +249,9 @@ class SalesPriceMathTest(TestCase):
             self.assertEqual(i, 1, "{} can't be multiplied with SalesPrice".format(w))
 
     def testSalesPriceMargin(self):
-        t = SalesPrice(amount=Decimal("4.00000"),currency=Currency("EUR"),vat=Decimal("2"),cost=Decimal("0.50000"))
-        self.assertEquals(t.get_profit(),1.5)
-        self.assertEquals(t.get_margin(),3)
+        t = SalesPrice(amount=Decimal("4.00000"), currency=Currency("EUR"), vat=Decimal("2"), cost=Decimal("0.50000"))
+        self.assertEquals(t.get_profit(), 1.5)
+        self.assertEquals(t.get_margin(), 3)
 
 
 class CurrencyDenomTest(TestCase):
@@ -270,9 +266,9 @@ class CurrencyDenomTest(TestCase):
             foo = CurrencyData(iso="EADD", name="Estonian Drak", digits=4, symbol="D&")
             foo.full_clean()
             foo.save()
-        except AssertionError as err:
+        except AssertionError:
             bar = True
-        except ValidationError as err:
+        except ValidationError:
             bar = True
         assert bar
 
@@ -282,9 +278,9 @@ class CurrencyDenomTest(TestCase):
             foo = CurrencyData(iso="EDD", name="Estonian Drak", digits=4, symbol="D&aaaa")
             foo.full_clean()
             foo.save()
-        except AssertionError as err:
+        except AssertionError:
             bar = True
-        except ValidationError as err:
+        except ValidationError:
             bar = True
         assert bar
 

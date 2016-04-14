@@ -3,19 +3,15 @@ from django.db import models
 
 from django.core.validators import RegexValidator
 
-
 # Based on https://git.iapc.utwente.nl/swipe/swipe-design/issues/22
-
-# Create your models here.
-
 # Global money representation parameters
 
-# VAT : Pay the government, alas, we have to do this.
 from django.utils.translation import ugettext_lazy
 
 from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
 
 
+# VAT : Pay the government, alas, we have to do this.
 class VAT(models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
     vatrate = models.DecimalField(decimal_places=6, max_digits=8)
@@ -144,6 +140,7 @@ class MoneyProxy:
         obj.__dict__[self.amount_field_name] = amount
         obj.__dict__[self.currency_field_name] = currency
 
+    # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
         amount, currency = self._get_values(obj)
         if amount is None:
@@ -275,7 +272,8 @@ class Price(Money):
         return self._vat
 
     def __eq__(self, other):
-        return type(other) == Price and self.amount == other.amount and self.currency == other.currency and self.vat == other.vat
+        return type(other) == Price and self.amount == other.amount \
+               and self.currency == other.currency and self.vat == other.vat
 
     def compare(self, item2):
         if type(self) != type(item2):
@@ -288,7 +286,8 @@ class Price(Money):
             raise TypeError("Cannot add Price to {}".format(type(oth)))
 
         if oth.vat != self.vat:
-            raise TypeError("VAT levels of numbers to be added are not the same. Got {} and {}".format(oth.vat, self.vat))
+            raise TypeError("VAT levels of numbers to be added are not the same. "
+                            "Got {} and {}".format(oth.vat, self.vat))
 
         if oth.currency != self.currency:
             raise TypeError("Trying to add different currencies")
@@ -300,7 +299,8 @@ class Price(Money):
             raise TypeError("Cannot subtract Price from {}".format(type(oth)))
 
         if oth.vat != self.vat:
-            raise TypeError("VAT levels of numbers to be subtracted are not the same. Got {} and {}".format(oth.vat, self.vat))
+            raise TypeError("VAT levels of numbers to be subtracted are not the same. "
+                            "Got {} and {}".format(oth.vat, self.vat))
 
         if oth.currency != self.currency:
             raise TypeError("Trying to subtract different currencies")
@@ -332,6 +332,7 @@ class PriceProxy:
         obj.__dict__[self.currency_field_name] = currency
         obj.__dict__[self.vat_field_name] = vat
 
+    # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
         amount, currency, vat = self._get_values(obj)
         if amount is None:
@@ -400,9 +401,6 @@ class PriceField(models.DecimalField):
         return value.amount
 
 
-        # What VAT level is it on?
-
-
 class SalesPrice(Price):
     """
         The SalesPrice is the price of an object, for which a cost is known.
@@ -416,14 +414,16 @@ class SalesPrice(Price):
         return self._cost
 
     def __eq__(self, other):
-        return type(other) == SalesPrice and self.amount == other.amount and self.currency == other.currency and self.vat == other.vat and self.cost == other.cost
+        return type(other) == SalesPrice and self.amount == other.amount and self.currency == other.currency \
+               and self.vat == other.vat and self.cost == other.cost
 
     def __add__(self, oth):
         if type(oth) != SalesPrice:
             raise TypeError("Cannot add SalesPrice to {}".format(type(oth)))
 
         if oth.vat != self.vat:
-            raise TypeError("VAT levels of numbers to be added are not the same. Got {} and {}".format(oth.vat, self.vat))
+            raise TypeError("VAT levels of numbers to be added are not the same. "
+                            "Got {} and {}".format(oth.vat, self.vat))
 
         if oth.currency != self.currency:
             raise TypeError("Trying to add different currencies")
@@ -435,7 +435,8 @@ class SalesPrice(Price):
             raise TypeError("Cannot subtract SalesPrice from {}".format(type(oth)))
 
         if oth.vat != self.vat:
-            raise TypeError("VAT levels of numbers to be subtracted are not the same. Got {} and {}".format(oth.vat, self.vat))
+            raise TypeError("VAT levels of numbers to be subtracted are not the same. "
+                            "Got {} and {}".format(oth.vat, self.vat))
 
         if oth.currency != self.currency:
             raise TypeError("Trying to subtract different currencies")
@@ -481,6 +482,7 @@ class SalesPriceProxy:
         obj.__dict__[self.vat_field_name] = vat
         obj.__dict__[self.cost_field] = cost
 
+    # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
         amount, currency, vat, cost = self._get_values(obj)
         if amount is None:
@@ -502,8 +504,8 @@ class SalesPriceProxy:
 
 class SalesPriceField(models.DecimalField):
     """
-        A SalesPriceField is the Django representation of a SalesPrice.
-        As such, it's responsible for properly creating the Django representation of the fields used to store a SalesPrice.
+        A SalesPriceField is the Django representation of a SalesPrice. As such, it's responsible for properly
+        creating the Django representation of the fields used to store a SalesPrice.
         It contains the following fields:
         currency : In what currency is this SalesPrice?
         amount : What's the amount of currency?
@@ -602,10 +604,9 @@ class Denomination(models.Model):
         else:
             return cls(*args, **kwargs)
 
-    def save(self):
+    def save(self, **kwargs):
         assert(self.currency and self.amount)
         super(Denomination, self).save()
-
 
     def __str__(self):
         return "{} {}".format(self.currency.iso, self.amount)

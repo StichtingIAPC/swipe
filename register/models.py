@@ -1,6 +1,7 @@
 from django.contrib.admin import actions
 from django.db import models,IntegrityError
 from django.db import transaction
+from django.db import IntegrityError
 from django.utils import timezone
 from django.conf import settings
 
@@ -12,6 +13,8 @@ from article.models import ArticleType
 from money.models import *
 from stock.enumeration import enum
 from stock.stocklabel import StockLabeledLine
+# Stop PyCharm from seeing tools as a package.
+# noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.exceptions import Id10TError
 from stock.models import StockChange, StockChangeSet
@@ -229,16 +232,31 @@ class ConsistencyChecker:
         try:
             ConsistencyChecker.check_open_sales_periods()
         except IntegrityError:
-            errors.append({"text": "More than one sales period is open", "location": "SalesPeriods", "line": -1,
-                           "severity": CRITICAL})
+
+            errors.append({
+                "text": "More than one sales period is open",
+                "location": "SalesPeriods",
+                "line": -1,
+                "severity": CRITICAL
+            })
         try:
             ConsistencyChecker.check_open_register_periods()
         except IntegrityError:
-            errors.append({"text": "Register had more than one register period open", "location": "SalesPeriods", "line": -1, "severity": CRITICAL})
+            errors.append({
+                "text": "Register had more than one register period open",
+                "location": "SalesPeriods",
+                "line": -1,
+                "severity": CRITICAL
+            })
         try:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
-            errors.append({"text": "Cash register can only have cash as payment method", "location": "SalesPeriods", "line": -1, "severity": CRITICAL})
+            errors.append({
+                "text": "Cash register can only have cash as payment method",
+                "location": "SalesPeriods",
+                "line": -1,
+                "severity": CRITICAL
+            })
         return errors
 
     @staticmethod
