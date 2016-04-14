@@ -77,7 +77,7 @@ module.exports = function(grunt){
       dev: {
         options: {
           sourceMap: true,
-          sourceComments: true
+          outputStyle: 'compressed'
         },
         files: {
           '<%= dest.css %>/<%= pkg.name %>.min.css': '<%= src.css %>/main.scss'
