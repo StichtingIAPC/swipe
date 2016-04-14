@@ -11,4 +11,5 @@ class ArticleType(models.Model):
         return self.name
 
     def calculate_sales_price(self,cost):
-        return SalesPrice(cost=cost.amount, vat=self.vat.vatrate, currency=cost.currency, amount=cost.amount * self.vat.vatrate * Decimal(1.085))
+        return SalesPrice(cost=cost.amount, vat=self.vat.vatrate, currency=cost.currency,
+                          amount=cost.amount * self.vat.vatrate * Decimal(1.085))

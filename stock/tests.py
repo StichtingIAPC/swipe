@@ -6,11 +6,10 @@ from django.test import TestCase
 from unittest import skip
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
-from stock.stocklabel import StockLabeledLine, StockLabel, StockLabelNotFoundError
+from stock.stocklabel import StockLabel, StockLabelNotFoundError
 from stock.models import Stock, StockChange, StockChangeSet
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost
-from swipe import settings
 from swipe.settings import DELETE_STOCK_ZERO_LINES
 
 
@@ -19,7 +18,7 @@ class StockTest(TestCase):
         pass
 
     def tearDown(self):
-        self.assertEqual(Stock.do_check(),[])
+        self.assertEqual(Stock.do_check(), [])
 
     def testAddStockDirectly(self):
         """
@@ -52,7 +51,7 @@ class StockTest(TestCase):
         try:
             sp = Cost(amount=Decimal("1.00000"), currency=cur)
             art = ArticleType.objects.create(name="P1", vat=vat)
-            StockChange.objects.create(article= art,book_value= sp,count= 2,is_in= True)
+            StockChange.objects.create(article=art, book_value=sp, count=2, is_in=True)
 
         except Id10TError:
             i = 1
@@ -69,8 +68,8 @@ class StockTest(TestCase):
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
 
         try:
-            sp = Cost(amount=Decimal("1.00000"), currency=cur)
-            art = ArticleType.objects.create(name="P1", vat=vat)
+            Cost(amount=Decimal("1.00000"), currency=cur)
+            ArticleType.objects.create(name="P1", vat=vat)
             StockChangeSet.objects.create(memo="A")
 
         except Id10TError:
@@ -99,7 +98,8 @@ class StockTest(TestCase):
 
         # Execute two stock modifications, creating two StockLogs
         log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)  # Re-using entries for test.
+        # Re-using entries for test.
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -125,7 +125,8 @@ class StockTest(TestCase):
 
     def testAddSevenProductsToStockToStock(self):
         """
-        Test that tries to add 7 of the same articles to the stock properly, to test if money is rounded properly for prime counts
+        Test that tries to add 7 of the same articles to the stock properly,
+        to test if money is rounded properly for prime counts
         """
 
         # Create some objects to use in the tests
@@ -152,7 +153,8 @@ class StockTest(TestCase):
             'count': 1,
             'is_in': True
         }]
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)  # Re-using entries for test.
+        # Re-using entries for test.
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -175,7 +177,7 @@ class StockTest(TestCase):
 
         # Check if the book value of the item is equal to the cost of the article
 
-        self.assertEquals(art_stock.book_value,  Cost(amount=Decimal(10/7),currency=cur))
+        self.assertEquals(art_stock.book_value,  Cost(amount=Decimal(10 / 7), currency=cur))
 
     def testFuckOverDBAndTestConsistencyChecker(self):
         """
@@ -198,7 +200,8 @@ class StockTest(TestCase):
 
         # Execute two stock modifications, creating two StockLogs
         log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)  # Re-using entries for test.
+        # Re-using entries for test.
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -224,15 +227,14 @@ class StockTest(TestCase):
 
         # Create stock inconsistency
         tt = Stock.objects.get(pk=1)
-        tt.count = tt.count +1 # Fuck over everything
-        tt.save(indirect = True) # Nail in the coffin
-
+        tt.count += 1  # Fuck over everything
+        tt.save(indirect=True)  # Nail in the coffin
 
         err = Stock.do_check()
-        self.assertEqual(err.__len__(), 1 )
-        self.assertEqual(err[0]["line"],'1_None_None')
-        tt.count = tt.count -1 # Unfuck everything
-        tt.save(indirect = True) # Save it again
+        self.assertEqual(err.__len__(), 1)
+        self.assertEqual(err[0]["line"], '1_None_None')
+        tt.count -= 1  # Unfuck everything
+        tt.save(indirect=True)  # Save it again
 
     @skip("Really heavy test, comment this line if you want to run it")
     def testConsistencyCheckerPerformance(self):
@@ -258,14 +260,14 @@ class StockTest(TestCase):
         # Execute two stock modifications, creating two StockLogs
         start = time.clock()
         for i in range(1, 100000):
-            log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
         print("Time elapsed during generation: {}".format(time.clock() - start))
 
         print("Generated")
         # Create stock inconsistency
         tt = Stock.objects.get(pk=1)
-        tt.count = tt.count +1 # Fuck over everything
-        tt.save(indirect = True) # Nail in the coffin]
+        tt.count += 1  # Fuck over everything
+        tt.save(indirect=True)  # Nail in the coffin]
         start = time.clock()
         err = Stock.do_check()
         print("Time elapsed during checks: {}".format(time.clock() - start))
@@ -273,8 +275,8 @@ class StockTest(TestCase):
         self.assertEqual(err.__len__(), 1)
         self.assertEqual(err[0]["line"], '1_None_None')
 
-        tt.count = tt.count -1 # Unfuck everything
-        tt.save(indirect = True) # Save it again
+        tt.count -= 1  # Unfuck everything
+        tt.save(indirect=True)  # Save it again
 
     def testAddMultipleToStock(self):
         """
@@ -407,7 +409,6 @@ class StockTest(TestCase):
             'is_in': False
         }
 
-
         # Execute the needed modifications
         log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
         log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
@@ -500,7 +501,7 @@ class StockTest(TestCase):
         except StockSmallerThanZeroError:
             i = 1
 
-        self.assertEqual(i,1)
+        self.assertEqual(i, 1)
 
     def testDifferentCurrencies(self):
         """
@@ -576,10 +577,10 @@ class StockTest(TestCase):
         Test that tries to sell 6 items with increasing book value from an empty stock.
         """
         # Create some objects to use in the tests
-        i = 0
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="Product1", vat=vat)
+        book_value = None
 
         for i in range(1, 7):  # 1 to 6. Average should be 3.5
             # Define book value
@@ -604,12 +605,14 @@ class StockTest(TestCase):
                     'is_in': False
             }]
             StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+
         entries = [{
             'article': art,
             'book_value': book_value,
             'count': 0,
             'is_in': False
         }]
+
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
         self.assertEqual(len(StockChange.objects.all_without_label()), 13)
         self.assertEqual(len(StockChange.objects.all_without_label()), 13)
@@ -621,18 +624,19 @@ class StockTest(TestCase):
         else:
             self.assertEqual(st.__len__(), 1)
 
+
 @StockLabel.register
 class ZStockLabel(StockLabel):
-    _labeltype="Zz"
+    _labeltype = "Zz"
 
 
 @StockLabel.register
 class TestStockLabel(StockLabel):
-    _labeltype="test"
+    _labeltype = "test"
 
 
 class ForgottenStockLabel(StockLabel):
-    _labeltype="forgotten"
+    _labeltype = "forgotten"
 
 
 class LabelTest(TestCase):
@@ -645,7 +649,7 @@ class LabelTest(TestCase):
         self.def_art = ArticleType.objects.create(name="P1", vat=self.vat)
         self.label1a = ZStockLabel(1)
 
-        self.def_entries = entries = [{
+        self.def_entries = [{
             'article': self.def_art,
             'book_value': self.cost_eur,
             'count': 1,
@@ -654,14 +658,12 @@ class LabelTest(TestCase):
         }]
 
     def tearDown(self):
-        self.assertEqual(Stock.do_check(),[])
+        self.assertEqual(Stock.do_check(), [])
 
     def testBasicLabel(self):
         eur = Currency("EUR")
-        usd = Currency("USD")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
-        cost_usd = Cost(amount=Decimal(str(1)), currency=usd)  # 1 dollar
         art = ArticleType.objects.create(name="P1", vat=vat)
 
         # Add 1 article with cost 1 euro
@@ -681,9 +683,9 @@ class LabelTest(TestCase):
         self.assertEqual(len(Stock.objects.all()), 1)
         t = TestStockLabel(4)
 
-        entries[0]["label"]=t
+        entries[0]["label"] = t
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
-        entries[0]["label"]=None
+        entries[0]["label"] = None
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
 
     def raisesTest(self):
@@ -691,10 +693,8 @@ class LabelTest(TestCase):
 
     def testLabelFailBecauseNoLabel(self):
         eur = Currency("EUR")
-        usd = Currency("USD")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
-        cost_usd = Cost(amount=Decimal(str(1)), currency=usd)  # 1 dollar
         art = ArticleType.objects.create(name="P1", vat=vat)
 
         # Add 1 article with cost 1 euro
@@ -713,9 +713,9 @@ class LabelTest(TestCase):
             'is_in': False,
         }]
         self.assertRaises(StockSmallerThanZeroError, self.raisesTest)
-        self.assertEqual(Stock.objects.get(label=self.label1a).count,1)
-        self.assertEqual(StockChange.objects.all().__len__(),1)
-        entries[0]['is_in']=False
+        self.assertEqual(Stock.objects.get(label=self.label1a).count, 1)
+        self.assertEqual(StockChange.objects.all().__len__(), 1)
+        entries[0]['is_in'] = False
         StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
         if DELETE_STOCK_ZERO_LINES:
             self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(), 0)
@@ -724,7 +724,7 @@ class LabelTest(TestCase):
 
         self.entries = entries
         self.assertRaises(StockSmallerThanZeroError, self.raisesTest)
-        self.assertEqual(StockChange.objects.all().__len__(),2)
+        self.assertEqual(StockChange.objects.all().__len__(), 2)
         if DELETE_STOCK_ZERO_LINES:
             self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(), 0)
         else:
@@ -737,11 +737,11 @@ class LabelTest(TestCase):
         class InValidLabel(StockLabel):
             _labeltype = ""
 
-        self.labeltype=InValidLabel
+        self.labeltype = InValidLabel
         self.assertRaises(ValueError, self.raise_Invalid_Label_type_added)
         self.assertEqual(StockLabel.labeltypes.get("", None), None)
 
-    #Test what happens to the stock state if one line of stock is moved.
+    # Test what happens to the stock state if one line of stock is moved.
     def testMoveStock(self):
 
         # Add 1 article with cost 1 euro
@@ -750,7 +750,7 @@ class LabelTest(TestCase):
         StockChangeSet.construct(description="AddFirstStock", entries=entries, enum=1)
         self.assertEqual(StockChange.objects.all().__len__(), 1)
         self.assertEqual(Stock.objects.all().__len__(), 1)
-        self.assertEqual(Stock.objects.all_without_label().__len__(),0)
+        self.assertEqual(Stock.objects.all_without_label().__len__(), 0)
         entries = [{
             'article': self.def_art,
             'book_value': self.cost_eur,
@@ -770,7 +770,7 @@ class LabelTest(TestCase):
             self.assertEqual(Stock.objects.all().__len__(), 1)
         else:
             self.assertEqual(Stock.objects.all().__len__(), 2)
-        self.assertEqual(Stock.objects.all_without_label().__len__(),1)
+        self.assertEqual(Stock.objects.all_without_label().__len__(), 1)
 
     def testStockChangeCreateWithLabelTypeInsteadOfLabel(self):
         # Add 1 article with cost 1 euro
@@ -786,7 +786,7 @@ class LabelTest(TestCase):
             'count': 1,
             'is_in': True,
             'label': None
-        },{
+        }, {
             'article': self.def_art,
             'book_value': self.cost_eur,
             'count': 2,
@@ -801,7 +801,7 @@ class LabelTest(TestCase):
             'count': 1,
             'is_in': True,
             'label': None
-        },{
+        }, {
             'article': self.def_art,
             'book_value': self.cost_eur,
             'count': 1,
@@ -811,34 +811,38 @@ class LabelTest(TestCase):
         StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
         without_label = Stock.objects.all_without_label()
         without_line = without_label[0]
-        self.assertEqual(without_label.__len__(),1)
+        self.assertEqual(without_label.__len__(), 1)
         with_label = Stock.objects.filter(label=self.label1a)
-        self.assertEqual(with_label.__len__(),1)
+        self.assertEqual(with_label.__len__(), 1)
         with_line = with_label[0]
         self.assertEqual(without_line.book_value.amount, Decimal("1.50000"))
         self.assertEqual(with_line.book_value.amount, Decimal("1.33333"))
-        self.assertEqual(with_line.count,3)
-        self.assertEqual(without_line.count,2)
-        self.assertEqual(with_line.label,self.label1a)
-        self.assertEqual(without_line.label,None)
+        self.assertEqual(with_line.count, 3)
+        self.assertEqual(without_line.count, 2)
+        self.assertEqual(with_line.label, self.label1a)
+        self.assertEqual(without_line.label, None)
 
-    # THis function is NOT in accordance with how stock should be used, and is only used to verify uniqueness constraints on stock
+    # This function is NOT in accordance with how stock should be used,
+    # and is only used to verify uniqueness constraints on stock
     def newDirectStockLine(self):
+        # noinspection PyBroadException
         try:
             # Indirect=True is only used for this test, DO NOT USE THIS ELSEWHERE.
-            Stock(article=self.def_art,book_value=self.cost_eur,count=2, label=self.label1a).save(indirect=True)
+            Stock(article=self.def_art, book_value=self.cost_eur, count=2, label=self.label1a).save(indirect=True)
             return True
         except Exception:
             return False
 
-    @skip("Test can't run with teardown turned on. This error is caused by a database-level failure, so can't be avoided.")
+    @skip("Test can't run with teardown turned on. "
+          "This error is caused by a database-level failure, so can't be avoided.")
     def testMultipleStockLinesWithSameLabel(self):
         self.newDirectStockLine()
         a = self.newDirectStockLine()
         self.assertFalse(a)
 
     def create_forgotten_stock(self):
-        return Stock(article=self.def_art,book_value=self.cost_eur,count=2, label=ForgottenStockLabel(4)).save(indirect=True)
+        return Stock(article=self.def_art, book_value=self.cost_eur,
+                     count=2, label=ForgottenStockLabel(4)).save(indirect=True)
 
     def testStockLabelNotRegistred(self):
         self.assertRaises(StockLabelNotFoundError, self.create_forgotten_stock)
