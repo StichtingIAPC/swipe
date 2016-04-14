@@ -7,13 +7,32 @@
 <body>    <form method="POST">
 {%  csrf_token %}
 <table border="1px">
-<tr>
+    <tr>
 {%  for i in form.columns %}
-
-
-       <td width="200px"><table><tr><td colspan="100%"><center>{{ i.name }}</center></td></tr>{{ i }}</table></td>
+       <td width="200px">
+           <table>
+               <tr><td colspan="100%"><center>{{ i.name }}</center></td></tr>
+{{ i }}
+           </table>
+       </td>
 {% endfor %}
     <td width="200px"><table>{{ form }}</table></td>
+    <td>
+<table>
+            {%  for i in form.columns %}
+                <tr><th>{{ i.name }}</th><td><div id="{{ i.name }}">4.99</div></td></tr>
+
+            {% endfor %}
+            {%  for i in form.briefs %}
+                <tr><th>{{ i }}</th><td><div id="{{ i }}">4.99</div></td></tr>
+            {% endfor %}
+            <tr><th>_</th></tr>
+            <tr><th>_</th></tr>
+
+        </table>
+
+
+    </td>
     </tr>    <tr><td colspan="100%">
     <button type="submit">TAA</button></td>
         </tr>

@@ -61,6 +61,33 @@ class Register(models.Model):
         else: # Return zero. This prevents Swipe from crashing when a register is opened for the first time.
             return Money(Decimal("0.00000"),self.currency)
 
+    def previous_denomination_count(self):
+        periods = RegisterPeriod.objects.filter(register=self)
+        if len(periods)!= 0:
+            period = periods.last()
+            try:
+                count = RegisterCount.objects.get(register_period=period,is_opening_count=False)
+            except RegisterCount.DoesNotExist:
+                count = RegisterCount.objects.get(register_period=period,is_opening_count=True)
+            all_own_denoms =  DenominationCount.objects.filter(register_count=count)
+            counts = []
+            all_denoms = Denomination.objects.filter(currency=self.currency).order_by('amount')
+            for denom in all_denoms:
+                my_count = 0
+                for count in all_own_denoms:
+                    if count.denomination.amount == denom.amount:
+                        my_count = count.amount
+                counts.append(DenominationCount(denomination=denom,amount=my_count))
+            return counts
+
+        else:
+            denoms = Denomination.objects.filter(currency=self.currency)
+            list = []
+            for denom in denoms:
+                list.append(DenominationCount(denomination=denom,amount=0))
+            return list
+
+
     @transaction.atomic
     def open(self, counted_amount, denominations=[]):
         if self.is_active:
@@ -94,9 +121,12 @@ class Register(models.Model):
                     reg_count = RegisterCount(is_opening_count=True, register_period=register_period, amount=counted_amount)
                     reg_count.save(denominations)
 
+                    print(counted_amount,type(counted_amount))
+
                     for denomination in denominations:
                         counted_amount -= denomination.amount * denomination.denomination.amount
                         denomination.register_count = reg_count
+
                     assert(counted_amount == Decimal("0.00000"))
                     for denomination in denominations:
                         denomination.save()
@@ -326,32 +356,32 @@ class SalesPeriod(models.Model):
                 sales_period.save()
                 register.close(indirect=True, register_count=selected_register_count, denomination_counts=matching_denom_counts)
 
-                #Calculate register difference
-                totals = {}
-                for register in open_registers:
-                    for registercount in registercounts:
-                        if registercount.register_period.register == register:
-                            opening_count = RegisterCount.objects.filter(register_period=registercount.register_period).first()
-                            if totals.get(registercount.register_period.register.currency.iso,None):
-                                totals[registercount.register_period.register.currency.iso] += registercount.amount-opening_count.amount
+            #Calculate register difference
+            totals = {}
+            for register in open_registers:
+                for registercount in registercounts:
+                    if registercount.register_period.register == register:
+                        opening_count = RegisterCount.objects.filter(register_period=registercount.register_period).first()
+                        if totals.get(registercount.register_period.register.currency.iso,None):
+                            totals[registercount.register_period.register.currency.iso] += registercount.amount-opening_count.amount
 
-                            else:
-                                totals[registercount.register_period.register.currency.iso] = registercount.amount-opening_count.amount
+                        else:
+                            totals[registercount.register_period.register.currency.iso] = registercount.amount-opening_count.amount
 
-                # Run all transactions
-                for transation in Transaction.objects.filter(salesperiod=sales_period):
-                    for line in TransactionLine.objects.filter(transaction=transation):
-                        totals[line.price.currency.iso] -= line.price.amount*line.count
+            # Run all transactions
+            for transation in Transaction.objects.filter(salesperiod=sales_period):
+                for line in TransactionLine.objects.filter(transaction=transation):
+                    totals[line.price.currency.iso] -= line.price.amount*line.count
 
-                # Run all MoneyInOuts
-                for register in open_registers:
-                    for registercount in registercounts:
-                        if registercount.register_period.register == register:
-                            for inout in MoneyInOut.objects.filter(register_period=registercount.register_period):
-                                totals[register.currency.iso] += inout.amount
+            # Run all MoneyInOuts
+            for register in open_registers:
+                for registercount in registercounts:
+                    if registercount.register_period.register == register:
+                        for inout in MoneyInOut.objects.filter(register_period=registercount.register_period):
+                            totals[register.currency.iso] += inout.amount
 
-                for currency in totals.keys():
-                    ClosingCountDifference.objects.create(difference=Money(totals[currency],Currency(currency)),sales_period=sales_period)
+            for currency in totals.keys():
+                ClosingCountDifference.objects.create(difference=Money(totals[currency],Currency(currency)),sales_period=sales_period)
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
 
@@ -465,7 +495,11 @@ class DenominationCount(models.Model):
     amount = models.IntegerField()
 
     def get_money_value(self):
-        return Money(self.denomination.amount*self.amount,self.denomination.currency)
+        print(self.denomination)
+        print(self.denomination.amount)
+        print(self.amount)
+        print(self.denomination.currency)
+        return Money(self.denomination.amount,self.denomination.currency)*int(self.amount)
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
