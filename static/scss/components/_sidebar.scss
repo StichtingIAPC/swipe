@@ -1,12 +1,12 @@
 @import '../../build/bower_components/foundation-sites/scss/util/util';
 
-$sidebar-closed-width: 64px !default;
+$sidebar-closed-width: 48px !default;
 $sidebar-open-width: 288px !default;
 
-$sidebar-icon-size: 48px !default;
+$sidebar-icon-size: 40px !default;
 
-$sidebar-primary-height-unit: 64px !default;
-$sidebar-secondary-height-unit: 48px !default;
+$sidebar-primary-height-unit: 48px !default;
+$sidebar-secondary-height-unit: 40px !default;
 
 $sidebar-transition-duration: 0.2s !default;
 $sidebar-transition-delay: 0.4s !default;
@@ -16,21 +16,21 @@ $sidebar-primary-background-color: $black !default;
 $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !default;
 
 @mixin sidebar {
+  height: 100%;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: flex-start; // put the items at the top of the column
   align-items: flex-end;       // and align at the right of the column
 
-  flex-grow: 0;
-  flex-shrink: 0;
+  z-index: 1;
 
   width: $sidebar-closed-width;
-  transition: width $sidebar-transition-duration;
+
+  transition: width $sidebar-transition-duration, margin-right $sidebar-transition-duration;
   transition-delay: $sidebar-transition-delay;
+
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
 
   background-color: $sidebar-primary-background-color;
 
@@ -38,6 +38,7 @@ $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !de
   &:focus,
   &.open {
     width: $sidebar-open-width;
+    margin-right: $sidebar-closed-width - $sidebar-open-width;
   }
 
   .close {
