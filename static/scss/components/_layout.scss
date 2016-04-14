@@ -3,6 +3,7 @@
   flex-direction: $direction;
   justify-content: flex-start;
   align-items: stretch;
+  flex-wrap: nowrap;
 
   & > * {
     flex-grow: 0;
