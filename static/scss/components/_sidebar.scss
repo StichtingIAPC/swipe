@@ -34,6 +34,9 @@ $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !de
 
   background-color: $sidebar-primary-background-color;
 
+
+  box-shadow: -4px 0 8px 4px $black;
+
   &:hover,
   &:focus,
   &.open {

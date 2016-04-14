@@ -1,0 +1,5 @@
+@import "top-bar";
+
+@mixin insert-foundation-inserts {
+  @include swipe-top-bar;
+}

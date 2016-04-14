@@ -4,8 +4,11 @@
 
 @import './components/layout';
 @import './components/sidebar';
+@import './foundation-inserts/insert';
 
 @include foundation-everything($flex: true);
 
 @include swipe-layout;
 @include swipe-side-bar;
+
+@include insert-foundation-inserts;
