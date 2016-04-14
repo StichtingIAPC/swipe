@@ -1,0 +1,11 @@
+@import '../build/bower_components/foundation-sites/scss/util/util';
+@import '../build/bower_components/foundation-sites/scss/foundation';
+@import './settings/settings';
+
+@import './components/layout';
+@import './components/sidebar';
+
+@include foundation-everything($flex: true);
+
+@include swipe-layout;
+@include swipe-sidebar;

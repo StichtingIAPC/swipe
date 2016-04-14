@@ -25,7 +25,6 @@ $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !de
   flex-grow: 0;
   flex-shrink: 0;
 
-  height: 100vh;
   width: $sidebar-closed-width;
   transition: width $sidebar-transition-duration;
   transition-delay: $sidebar-transition-delay;
