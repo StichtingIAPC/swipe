@@ -18,7 +18,7 @@ class OpenFormView(View):
 
     def get(self, request, *args, **kwargs):
         if RegisterMaster.sales_period_is_open():
-            return (HttpResponse("ERROR, Register is already open"))
+            return HttpResponse("ERROR, Register is already open")
 
         form = self.form_class(initial=self.initial)
         return render(request, self.template_name, {'form': form})
