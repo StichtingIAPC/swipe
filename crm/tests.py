@@ -1,5 +1,3 @@
-from unittest import skip
-
 from django.test import TestCase
 
 from crm.exceptions import CyclicParenthoodError
@@ -23,8 +21,7 @@ class OrganisationInheritanceTest(TestCase):
             kvk="41029973",
             memo="Super ruige Stichting"
         )
-    @skip("Test can't run with teardown turned on. "
-          "This error is caused by a database-level failure, so can't be avoided.")
+
     def testInheritance(self):
         # Create a suborganisation
         beheer = Organisation.objects.create(
