@@ -1,0 +1,14 @@
+$shadow-key-umbra-opacity: 0.15 !default;
+$shadow-key-penumbra-opacity: 0.2 !default;
+$shadow-ambient-shadow-opacity: 0.1 !default;
+
+@mixin shadow($z-height) {
+  @if($z-height > 0) {
+    box-shadow: 0 (($z-height / 2.5) + 2px) (($z-height / 2) + 1px)   ((-4px - $z-height) / 4) rgba($black, $shadow-key-umbra-opacity),
+                0 ($z-height)               (($z-height * 1.5) + 1px) ($z-height / 6)          rgba($black, $shadow-key-penumbra-opacity),
+                0 (($z-height / 3) + 1px)   (($z-height * 2) + 3px)   ($z-height / 3)          rgba($black, $shadow-ambient-shadow-opacity);
+  }
+  @else {
+    box-shadow: none;
+  }
+}

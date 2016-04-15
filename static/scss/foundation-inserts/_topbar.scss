@@ -1,5 +1,7 @@
+@import '../util/util';
+
 @mixin swipe-top-bar {
   .top-bar {
-    box-shadow: 0 -4px 8px 4px $dark-gray;
+    @include shadow(4px);
   }
 }

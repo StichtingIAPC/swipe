@@ -17,6 +17,14 @@
   & > .shrink {
     flex-shrink: 1;
   }
+
+  &.growing > * {
+    flex-grow: 1;
+  }
+
+  &.shrinking > * {
+    flex-shrink: 1;
+  }
 }
 
 @mixin swipe-layout {

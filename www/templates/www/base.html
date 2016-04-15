@@ -161,13 +161,21 @@
                 SuperUser
             </div>
         </div>
-        <div class="content grow">
-            {% block content %}
-                {% trans 'This page intentionally left almost blank.' %}
-            {% endblock content %}
+        <div class="row grow">
+            {% block module_content %}
+                <div class="medium-6">
+                    <div class="card">
+                        {% trans 'This page intentionally left almost blank.' %}
+                    </div>
+                </div>
+            {% endblock module_content %}
             <!-- close wrapper, no more content after this -->
             {% block back %}
-                <a href="javascript:history.go(-1);">Back</a>
+                <div class="medium-6">
+                    <div class="card">
+                        <a href="javascript:history.go(-1);">Back</a>
+                    </div>
+                </div>
             {% endblock back %}
         </div>
     </div>
