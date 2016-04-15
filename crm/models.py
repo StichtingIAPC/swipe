@@ -217,6 +217,12 @@ class Organisation(SoftDeletable):
 
         super(Organisation, self).save(**kwargs)
 
+        # Re-fill the values from the parent, to make sure the object is still usable after saving.
+        if hasattr(self, "parent_organisation") and self.parent_organisation is not None:
+            for field in self.inherited_fields:
+                if getattr(self, field, "") == "":
+                    setattr(self, field, getattr(self.parent_organisation, field, ""))
+
     def verify(self):
         """
         Verify if this organisation is consistent and information is programatically correct.
