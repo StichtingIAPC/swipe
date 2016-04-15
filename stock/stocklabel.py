@@ -1,4 +1,3 @@
-#### Stock Labels
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -16,17 +15,17 @@ class StockLabelQuerySet(models.QuerySet):
         if "labeltype" in kwargs.keys():
             if kwargs["labeltype"] == "":
                 kwargs["labeltype"] = None
-            if  kwargs["labeltype"] == None:
+            if kwargs["labeltype"] is None:
                 kwargs.pop("labelkey", None)
         return kwargs
 
     def get(self, *args, **kwargs):
         kwargs = self.prepare_kwargs(kwargs)
-        return super().get(*args,**kwargs)
+        return super().get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):
         kwargs = self.prepare_kwargs(kwargs)
-        return super().filter(*args,**kwargs)
+        return super().filter(*args, **kwargs)
 
 
 class StockLabelManager(models.Manager):
@@ -41,7 +40,7 @@ class StockLabelManager(models.Manager):
         return StockLabelQuerySet(self.model)
 
     def all_without_label(self):
-         return StockLabelQuerySet(self.model).filter(labeltype=None)
+        return StockLabelQuerySet(self.model).filter(labeltype=None)
 
 
 class StockLabel:
@@ -50,18 +49,20 @@ class StockLabel:
 
     # Adds labeltype to reverse lookup table (labeltypes)
     @classmethod
-    def register(cls, type):
+    def register(cls, label_type):
 
-        if type._labeltype == "":
-            raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
+        if label_type._labeltype == "":
+            raise ValueError("Please use a more descriptive labeltype than '' (emptystring). "
+                             "Use NoStockLabel when you want no stock label, "
+                             "and search for None if you want to look for no label.")
 
-        name = type._labeltype
+        name = label_type._labeltype
         if cls.labeltypes is None:
             cls.labeltypes = {}
         if name in cls.labeltypes.keys():
-            raise ValueError("StockLabel name '{}'  already in use for class {}".format(name,type))
-        cls.labeltypes[name] = type
-        return type
+            raise ValueError("StockLabel name '{}'  already in use for class {}".format(name, label_type))
+        cls.labeltypes[name] = label_type
+        return label_type
 
     # Returns correct label type
     @classmethod
@@ -80,10 +81,13 @@ class StockLabel:
     def __init__(self, key=0):
         self._key = key
         if self._labeltype is None:
-            raise ValueError("StockLabel's can't be created without a labeltype, please create your own subclass of StockLabel")
+            raise ValueError("StockLabel's can't be created without a labeltype, "
+                             "please create your own subclass of StockLabel")
 
         if self._labeltype == "":
-            raise ValueError("Please use a more descriptive labeltype than '' (emptystring). Use NoStockLabel when you want no stock label, and search for None if you want to look for no label.")
+            raise ValueError("Please use a more descriptive labeltype than '' (emptystring). "
+                             "Use NoStockLabel when you want no stock label, "
+                             "and search for None if you want to look for no label.")
 
     @property
     def key(self):
@@ -102,9 +106,10 @@ class StockLabel:
 
 
 class StockLabeledLine(models.Model):
-    labeltype = models.CharField(max_length=255,null=True, blank=True, validators=[
-    RegexValidator(regex='^.+$',
-                   message='Labeltype should be longer than zero characters')])
+    labeltype = models.CharField(max_length=255, null=True, blank=True, validators=[
+        RegexValidator(regex='^.+$',
+                       message='Labeltype should be longer than zero characters')
+    ])
     labelkey = models.IntegerField(null=True, blank=True)
     objects = StockLabelManager()
 
@@ -118,7 +123,7 @@ class StockLabeledLine(models.Model):
             kwargs["labeltype"] = label.labeltype
             kwargs["labelkey"] = label.key
         models.Model.__init__(self, *args, **kwargs)
-        if hasattr(self,"id"):
+        if hasattr(self, "id"):
             if self.labeltype:
                 self.label = StockLabel.return_label(self.labeltype, self.labelkey)
             else:
