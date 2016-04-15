@@ -1,14 +1,13 @@
-from decimal import Decimal
-from django.core import checks
 from django.db import models
-# Create your models here.
 from django.db import transaction
 from article.models import ArticleType
 from money.models import CostField
-from stock.exceptions import *
+from stock.exceptions import StockSmallerThanZeroError, Id10TError
 from money.exceptions import CurrencyInconsistencyError
 from stock.stocklabel import StockLabeledLine, StockLabel
 from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
+# Stop PyCharm from seeing tools as a package.
+# noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, HIGH
 
 
@@ -42,12 +41,17 @@ class Stock(StockLabeledLine):
         required_result = {}
         for st in stock:
             if st.labeltype is not None and st.labeltype not in StockLabel.labeltypes:
-                errors.append({"text": "StockLabelType {} not currrently" +
-                                       "in use, but still in use in DB".format(st.labeltype), "location": "Stock",
-                               "Line": st.pk, "severity":HIGH})
+                errors.append({"text": "StockLabelType {} not currrently"
+                                       "in use, but still in use in DB".format(st.labeltype),
+                               "location": "Stock",
+                               "Line": st.pk,
+                               "severity": HIGH})
             key = "{}_{}_{}".format(st.article_id, st.labeltype, st.labelkey)
             if key in required_result.keys():
-                errors.append({"text": 'Same stockline exists twice, even though it should be unique: {}.'.format(key), "location": 'Stock', "Line": st.pk, "severity":HIGH})
+                errors.append({"text": 'Same stockline exists twice, even though it should be unique: {}.'.format(key),
+                               "location": 'Stock',
+                               "Line": st.pk,
+                               "severity": HIGH})
             required_result[key] = {"count": st.count, "bookvalue": st.book_value}
         running_result = {}
         changes = StockChange.objects.all()
@@ -55,16 +59,20 @@ class Stock(StockLabeledLine):
         for change in changes:
             key = "{}_{}_{}".format(change.article_id, change.labeltype, change.labelkey)
             if change.labeltype is not None and change.labeltype not in StockLabel.labeltypes:
-                errors.append({"text": "StockLabelType {} not currrently in use," +
+                errors.append({"text": "StockLabelType {} not currrently in use,"
                                        "but still in use in DB".format(change.labeltype),
-                               "location": "StockChange", "Line": change.pk, "severity":HIGH})
+                               "location": "StockChange",
+                               "Line": change.pk,
+                               "severity": HIGH})
             if key in running_result.keys():
                 if change.count < 0:
                     if change.cost != running_result[key]["cost"]:
-                        errors.append({"text": 'Inconsistency found in stock:' +
-                                               'negative stock, cost of removal differs:' +
+                        errors.append({"text": 'Inconsistency found in stock:'
+                                               'negative stock, cost of removal differs:'
                                                '{} instead of {}'.format(change.cost, running_result[key]["cost"]),
-                                       "location": 'StockChange', "Line": change.pk, "severity":HIGH})
+                                       "location": 'StockChange',
+                                       "Line": change.pk,
+                                       "severity": HIGH})
                 if change.get_count() + running_result[key]["count"] != 0:
                     running_result[key]["bookvalue"] = (
                                                        running_result[key]["bookvalue"] * running_result[key]["count"] +
@@ -74,7 +82,9 @@ class Stock(StockLabeledLine):
                 if running_result[key]["count"] < 0:
                     errors.append({"text": 'Inconsistency found in stock:' +
                                            " stock levels turn (temporarily) negative in the past.",
-                                   "location": 'StockChange', "line": change.pk, "severity":HIGH})
+                                   "location": 'StockChange',
+                                   "line": change.pk,
+                                   "severity": HIGH})
 
             else:
                 running_result[key] = {"count": change.get_count(), "bookvalue": change.book_value}
@@ -84,20 +94,27 @@ class Stock(StockLabeledLine):
             b = running_result.pop(z, None)
             if b is None or a["count"] != b["count"] or a["bookvalue"] != b["bookvalue"]:
                 if b is None and a["count"] != 0:
-                    errors.append({"text": 'Found no stock for {} when rerunning, but {} are still in Stock according to the Database'.format(
-                                          z, a["count"]), "location": 'Recalculated Stock', "line": z, "severity":HIGH})
+                    errors.append({"text": 'Found no stock for {} when rerunning, '
+                                           'but {} are still in Stock according to the Database'.format(z, a["count"]),
+                                   "location": 'Recalculated Stock',
+                                   "line": z,
+                                   "severity": HIGH})
                 else:
                     errors.append(dict(
-                        text="Different counts or costs found for" +
+                        text="Different counts or costs found for"
                              "{}: ({} {}) found, ({} {}) expected".format(
-                                 z, a["count"], a["bookvalue"], b["count"], b["bookvalue"]), location='Stock', line=z, severity=HIGH))
+                                 z, a["count"], a["bookvalue"], b["count"], b["bookvalue"]),
+                        location='Stock', line=z, severity=HIGH))
 
         key_list = list(running_result.keys())
         for z in key_list:
             b = running_result.pop(z, None)
             if b["count"] != 0:
-                errors.append({"text": 'Running result found stock not in normal Stock! Call for help, this is serious'.format(
-                                      b["count"], b["bookvalue"]), "location": 'Recalculated Stock', "line": z})
+                errors.append({
+                    "text": 'Running result found stock not in normal Stock! '
+                            'Call for help, this is serious'.format(b["count"], b["bookvalue"]),
+                    "location": 'Recalculated Stock',
+                    "line": z})
         return errors
 
     @staticmethod
@@ -123,19 +140,19 @@ class Stock(StockLabeledLine):
                 raise CurrencyInconsistencyError("GOT {} instead of {}".format(
                     merge_line.book_value.currency, stock_mod.book_value.currency))
 
-            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((
-                                                                        merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
-                raise ValueError("book value changed during negative line, from: {} to: {} ".format(merge_line.amount,
-                                                                                                    stock_mod.book_value.amount))
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
+                raise ValueError("book value changed during negative line, "
+                                 "from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
 
             old_cost = merge_line.book_value
             if stock_mod.get_count() + merge_line.count != 0:
                 merge_cost_total = (
-                merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count())
+                    merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count()
+                )
                 merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
             if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - old_cost.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
-                raise ValueError("book value changed during negative line, from: {} to: {} ".format(old_cost.amount,
-                                                                                                    merge_line.book_value.amount))
+                raise ValueError("book value changed during negative line, "
+                                 "from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount))
             # Update stockmod count
             merge_line.count += stock_mod.get_count()
 
@@ -155,8 +172,8 @@ class Stock(StockLabeledLine):
         return "{}| {}: {} @ {} {}".format(self.pk, self.article, self.count, self.book_value, self.label)
 
     class Meta:
-        unique_together = ('labeltype', 'labelkey',
-                           'article',)  # This check  is only partly valid, because most databases don't enforce null uniqueness.
+        # This check  is only partly valid, because most databases don't enforce null uniqueness.
+        unique_together = ('labeltype', 'labelkey', 'article',)
 
 
 class StockChangeSet(models.Model):
@@ -184,8 +201,11 @@ class StockChangeSet(models.Model):
         Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
         :type description: str
-        :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have at least the keys "article", "count", "book_value" and "is_in". See StockChange.
+        :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have
+                        at least the keys "article", "count", "book_value" and "is_in". See StockChange.
         :type entries: list(dict)
+        :param enum: Number to describe what caused this change
+        :type enum: int
         :return: A completed StockChangeSet of the modification
         :rtype: StockChangeSet
         """
@@ -235,7 +255,7 @@ class StockChange(StockLabeledLine):
 
     change_set = models.ForeignKey(StockChangeSet)
     is_in = models.BooleanField()
-    memo = models.CharField(null=True, max_length=255)
+    memo = models.CharField(blank=True, max_length=255)
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
