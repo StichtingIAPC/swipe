@@ -513,10 +513,7 @@ class DenominationCount(models.Model):
     amount = models.IntegerField()
 
     def get_money_value(self):
-        print(self.denomination)
-        print(self.denomination.amount)
-        print(self.amount)
-        print(self.denomination.currency)
+
         return Money(self.denomination.amount,self.denomination.currency)*int(self.amount)
     @classmethod
     def create(cls, *args, **kwargs):
