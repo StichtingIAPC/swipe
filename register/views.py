@@ -2,9 +2,10 @@ from decimal import Decimal
 from django.forms import IntegerField
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
+from django.core.urlresolvers import reverse_lazy
 
 # Create your views here.
-from django.views.generic import View
+from django.views.generic import View, ListView
 
 from money.models import Denomination, Money
 from register.forms import CloseForm, OpenForm
@@ -94,3 +95,11 @@ class CloseFormView(View):
             return HttpResponseRedirect('/register/state/')
 
         return render(request, self.template_name, {'form': form,'rightbar':"HOI"})
+
+
+class RegisterList(ListView):
+    model = Register
+
+
+def index(request):
+    return render(request, 'index.html')

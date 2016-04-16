@@ -1,0 +1,15 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Register list' %}{% endblock %}
+
+{% block content %}
+    {% url "supplier_add" as supplier_add %}
+    <h2>{% trans 'List of registers' %} (<a href="{{ supplier_add }}">{% trans 'add' %}</a>)</h2>
+    <ul>
+    {% for supplier in object_list %}
+        <li><a href="{% url 'register_detail' register.pk %}">{{ register }}</a>{% if register.is_active %} (active){% endif %}</li>
+    {% endfor %}
+    </ul>
+{% endblock %}

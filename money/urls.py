@@ -16,17 +16,12 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
-import register
-from register.views import OpenFormView, CloseFormView, IsOpenStateView, RegisterList
+import money
+from money.views import *
 
 urlpatterns = [
     # Standard page
-    url(r'^$', register.views.index, name="register_index"),
+    url(r'^$', money.views.index, name="money_index"),
     # Django internal documentation
-    url(r'^list/', RegisterList.as_view(template_name="register_list.html")),
-    url(r'^open/', OpenFormView.as_view(template_name="count.html")),
-    url(r'^close/', CloseFormView.as_view(template_name="count.html")),
-    url(r'^state/', IsOpenStateView.as_view(template_name="is_open_view.html")),
-
-
+    url(r'^list/', CurrencyDataList.as_view(template_name="money_list.html")),
 ]

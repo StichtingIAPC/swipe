@@ -1,0 +1,13 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Register '%}{% endblock %}`s
+
+{% block content %}
+    <p><a href="state">Check if sales period is open</a></p>
+    <p><a href="{% url 'persontype_list' %}">PersonTypes</a></p>
+    <p><a href="{% url 'organisationtype_list' %}">OrganisationTypes</a></p>
+    <p><a href="{% url 'persontypefield_list' %}">PersonTypeFields</a></p>
+    <p><a href="{% url 'organisationtypefield_list' %}">OrganisationTypeFields</a></p>
+{% endblock %}
