@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.core.urlresolvers import reverse_lazy
 
 # Create your views here.
-from django.views.generic import View, ListView
+from django.views.generic import View, ListView, CreateView, DetailView
 
 from money.models import Denomination, Money
 from register.forms import CloseForm, OpenForm
@@ -99,6 +99,26 @@ class CloseFormView(View):
 
 class RegisterList(ListView):
     model = Register
+
+
+class DenominationList(ListView):
+    model = Denomination
+
+
+class DenominationCreate(CreateView):
+    model = Denomination
+    fields = ['currency', 'amount']
+    success_url = reverse_lazy('list_denomination')
+
+
+class RegisterCreate(CreateView):
+    model = Register
+    fields = ['name','currency','is_cash_register','is_active','payment_type']
+    success_url = reverse_lazy('list_register')
+
+
+class DenominationDetail(DetailView):
+    model = Denomination
 
 
 def index(request):
