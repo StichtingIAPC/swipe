@@ -15,7 +15,7 @@
     <div class="container vertical grow">
         <div class="top-bar">
             <div class="top-bar-left">
-                Swipe
+                {% if request.user.is_authenticated %}Active user: {{ request.user }}{% endif %}
             </div>
             <div class="top-bar-title">
                 Swipe - Title
@@ -34,13 +34,6 @@
                     </div>
                 </div>
             {% endblock module_content %}
-
-
-            <div class="small-6 columns">
-                <div class="card">
-                    {% trans 'This part is to show off some nice features' %}
-                </div>
-            </div>
         </div>
     </div>
 </div>
