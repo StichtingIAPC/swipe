@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
 from core.models import SoftDeletable
@@ -75,6 +76,9 @@ class Person(Customer):
     memo = models.TextField(blank=True, verbose_name=_("Memo"))
 
     types = models.ManyToManyField(PersonType, blank=True, verbose_name=_("Person types"))
+
+    # Optional OneToOneField to link this person to a User in the system.
+    user = models.OneToOneField(User, blank=True, null=True, on_delete=models.SET_NULL, verbose_name=_("Swipe username"))
 
     def verify(self):
         """
