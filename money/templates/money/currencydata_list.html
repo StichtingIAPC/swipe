@@ -5,8 +5,8 @@
 {% block page_title%}{% trans 'Register list' %}{% endblock %}
 
 {% block content %}
-    {% url "supplier_add" as supplier_add %}
-    <h2>{% trans 'List of currencies' %} (<a href="{{ currencydata_add }}">{% trans 'add' %}</a>)</h2>
+    {% url "currencydata_add" as currencydata_add %}
+    <h2>{% trans 'List of currencies' %} (<a href="{% url 'currencydata_add' %}">{% trans 'add' %}</a>)</h2>
     <ul>
     {% for currencydata in object_list %}
         <li><a href="{% url 'currencydata_detail' currencydata.pk %}">{{ currencydata }}</a></li>
