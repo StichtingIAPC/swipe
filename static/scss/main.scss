@@ -1,11 +1,14 @@
 @import '../build/bower_components/foundation-sites/scss/util/util';
 @import '../build/bower_components/foundation-sites/scss/foundation';
+
+@import './foundation-inserts/insert';
+
 @import './settings/settings';
 
 @import './components/layout';
 @import './components/sidebar';
 @import './components/card';
-@import './foundation-inserts/insert';
+
 
 @include foundation-everything($flex: true);
 

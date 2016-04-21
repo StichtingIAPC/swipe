@@ -1,0 +1,48 @@
+{% load i18n %}
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swipe - {% block page_title %}Page{% endblock %}</title>
+    <script src="{% static 'js/swipe.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/swipe.min.css' %}">
+</head>
+<body class="container horizontal">
+<div class="container horizontal grow">
+    {% include 'partials/sidebar.html' %}
+    <div class="container vertical grow">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                Swipe
+            </div>
+            <div class="top-bar-title">
+                Swipe - Title
+            </div>
+            <div class="top-bar-right">
+            {% block back %}
+                <a href="javascript:history.go(-1);">Back</a>
+            {% endblock back %}
+            </div>
+        </div>
+        <div class="grow container horizontal">
+            {% block module_content %}
+                <div class="small-6 columns">
+                    <div class="card">
+                        {% trans 'This page intentionally left almost blank.' %}
+                    </div>
+                </div>
+            {% endblock module_content %}
+
+
+            <div class="small-6 columns">
+                <div class="card">
+                    {% trans 'This part is to show off some nice features' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
