@@ -23,5 +23,6 @@ urlpatterns = [
     # Standard page
     url(r'^$', money.views.index, name="money_index"),
     # Django internal documentation
-    url(r'^list/', CurrencyDataList.as_view(template_name="money_list.html")),
+    url(r'^list/', CurrencyDataList.as_view(template_name="money/currencydata_list.html")),
+    url(r'^(?P<pk>[A-Z]+)$', CurrencyDataDetail.as_view(), name='currencydata_detail')
 ]

@@ -28,5 +28,6 @@ urlpatterns = [
     # Main website
     url(r'^', include('www.urls')),
     url(r'^register/', include("register.urls")),
+    url(r'^money/', include("money.urls")),
 
 ]
