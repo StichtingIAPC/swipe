@@ -9,13 +9,16 @@ from stock.exceptions import Id10TError, StockSmallerThanZeroError
 from stock.stocklabel import StockLabel, StockLabelNotFoundError
 from stock.models import Stock, StockChange, StockChangeSet
 from article.models import ArticleType
-from money.models import Currency, VAT, Cost
+from money.models import Currency, VAT, Cost, AccountingGroup, SalesPriceField
 from swipe.settings import DELETE_STOCK_ZERO_LINES
 
 
 class StockTest(TestCase):
-    def setup(self):
-        pass
+    def setUp(self):
+        self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        self.vat.save()
+        self.accountinggroup = AccountingGroup(vat_group=self.vat, name="Foo1", accounting_number=1337)
+        self.accountinggroup.save()
 
     def tearDown(self):
         self.assertEqual(Stock.do_check(), [])
@@ -27,13 +30,12 @@ class StockTest(TestCase):
 
         i = 0
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-
         try:
             sp = Cost(amount=Decimal("1.00000"), currency=cur)
-            art = ArticleType.objects.create(name="P1", vat=vat)
-            Stock.objects.create(article=art, book_value=sp, count=2)
-
+            art = ArticleType(name="P1", book_keeping_group=self.accountinggroup)
+            art.save()
+            st = Stock(article=art, book_value=sp, count=2)
+            st.save()
         except Id10TError:
             i = 1
 
@@ -46,11 +48,10 @@ class StockTest(TestCase):
 
         i = 0
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
 
         try:
             sp = Cost(amount=Decimal("1.00000"), currency=cur)
-            art = ArticleType.objects.create(name="P1", vat=vat)
+            art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
             StockChange.objects.create(article=art, book_value=sp, count=2, is_in=True)
 
         except Id10TError:
@@ -69,7 +70,7 @@ class StockTest(TestCase):
 
         try:
             Cost(amount=Decimal("1.00000"), currency=cur)
-            ArticleType.objects.create(name="P1", vat=vat)
+            ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
             StockChangeSet.objects.create(memo="A")
 
         except Id10TError:
@@ -85,7 +86,7 @@ class StockTest(TestCase):
         # Create some objects to use in the tests
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
 
         # Construct entry list for StockChangeSet
@@ -132,7 +133,7 @@ class StockTest(TestCase):
         # Create some objects to use in the tests
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
         sp = Cost(amount=Decimal("1.50000"), currency=cur)
 
         # Construct entry list for StockChangeSet
@@ -187,7 +188,7 @@ class StockTest(TestCase):
         # Create some objects to use in the tests
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
 
         # Construct entry list for StockChangeSet
@@ -246,7 +247,7 @@ class StockTest(TestCase):
         # Create some objects to use in the tests
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
 
         # Construct entry list for StockChangeSet
@@ -288,7 +289,7 @@ class StockTest(TestCase):
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         sp2 = Cost(amount=Decimal("1.00000"), currency=cur)
-        art = ArticleType.objects.create(name="P1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
 
         # Construct entry list for StockChangeSet
         entries = [{
@@ -336,8 +337,8 @@ class StockTest(TestCase):
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
-        art2 = ArticleType.objects.create(name="Product2", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
+        art2 = ArticleType.objects.create(name="P2", book_keeping_group=self.accountinggroup)
 
         # Construct entry list for StockChangeSet
         entries = [{
@@ -386,8 +387,8 @@ class StockTest(TestCase):
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         sp2 = Cost(amount=Decimal("1.00000"), currency=cur)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
-        art2 = ArticleType.objects.create(name="Product2", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
+        art2 = ArticleType.objects.create(name="P2", book_keeping_group=self.accountinggroup)
 
         # Construct some entries to use
         entry_1 = {  # 2 of Product1 in
@@ -446,7 +447,7 @@ class StockTest(TestCase):
         # Create some objects to use in the tests
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
 
         for i in range(1, 7):  # 1 to 6. Average should be 3.5
             # Define book value
@@ -480,7 +481,7 @@ class StockTest(TestCase):
         i = 0
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
 
         try:
             for i in range(1, 7):  # 1 to 6. Average should be 3.5
@@ -515,7 +516,7 @@ class StockTest(TestCase):
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
         cost_usd = Cost(amount=Decimal(str(1)), currency=usd)  # 1 dollar
-        art = ArticleType.objects.create(name="P1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
 
         # Add 1 article with cost 1 euro
         entries = [{
@@ -579,7 +580,7 @@ class StockTest(TestCase):
         # Create some objects to use in the tests
         cur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        art = ArticleType.objects.create(name="Product1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
         book_value = None
 
         for i in range(1, 7):  # 1 to 6. Average should be 3.5
@@ -644,9 +645,12 @@ class LabelTest(TestCase):
         self.eur = Currency("EUR")
 
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        self.accountinggroup = AccountingGroup(vat_group=self.vat, name="Foo1", accounting_number=1337)
+        self.accountinggroup.save()
+
         self.cost_eur = Cost(amount=Decimal(str(1)), currency=self.eur)  # 1 euro
 
-        self.def_art = ArticleType.objects.create(name="P1", vat=self.vat)
+        self.def_art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
         self.label1a = ZStockLabel(1)
 
         self.def_entries = [{
@@ -664,7 +668,7 @@ class LabelTest(TestCase):
         eur = Currency("EUR")
         vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
-        art = ArticleType.objects.create(name="P1", vat=vat)
+        art = art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
 
         # Add 1 article with cost 1 euro
         entries = [{
@@ -693,9 +697,8 @@ class LabelTest(TestCase):
 
     def testLabelFailBecauseNoLabel(self):
         eur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
-        art = ArticleType.objects.create(name="P1", vat=vat)
+        art = ArticleType.objects.create(name="P1", book_keeping_group=self.accountinggroup)
 
         # Add 1 article with cost 1 euro
         entries = [{
