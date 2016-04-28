@@ -9,13 +9,14 @@ from django.views.generic import View, ListView
 
 from money.models import Denomination, Money
 from register.forms import CloseForm, OpenForm
-from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount
+from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, Transaction, \
+    RegisterPeriod
 
 
 class OpenFormView(View):
     form_class = OpenForm
     initial = {'key': 'value'}
-    template_name = 'count.html'
+    template_name = 'open_count.html'
 
     def get(self, request, *args, **kwargs):
         if RegisterMaster.sales_period_is_open():
@@ -58,14 +59,32 @@ class IsOpenStateView(View):
 class CloseFormView(View):
     form_class = CloseForm
     initial = {'key': 'value'}
-    template_name = 'count.html'
+    template_name = 'open_count.html'
+
+    def get_or_post_from_form(self, request, form, *args, **kwargs):
+        transactions = {}
+        all_transactions = Transaction.objects.filter(salesperiod=RegisterMaster.get_open_sales_period())
+        for trans in all_transactions:
+            if transactions.get(trans.price.currency.iso, False):
+                transactions[trans.price.currency.iso] += trans.price
+            else:
+                transactions[trans.price.currency.iso] = trans.price
+        regs = RegisterMaster.get_open_registers()
+        used_currencies = []
+        for reg in regs:
+            if not used_currencies.__contains__(reg.currency):
+                used_currencies.append(reg.currency)
+                print(reg.currency)
+        print(used_currencies)
+        return render(request, self.template_name,
+                      {'form': form, "transactions": transactions, "currencies": used_currencies})
 
     def get(self, request, *args, **kwargs):
 
         if not RegisterMaster.sales_period_is_open():
             return (HttpResponse("ERROR, Register isn't open"))
         form = self.form_class(initial=self.initial)
-        return render(request, self.template_name, {'form': form,'rightbar':"HOI"})
+        return self.get_or_post_from_form(request,form,*args,**kwargs)
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -79,8 +98,8 @@ class CloseFormView(View):
             for col in form.columns:
                 reg = Register.objects.get(name=col.name)
 
-                cnt = Decimal(0)
 
+                cnt = Decimal(0)
 
                 for denomination in Denomination.objects.filter(currency=reg.currency):
                     cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
@@ -94,7 +113,9 @@ class CloseFormView(View):
             print("CLOSING")
             return HttpResponseRedirect('/register/state/')
 
-        return render(request, self.template_name, {'form': form,'rightbar':"HOI"})
+        # Stupid user must again...
+        print("RETRY")
+        return self.get_or_post_from_form(request,form, *args, **kwargs)
 
 
 class RegisterList(ListView):

@@ -1,0 +1,131 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Register list' %}{% endblock %}
+{% block content %}
+<form method="POST">
+
+{%  csrf_token %}
+<table border="1px">
+    <tr height="100%">
+
+
+{%  for i in form.columns %}
+       <td width="200px" height="100%">
+           <table>
+
+               <tr><td colspan="100%"><center><b>{{ i.name }}</b></center></td></tr>
+{{ i }}
+           </table>
+       </td>
+{% endfor %}
+    <td width="200px" height="100%"><b>Brief Registers</b><table height="100%">{{ form }}</table></td>
+
+
+            {%  for cur in currencies %}
+            <td><table height="100%" border="1px">
+                <tr><td width="180px"><b>{{ cur }} EXPECTED</b><br></td><td width="180px"><b>{{ cur }} RECEIVED</b><br></td></tr><tr><td>
+                        <table>
+                        {% for i in form.columns %}
+                            {%  if i.register.currency == cur %}
+                            <tr><td >+</td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="OLD_{{ i.name }}">????</div></td></tr>
+                            {% endif %}
+                        {% endfor %}
+                        {% for transaction in transactions %}
+
+                            {{ transaction }}
+                        {% endfor %}
+
+                        </table>
+                    </td><td>
+                     <table>
+                        {% for i in form.columns %}
+                            {%  if i.register.currency == cur %}
+                            <tr><td>+</td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="{{ i.name }}"></div></td></tr>
+                            {% endif %}
+                        {% endfor %}
+                          {% for i in form %}
+
+                            {%  if i.currency == cur %}
+                            <tr><td></td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="{{ i.name }}">???</div></td></tr>
+                            {% endif %}
+
+                          {% endfor %}
+
+                           {% for i in transactions %}
+
+                                {%  if i.currency == cur %}
+                                     <tr><td></td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="{{ i.name }}">???</div></td></tr>
+                                {% endif %}
+
+                          {% endfor %}
+                     </table></td>
+            </tr><tr><td>TOTAL LEFT: </td><td>TOTAL RIGHT: </td></tr>
+                </tr><tr><td></td><td>DIFFERENCE: </td></tr>
+                </table>
+
+                </td>
+    {% endfor %}
+
+
+
+    </tr>    <tr><td colspan="100%">
+    <button type="submit">TAA</button></td>
+        </tr>
+    </table>        </form>
+<script>
+    cash_registers = []
+    cash_register_currencies = []
+    {%  for i in form.columns %}
+        cash_registers[cash_registers.length] = "{{ i.name }}"
+        cash_register_currencies[cash_register_currencies.length] = document.querySelectorAll("*[register='{{ i.name }}']")[0].getAttribute("currency")
+    {% endfor %}
+    cash_register_counts = []
+
+    brief_registers = []
+    brief_register_currencies = []
+    {%  for i in form.briefs %}
+        brief_registers[brief_registers.length] = "{{ i }}"
+        brief_register_currencies[brief_register_currencies.length] = document.getElementById("id_brief_{{ i }}").getAttribute("currency")
+    {% endfor %}
+
+function get_original_counts()
+{
+    var register = 0
+    var t_left = 0
+    for (var i=0;i<cash_registers.length; i++) {
+        register = cash_registers[i]
+        var register_counts = document.querySelectorAll("*[register='" + register + "']")
+        var reg_count = 0
+        for (var j = 0; j < register_counts.length; j++) {
+            reg_count = reg_count + parseFloat(register_counts[j].getAttribute("denomination")).toFixed(4) * register_counts[j].value
+        }
+        t_left += reg_count
+        document.getElementById("OLD_"+register).innerHTML = reg_count.toFixed(2)
+    }
+    document.getElementById("left_total").innerHTML = t_left.toFixed(2)
+}
+function update_differences()
+{
+    var register = 0
+    for (var i=0;i<cash_registers.length; i++) {
+        register = cash_registers[i]
+        var register_counts = document.querySelectorAll("*[register='" + register + "']")
+        var reg_count = 0
+        for (var j = 0; j < register_counts.length; j++) {
+            reg_count = reg_count + parseFloat(register_counts[j].getAttribute("denomination")).toFixed(4) * register_counts[j].value
+        }
+        document.getElementById(register).innerHTML = reg_count.toFixed(2)
+    }
+    for (var i=0;i<brief_registers.length; i++) {
+           register = brief_registers[i]
+            var counts = document.getElementById("id_brief_"+register)
+           document.getElementById("brief_"+register).innerHTML= (parseFloat(counts.value).toFixed(2))
+    }
+}
+
+setTimeout(get_original_counts, 0);
+setTimeout(update_differences, 0);
+</script>
+{% endblock %}

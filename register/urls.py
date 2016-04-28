@@ -24,8 +24,8 @@ urlpatterns = [
     url(r'^$', register.views.index, name="register_index"),
     # Django internal documentation
     url(r'^list/', RegisterList.as_view(template_name="register_list.html")),
-    url(r'^open/', OpenFormView.as_view(template_name="count.html")),
-    url(r'^close/', CloseFormView.as_view(template_name="count.html")),
+    url(r'^open/', OpenFormView.as_view(template_name="open_count.html")),
+    url(r'^close/', CloseFormView.as_view(template_name="close_count.html")),
     url(r'^state/', IsOpenStateView.as_view(template_name="is_open_view.html")),
 
 
