@@ -127,7 +127,6 @@ class Register(models.Model):
                     reg_count = RegisterCount(is_opening_count=True, register_period=register_period, amount=counted_amount)
                     reg_count.save(denominations)
 
-                    print(counted_amount,type(counted_amount))
 
                     for denomination in denominations:
                         counted_amount -= denomination.amount * denomination.denomination.amount
@@ -351,7 +350,6 @@ class SalesPeriod(models.Model):
                 raise InvalidOperationError("Register counts do not match register periods. Aborting close.")
 
             sales_period.endTime = timezone.now()
-            print(memo)
             sales_period.closing_memo = memo
 
             # Iterates over registers and connects them to the correct register counts.

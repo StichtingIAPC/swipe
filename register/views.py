@@ -29,17 +29,13 @@ class OpenFormView(View):
         form = self.form_class(request.POST)
         if form.is_valid():
             for col in form.briefs:
-                print(col)
                 if request.POST.get("brief_"+(col), False):
                     reg = Register.objects.get(name=col)
                     reg.open(Decimal(0),"")
 
             for col in form.columns:
-
                 if not request.POST.get("reg_{}_active".format(col.name), False):
                     continue
-
-                print(col.name)
                 reg = Register.objects.get(name=col.name)
                 denomination_counts = []
                 cnt = Decimal(0)
@@ -77,11 +73,8 @@ class CloseFormView(View):
         for reg in regs:
             if not used_currencies.__contains__(reg.currency):
                 used_currencies.append(reg.currency)
-                print(reg.currency)
                 if not transactions.get(reg.currency.iso, False):
                     transactions[reg.currency.iso] = Price(Decimal("0.00000"),reg.currency.iso,VAT(Decimal("0.00000")))
-        print(transactions)
-
 
         return render(request, self.template_name,
                       {'form': form, "transactions": transactions, "currencies": used_currencies})
@@ -117,11 +110,9 @@ class CloseFormView(View):
 
             SalesPeriod.close(register_counts, denomination_counts,request.POST["MEMO"])
             # <process form cleaned data>
-            print("CLOSING")
             return HttpResponseRedirect('/register/state/')
 
         # Stupid user must again...
-        print("RETRY")
         return self.get_or_post_from_form(request,form, *args, **kwargs)
 
 
