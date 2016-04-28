@@ -26,6 +26,18 @@ class VAT(models.Model):
         return "{}%".format((self.rate - 1) * 100)
 
 
+class AccountingGroup(models.Model):
+    # Number for internal administration
+    accounting_number = models.IntegerField()
+    # Vat group
+    vat_group = models.ForeignKey(VAT)
+    # Group name
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return "{}({})".format(self.name,self.vat_group.to_rate_string())
+
+
 class VATLevelField(models.DecimalField):
     description = "VAT level, in rate, not in percentage."
 
