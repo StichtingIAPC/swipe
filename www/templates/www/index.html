@@ -6,6 +6,7 @@
 
 {% block content %}
     <p>{% if user.is_authenticated %}Logged in as {{ user }}{% else %}You are not logged in.{% endif %}</p>
+    <p><a href="/money/">Money</a></p>
     <p><a href="{% url 'supplier_list' %}">Suppliers</a></p>
     <p><a href="{% url 'crm_index' %}">CRM</a></p>
     <p><a href="/register/">Registers </a></p>

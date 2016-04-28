@@ -1,0 +1,15 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Denomination list' %}{% endblock %}
+
+{% block content %}
+    {% url "add_denomination" as add_denomination %}
+    <h2>{% trans 'List of denominations' %} (<a href="../add_denomination">{% trans 'add' %}</a>)</h2>
+    <ul>
+    {% for denomination in object_list %}
+       <li><a href="{% url 'denomination_detail' denomination.pk %}">{{ denomination }}</a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}
