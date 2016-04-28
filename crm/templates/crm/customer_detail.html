@@ -20,7 +20,10 @@
     <h3>{% trans 'Organisation' %} (<a href="{{ customer_edit_contactorganisation_organisation }}">{% trans 'edit' %}</a>)</h3>
     {% endif %}
 
-    <p><b>{% trans 'Name' %}</b>: {{ values.name }}</p>
+    <p><b>{% trans 'Name' %}</b>: {{ values.name }}{% if request.user == values.user %} <i>({% trans "It's you!" %})</i>{% endif %}</p>
+    {% if values.user %}
+    <p><b>{% trans 'Linked AD-account' %}</b>: {{ values.user }}</p>
+    {% endif %}
     <p><b>{% trans 'Email' %}</b>: {{ values.email}}</p>
     <p><b>{% trans 'Address' %}</b>: {{ values.address }}</p>
     <p><b>{% trans 'Zip code' %}</b>: {{ values.zip_code }}</p>
