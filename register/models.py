@@ -92,7 +92,7 @@ class Register(models.Model):
 
 
     @transaction.atomic
-    def open(self, counted_amount, memo, denominations=[]):
+    def open(self, counted_amount, memo = "", denominations=[]):
         if memo == "":
             memo = None
 
@@ -312,7 +312,7 @@ class SalesPeriod(models.Model):
 
     @staticmethod
     @transaction.atomic
-    def close(registercounts, denominationcounts, memo):
+    def close(registercounts, denominationcounts, memo = ""):
         if memo == "":
             memo = None
         if RegisterMaster.sales_period_is_open():
