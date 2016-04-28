@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse_lazy
 # Create your views here.
 from django.views.generic import View, ListView, CreateView, DetailView
 
-from money.models import Denomination, Money
+from money.models import Denomination, Money, Price, VAT
 from register.forms import CloseForm, OpenForm
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, Transaction, \
     RegisterPeriod
@@ -32,9 +32,13 @@ class OpenFormView(View):
                 print(col)
                 if request.POST.get("brief_"+(col), False):
                     reg = Register.objects.get(name=col)
-                    reg.open(Decimal(0))
+                    reg.open(Decimal(0),"")
 
             for col in form.columns:
+
+                if not request.POST.get("reg_{}_active".format(col.name), False):
+                    continue
+
                 print(col.name)
                 reg = Register.objects.get(name=col.name)
                 denomination_counts = []
@@ -43,11 +47,10 @@ class OpenFormView(View):
                     denomination_counts.append(DenominationCount(denomination=denomination,amount=int(request.POST["reg_{}_{}".format(col.name,denomination.amount)])))
                     cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
 
-                print(denomination_counts[0].amount)
-                reg.open(cnt,denominations=denomination_counts)
+                reg.open(cnt,request.POST['memo_{}'.format(col.name)],denominations=denomination_counts)
             # <process form cleaned data>
-                return HttpResponseRedirect('/register/state/')
-        return render(request, self.template_name, {'form': form,'rightbar':"HOI"})
+            return HttpResponseRedirect('/register/state/')
+        return render(request, self.template_name, {'form': form})
 
 
 class IsOpenStateView(View):
@@ -75,7 +78,11 @@ class CloseFormView(View):
             if not used_currencies.__contains__(reg.currency):
                 used_currencies.append(reg.currency)
                 print(reg.currency)
-        print(used_currencies)
+                if not transactions.get(reg.currency.iso, False):
+                    transactions[reg.currency.iso] = Price(Decimal("0.00000"),reg.currency.iso,VAT(Decimal("0.00000")))
+        print(transactions)
+
+
         return render(request, self.template_name,
                       {'form': form, "transactions": transactions, "currencies": used_currencies})
 
@@ -108,7 +115,7 @@ class CloseFormView(View):
                 for denomination in Denomination.objects.filter(currency=reg.currency):
                     denomination_counts.append(DenominationCount(register_count=rc,denomination=denomination,amount=int(request.POST["reg_{}_{}".format(col.name,denomination.amount)])))
 
-            SalesPeriod.close(register_counts, denomination_counts,"HOI")
+            SalesPeriod.close(register_counts, denomination_counts,request.POST["MEMO"])
             # <process form cleaned data>
             print("CLOSING")
             return HttpResponseRedirect('/register/state/')

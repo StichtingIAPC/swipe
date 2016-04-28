@@ -5,7 +5,12 @@
 {% block page_title%}{% trans 'Register list' %}{% endblock %}
 {% block content %}
 <form method="POST">
-
+<style>
+    tr.spaceUnder > td
+{
+  padding-bottom: 1em;
+}
+</style>
 {%  csrf_token %}
 <table border="1px">
     <tr height="100%">
@@ -24,45 +29,43 @@
 
 
             {%  for cur in currencies %}
-            <td><table height="100%" border="1px">
+            <td><table height="100%">
                 <tr><td width="180px"><b>{{ cur }} EXPECTED</b><br></td><td width="180px"><b>{{ cur }} RECEIVED</b><br></td></tr><tr><td>
                         <table>
                         {% for i in form.columns %}
                             {%  if i.register.currency == cur %}
-                            <tr><td >+</td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="OLD_{{ i.name }}">????</div></td></tr>
+                            <tr><td >+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="OLD_{{ i.name }}">????</div></td></tr>
                             {% endif %}
                         {% endfor %}
-                        {% for transaction in transactions %}
 
-                            {{ transaction }}
-                        {% endfor %}
+                                    <tr  class="spaceUnder"><td></td><td></td><td width="120px">   </td></tr>
+
+                           {% for i in transactions.values %}
+                               {% if i.currency == cur.iso %}
+                                     <tr><td>+</td><td>SALES</td><td width="120px" align="right"><div id="sales_{{ i.currency }}">{{ i.amount }}</div></td></tr>
+                               {%  endif %}
+                          {% endfor %}
 
                         </table>
                     </td><td>
                      <table>
                         {% for i in form.columns %}
                             {%  if i.register.currency == cur %}
-                            <tr><td>+</td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="{{ i.name }}"></div></td></tr>
+                            <tr><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}"></div></td></tr>
                             {% endif %}
                         {% endfor %}
                           {% for i in form %}
-
                             {%  if i.currency == cur %}
-                            <tr><td></td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="{{ i.name }}">???</div></td></tr>
+                            <tr><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}">???</div></td></tr>
                             {% endif %}
 
                           {% endfor %}
 
-                           {% for i in transactions %}
 
-                                {%  if i.currency == cur %}
-                                     <tr><td></td><td>{{ i.name }}</td><td width="120px" border="1px"><div id="{{ i.name }}">???</div></td></tr>
-                                {% endif %}
-
-                          {% endfor %}
                      </table></td>
-            </tr><tr><td>TOTAL LEFT: </td><td>TOTAL RIGHT: </td></tr>
-                </tr><tr><td></td><td>DIFFERENCE: </td></tr>
+            </tr><tr><td align="right"><div id="left_total_{{cur}}"></div></td><td align="right"><div id="right_total_{{cur}}"></div>  </td></tr>
+                           <tr><td align="right">Difference:</td><td align="right"><div id="difference_{{ cur }}"></div> </td></tr>
+
                 </table>
 
                 </td>
@@ -71,7 +74,7 @@
 
 
     </tr>    <tr><td colspan="100%">
-    <button type="submit">TAA</button></td>
+    <button type="submit">Close Register</button><input id="MEMO" name="MEMO"></input></td>
         </tr>
     </table>        </form>
 <script>
@@ -104,25 +107,33 @@ function get_original_counts()
         t_left += reg_count
         document.getElementById("OLD_"+register).innerHTML = reg_count.toFixed(2)
     }
-    document.getElementById("left_total").innerHTML = t_left.toFixed(2)
+    document.getElementById("left_total_EUR").innerHTML = (t_left+ parseFloat(document.getElementById("sales_EUR").innerHTML)).toFixed(2)
 }
 function update_differences()
 {
     var register = 0
     for (var i=0;i<cash_registers.length; i++) {
         register = cash_registers[i]
+        var total =0
         var register_counts = document.querySelectorAll("*[register='" + register + "']")
         var reg_count = 0
         for (var j = 0; j < register_counts.length; j++) {
             reg_count = reg_count + parseFloat(register_counts[j].getAttribute("denomination")).toFixed(4) * register_counts[j].value
         }
+        total += reg_count
+
         document.getElementById(register).innerHTML = reg_count.toFixed(2)
     }
     for (var i=0;i<brief_registers.length; i++) {
            register = brief_registers[i]
             var counts = document.getElementById("id_brief_"+register)
+            total += parseFloat(counts.value)
            document.getElementById("brief_"+register).innerHTML= (parseFloat(counts.value).toFixed(2))
     }
+    document.getElementById("right_total_EUR").innerHTML = total.toFixed(2)
+    document.getElementById("difference_EUR").innerHTML = (document.getElementById("right_total_EUR").innerHTML - document.getElementById("left_total_EUR").innerHTML).toFixed(2)
+
+
 }
 
 setTimeout(get_original_counts, 0);

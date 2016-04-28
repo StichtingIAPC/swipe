@@ -92,7 +92,10 @@ class Register(models.Model):
 
 
     @transaction.atomic
-    def open(self, counted_amount, denominations=[]):
+    def open(self, counted_amount, memo, denominations=[]):
+        if memo == "":
+            memo = None
+
         if self.is_active:
             if self.is_open():
                 raise AlreadyOpenError("Register is already open")
@@ -116,7 +119,7 @@ class Register(models.Model):
                     open_sales_period = SalesPeriod()
                     open_sales_period.save()
                 #Create register_period
-                register_period = RegisterPeriod(register=self, sales_period=open_sales_period)
+                register_period = RegisterPeriod(register=self, sales_period=open_sales_period, memo=memo)
                 register_period.save()
 
                 #Create cash register
@@ -297,9 +300,8 @@ class SalesPeriod(models.Model):
 
     endTime = models.DateTimeField(null=True)
 
-    opening_memo = models.CharField(max_length=255, default=None, null=True)
 
-    losing_memo = models.CharField(max_length=255, default=None, null=True)
+    closing_memo = models.CharField(max_length=255, default=None, null=True)
 
     @classmethod
     def create(cls, *args, **kwargs):
@@ -311,6 +313,8 @@ class SalesPeriod(models.Model):
     @staticmethod
     @transaction.atomic
     def close(registercounts, denominationcounts, memo):
+        if memo == "":
+            memo = None
         if RegisterMaster.sales_period_is_open():
             sales_period = RegisterMaster.get_open_sales_period()
             open_registers = RegisterMaster.get_open_registers()
@@ -347,7 +351,7 @@ class SalesPeriod(models.Model):
                 raise InvalidOperationError("Register counts do not match register periods. Aborting close.")
 
             sales_period.endTime = timezone.now()
-
+            print(memo)
             sales_period.closing_memo = memo
 
             # Iterates over registers and connects them to the correct register counts.
@@ -421,6 +425,8 @@ class RegisterPeriod(models.Model):
     beginTime = models.DateTimeField(auto_now_add=True)
 
     endTime = models.DateField(null=True)
+
+    memo = models.CharField(max_length=255, default=None, null=True)
 
     @classmethod
     def create(cls, *args, **kwargs):

@@ -85,7 +85,6 @@ class OpenForm(Form):
 class CloseForm(Form):
     columns = []
     briefs = []
-
     def __init__(self, *args, **kwargs):
         super(CloseForm, self).__init__(*args, **kwargs)
         registers = Register.objects.filter(is_active=True,is_cash_register=True)
