@@ -1,15 +1,15 @@
 {
   "licence": "BSD-3-Clause",
   "dependencies": {
+    "autoprefixer": "^6.3.6",
     "babel-preset-es2016": "^6.0.11",
     "babelify": "^7.2.0",
     "bower": "^1.7.9",
     "grunt": "^1.0.1",
     "grunt-bower-task": "^0.4.0",
-    "grunt-browserify": "^5.0.0",
     "grunt-cli": "^1.2.0",
-    "grunt-contrib-uglify": "^1.0.1",
-    "grunt-sass": "^1.1.0"
+    "node-sass": "^3.6.0",
+    "postcss-cli": "^2.5.2"
   },
   "name": "swipe",
   "version": "0.0.0",

@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load staticfiles %}
+{% load compress %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -7,7 +8,12 @@
     <meta charset="UTF-8">
     <title>Swipe - {% block page_title %}Page{% endblock %}</title>
     <script src="{% static 'js/swipe.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/swipe.min.css' %}">
+    {% compress css %}
+        <link type="text/x-scss" href="{% static 'scss/main.scss' %}">
+    {% endcompress %}
+    {% compress js %}
+        <link type="module" src="{% static 'www/main.js' %}">
+    {% endcompress %}
 </head>
 <body class="container horizontal">
 <div class="container horizontal grow">

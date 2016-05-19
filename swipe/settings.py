@@ -27,6 +27,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 # Application definition
 
 INSTALLED_APPS = [
+    # django stuff
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,6 +35,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
+
+    # utilities
+    'compressor',
+
+    # our apps
     'core',
     'www',
     'money',
@@ -136,9 +142,24 @@ LOCALE_PATHS = (
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'build')
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static', 'build')
 ]
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+
+COMPRESS_PRECOMPILERS = (
+    ('text/x-scss', 'compressor_toolkit.precompilers.SCSSCompiler'),
+    ('module', 'compressor_toolkit.precompilers.ES6Compiler'),
+)
+
+COMPRESS_NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')
 
 ##
 # SWIPE SETTINGS
