@@ -6,7 +6,7 @@ Django>=1.9
 docutils>=0.12
 
 ## django-compressor for sass compiling and ES6 compiling
--r requirements_windows.txt ; sys_platform in 'win32 win64'
+-r ./requirements_windows.txt ; sys_platform in 'win32 win64'
     # If you are running windows, then you need to install these requirements
     # seperately, since they need seperate install flags.
 django-compressor>=2.0
