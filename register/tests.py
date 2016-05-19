@@ -27,7 +27,6 @@ class BasicTest(TestCase):
         self.denom3 = Denomination(currency=self.eu, amount=Decimal("0.02000"))
         self.denom3.save()
 
-
     def test_register_init(self):
         reg = Register(currency=self.eu, is_cash_register=False)
         assert reg
