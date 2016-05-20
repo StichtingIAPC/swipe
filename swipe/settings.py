@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 
     # utilities
     'compressor',
+    'compressor_toolkit',
 
     # our apps
     'core',
@@ -145,7 +146,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'build')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static', 'build')
+    os.path.join(BASE_DIR, 'static')
 ]
 
 STATICFILES_FINDERS = (
@@ -155,11 +156,25 @@ STATICFILES_FINDERS = (
 )
 
 COMPRESS_PRECOMPILERS = (
-    ('text/x-scss', 'compressor_toolkit.precompilers.SCSSCompiler'),
     ('module', 'compressor_toolkit.precompilers.ES6Compiler'),
+    ('text/x-scss', 'compressor_toolkit.precompilers.SCSSCompiler'),
 )
 
 COMPRESS_NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')
+
+COMPRESS_SCSS_COMPILER_CMD = (
+    'node-sass --output-style expanded {paths} "{infile}" "{outfile}" && '
+    'postcss --use "{node_modules}/autoprefixer" '
+    '--autoprefixer.browsers "{autoprefixer_browsers}" -r "{outfile}"'
+)
+
+COMPRESS_ES6_COMPILER_CMD = (
+    'export NODE_PATH="{paths}" && '
+    'browserify "{infile}" -o "{outfile}" --no-bundle-external --node '
+    '-t [ "{node_modules}/babelify" '
+    '--presets="{node_modules}/babel-preset-es2015" ]'
+)
+
 
 ##
 # SWIPE SETTINGS

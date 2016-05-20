@@ -10,4 +10,4 @@ docutils>=0.12
     # If you are running windows, then you need to install these requirements
     # seperately, since they need seperate install flags.
 django-compressor>=2.0
-django-compressor-toolkit==0.5.0
+django-compressor-toolkit~=0.5.0

@@ -9,7 +9,7 @@
     <title>Swipe - {% block page_title %}Page{% endblock %}</title>
     <script src="{% static 'js/swipe.min.js' %}"></script>
     {% compress css %}
-        <link type="text/x-scss" href="{% static 'scss/main.scss' %}">
+        <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}">
     {% endcompress %}
     {% compress js %}
         <link type="module" src="{% static 'www/../static/js/www/main.js' %}">
