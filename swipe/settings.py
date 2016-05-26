@@ -88,6 +88,73 @@ DATABASES = {
     }
 }
 
+# Default logging settings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s %(name)s %(funcName)s (%(filename)s:%(lineno)d) %(message)s',
+        },
+    },
+    'handlers': {
+        # File handler, uncomment and add to loggers to log to file
+        # 'swipe-file': {
+        #     'level': 'INFO',
+        #     'class': 'logging.handlers.WatchedFileHandler',
+        #     'filename': '/tmp/swipe-production.log',
+        #     'formatter': 'verbose',
+        # },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'root': {  # all other errors go to the console
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+    'loggers': {
+        'swipe': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'py.warnings': {
+            'handlers': ['console'],
+        },
+    },
+}
+
+# LDAP Settings, please set these in the local.py if you want to use LDAP.
+AUTH_LDAP_SERVER_URI = "LDAP_URL"
+AUTH_LDAP_BIND_DN = "BIND_DN"
+AUTH_LDAP_BIND_PASSWORD = "LDAP_USER_PASSWORD"
+AUTH_LDAP_USER_SEARCH = None
+AUTH_LDAP_GROUP_SEARCH = None
+AUTH_LDAP_GROUP_TYPE = None
+AUTH_LDAP_REQUIRE_GROUP = "REQUIRE_GROUP"
+AUTH_LDAP_USER_ATTR_MAP = {}
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {}
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+AUTH_LDAP_FIND_GROUP_PERMS = True
+AUTH_LDAP_CACHE_GROUPS = True
+AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -146,13 +213,14 @@ STATIC_URL = '/static/'
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
 
-#Should swipe delete stocklines at count zero?
+# Should swipe delete stocklines at count zero?
 DELETE_STOCK_ZERO_LINES = True
 
-#Should swipe's stock model throw an error when the software attempts to remove stock at a different price from the stock on stock? Sensible: True
+# Should swipe's stock model throw an error when the software attempts to
+# remove stock at a different price from the stock on stock? Sensible: True
 FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 
-#Name of cash payment type
+# Name of cash payment type
 CASH_PAYMENT_TYPE_NAME = "Cash"
 
 ##

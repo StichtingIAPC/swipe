@@ -1,3 +1,119 @@
+# Uncomment for LDAP authentication
+# import ldap
+# from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
+# from swipe.settings import AUTHENTICATION_BACKENDS, INSTALLED_APPS
+
 # Debugging mode for Django
 # Set this to True if you want debugging mode enabled
 DEBUG = True
+
+# Custom installed apps for debugging
+INSTALLED_APPS = INSTALLED_APPS + (
+    'debug_toolbar',  # Django Debugging toolbar
+)
+
+###
+# Logging settings
+###
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '[%(asctime)s] %(levelname)s %(name)s %(funcName)s (%(filename)s:%(lineno)d) %(message)s',
+#         },
+#     },
+#     'handlers': {
+#         'swipe-file': {
+#             'level': 'INFO',
+#             'class': 'logging.handlers.WatchedFileHandler',
+#             'filename': '/tmp/swipe-debug.log',
+#             'formatter': 'verbose',
+#         },
+#         'console': {
+#             'level': 'ERROR',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'verbose'
+#         },
+#     },
+#     'root': {  # all other errors go to the console and the general log file
+#         'level': 'DEBUG',
+#         'handlers': ['console', 'swipe-file'],
+#     },
+#     'loggers': {
+#         'swipe': {
+#             'level': 'DEBUG',
+#             'handlers': ['console', 'swipe-file'],
+#             'propagate': False,
+#         },
+#         'django': {
+#             'handlers': ['console', 'swipe-file'],
+#             'level': 'DEBUG',
+#         },
+#         'django.request': {
+#             'handlers': ['console', 'swipe-file'],
+#             'level': 'DEBUG',
+#             'propagate': False,
+#         },
+#         'py.warnings': {
+#             'handlers': ['console', 'swipe-file'],
+#         },
+#     },
+# }
+
+###
+# LDAP Settings
+# Uncomment and edit if you want LDAP authentication
+###
+# Enable the LDAP authentication backend in addition to the current ones
+# AUTHENTICATION_BACKENDS = ('django_auth_ldap.backend.LDAPBackend', ) + AUTHENTICATION_BACKENDS
+
+# LDAP Server URL
+# AUTH_LDAP_SERVER_URI = "ldap://gobo.iapc.utwente.nl"
+
+# LDAP Bind DN (the user to bind to)
+# AUTH_LDAP_BIND_DN = "CN=BIND_USER,OU=Systeemaccounts,OU=IAPC,DC=iapc,DC=utwente,DC=nl"
+
+# Password for the bind user
+# AUTH_LDAP_BIND_PASSWORD = "BIND_PASSWORD"
+
+# Valid users in the LDAP tree
+# AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=Copros,ou=IAPC,dc=iapc,dc=utwente,dc=nl", ldap.SCOPE_SUBTREE,
+#                                    "(sAMAccountName=%(user)s)")
+
+# Valid groups in the LDAP tree
+# AUTH_LDAP_GROUP_SEARCH = LDAPSearch("ou=Commissies,ou=IAPC,dc=iapc,dc=utwente,dc=nl", ldap.SCOPE_SUBTREE,
+#                                     "(objectClass=group)"
+#                                     )
+
+# Attribute that specifies the group name
+# AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr="cn")
+
+# Group requirement to login
+# AUTH_LDAP_REQUIRE_GROUP = "cn=WWW,ou=Commissies,ou=IAPC,dc=iapc,dc=utwente,dc=nl"
+
+# Populate the Django user from the LDAP directory.
+# AUTH_LDAP_USER_ATTR_MAP = {
+#     "first_name": "givenName",
+#     "last_name": "sn",
+#     "email": "mail"
+# }
+
+# AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+#     "is_active": "cn=WWW,ou=Commissies,ou=IAPC,dc=iapc,dc=utwente,dc=nl",
+#     # "is_staff": "cn=Bestuur,ou=Commissies,ou=IAPC,dc=iapc,dc=utwente,dc=nl",
+#     "is_staff": "CN=Bestuur 2015/2016,OU=Besturen,OU=IAPC,DC=iapc,DC=utwente,DC=nl",
+#     "is_superuser": "cn=WWW,ou=Commissies,ou=IAPC,dc=iapc,dc=utwente,dc=nl"
+# }
+
+# This is the default, but I like to be explicit.
+# AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
+# Use LDAP group membership to calculate group permissions.
+# AUTH_LDAP_FIND_GROUP_PERMS = True
+
+# Cache group memberships for an hour to minimize LDAP traffic
+# AUTH_LDAP_CACHE_GROUPS = True
+
+# Cache timeout for LDAP
+# AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
