@@ -1,44 +1,34 @@
 from decimal import Decimal
 from django.db import models
-from money.models import SalesPrice, VAT, SalesPriceField
-from supplier.models import Supplier
+from money.models import SalesPrice
 from register.models import AccountingGroup
-from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
+from money.models import MoneyField
 
 
 class WishableType(models.Model):
-
-    name = models.CharField(max_length=255)
-
+    # This abstract type can be ordered
     def save(self, *args, **kwargs):
-        if(not isinstance(self, OrProductType) and not isinstance(self, AndProductType)
-           and not isinstance(self, ArticleType)
-           and not isinstance(self, OtherCostType)):
+        if type(self) == WishableType or type(self) == SellableType:
             raise AbstractClassInitializationError("Abstract class cannot be initialized")
         super(WishableType, self).save(*args, **kwargs)
 
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        abstract = True
+    def get_name(self):
+        return None
 
 
-class SellableType(WishableType, models.Model):
-
-    has_fixed_price = models.BooleanField(default=False)
-
-    book_keeping_group = models.ForeignKey(AccountingGroup)
-
-    class Meta:
-        abstract = True
+class SellableType(WishableType):
+    # This abstract type can be sold
+    def get_sales_price(self):
+        return None
 
 
 class ArticleType(SellableType):
+    # The type of an article you can put on a shelf
+    fixed_price = MoneyField(null=True)
 
-    suppliers = models.ManyToManyField(Supplier)
+    accounting_group = models.ForeignKey(AccountingGroup)
 
-    #fixed_price = SalesPriceField()
+    name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
@@ -46,23 +36,26 @@ class ArticleType(SellableType):
     def get_vat(self):
         return self.book_keeping_group.vat_group
 
-    def calculate_sales_price(self,cost):
+    def calculate_sales_price(self, cost):
         return SalesPrice(cost=cost.amount, vat=self.vat.vatrate, currency=cost.currency,
                           amount=cost.amount * self.vat.vatrate * Decimal(1.085))
 
+    def get_name(self):
+        return self.name
 
-class OrProductType(WishableType, models.Model):
 
+class OrProductType(WishableType):
+    # A choice between a number of ArticleTypes
     article_types = models.ManyToManyField(ArticleType)
 
 
 class AndProductType(SellableType):
+    # A combination of ArticleTypes
     pass
-    #fixed_price = SalesPriceField()
 
 
 class ProductCombination(models.Model):
-
+    # Helper class for the AndProductType. Has a number of ArticleTypes for inclusion in an AndProductType
     article_type = models.ForeignKey(ArticleType)
 
     amount = models.IntegerField()
@@ -70,17 +63,22 @@ class ProductCombination(models.Model):
     and_product = models.ForeignKey(AndProductType)
 
     def __str__(self):
-        return "{}:{}x; Member of {}".format(self.article_type.name,self.amount,self.and_product.name)
+        return "{}:{}x; Member of {}".format(self.article_type.name, self.amount, self.and_product.name)
 
 
 class OtherCostType(SellableType):
-    price = SalesPrice
+    # Product that does not enter stock
+    price = MoneyField()
 
-    #fixed_price = SalesPriceField()
+    name = models.CharField(max_length=255)
+
+    def get_sales_price(self):
+        return
+
+    def get_name(self):
+        return self.name
 
 
 class AbstractClassInitializationError(Exception):
+    # Error when the system tries to save an abstract class
     pass
-
-
-
