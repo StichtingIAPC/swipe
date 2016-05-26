@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-{% if is_open  %}
-    <a href="/register/close">OPEN </a>
-    {% else %}
-        <a href="/register/open">CLOSED</a>
+{% extends 'www/base.html' %}
 
-{% endif %}
-</body>
-</html>
+{% load i18n %}
+
+{% block page_title%}{% trans 'IsTheRegisterOpen '%}{% endblock %}`s
+
+{% block content %}
+    {% if is_open  %}
+        OPENED (<a href="/register/close">close now</a>)
+    {% else %}
+        CLOSED (<a href="/register/open">open now</a>)
+    {% endif %}
+{% endblock %}

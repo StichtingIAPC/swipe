@@ -177,7 +177,6 @@ class OrganisationType(models.Model):
         return self.name
 
 
-
 class Organisation(SoftDeletable):
     # CharFields which are inherited from parent organisations
     inherited_fields = ["address", "zip_code", "city", "phone", "fax", "kvk"]

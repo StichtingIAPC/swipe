@@ -6,7 +6,7 @@
 
 {% block content %}
     {% url "add_denomination" as add_denomination %}
-    <h2>{% trans 'List of denominations' %} (<a href="../add_denomination">{% trans 'add' %}</a>)</h2>
+    <h2>{% trans 'List of denominations' %} (<a href="{% url 'register_add_denomination' %}">{% trans 'add' %}</a>)</h2>
     <ul>
     {% for denomination in object_list %}
        <li><a href="{% url 'denomination_detail' denomination.pk %}">{{ denomination }}</a></li>

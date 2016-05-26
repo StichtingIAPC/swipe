@@ -3,6 +3,6 @@
  */
     a = document.querySelectorAll("*[register='Cash']")
     for (l of a){
-        alert(l.getAttribute("denomination"))
+        console.log(l.getAttribute("denomination"))
 
     }

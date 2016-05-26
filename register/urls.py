@@ -13,26 +13,25 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
-from django.contrib import admin
+from django.conf.urls import url
 
-import register
-from register.views import *
+from register.views import index, RegisterList, OpenFormView, CloseFormView, IsOpenStateView, DenominationList,\
+                           DenominationCreate, RegisterCreate, DenominationDetail
 
 urlpatterns = [
     # Standard page
-    url(r'^$', register.views.index, name="register_index"),
+    url(r'^$', index, name="register_index"),
     # Django internal documentation
-    url(r'^list/', RegisterList.as_view(template_name="register_list.html")),
-    url(r'^open/', OpenFormView.as_view(template_name="open_count.html")),
-    url(r'^close/', CloseFormView.as_view(template_name="close_count.html")),
-    url(r'^state/', IsOpenStateView.as_view(template_name="is_open_view.html")),
+    url(r'^list/', RegisterList.as_view(template_name="register_list.html"), name="register_list"),
+    url(r'^open/', OpenFormView.as_view(template_name="open_count.html"), name="register_open"),
+    url(r'^close/', CloseFormView.as_view(template_name="close_count.html"), name="register_close"),
+    url(r'^state/', IsOpenStateView.as_view(template_name="is_open_view.html"), name="register_state"),
 
-    url(r'^list_register/', RegisterList.as_view(template_name="register_list.html")),
-    url(r'^list_denomination', DenominationList.as_view(template_name="denomination_list.html")),
-    url(r'^add_denomination', DenominationCreate.as_view(template_name="denomination_form.html")),
-    url(r'^add_register', RegisterCreate.as_view(template_name="denomination_form.html")),
-    url(r'^(?P<pk>[0-9]+)$', DenominationDetail.as_view(), name='denomination_detail'),
+    url(r'^list_register/', RegisterList.as_view(template_name="register_list.html"), name="register_list_register"),
+    url(r'^list_denomination', DenominationList.as_view(template_name="denomination_list.html"), name="register_list_denomination"),
+    url(r'^add_denomination', DenominationCreate.as_view(template_name="denomination_form.html"), name="register_add_denomination"),
+    url(r'^add_register', RegisterCreate.as_view(template_name="denomination_form.html"), name="register_add_register"),
+    url(r'^(?P<pk>[0-9]+)$', DenominationDetail.as_view(), name="denomination_detail"),
 
 
 ]

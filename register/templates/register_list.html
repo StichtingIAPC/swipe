@@ -5,8 +5,7 @@
 {% block page_title%}{% trans 'Register list' %}{% endblock %}
 
 {% block content %}
-    {% url "supplier_add" as supplier_add %}
-    <h2>{% trans 'List of registers' %} (<a href="{{ register_add }}">{% trans 'add' %}</a>)</h2>
+    <h2>{% trans 'List of registers' %} (<a href="{% url 'register_add_register' %}">{% trans 'add' %}</a>)</h2>
     <ul>
     {% for register in object_list %}
         <li><a href="{% url 'register_detail' register.pk %}">{{ register }}</a>{% if register.is_active %} (active){% endif %}</li>
