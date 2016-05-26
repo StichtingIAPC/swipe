@@ -122,7 +122,7 @@ class Register(models.Model):
                 if self.is_cash_register:
                     reg_count = RegisterCount(is_opening_count=True, register_period=register_period,
                                               amount=counted_amount)
-                    reg_count.save(denominations)
+                    reg_count.save(denominations=denominations)
 
                     for denomination in denominations:
                         counted_amount -= denomination.amount * denomination.denomination.amount
@@ -166,7 +166,7 @@ class Register(models.Model):
                         raise InvalidOperationError("A close without an register count is not accepted.")
                     else:
                         register_count.register_period = reg_per
-                        register_count.save(denomination_counts)
+                        register_count.save(denominations=denomination_counts)
                         for denom in denomination_counts:
                             denom.register_count = register_count
                             denom.save()
