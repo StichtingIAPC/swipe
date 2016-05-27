@@ -1,4 +1,4 @@
-@import "../util/util";
+@import "../util/_util";
 
 @mixin card {
   @include shadow($z-height: 1px);

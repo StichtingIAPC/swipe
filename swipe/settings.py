@@ -8,6 +8,8 @@ Copy the settings you want to change to your local.py file and change them there
 """
 
 import os
+import sys
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -210,11 +212,9 @@ LOCALE_PATHS = (
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'build')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
+STATICFILES_DIRS = []
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -236,10 +236,10 @@ COMPRESS_SCSS_COMPILER_CMD = (
 )
 
 COMPRESS_ES6_COMPILER_CMD = (
-    'export NODE_PATH="{paths}" && '
-    'browserify "{infile}" -o "{outfile}" --no-bundle-external --node '
-    '-t [ "{node_modules}/babelify" '
-    '--presets="{node_modules}/babel-preset-es2015" ]'
+    ('set ' if 'win' in sys.platform else 'export ') +
+    'NODE_PATH="{paths}" && '
+    'browserify "{infile}" -o "{outfile}" --full-paths '
+    '-t [ babelify --presets [ es2016 ] ]'
 )
 
 

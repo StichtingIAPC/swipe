@@ -1,0 +1,20 @@
+@import '../../static/bower_components/foundation-sites/scss/util/util';
+@import '../../static/bower_components/foundation-sites/scss/foundation';
+
+@import 'foundation-inserts/_insert';
+
+@import 'settings/_settings';
+
+@import 'components/_layout';
+@import 'components/_sidebar';
+@import 'components/_card';
+
+
+@include foundation-everything($flex: true);
+
+@include swipe-layout;
+@include swipe-side-bar;
+
+@include swipe-cards;
+
+@include insert-foundation-inserts;

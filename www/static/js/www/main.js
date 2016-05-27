@@ -1,1 +1,1 @@
-alert('this is www/main.js');
+console.log('this is www/main.js');
