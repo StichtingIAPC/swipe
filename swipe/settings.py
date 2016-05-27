@@ -236,10 +236,11 @@ COMPRESS_SCSS_COMPILER_CMD = (
 )
 
 COMPRESS_ES6_COMPILER_CMD = (
-    ('set ' if 'win' in sys.platform else 'export ') +
-    'NODE_PATH="{paths}" && '
-    'browserify "{infile}" -o "{outfile}" --full-paths '
-    '-t [ babelify --presets [ es2016 ] ]'
+    'export NODE_PATH="{paths}" && '
+    'browserify "{infile}" -o "{outfile}" --full-paths ' +
+    ('-d ' if DEBUG else '') +
+    '-t [ babelify '
+    '--presets [ es2016 ] ]'
 )
 
 
