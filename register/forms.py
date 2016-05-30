@@ -25,11 +25,17 @@ class DenominationCountBoundField(BoundField):
 
 
 class DenominationCountField(forms.IntegerField):
+    """
+        A field to count the amount of a certain denomination.
+    """
     def get_bound_field(self, form, field_name):
         return DenominationCountBoundField(form, self, field_name)
 
 
 class BriefCountField(forms.DecimalField):
+    """
+        A field to count the amount of a certain brief register.
+    """
     def get_bound_field(self, form, field_name):
         return DenominationCountBoundField(form, self, field_name)
 
