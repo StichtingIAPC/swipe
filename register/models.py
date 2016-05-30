@@ -12,7 +12,7 @@ from stock.stocklabel import StockLabeledLine
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.exceptions import Id10TError
 from stock.models import StockChange, StockChangeSet
-from swipe.settings import USED_CURRENCY
+from swipe.settings import USED_CURRENCY, CASH_PAYMENT_TYPE_NAME
 
 
 class PaymentType(models.Model):
@@ -36,12 +36,14 @@ class Register(models.Model):
     payment_type = models.ForeignKey(PaymentType)
 
     def get_denominations(self):
+        # Gets denominations from register based on its currency
         if self.is_cash_register:
             return Denomination.objects.filter(currency=self.currency)
         else:
             return []
 
     def is_open(self):
+        # Checks if the register is in an opened state
         lst = RegisterPeriod.objects.filter(register=self, endTime__isnull=True)
         if len(lst) > 1:
             raise IntegrityError("Register had more than one register period open")
@@ -59,6 +61,7 @@ class Register(models.Model):
             return Money(Decimal("0.00000"), self.currency)
 
     def previous_denomination_count(self):
+        # Retrieves the last set of denomination counts which were stored on the last register count
         periods = RegisterPeriod.objects.filter(register=self)
         if len(periods) != 0:
             period = periods.last()
@@ -86,6 +89,7 @@ class Register(models.Model):
 
     @transaction.atomic
     def open(self, counted_amount, memo="", denominations=None):
+        # Opens a register, opens a registerperiod if neccessary
         if denominations is None:
             denominations = []
 
@@ -145,6 +149,7 @@ class Register(models.Model):
             raise InactiveError("The register is inactive and cannot be opened")
 
     def close(self, indirect=False, register_count=None, denomination_counts=None):
+        # Closes a register, should always be called indirectly via registermaster
         if denomination_counts is None:
             denomination_counts = []
 
@@ -172,13 +177,14 @@ class Register(models.Model):
                             denom.save()
 
     def get_current_open_register_period(self):
+        # Retrieves the current registerperiod if it exists
         if not self.is_open():
             raise InvalidOperationError("Register is not opened")
         return RegisterPeriod.objects.get(register=self, endTime__isnull=True)
 
     def save(self, **kwargs):
         if self.is_cash_register:
-            assert(self.payment_type.name == "Cash")
+            assert(self.payment_type.name == CASH_PAYMENT_TYPE_NAME)
         super(Register, self).save()
 
     def __str__(self):
@@ -205,6 +211,7 @@ class RegisterMaster:
 
     @staticmethod
     def number_of_open_registers():
+        # Retrieves the number of open registers, 0 when period is closed and error when inconsistent
         open_reg_periods = RegisterPeriod.objects.filter(endTime__isnull=True)
         number = len(open_reg_periods)
         if number > 0:
@@ -214,10 +221,12 @@ class RegisterMaster:
 
     @staticmethod
     def get_open_registers():
+        # Returns all open registers
         return Register.objects.filter(registerperiod__endTime__isnull=True, registerperiod__isnull=False)
 
     @staticmethod
     def get_payment_types_for_open_registers():
+        # Returns the set of payment types that are possible in the open register period
         return PaymentType.objects.filter(register__registerperiod__endTime__isnull=True,
                                           register__registerperiod__isnull=False).distinct()
 
@@ -271,12 +280,14 @@ class ConsistencyChecker:
 
     @staticmethod
     def check_open_sales_periods():
+        # Checks if there is either one or zero open sales periods
         active_salesperiods = SalesPeriod.objects.filter(endTime__isnull=True)
         if len(active_salesperiods) > 1:
             raise IntegrityError("More than one sales period is open")
 
     @staticmethod
     def check_open_register_periods():
+        # Checks if register is opened at most once
         active_register_periods = RegisterPeriod.objects.filter(endTime__isnull=True)
         a = {}
         for k in active_register_periods:
@@ -287,6 +298,7 @@ class ConsistencyChecker:
 
     @staticmethod
     def check_payment_types():
+        # Checks for valid payment types. Currently it checks if cash register only hold cash
         registers = Register.objects.all()
         for register in registers:
             if register.is_cash_register and register.payment_type.name != settings.CASH_PAYMENT_TYPE_NAME:
@@ -313,6 +325,8 @@ class SalesPeriod(models.Model):
     @staticmethod
     @transaction.atomic
     def close(registercounts, denominationcounts, memo=""):
+        # Method of closing the sales period. If the correct registercounts and denominationcounts are added, this
+        # method gracefully closes the sales period
         if memo == "":
             memo = None
         if RegisterMaster.sales_period_is_open():
@@ -491,6 +505,7 @@ class RegisterCount(models.Model):
         return self.register_period.register.is_cash_register
 
     def get_amount_from_denominationcounts(self):
+        # Distills an amount value from the denomination counts
         denom_counts = DenominationCount.objects.filter(register_count=self)
         if len(denom_counts) > 0:
             self.amount = 0.0
@@ -500,6 +515,7 @@ class RegisterCount(models.Model):
 
     @staticmethod
     def get_last_register_count_for_register(register):
+        # Returns last register count for specified register
         if isinstance(register, Register):
             last_register_period = RegisterPeriod.objects.filter(register=register).last("beginTime")
             counts = RegisterCount.objects.filter(register_period=last_register_period)
