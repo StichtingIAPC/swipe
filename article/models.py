@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.db import models
-from money.models import SalesPrice
+from money.models import SalesPrice, Price
 from register.models import AccountingGroup
 from money.models import MoneyField
 
@@ -15,11 +15,13 @@ class WishableType(models.Model):
     def get_name(self):
         return None
 
+    def get_expected_sales_price(self):
+        return None
+
 
 class SellableType(WishableType):
     # This abstract type can be sold
-    def get_sales_price(self):
-        return None
+    pass
 
 
 class ArticleType(SellableType):
@@ -73,7 +75,7 @@ class OtherCostType(SellableType):
     name = models.CharField(max_length=255)
 
     def get_sales_price(self):
-        return
+        return self.price
 
     def get_name(self):
         return self.name
