@@ -1,11 +1,14 @@
 from decimal import Decimal
 from django.db import models
-from money.models import SalesPrice, Price
+from money.models import SalesPrice
 from register.models import AccountingGroup
 from money.models import MoneyField
 
 
 class WishableType(models.Model):
+
+    name = models.CharField(max_length=255)
+
     # This abstract type can be ordered
     def save(self, *args, **kwargs):
         if type(self) == WishableType or type(self) == SellableType:
@@ -13,7 +16,7 @@ class WishableType(models.Model):
         super(WishableType, self).save(*args, **kwargs)
 
     def get_name(self):
-        return None
+        return self.name
 
     def get_expected_sales_price(self):
         return None
@@ -30,30 +33,35 @@ class ArticleType(SellableType):
 
     accounting_group = models.ForeignKey(AccountingGroup)
 
-    name = models.CharField(max_length=255)
-
     def __str__(self):
-        return self.name
+        return self.get_name()
 
     def get_vat(self):
         return self.book_keeping_group.vat_group
 
     def calculate_sales_price(self, cost):
-        return SalesPrice(cost=cost.amount, vat=self.vat.vatrate, currency=cost.currency,
-                          amount=cost.amount * self.vat.vatrate * Decimal(1.085))
+        return SalesPrice(cost=cost.amount, vat=self.accounting_group.vat_group.vatrate, currency=cost.currency,
+                          amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085))
 
-    def get_name(self):
-        return self.name
+    def get_expected_sales_price(self):
+        return None
+
 
 
 class OrProductType(WishableType):
     # A choice between a number of ArticleTypes
     article_types = models.ManyToManyField(ArticleType)
 
+    fixed_price = MoneyField(null=True)
+
+    def get_expected_sales_price(self):
+        return None
+
 
 class AndProductType(SellableType):
     # A combination of ArticleTypes
-    pass
+    def get_expected_sales_price(self):
+        return None
 
 
 class ProductCombination(models.Model):
@@ -70,15 +78,16 @@ class ProductCombination(models.Model):
 
 class OtherCostType(SellableType):
     # Product that does not enter stock
-    price = MoneyField()
-
-    name = models.CharField(max_length=255)
+    fixed_price = MoneyField()
 
     def get_sales_price(self):
-        return self.price
+        return self.fixed_price
 
     def get_name(self):
         return self.name
+
+    def get_expected_sales_price(self):
+        return self.get_sales_price()
 
 
 class AbstractClassInitializationError(Exception):
