@@ -254,15 +254,17 @@ COMPRESS_ES6_COMPILER_CMD = (
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
 
-# Should swipe delete stocklines at count zero?
+#Should swipe delete stocklines at count zero?
 DELETE_STOCK_ZERO_LINES = True
 
-# Should swipe's stock model throw an error when the software attempts to
-# remove stock at a different price from the stock on stock? Sensible: True
+# Should swipe's stock model throw an error when the software attempts to remove stock at a different price from the stock on stock? Sensible: True
 FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 
 # Name of cash payment type
 CASH_PAYMENT_TYPE_NAME = "Cash"
+
+# Current currency. Transactions are only possible with this currency
+USED_CURRENCY = "EUR"
 
 ##
 # WARNING: Add own settings ABOVE this comment.
