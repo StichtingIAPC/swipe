@@ -28,7 +28,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = (
     # django stuff
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'stock',
     'assortment',
     'tools',
-]
+)
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',

@@ -1,3 +1,7 @@
+## System requirements
+pip>=7.0
+setuptools>=8.0
+
 ## Django 1.9+ and utils
 Django>=1.9
 docutils>=0.12

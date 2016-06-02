@@ -111,7 +111,7 @@ swipe/local.py
 *.sqlite3
 
 # Staticfiles collection directory
-static
+static/
 
 # Node package directory
 node_modules/
