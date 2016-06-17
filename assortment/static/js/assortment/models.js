@@ -2,43 +2,44 @@
  * Created by Matthias on 11/04/2016.
  */
 
-import {
-  SubscribeAble,
-  RenderAble
-} from 'js/www/tools/tools';
-
+import {SubscribeAble} from 'js/tools/tools'
 import {FilterSet} from './filters';
 
 /**
  * @class {LabelType}                                   LabelType
- * @prop {String}                                       name
- * @prop {String}                                       value_type
- * @prop {Array<Label>}                                 labels
- * @prop {(Object<String,Label>|Object<Number,Label>)}  values
+ * @prop {string}                                       name
+ * @prop {string}                                       value_type
+ * @prop {Set<Label>}                                   labels
+ * @prop {Map<string|number, Label>}                    values
  */
-export class LabelType extends SubscribeAble {
+export class LabelType {
   /**
-   * @param {String} name
-   * @param {String} value_type
+   * @param {string} name
+   * @param {string} value_type
    */
   constructor(name, value_type) {
     super();
     this.name = name;
     this.value_type = value_type;
-    this.labels = [];
-    this.values = {};
+    this.labels = new Set();
+    this.values = new Map();
   }
 
   /**
-   * @param label {Label}
+   * @param {Label} label
    */
   register(label) {
-    this.labels.push(label);
-    this.values[label.value] = label;
+    this.labels.add(label);
+    this.values.set(label.value, label);
   }
 
   /**
-   * @param {Array<{id: Number, name: String, type: String, value_type: String}>} label_type_json
+   * @param {Array<{
+   *    id: number,
+   *    name: string,
+   *    type: string,
+   *    value_type: string
+   *  }>} label_type_json
    * @returns {Array<LabelType>}
    */
   static generate_list(label_type_json) {
@@ -57,45 +58,45 @@ export class LabelType extends SubscribeAble {
 }
 
 /**
- * @type {String}
+ * @type {string}
  */
 LabelType.MATCHER = '([a-zA-Z0-9]+)'; // currently only alphanumericals are supported as label names
 
 /**
  * @class {Label}                   Label
- * @prop {String}                   value
+ * @prop {string}                   value
  * @prop {LabelType}                label_type
- * @prop {Array<Product>}           products
+ * @prop {Set<Product>}           products
  */
-export class Label extends RenderAble {
+export class Label {
   /**
-   * @param {String}                value
+   * @param {string}                value
    * @param {LabelType}             type
    */
   constructor(value, type) {
     super();
     this.value = value;
     this.label_type = type;
-    this.products = [];
+    this.products = new Set();
   }
 
   /**
    * @param {Product}               product
    */
   add_product(product) {
-    this.products.push(product);
+    this.products.add(product);
   }
 
   /**
    * @param {Product}               product
-   * @returns {boolean}
+   * @returns {Boolean}
    */
   has_product(product) {
-    return this.products.includes(product);
+    return this.products.has(product);
   }
 
   /**
-   * @param {Array<{value: String, type: String, id: Number}>}  label_json
+   * @param {Array<{value: string, type: string, id: number}>}  label_json
    * @param {Array<LabelType>}                                  label_types
    * @returns {Array<Label>}
    */
@@ -131,57 +132,94 @@ Label.VALUE_MATCHER = '(.+)';
  */
 Label.MATCHER = LabelType.MATCHER + Label.DIVIDER + Label.VALUE_MATCHER;
 
+class BaseArticle extends SubscribeAble {
+  /**
+   * @param {number}                id
+   * @param {string}                name
+   * @param {number}                amount
+   * @param {Branch}                branch
+   * @param {Array<Label>}          labels
+   */
+  constructor(id, name, amount, branch, labels) {
+    this.id = id;
+    this.name = name;
+    this.amount = amount;
+    this.branch = branch;
+    this.labels = labels;
+
+    this.branch.add_product(this);
+    this.labels.forEach(
+      (label, index) =>
+        label.add_product(this));
+  }
+
+  /**
+   * @param {string} name
+   * @returns {class<BaseArticle>}
+   */
+  static to_class(name){
+    return {
+      'OrProductType': OrProduct,
+      'AndProductType': AndProduct,
+      'ArticleType': Product
+    }[name];
+  }
+}
+
 /**
  * @class {Product}                 Product
- * @prop {Number}                   id
- * @prop {String}                   name
- * @prop {Number}                   price
- * @prop {Number}                   amount
+ * @prop {number}                   id
+ * @prop {string}                   name
+ * @prop {number}                   price
+ * @prop {number}                   amount
  * @prop {Tag}                      branch
  * @prop {Array<Label>}             labels
  */
-export class Product extends RenderAble {
+export class Product extends BaseArticle {
   /**\
-   * @param {Number}                id
-   * @param {String}                name
-   * @param {Number}                price
-   * @param {Number}                amount
+   * @param {number}                id
+   * @param {string}                name
+   * @param {number}                price
+   * @param {number}                amount
    * @param {Branch}                branch
    * @param {Array<Label>}          labels
    */
   constructor(id, name, price, amount, branch, labels) {
-    super();
-    this.id = id;
-    this.name = name;
+    super(id, name,amount, branch, labels);
     this.price = price;
-    this.amount = amount;
-    this.branch = branch;
-
-    this.labels = labels;
-    this.branch.add_product(this);
-    this.labels.forEach((a, i) => a.add_product(this));
   }
 
   /**
-   * @param {Array<{id: Number, name: String, price: Number, branch: Number, label_ids: Array<Number>}>} product_json
+   * @param {Array<{
+   *    type: string,
+   *    id: number,
+   *    name: string,
+   *    price: ?number,
+   *    amount: ?number,
+   *    branch: number,
+   *    label_ids: Array<number>,
+   *    contained_products: ?Array<number>,
+   *    components: ?Array<{product: number, amount: number}>
+   *      }>} product_json
    * @param {Array<Label>}          labels
-   * @param {Array<Branch>}         tags
+   * @param {Array<Branch>}         branches
    * @returns {Array<Product>}
    */
-  static generate_list(product_json, labels, tags) {
+  static generate_list(product_json, labels, branches) {
     let products = [];
 
     for (let i = 0; i < product_json.length; i++) {
       let __json = product_json[i];
 
       if (__json !== 'undefined' && typeof(__json) === "object") {
-        products[__json.id] = new Product(
+        products[__json.id] = new BaseArticle.to_class[__json.type](
           __json.id,
           __json.name,
           __json.price,
           __json.amount,
-          tags[__json.branch],
-          __json.label_ids.filter(id => labels[id]).map(id => labels[id])
+          branches[__json.branch],
+          __json.label_ids.filter(id => labels[id]).map(id => labels[id]),
+          __json.contained_products || __json.components
         )
       }
     }
@@ -190,16 +228,97 @@ export class Product extends RenderAble {
   }
 }
 
+export class AndProduct extends BaseArticle {
+  /**
+   * @param {number} id
+   * @param {string} name
+   * @param {number} price
+   * @param {null} amount
+   * @param {Branch} branch
+   * @param {Array<Label>} labels
+   * @param {Array<{product: number, amount: number}>} components
+   */
+  constructor(id, name, price, amount=null, branch, labels, components) {
+    super(id, name, amount, branch, labels);
+    this.price = price;
+    this.contained_products = [];
+    components.forEach(
+      (component) -> this.contained_products.push(
+        {product: component.product|0, amount: component.amount}
+      )
+    );
+  }
+
+  /**
+   * @param {Assortment} assortment
+   */
+  post_init(assortment) {
+    super.post_init();
+    this.contained_products = this.contained_products.forEach(
+      (component) -> component.product = assortment.products[component.product]
+    );
+  }
+
+  /**
+   * @returns {number}
+   */
+  get amount() {
+    let min_amount = Infinity;
+    this.contained_products.forEach(
+      (component) -> min_amount = Math.min(
+        min_amount,
+        component.product.amount / component.amount
+      )
+    );
+    return min_amount;
+  }
+}
+
+export class OrProduct extends BaseArticle {
+  /**
+   * @param {number} id
+   * @param {string} name
+   * @param {null} price
+   * @param {null} amount
+   * @param {Branch} branch
+   * @param {Array<Label>} labels
+   * @param {Array<number>} contained_products
+   */
+  constructor(id, name, price=null, amount=null, branch, labels, contained_products) {
+    super(id, name, amount, branch, labels);
+    this.contained_products = contained_products;
+  }
+
+  /**
+   * @param {Assortment} assortment
+   */
+  post_init(assortment) {
+    super.post_init();
+    this.contained_products = this.contained_products.map(
+      (id) -> assortment.products[id]
+    )
+  }
+
+  /**
+   * @returns {number}
+   */
+  get amount() {
+    let amount = 0;
+    this.contained_products.forEach((product) -> amount += product.amount);
+    return amount;
+  }
+}
+
 /**
  * @type {string}
  */
-Product.MATCHER = '.+';
+Product.MATCHER = '(.+)';
 
 /**
  * @class {Branch}                  branch
- * @prop {String}                   name
+ * @prop {string}                   name
  * @prop {Element}                  node
- * @prop {Number}                   parent_id
+ * @prop {number}                   parent_id
  * @prop {?Tag}                     parent
  * @prop {Array<Product>}           products
  * @prop {Array<Tag>}               children
@@ -207,12 +326,12 @@ Product.MATCHER = '.+';
 export class Branch extends RenderAble {
   /**
    *
-   * @param {String} name
-   * @param {Number} parent_id
+   * @param {string} name
+   * @param {number} parent_id
    */
   constructor(name, parent_id) {
     super();
-    this.name = String(name);
+    this.name = string(name);
     this.node = null; // this is a reference to the DOMElement that represents
                       // the branch in the tree generated from this tag.
     this.parent_id = parent_id;
@@ -244,7 +363,7 @@ export class Branch extends RenderAble {
   }
 
   /**
-   * @param {Array<{id: Number, name: String, parent_id: Number}>} tag_json
+   * @param {Array<{id: number, name: string, parent_id: number}>} tag_json
    * @returns {Array<Branch>}
    */
   static generate_list(tag_json) {
@@ -272,21 +391,24 @@ Branch.MATCHER = '[a-zA-Z0-9]+';
 
 /**
  * @class Assortment
- * @prop {String}                   query
+ * @prop {string}                   query
  * @prop {Array<Tag>}               tags
  * @prop {Array<Label>}             labels
  * @prop {Array<LabelType>}         label_types
  * @prop {FilterSet}                filter
  */
-export class Assortment extends SubscribeAble {
+export class Assortment {
   /**
+   * @param {HTMLElement}           element
    * @param {Array<Product>}        products
-   * @param {Array<Branch>}            tags
+   * @param {Array<Branch>}         tags
    * @param {Array<Label>}          labels
    * @param {Array<LabelType>}      label_types
    */
-  constructor(products, tags, labels, label_types) {
+  constructor(element, products, tags, labels, label_types) {
     super();
+    this.name = element.dataset.name;
+    this.rootElement = element;
     this.query = '';
     this.tags = tags;
     this.labels = labels;
@@ -297,10 +419,10 @@ export class Assortment extends SubscribeAble {
 
   /**
    *
-   * @param {Array<{name: String, tag: Number, label_ids: Array<Number>}>}        product_protos
-   * @param {Array<{id: Number, name: String, parent_id: Number}>}                tag_protos
-   * @param {Array<{value: String, type: String, id: Number}>}                    label_protos
-   * @param {Array<{id: Number, name: String, type: String, value_type: String}>} label_type_protos
+   * @param {Array<{name: string, tag: number, label_ids: Array<number>}>}        product_protos
+   * @param {Array<{id: number, name: string, parent_id: number}>}                tag_protos
+   * @param {Array<{value: string, type: string, id: number}>}                    label_protos
+   * @param {Array<{id: number, name: string, type: string, value_type: string}>} label_type_protos
    * @returns {Assortment}
    */
   static generate(product_protos, tag_protos, label_protos, label_type_protos) {

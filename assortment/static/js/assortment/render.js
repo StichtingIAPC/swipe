@@ -4,85 +4,173 @@
 
 import {Product, Branch} from './models';
 
-class Renderer {
-  constructor(){}
-
-  renderAsList(){}
-
-  renderAsTile(){}
-
-  renderAsBranch(){}
-
-  update(){}
+/**
+ * @param {Function} emit
+ * @param {Function} refresh
+ * @constructor
+ */
+function ProductRenderer(emit, refresh) {
+  function render(product){
+    return [
+      'div', {},
+      [
+        'p', product.amount
+      ], [
+        'span', {}, product.name
+      ], [
+        'span', {}, product.price
+      ]
+    ]
+  }
 }
 
-/**
- * @class {ProductRenderer} ProductRenderer
- * @prop {Product}    product
- */
-export class ProductRenderer extends Renderer {
+function AndProductRenderer(emit, refresh) {
   /**
-   * @param {Product} product
+   * @param {AndProduct} andproduct
+   * @returns {*[]}
    */
-  constructor(product){
-    super();
-    this.product = product;
-    this.product.signal.add(this.update);
-  }
-
-  renderAsList(){
+  function render(andproduct){
     return [
-      'li', {
-        'class': 'something',
-        'id': this.product.id
-      }, [
-        'div', {
-
+      'div', {},
+      [
+        'div',
+        {
+          class: 'product-description'
         },
-        this.product.name,
-        this.product.price,
-        this.product.amount
+        [ 'span', { class: 'product-amount' }, andproduct.amount ],
+        [ 'span', { class: 'product-name' }, andproduct.name ],
+        [ 'span', { class: 'product-price' }, andproduct.price]
+      ],
+      [
+        'div',
+        {
+          class: 'product-list'
+        },
+        andproduct.contained_products.map(
+          (component) -> [
+            'div',
+            {},
+            [ 'span', { class: 'product-amount' }, component.amount ],
+            [ 'span', { class: 'product-name' }, component.product.name ],
+            [ 'span', { class: 'product-price' }, component.product.price]
+          ]
+        )
       ]
     ];
   }
-
-  renderAsTile(){
-    return [
-      'div', {},
-      this.product.amount,
-      this.product.name,
-      this.product.price
-    ]
-  }
-
-  renderAsBranch(){
-    return [
-      'div', {},
-      this.product.amount,
-      this.product.name,
-      this.product.price
-    ]
-  }
-
-  update(){};
-
 }
 
-/**
- * @class {BranchRenderer} BranchRenderer
- * @prop {Branch} branch
- */
-export class BranchRenderer extends Renderer {
+function OrProductRenderer(emit, refresh) {
+  /**
+   * @param {OrProduct} orproduct
+   */
+  function render(orproduct) {
+    return [
+      'div', {},
+      [
+        'div',
+        {
+          class: 'product-description'
+        },
+        [ 'span', { class: 'product-amount' }, orproduct.amount ],
+        [ 'span', { class: 'product-name' }, orproduct.name ],
+        [ 'span', { class: 'product-price' }, orproduct.price]
+      ],
+      [
+        'div',
+        {
+          class: 'product-list'
+        },
+        orproduct.contained_products.map(
+          (component) -> [
+            'div',
+            {},
+            [ 'span', { class: 'product-amount' }, component.amount ],
+            [ 'span', { class: 'product-name' }, component.product.name ],
+            [ 'span', { class: 'product-price' }, component.product.price]
+          ]
+        )
+      ]
+    ];
+  }
+}
+
+function BranchRenderer(emit, refresh) {
+  return {
+    render: render
+  };
+
   /**
    * @param {Branch} branch
    */
-  constructor(branch){
-    super();
-    this.branch = branch;
-    this.branch.signal.add(this.update)
+  function render(branch) {
+    return [
+      'div', {
+        branch: branch.name,
+        class: 'open'
+      },
+      [
+        'div',
+        {
+          class: 'branch-header'
+        },
+        [ 'span', { class: 'branch-icon' }],
+        [ 'p', {}, branch.name ]
+      ],
+      [
+        'div',
+        {
+          class: 'branch-content'
+        },
+        [BranchList, branch.children],
+        [ProductList, branch.products]
+      ]
+    ]
   }
+}
 
-  update(){
+function ProductList(emit, refresh) {
+  return {
+    render: render
+  };
+  /**
+   * @param {Array<Product>} products
+   * @returns {*[]}
+   */
+  function render(products) {
+    return [
+      'ul', {
+        'class': 'product-list'
+      },
+      products.map(
+        (product) -> [
+          'li', {},
+          [product.renderer, product]
+        ]
+      )
+    ];
+  }
+}
 
+function BranchList(emit, refres) {
+  return {
+    render: render
+  };
+
+  /**
+   * @param {Array<Branch>} branches
+   */
+  function render(branches) {
+    return [
+      'ul', {
+        'class': 'branch-list'
+      },
+      branches.map(
+        (branch) -> [
+          'li', {},
+          [BranchRenderer, branch]
+        ]
+      )
+    ]
   }
 }
