@@ -6,21 +6,34 @@ from article.models import *
 
 
 class Order(models.Model):
+    # A collection of orders of a customer ordered together
+    customer = models.ForeignKey(Customer)
 
-    customer = Customer()
+    date = models.DateTimeField(auto_now_add=True)
 
-    date = models.DateTimeField(auto_created=True)
-
-    copro = User()
+    copro = models.ForeignKey(User)
 
 
-class OrderLine():
+class OrderLineState(models.Model):
+    # A representation of the state of a orderline
+    OL_STATE_CHOICES = (('O','Ordered by Customer'),('L','Ordered at Supplier'),('A','Arrived at Store'),('C','Cancelled'),('S','Sold'))
 
-    order = Order()
+    state = models.CharField(max_length=3, choices=OL_STATE_CHOICES)
 
-    # TODO: make articletype wishable
-    wishable = ArticleType()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
-    def getType(self):
-        if type(self) == ArticleType:
+    orderline = models.ForeignKey('OrderLine')
+
+
+class OrderLine(models.Model):
+    # An order of a customer for a single product of a certain type
+    order = models.ForeignKey(Order)
+
+    wishable = models.ForeignKey(WishableType)
+
+    state = models.CharField(max_length=3, choices=OrderLineState.OL_STATE_CHOICES)
+
+    def get_type(self):
+        return type(self)
+
 
