@@ -4,18 +4,19 @@
 
 import {SubscribeAble} from 'js/tools/tools'
 import {FilterSet} from './filters';
+import {axios} from 'bower_components/axios/axios'
 
 /**
  * @class {LabelType}                                   LabelType
- * @prop {string}                                       name
- * @prop {string}                                       value_type
+ * @prop {String}                                       name
+ * @prop {String}                                       value_type
  * @prop {Set<Label>}                                   labels
- * @prop {Map<string|number, Label>}                    values
+ * @prop {Map<String|Number, Label>}                    values
  */
 export class LabelType {
   /**
-   * @param {string} name
-   * @param {string} value_type
+   * @param {String} name
+   * @param {String} value_type
    */
   constructor(name, value_type) {
     super();
@@ -35,21 +36,25 @@ export class LabelType {
 
   /**
    * @param {Array<{
-   *    id: number,
-   *    name: string,
-   *    type: string,
-   *    value_type: string
+   *    id: Number,
+   *    name: String,
+   *    type: String,
+   *    value_type: String
+   *    labels: Array<{id: Number, value: String|Number}>
    *  }>} label_type_json
    * @returns {Array<LabelType>}
    */
   static generate_list(label_type_json) {
     let label_types = [];
+    let labels = [];
 
-    for (let i = 0; i < label_type_json.length; i++) {
-      let __json = label_type_json[i];
-
-      if (__json !== 'undefined' && typeof(__json) === "object") {
-        label_types[__json.id] = new LabelType(__json.name, __json.value_type);
+    for (const __json of label_type_json) {
+      if (__json !== undefined && typeof __json === "object") {
+        const id = __json.id;
+        label_types[id] = new LabelType(__json.name, __json.value_type);
+        for (const __label of __json.labels) {
+          labels[__label.id] = new Label(__label.value, label_types[id]);
+        }
       }
     }
 
@@ -58,19 +63,19 @@ export class LabelType {
 }
 
 /**
- * @type {string}
+ * @type {String}
  */
 LabelType.MATCHER = '([a-zA-Z0-9]+)'; // currently only alphanumericals are supported as label names
 
 /**
  * @class {Label}                   Label
- * @prop {string}                   value
+ * @prop {String}                   value
  * @prop {LabelType}                label_type
  * @prop {Set<Product>}           products
  */
 export class Label {
   /**
-   * @param {string}                value
+   * @param {String}                value
    * @param {LabelType}             type
    */
   constructor(value, type) {
@@ -94,49 +99,28 @@ export class Label {
   has_product(product) {
     return this.products.has(product);
   }
-
-  /**
-   * @param {Array<{value: string, type: string, id: number}>}  label_json
-   * @param {Array<LabelType>}                                  label_types
-   * @returns {Array<Label>}
-   */
-  static generate_list(label_json, label_types) {
-    let labels = [];
-
-    for (let i = 0; i < label_json.length; i++) {
-      let __json = label_json[i];
-      if (__json !== 'undefined' && typeof(__json) === "object") {
-        let type = label_types[__json.type];
-        let label = new Label(__json.value, type);
-        labels[__json.id] = label;
-        type.register(label);
-      }
-    }
-
-    return labels;
-  }
 }
 
 /**
- * @type {string}
+ * @type {String}
  */
 Label.DIVIDER = ':';
 
 /**
- * @type {string}
+ * @type {String}
  */
 Label.VALUE_MATCHER = '(.+)';
 
 /**
- * @type {string}
+ * @type {String}
  */
 Label.MATCHER = LabelType.MATCHER + Label.DIVIDER + Label.VALUE_MATCHER;
 
 class BaseArticle extends SubscribeAble {
   /**
-   * @param {number}                id
-   * @param {string}                name
-   * @param {number}                amount
+   * @param {Number}                id
+   * @param {String}                name
+   * @param {Number}                amount
    * @param {Branch}                branch
    * @param {Array<Label>}          labels
    */
@@ -154,7 +138,7 @@ class BaseArticle extends SubscribeAble {
   }
 
   /**
-   * @param {string} name
+   * @param {String} name
    * @returns {class<BaseArticle>}
    */
   static to_class(name){
@@ -168,19 +152,19 @@ class BaseArticle extends SubscribeAble {
 
 /**
  * @class {Product}                 Product
- * @prop {number}                   id
- * @prop {string}                   name
- * @prop {number}                   price
- * @prop {number}                   amount
+ * @prop {Number}                   id
+ * @prop {String}                   name
+ * @prop {Number}                   price
+ * @prop {Number}                   amount
  * @prop {Tag}                      branch
  * @prop {Array<Label>}             labels
  */
 export class Product extends BaseArticle {
   /**\
-   * @param {number}                id
-   * @param {string}                name
-   * @param {number}                price
-   * @param {number}                amount
+   * @param {Number}                id
+   * @param {String}                name
+   * @param {Number}                price
+   * @param {Number}                amount
    * @param {Branch}                branch
    * @param {Array<Label>}          labels
    */
@@ -191,15 +175,15 @@ export class Product extends BaseArticle {
 
   /**
    * @param {Array<{
-   *    type: string,
-   *    id: number,
-   *    name: string,
-   *    price: ?number,
-   *    amount: ?number,
-   *    branch: number,
-   *    label_ids: Array<number>,
-   *    contained_products: ?Array<number>,
-   *    components: ?Array<{product: number, amount: number}>
+   *    type: String,
+   *    id: Number,
+   *    name: String,
+   *    price: ?Number,
+   *    amount: ?Number,
+   *    branch: Number,
+   *    label_ids: Array<Number>,
+   *    contained_products: ?Array<Number>,
+   *    components: ?Array<{product: Number, amount: Number}>
    *      }>} product_json
    * @param {Array<Label>}          labels
    * @param {Array<Branch>}         branches
@@ -230,20 +214,20 @@ export class Product extends BaseArticle {
 
 export class AndProduct extends BaseArticle {
   /**
-   * @param {number} id
-   * @param {string} name
-   * @param {number} price
+   * @param {Number} id
+   * @param {String} name
+   * @param {Number} price
    * @param {null} amount
    * @param {Branch} branch
    * @param {Array<Label>} labels
-   * @param {Array<{product: number, amount: number}>} components
+   * @param {Array<{product: Number, amount: Number}>} components
    */
   constructor(id, name, price, amount=null, branch, labels, components) {
     super(id, name, amount, branch, labels);
     this.price = price;
     this.contained_products = [];
     components.forEach(
-      (component) -> this.contained_products.push(
+      (component) => this.contained_products.push(
         {product: component.product|0, amount: component.amount}
       )
     );
@@ -255,17 +239,17 @@ export class AndProduct extends BaseArticle {
   post_init(assortment) {
     super.post_init();
     this.contained_products = this.contained_products.forEach(
-      (component) -> component.product = assortment.products[component.product]
+      (component) => component.product = assortment.products[component.product]
     );
   }
 
   /**
-   * @returns {number}
+   * @returns {Number}
    */
   get amount() {
     let min_amount = Infinity;
     this.contained_products.forEach(
-      (component) -> min_amount = Math.min(
+      (component) => min_amount = Math.min(
         min_amount,
         component.product.amount / component.amount
       )
@@ -276,13 +260,13 @@ export class AndProduct extends BaseArticle {
 
 export class OrProduct extends BaseArticle {
   /**
-   * @param {number} id
-   * @param {string} name
+   * @param {Number} id
+   * @param {String} name
    * @param {null} price
    * @param {null} amount
    * @param {Branch} branch
    * @param {Array<Label>} labels
-   * @param {Array<number>} contained_products
+   * @param {Array<Number>} contained_products
    */
   constructor(id, name, price=null, amount=null, branch, labels, contained_products) {
     super(id, name, amount, branch, labels);
@@ -295,43 +279,43 @@ export class OrProduct extends BaseArticle {
   post_init(assortment) {
     super.post_init();
     this.contained_products = this.contained_products.map(
-      (id) -> assortment.products[id]
+      (id) => assortment.products[id]
     )
   }
 
   /**
-   * @returns {number}
+   * @returns {Number}
    */
   get amount() {
     let amount = 0;
-    this.contained_products.forEach((product) -> amount += product.amount);
+    this.contained_products.forEach((product) => amount += product.amount);
     return amount;
   }
 }
 
 /**
- * @type {string}
+ * @type {String}
  */
 Product.MATCHER = '(.+)';
 
 /**
  * @class {Branch}                  branch
- * @prop {string}                   name
+ * @prop {String}                   name
  * @prop {Element}                  node
- * @prop {number}                   parent_id
+ * @prop {Number}                   parent_id
  * @prop {?Tag}                     parent
  * @prop {Array<Product>}           products
  * @prop {Array<Tag>}               children
  */
-export class Branch extends RenderAble {
+export class Branch {
   /**
    *
-   * @param {string} name
-   * @param {number} parent_id
+   * @param {String} name
+   * @param {Number} parent_id
    */
   constructor(name, parent_id) {
     super();
-    this.name = string(name);
+    this.name = String(name);
     this.node = null; // this is a reference to the DOMElement that represents
                       // the branch in the tree generated from this tag.
     this.parent_id = parent_id;
@@ -363,35 +347,37 @@ export class Branch extends RenderAble {
   }
 
   /**
-   * @param {Array<{id: number, name: string, parent_id: number}>} tag_json
+   * @param {Array<{id: Number, name: String, parent_id: Number}>} branch_json
    * @returns {Array<Branch>}
    */
-  static generate_list(tag_json) {
-    let tags = [];
+  static generate_list(branch_json) {
+    let branches = [];
 
-    for (let i = 0; i < tag_json.length; i++) {
-      let __json = tag_json[i];
-
-      if (__json !== 'undefined' && typeof(__json) === "object") {
-        tags[__json.id] = new Branch(__json.name, __json.parent_id)
+    for (const __json of branch_json) {
+      if (__json !== undefined && typeof __json === "object") {
+        branches[__json.id] = new Branch(__json.name, __json.parent_id)
       }
     }
 
-    for (let tag of tags)
-      tag.post_init(tags);
+    for (const branch of branches) {
+      // this part is needed to get the tree working:
+      // Tree lookup with indexes is less efficient than direct pointers,
+      // so we switch the numbers to pointers.
+      branch.post_init(branches);
+    }
 
-    return tags;
+    return branches;
   }
 }
 
 /**
- * @type {string}
+ * @type {String}
  */
 Branch.MATCHER = '[a-zA-Z0-9]+';
 
 /**
  * @class Assortment
- * @prop {string}                   query
+ * @prop {String}                   query
  * @prop {Array<Tag>}               tags
  * @prop {Array<Label>}             labels
  * @prop {Array<LabelType>}         label_types
@@ -407,8 +393,8 @@ export class Assortment {
    */
   constructor(element, products, tags, labels, label_types) {
     super();
-    this.name = element.dataset.name;
     this.rootElement = element;
+    this.name = element.dataset.name;
     this.query = '';
     this.tags = tags;
     this.labels = labels;
@@ -418,19 +404,43 @@ export class Assortment {
   }
 
   /**
-   *
-   * @param {Array<{name: string, tag: number, label_ids: Array<number>}>}        product_protos
-   * @param {Array<{id: number, name: string, parent_id: number}>}                tag_protos
-   * @param {Array<{value: string, type: string, id: number}>}                    label_protos
-   * @param {Array<{id: number, name: string, type: string, value_type: string}>} label_type_protos
+   * @param {Element}                                                             domelement
+   * @param {Array<{name: String, tag: Number, label_ids: Array<Number>}>}        product_protos
+   * @param {Array<{id: Number, name: String, parent_id: Number}>}                tag_protos
+   * @param {Array<{
+   *            id: Number,
+   *            name: String,
+   *            type: String,
+   *            value_type: String,
+   *            labels: {
+   *              id: Number,
+   *              value: String|Number
+   *            }
+   *          }>} label_type_protos
    * @returns {Assortment}
    */
-  static generate(product_protos, tag_protos, label_protos, label_type_protos) {
-    let label_types = LabelType.generate_list(label_type_protos);
-    let labels = Label.generate_list(label_protos, label_types);
+  static generate(domelement, product_protos, tag_protos, label_type_protos) {
+    let [label_types, labels] = LabelType.generate_list(label_type_protos);
     let tags = Branch.generate_list(tag_protos);
     let products = Product.generate_list(product_protos, labels, tags);
-    return new Assortment(products, tags, labels, label_types);
+    return new Assortment(domelement, products, tags, labels, label_types);
+  }
+
+  /**
+   * @param {Element} domelement
+   */
+  static create_from_element(domelement){
+    var assortment_api_endpoint = domelement.dataset.apiEndpoint;
+    axios.get(`/api/assortment/${assortment_api_endpoint}`)
+      .then((response) => {
+        var label_types = response.data.label_types;
+        var tags = response.data.tags;
+        var products = response.data.products;
+
+        Assortment.generate(domelement, products, tags, label_types);
+      }).catch(
+        (error) => console.error(error)
+      )
   }
 
   /**
