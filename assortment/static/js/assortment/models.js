@@ -2,9 +2,9 @@
  * Created by Matthias on 11/04/2016.
  */
 
-import {SubscribeAble} from 'js/tools/tools'
+import {SubscribeAble} from 'js/tools/tools';
 import {FilterSet} from './filters';
-import {axios} from 'bower_components/axios/axios'
+import {AssortmentRenderer} from './render';
 
 /**
  * @class {LabelType}                                   LabelType
@@ -378,7 +378,7 @@ Branch.MATCHER = '[a-zA-Z0-9]+';
 /**
  * @class Assortment
  * @prop {String}                   query
- * @prop {Array<Tag>}               tags
+ * @prop {Array<Branch>}            branches
  * @prop {Array<Label>}             labels
  * @prop {Array<LabelType>}         label_types
  * @prop {FilterSet}                filter
@@ -387,20 +387,23 @@ export class Assortment {
   /**
    * @param {HTMLElement}           element
    * @param {Array<Product>}        products
-   * @param {Array<Branch>}         tags
+   * @param {Array<Branch>}         branches
    * @param {Array<Label>}          labels
    * @param {Array<LabelType>}      label_types
    */
-  constructor(element, products, tags, labels, label_types) {
+  constructor(element, products, branches, labels, label_types) {
     super();
     this.rootElement = element;
     this.name = element.dataset.name;
     this.query = '';
-    this.tags = tags;
+    this.branches = branches;
     this.labels = labels;
     this.label_types = label_types;
     this.products = products;
     this.filter = new FilterSet(this.query, this);
+
+    this.dom = domUpdater(AssortmentRenderer, element.firstElementChild);
+    this.dom.update(this);
   }
 
   /**

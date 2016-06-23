@@ -5,12 +5,30 @@
 import {Product, Branch} from './models';
 
 /**
- * @param {Function} emit
- * @param {Function} refresh
+ * @callback Emit
+ */
+
+/**
+ * @callback Refresh
+ */
+
+/**
+ * @param {Emit} emit
+ * @param {Refresh} refresh
+ * @returns {{render: renderProduct}}
  * @constructor
  */
 function ProductRenderer(emit, refresh) {
-  function render(product){
+  return {
+    render: renderProduct
+  };
+
+  /**
+   * @callback renderProduct
+   * @param {Product} product
+   * @returns {*[]}
+   */
+  function renderProduct(product){
     return [
       'div', {},
       [
@@ -24,12 +42,23 @@ function ProductRenderer(emit, refresh) {
   }
 }
 
+/**
+ * @param {Emit} emit
+ * @param {Refresh} refresh
+ * @returns {{render: renderAndProduct}}
+ * @constructor
+ */
 function AndProductRenderer(emit, refresh) {
+  return {
+    render: renderAndProduct
+  };
+
   /**
+   * @callback renderAndProduct
    * @param {AndProduct} andproduct
    * @returns {*[]}
    */
-  function render(andproduct){
+  function renderAndProduct(andproduct){
     return [
       'div', {},
       [
@@ -60,11 +89,22 @@ function AndProductRenderer(emit, refresh) {
   }
 }
 
+/**
+ * @param {Emit} emit
+ * @param {Refresh} refresh
+ * @returns {renderOrProduct}
+ */
 function OrProductRenderer(emit, refresh) {
+  return {
+    render: renderOrProduct
+  };
+
   /**
+   * @callback renderOrProduct
    * @param {OrProduct} orproduct
+   * @returns {*[]}
    */
-  function render(orproduct) {
+  function renderOrProduct(orproduct) {
     return [
       'div', {},
       [
@@ -95,15 +135,22 @@ function OrProductRenderer(emit, refresh) {
   }
 }
 
+/**
+ * @param {Emit} emit
+ * @param {Refresh} refresh
+ * @returns {{render: renderBranch}}
+ */
 function BranchRenderer(emit, refresh) {
   return {
-    render: render
+    render: renderBranch
   };
 
   /**
+   * @callback renderBranch
    * @param {Branch} branch
+   * @returns {*[]}
    */
-  function render(branch) {
+  function renderBranch(branch) {
     return [
       'div', {
         branch: branch.name,
@@ -129,15 +176,22 @@ function BranchRenderer(emit, refresh) {
   }
 }
 
+/**
+ * @param {Emit} emit
+ * @param {Refresh} refresh
+ * @returns {{render: renderProductList}}
+ */
 function ProductList(emit, refresh) {
   return {
-    render: render
+    render: renderProductList
   };
+
   /**
+   * @callback renderProductList
    * @param {Array<Product>} products
    * @returns {*[]}
    */
-  function render(products) {
+  function renderProductList(products) {
     return [
       'ul', {
         'class': 'product-list'
@@ -152,15 +206,22 @@ function ProductList(emit, refresh) {
   }
 }
 
-function BranchList(emit, refres) {
+/**
+ * @param {Emit} emit
+ * @param {Refresh} refresh
+ * @returns {{render: renderBranchList}}
+ */
+function BranchList(emit, refresh) {
   return {
     render: render
   };
 
   /**
+   * @callback renderBranchList
    * @param {Array<Branch>} branches
+   * @returns {*[]}
    */
-  function render(branches) {
+  function renderBranchList(branches) {
     return [
       'ul', {
         'class': 'branch-list'
@@ -172,5 +233,29 @@ function BranchList(emit, refres) {
         ]
       )
     ]
+  }
+}
+
+/**
+ * @param {Emit} emit
+ * @param {Refresh} refresh
+ * @returns {{render: renderAssortment}}
+ */
+export function AssortmentRenderer(emit, refresh) {
+  /**
+   * @type {{render: renderBranchList}}
+   */
+  const __super = BranchList(emit, refresh);
+
+  return {
+    render: renderAssortment
+  };
+
+  /**
+   * @param {Assortment} assortment
+   * @returns {*[]}
+   */
+  function renderAssortment(assortment) {
+    return __super.render(assortment.branches.filter((branch) => branch.parent !== null));
   }
 }

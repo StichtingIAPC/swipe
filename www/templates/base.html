@@ -11,6 +11,8 @@
         <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}" />
     {% endcompress %}
     {% compress js %}
+        <script type="application/javascript" src="{% static 'bower_components/domchanger/domchanger.js' %}"></script>
+        <script type="application/javascript" src="{% static 'bower_components/axios/dist/axios.js' %}"></script>
         <script type="module" src="{% static 'js/main.js' %}"></script>
     {% endcompress %}
 </head>
