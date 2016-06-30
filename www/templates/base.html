@@ -13,6 +13,18 @@
     {% compress js %}
         <script type="application/javascript" src="{% static 'bower_components/domchanger/domchanger.js' %}"></script>
         <script type="application/javascript" src="{% static 'bower_components/axios/dist/axios.js' %}"></script>
+        <script type="application/javascript">
+            /**
+             * @type { {
+             *   local: Object|Array,
+             *   global: Object|Array
+             * }}
+             */
+        window.swipe = {
+        {% if swipe_local_vars %}local: {{ swipe_local_vars }},{% endif %}
+            global: {{ SWIPE_JS_GLOBAL_VARS }}
+        };
+        </script>
         <script type="module" src="{% static 'js/main.js' %}"></script>
     {% endcompress %}
 </head>

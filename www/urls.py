@@ -20,4 +20,7 @@ urlpatterns = [
 
     # Include Money URLs
     url(r'^money/', include("money.urls")),
+
+    # Include API URLs
+    url(r'^api/', include('api.urls'), prefix='api'),
 ]

@@ -2,8 +2,10 @@
  * Created by Matthias on 11/04/2016.
  */
 
+import {MiniSignal} from 'bower_components/mini-signals/src/index';
+
 import {SubscribeAble} from 'js/tools/tools';
-import {FilterSet} from './filters';
+
 import {AssortmentRenderer} from './render';
 
 /**
@@ -130,6 +132,9 @@ class BaseArticle extends SubscribeAble {
     this.amount = amount;
     this.branch = branch;
     this.labels = labels;
+
+    this.click = new MiniSignal();
+    this.change = new MiniSignal();
 
     this.branch.add_product(this);
     this.labels.forEach(
@@ -325,7 +330,7 @@ export class Branch {
   }
 
   /**
-   * @param {Array<Branch>}            tags: A sparse array of tags, with id as their index.
+   * @param {Array<Branch>}         tags: A sparse array of tags, with id as their index.
    */
   post_init(tags) {
     this.parent = tags[this.parent_id];
@@ -333,7 +338,7 @@ export class Branch {
   }
 
   /**
-   * @param {Product}               product
+   * @param {BaseArticle}           product
    */
   add_product(product) {
     this.products.push(product);
@@ -381,7 +386,6 @@ Branch.MATCHER = '[a-zA-Z0-9]+';
  * @prop {Array<Branch>}            branches
  * @prop {Array<Label>}             labels
  * @prop {Array<LabelType>}         label_types
- * @prop {FilterSet}                filter
  */
 export class Assortment {
   /**
@@ -400,7 +404,6 @@ export class Assortment {
     this.labels = labels;
     this.label_types = label_types;
     this.products = products;
-    this.filter = new FilterSet(this.query, this);
 
     this.dom = domUpdater(AssortmentRenderer, element.firstElementChild);
     this.dom.update(this);
@@ -450,6 +453,7 @@ export class Assortment {
    * @param query
    */
   search(query) {
-    this.filter.update(query);
+    this.query = query;
+    axios.get(window.swipe.global.api.assortment)
   }
 }

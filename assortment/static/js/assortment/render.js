@@ -30,7 +30,9 @@ function ProductRenderer(emit, refresh) {
    */
   function renderProduct(product){
     return [
-      'div', {},
+      'div', {
+        class: 'product-description'
+      },
       [
         'p', product.amount
       ], [
@@ -64,7 +66,7 @@ function AndProductRenderer(emit, refresh) {
       [
         'div',
         {
-          class: 'product-description'
+          class: 'product-description and-product'
         },
         [ 'span', { class: 'product-amount' }, andproduct.amount ],
         [ 'span', { class: 'product-name' }, andproduct.name ],
@@ -96,7 +98,8 @@ function AndProductRenderer(emit, refresh) {
  */
 function OrProductRenderer(emit, refresh) {
   return {
-    render: renderOrProduct
+    render: renderOrProduct,
+    cleanup: cleanUpOrProductRenderer
   };
 
   /**
@@ -105,12 +108,13 @@ function OrProductRenderer(emit, refresh) {
    * @returns {*[]}
    */
   function renderOrProduct(orproduct) {
+
     return [
       'div', {},
       [
         'div',
         {
-          class: 'product-description'
+          class: 'product-description or-product'
         },
         [ 'span', { class: 'product-amount' }, orproduct.amount ],
         [ 'span', { class: 'product-name' }, orproduct.name ],
@@ -132,6 +136,13 @@ function OrProductRenderer(emit, refresh) {
         )
       ]
     ];
+  }
+
+  /**
+   *
+   */
+  function cleanUpOrProductRenderer() {
+
   }
 }
 

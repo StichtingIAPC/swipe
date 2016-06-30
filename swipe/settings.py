@@ -12,6 +12,10 @@ import sys
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from django.core.urlresolvers import reverse_lazy
+
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -79,6 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'tools.context_preprocessors.swipe_globals',
             ],
         },
     },
@@ -265,6 +270,12 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 
 # Current currency. Transactions are only possible with this currency
 USED_CURRENCY = "EUR"
+
+SWIPE_JS_GLOBAL_VARS = {
+    'api': {
+        'assortment': reverse_lazy('api.assortment'),
+    },
+}
 
 ##
 # WARNING: Add own settings ABOVE this comment.
