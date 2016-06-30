@@ -43,7 +43,7 @@ class VATLevelField(models.DecimalField):
 
     def __init__(self, *args, **kwargs):
         kwargs['decimal_places'] = 6
-        kwargs['max_digits'] = 8
+        kwargs['max_digits'] = 15
 
         super(VATLevelField, self).__init__(*args, **kwargs)
 
