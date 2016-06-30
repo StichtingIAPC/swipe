@@ -15,8 +15,6 @@ class WishableType(models.Model):
             raise AbstractClassInitializationError("Abstract class cannot be initialized")
         super(WishableType, self).save(*args, **kwargs)
 
-    def get_name(self):
-        return self.name
 
     def get_expected_sales_price(self):
         return None
@@ -36,7 +34,8 @@ class ArticleType(SellableType):
     def __str__(self):
         return self.get_name()
 
-    def get_vat(self):
+    @property
+    def vat(self):
         return self.book_keeping_group.vat_group
 
     def calculate_sales_price(self, cost):
@@ -75,6 +74,9 @@ class ProductCombination(models.Model):
     def __str__(self):
         return "{}:{}x; Member of {}".format(self.article_type.name, self.amount, self.and_product.name)
 
+    class Meta:
+        unique_together = ("article_type", "and_product")
+
 
 class OtherCostType(SellableType):
     # Product that does not enter stock
@@ -82,9 +84,6 @@ class OtherCostType(SellableType):
 
     def get_sales_price(self):
         return self.fixed_price
-
-    def get_name(self):
-        return self.name
 
     def get_expected_sales_price(self):
         return self.get_sales_price()
