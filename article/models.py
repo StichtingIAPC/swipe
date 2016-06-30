@@ -1,8 +1,6 @@
 from decimal import Decimal
 from django.db import models
-from money.models import SalesPrice
-from register.models import AccountingGroup
-from money.models import MoneyField
+from money.models import SalesPrice, MoneyField, AccountingGroup
 
 
 class WishableType(models.Model):
