@@ -16,26 +16,14 @@ class ArticleBasicTests(TestCase):
         self.acc_group.accounting_number = 2
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
-        DEBUG = True
-        DJANGO_LOG_LEVEL = DEBUG
 
     def test_illegal_save(self):
         generic_wishable_type = WishableType()
         generic_wishable_type.name = "foo"
-        blocked = False
-        try:
-            generic_wishable_type.save()
-        except AbstractClassInitializationError:
-            blocked = True
-        assert blocked
+        self.assertRaises(AbstractClassInitializationError, generic_wishable_type.save)
         generic_wishable_type = SellableType()
         generic_wishable_type.name = "foo"
-        blocked = False
-        try:
-            generic_wishable_type.save()
-        except AbstractClassInitializationError:
-            blocked = True
-        assert blocked
+        self.assertRaises(AbstractClassInitializationError, generic_wishable_type.save)
 
     def test_legal_save(self):
         article_type = ArticleType()
@@ -61,10 +49,10 @@ class ArticleBasicTests(TestCase):
             article_type.name = "Foo"
             article_type.accounting_group = self.acc_group
             article_type.save()
-            assert (article_type.get_name() == "Foo")
+            assert (article_type.name == "Foo")
             results = WishableType.objects.select_related().all()
             for result in results:
-                assert result.sellabletype.articletype.get_name() == "Foo"
+                assert result.sellabletype.articletype.name == "Foo"
                 if hasattr(result,"sellabletype"):
                     if hasattr(result.sellabletype,"articletype"):
                         assert(result.sellabletype.articletype.accounting_group.accounting_number == 2)
