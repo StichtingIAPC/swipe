@@ -32,7 +32,7 @@ class ArticleType(SellableType):
     accounting_group = models.ForeignKey(AccountingGroup)
 
     def __str__(self):
-        return self.get_name()
+        return self.name
 
     @property
     def vat(self):
