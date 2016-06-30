@@ -21,6 +21,40 @@ class AssortmentArticleBranch(models.Model):
     parent_tag = models.ForeignKey('AssortmentArticleBranch', blank=True, null=True)
     presumed_labels = models.ManyToManyField('AssortmentLabelType')
 
+    def save(self, *args, **kwargs):
+        if self.turtle_and_hare():
+            raise ValidationError('Cannot save branch with cyclic dependency')
+
+        if self.parent_tag is not None:
+            return super().save(*args, **kwargs)
+
+        nulls = AssortmentArticleBranch.objects.filter(parent_tag__isnull=True)
+        if len(nulls) is not 0 and not (len(nulls) is 1 and self in nulls):
+            raise ValidationError('Cannot save branch: Assortment already has a root')
+
+        super().save(*args, **kwargs)
+
+    def turtle_and_hare(self):
+
+        if self.parent_tag is self:
+            return True
+
+        turtle, hare = self.parent_tag, self.parent_tag
+
+        while hare is not None:
+            hare = hare.parent_tag
+
+            if hare is None:
+                return False
+
+            if turtle is hare:
+                return True
+            turtle, hare = turtle.parent_tag, hare.parent_tag
+            if turtle is hare:
+                return True
+
+        return False
+
 
 class AssortmentLabel(models.Model):
     """
