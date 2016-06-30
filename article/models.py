@@ -1,11 +1,13 @@
 from decimal import Decimal
 from django.db import models
-from money.models import SalesPrice
-from register.models import AccountingGroup
+
+from assortment.models import AssortmentLabel
+from money.models import SalesPrice, AccountingGroup
 from money.models import MoneyField
 
 
 class WishableType(models.Model):
+    labels = models.ManyToManyField(AssortmentLabel)
 
     name = models.CharField(max_length=255)
 
