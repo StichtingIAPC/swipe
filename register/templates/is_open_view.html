@@ -1,0 +1,13 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'IsTheRegisterOpen '%}{% endblock %}`s
+
+{% block content %}
+    {% if is_open  %}
+        OPENED (<a href="/register/close">close now</a>)
+    {% else %}
+        CLOSED (<a href="/register/open">open now</a>)
+    {% endif %}
+{% endblock %}

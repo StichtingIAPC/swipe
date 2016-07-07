@@ -1,6 +1,5 @@
 from decimal import Decimal
 from django.db import models
-
 from django.core.validators import RegexValidator
 
 # Based on https://git.iapc.utwente.nl/swipe/swipe-design/issues/22
@@ -44,7 +43,7 @@ class VATLevelField(models.DecimalField):
 
     def __init__(self, *args, **kwargs):
         kwargs['decimal_places'] = 6
-        kwargs['max_digits'] = 8
+        kwargs['max_digits'] = 15
 
         super(VATLevelField, self).__init__(*args, **kwargs)
 
