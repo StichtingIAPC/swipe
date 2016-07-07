@@ -2,7 +2,7 @@
   "licence": "BSD-3-Clause",
   "dependencies": {
     "autoprefixer": "^6.3.6",
-    "babel-preset-es2016": "^6.0.11",
+    "babel-preset-es2016": "6.0.11",
     "babelify": "^7.2.0",
     "bower": "^1.7.9",
     "browserify": "^13.0.1",
