@@ -1,4 +1,5 @@
 from django.test import TestCase
+from unittest import skip
 from article.models import *
 from money.models import *
 from order.models import *
@@ -30,9 +31,11 @@ class OrderTest(TestCase):
         self.copro = User()
         self.copro.save()
 
+        self.order = Order(copro=self.copro, customer=self.customer)
+        self.order.save()
+
+    @skip("Can be big")
     def test_save_speed(self):
-        b=[None]*1001
-        b[1000]
         big_order=Order(copro=self.copro, customer=self.customer)
         big_order.save()
         orderlines = []
@@ -42,3 +45,61 @@ class OrderTest(TestCase):
 
         for ol in orderlines:
             ol.save()
+
+    def test_orderline_storing(self):
+        # Simple orderline with customer order
+        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol.save()
+        orderlinestates = OrderLineState.objects.filter(orderline=ol)
+
+        assert orderlinestates[0].state == 'O'  # States must match
+        assert len(orderlinestates) == 1  # Orderlinestate must be automatically added
+
+        ol2 = OrderLine(order=self.order, wishable=self.article_type, state='L')
+        ol2.save()
+        orderlinestates = OrderLineState.objects.filter(orderline=ol2)
+        assert orderlinestates[0].state == 'L'  # Self applied state
+        assert len(orderlinestates) == 1  # Exactly one state
+
+    def test_illegal_state(self):
+        #State must be valid
+        try:
+            excepted = False
+            ol = OrderLine(order=self.order, wishable=self.article_type, state='G')
+            ol.save()
+        except AssertionError:
+            excepted = True
+        assert excepted
+
+    def test_transitions(self):
+        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol.save()
+        orderlinestates = OrderLineState.objects.filter(orderline=ol)
+        assert ol.state == 'O'
+        assert len(orderlinestates) == 1
+        ol.order_at_supplier()
+        orderlinestates = OrderLineState.objects.filter(orderline=ol)
+        assert ol.state == 'L'
+        assert len(orderlinestates) == 2
+        ol.arrive_at_store()
+        orderlinestates = OrderLineState.objects.filter(orderline=ol)
+        assert ol.state == 'A'
+        assert len(orderlinestates) == 3
+        ol.sell()
+        orderlinestates = OrderLineState.objects.filter(orderline=ol)
+        assert ol.state == 'S'
+        assert len(orderlinestates) == 4
+
+    def test_illegal_transition(self):
+        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol.save()
+        orderlinestates = OrderLineState.objects.filter(orderline=ol)
+        assert ol.state == 'O'
+        assert len(orderlinestates) == 1
+        caught = False
+        try:
+            ol.sell()
+        except IncorrectTransitionError:
+            caught = True
+        assert caught
+
