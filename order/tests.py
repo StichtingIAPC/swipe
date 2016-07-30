@@ -25,6 +25,9 @@ class OrderTest(TestCase):
         self.article_type = ArticleType(accounting_group=self.acc_group,name="Foo")
         self.article_type.save()
 
+        self.at2 = ArticleType(accounting_group=self.acc_group,name="Bar")
+        self.at2.save()
+
         self.customer = Person()
         self.customer.save()
 
@@ -34,7 +37,7 @@ class OrderTest(TestCase):
         self.order = Order(copro=self.copro, customer=self.customer)
         self.order.save()
 
-    @skip("Can be big")
+    @skip("Skipped labour intensive test")
     def test_save_speed(self):
         big_order=Order(copro=self.copro, customer=self.customer)
         big_order.save()
@@ -61,8 +64,16 @@ class OrderTest(TestCase):
         assert orderlinestates[0].state == 'L'  # Self applied state
         assert len(orderlinestates) == 1  # Exactly one state
 
+        ol3 = OrderLine()
+        caught = False
+        try:
+            ol3.save()
+        except AssertionError:
+            caught = True
+        assert caught
+
     def test_illegal_state(self):
-        #State must be valid
+        # State must be valid
         try:
             excepted = False
             ol = OrderLine(order=self.order, wishable=self.article_type, state='G')
@@ -72,6 +83,7 @@ class OrderTest(TestCase):
         assert excepted
 
     def test_transitions(self):
+        # Assert transitions for a single orderline
         ol = OrderLine(order=self.order, wishable=self.article_type)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
@@ -103,3 +115,30 @@ class OrderTest(TestCase):
             caught = True
         assert caught
 
+    def test_order_storage(self):
+        order = Order(copro=self.copro, customer=self.customer)
+        orderlines = []
+        orderlines.append(OrderLine(wishable=self.article_type))
+        orderlines.append(OrderLine(wishable=self.article_type))
+        orderlines.append(OrderLine(wishable=self.article_type))
+        Order.make_order(order, orderlines)
+        ols = OrderLine.objects.filter(order=order)
+        assert len(ols) == 3
+        assert ols[0].state == 'O'
+
+    def test_add_group_of_wishables(self):
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 50)
+        assert len(orderlines) == 50
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 10)
+        assert len(orderlines) == 60
+        order = Order(copro=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines)
+
+    def test_print_ol(self):
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3)
+        order = Order(copro=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines)
+        print(order.print_orderline_info())

@@ -13,11 +13,61 @@ class Order(models.Model):
 
     copro = models.ForeignKey(User)
 
+    @staticmethod
+    def make_order(order, orderlines):
+        """
+        Creates a new order with the specified orderlines. Order must be unsaved.
+        The orderlines need to be valid unsaved orderlines.
+        :param order: The order that needs to be saved
+        :param orderlines: The orderlines that need to be connected to the order and saved
+        """
+        assert type(order) == Order
+        for ol in orderlines:
+            assert type(ol) == OrderLine
+        order.save()
+        for ol in orderlines:
+            ol.order = order
+            ol.save()
+
+    def __str__(self):
+        return "Customer: {}, Copro: {}, Date: {} ".format(self.customer, self.copro, self.date)
+
+    def print_orderline_info(self):
+        if not self.pk > 0:
+            print("Unstored")
+            return
+        orderlines = OrderLine.objects.filter(order=self)
+        summary = []
+        if len(orderlines) == 0:
+            print("Empty")
+            return
+        wishable=0
+        state="-"
+        counter=-1
+        for i in range(0, len(orderlines)):
+            if orderlines[i].wishable.id == wishable and orderlines[i].state == state:
+                summary[counter][2] += 1 # Increment object with same state
+            else:
+                #Create new object in summary list
+                counter += 1
+                summary.append([orderlines[i].wishable.name, orderlines[i].state, 1])
+                wishable = orderlines[i].wishable.id
+                state = orderlines[i].state
+
+        print("{:<7}{:14}{:12}".format("Number", "Article", "Status"))
+        for j in range(0, len(summary)):
+            print("{:<7}{:14}{:12}".format(summary[j][2], summary[j][0], OrderLineState.OL_STATE_MEANING[summary[j][1]]))
+
+
+
+
+
 
 class OrderLineState(models.Model):
     # A representation of the state of a orderline
     OL_STATE_CHOICES = ('O', 'L', 'A', 'C', 'S')
-    OL_STATE_MEANING = (('O', 'Ordered by Customer'), ('L', 'Ordered at Supplier'), ('A', 'Arrived at Store'), ('C', 'Cancelled'), ('S', 'Sold'))
+    OL_STATE_MEANING = {'O': 'Ordered by Customer', 'L': 'Ordered at Supplier',
+                        'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold'}
 
     state = models.CharField(max_length=3, choices=OL_STATE_CHOICES)
 
@@ -47,8 +97,8 @@ class OrderLine(models.Model):
                 self.state = 'O'
             else:
                 ol_state = OrderLineState(state=self.state)
-            assert self.order  # Order must exist
-            assert self.wishable  # Type must exist
+            assert hasattr(self, 'order')  # Order must exist
+            assert hasattr(self, 'wishable')  # Type must exist
             assert self.state in OrderLineState.OL_STATE_CHOICES
             super(OrderLine, self).save()
             ol_state.orderline = self
@@ -69,21 +119,21 @@ class OrderLine(models.Model):
             raise IncorrectTransitionError("New state is not a valid state")
         else:
             if self.state == 'O':
-                if new_state == 'C' or new_state == 'L':
+                if new_state in ('C', 'L'):
                     self.state = new_state
                     ols = OrderLineState(state=new_state, orderline=self)
                     ols.save()
                 else:
                     raise IncorrectTransitionError("This transition is not legal")
             elif self.state == 'L':
-                if new_state == 'A':
+                if new_state in ('A'):
                     self.state = new_state
                     ols = OrderLineState(state=new_state, orderline=self)
                     ols.save()
                 else:
                     raise IncorrectTransitionError("This transition is not legal")
             elif self.state == 'A':
-                if new_state == 'S':
+                if new_state in ('S'):
                     self.state = new_state
                     ols = OrderLineState(state=new_state, orderline=self)
                     ols.save()
@@ -103,6 +153,27 @@ class OrderLine(models.Model):
 
     def cancel(self):
         self.transition('C')
+
+    def __str__(self):
+        if not hasattr(self,'order'):
+            ordr = 'No order'
+        else:
+            ordr = self.order.pk
+
+        return "Order: {}, Wishable: {}, State: {}".format(ordr, self.wishable, self.state)
+
+    @staticmethod
+    def add_orderlines_to_list(orderlinelist, wishable_type, number):
+        """
+        Adds a number of orderlines of a certain wishabletype to the orderlinelist
+        :param orderlinelist: List to be amended, should only contain orderlines
+        :param wishable_type: a wishabletype
+        :param number: number of orderlines to add
+        """
+        assert type(number) == int
+        assert number >= 1
+        for i in range(1, number+1):
+            orderlinelist.append(OrderLine(wishable=wishable_type))
 
 
 class OrderLineNotSavedError(Exception):
