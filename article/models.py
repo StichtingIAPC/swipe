@@ -37,7 +37,7 @@ class ArticleType(SellableType):
         return self.get_name()
 
     def get_vat(self):
-        return self.book_keeping_group.vat_group
+        return self.accounting_group.vat_group.vatrate
 
     def calculate_sales_price(self, cost):
         return SalesPrice(cost=cost.amount, vat=self.accounting_group.vat_group.vatrate, currency=cost.currency,

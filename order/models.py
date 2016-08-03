@@ -1,6 +1,7 @@
 from django.db import models
 from crm.models import *
 from article.models import *
+from money.models import *
 
 # Create your models here.
 
@@ -69,7 +70,7 @@ class OrderLineState(models.Model):
     OL_STATE_MEANING = {'O': 'Ordered by Customer', 'L': 'Ordered at Supplier',
                         'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold'}
 
-    state = models.CharField(max_length=3, choices=OL_STATE_CHOICES)
+    state = models.CharField(max_length=3)
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -78,6 +79,10 @@ class OrderLineState(models.Model):
     def __str__(self):
         return "Orderline_id: {}, State: {}, Timestamp: {}".format(self.orderline.pk, self.state, self.timestamp)
 
+    def save(self):
+        assert self.state in OrderLineState.OL_STATE_CHOICES
+        super(OrderLineState, self).save()
+
 
 class OrderLine(models.Model):
     # An order of a customer for a single product of a certain type
@@ -85,7 +90,14 @@ class OrderLine(models.Model):
 
     wishable = models.ForeignKey(WishableType)
 
-    state = models.CharField(max_length=3, choices=OrderLineState.OL_STATE_CHOICES)
+    state = models.CharField(max_length=3)
+
+    expected_sales_price = MoneyField(no_currency_field=True)
+
+    currency = models.CharField(max_length=3)
+
+    vat_rate = VATLevelField()
+
 
     def get_type(self):
         return type(self)
@@ -100,6 +112,12 @@ class OrderLine(models.Model):
             assert hasattr(self, 'order')  # Order must exist
             assert hasattr(self, 'wishable')  # Type must exist
             assert self.state in OrderLineState.OL_STATE_CHOICES
+            if self.expected_sales_price is None:
+                self.expected_sales_price = 0.0
+            self.vat_rate = self.wishable.get_vat()  # Retrieves VAT-rate from wishable
+            self.currency=CurrencyField("ABC")
+            #self.currency = CurrencyField(OrderLine.get_system_currency())  # Gets currency from system
+            #print(self.currency)
             super(OrderLine, self).save()
             ol_state.orderline = self
             ol_state.save()
@@ -163,7 +181,7 @@ class OrderLine(models.Model):
         return "Order: {}, Wishable: {}, State: {}".format(ordr, self.wishable, self.state)
 
     @staticmethod
-    def add_orderlines_to_list(orderlinelist, wishable_type, number):
+    def add_orderlines_to_list(orderlinelist, wishable_type, number, price):
         """
         Adds a number of orderlines of a certain wishabletype to the orderlinelist
         :param orderlinelist: List to be amended, should only contain orderlines
@@ -173,7 +191,12 @@ class OrderLine(models.Model):
         assert type(number) == int
         assert number >= 1
         for i in range(1, number+1):
-            orderlinelist.append(OrderLine(wishable=wishable_type))
+            ol=OrderLine(wishable=wishable_type, expected_sales_price=price)
+            orderlinelist.append(ol)
+
+    @staticmethod
+    def get_system_currency():
+        return 'ABC'
 
 
 class OrderLineNotSavedError(Exception):

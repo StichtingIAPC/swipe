@@ -128,17 +128,17 @@ class OrderTest(TestCase):
 
     def test_add_group_of_wishables(self):
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 50)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 50, 1.1)
         assert len(orderlines) == 50
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, 10)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 10, 1.2)
         assert len(orderlines) == 60
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
 
     def test_print_ol(self):
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5)
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, 1.1)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
         print(order.print_orderline_info())
