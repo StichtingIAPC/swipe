@@ -42,26 +42,30 @@ class Order(models.Model):
         if len(orderlines) == 0:
             print("Empty")
             return
-        wishable=0
-        state="-"
-        counter=-1
+        wishable = 0
+        state = "-"
+        price = Price(amount=Decimal(1), currency=Currency(iso='XXX'), vat=1)
+        counter = -1
         for i in range(0, len(orderlines)):
-            if orderlines[i].wishable.id == wishable and orderlines[i].state == state:
-                summary[counter][2] += 1 # Increment object with same state
+            if orderlines[i].wishable.id == wishable and orderlines[i].state == state and \
+                    orderlines[i].expected_sales_price == price:
+                summary[counter][3] += 1  # Increment object with same state
             else:
-                #Create new object in summary list
+                # Create new object in summary list
                 counter += 1
-                summary.append([orderlines[i].wishable.name, orderlines[i].state, 1])
+                summary.append([orderlines[i].wishable.name, orderlines[i].state,
+                                orderlines[i].expected_sales_price, 1])
+                price = orderlines[i].expected_sales_price
                 wishable = orderlines[i].wishable.id
                 state = orderlines[i].state
 
-        print("{:<7}{:14}{:12}".format("Number", "Article", "Status"))
+        print("{:<7}{:14}{:10}{:12}".format("Number", "Article", "ExpPrice", "Status"))
         for j in range(0, len(summary)):
-            print("{:<7}{:14}{:12}".format(summary[j][2], summary[j][0], OrderLineState.OL_STATE_MEANING[summary[j][1]]))
-
-
-
-
+            dec = summary[j][2].amount
+            dec = dec.quantize(Decimal('0.01'))
+            print("{:<7}{:14}{:10}{:12}".format(summary[j][3], summary[j][0],
+                                                summary[j][2].currency.iso + str(dec),
+                                                OrderLineState.OL_STATE_MEANING[summary[j][1]]))
 
 
 class OrderLineState(models.Model):
@@ -84,6 +88,13 @@ class OrderLineState(models.Model):
         super(OrderLineState, self).save()
 
 
+class PriceImitator:
+    def __init__(self, amount=-1, currency=None, vat=None):
+        self.amount = amount
+        self.currency = currency
+        self.vat = vat
+
+
 class OrderLine(models.Model):
     # An order of a customer for a single product of a certain type
     order = models.ForeignKey(Order)
@@ -92,12 +103,21 @@ class OrderLine(models.Model):
 
     state = models.CharField(max_length=3)
 
-    expected_sales_price = MoneyField(no_currency_field=True)
+    expected_sales_price = PriceField()
 
-    currency = models.CharField(max_length=3)
+    temp = PriceImitator()  # Workaround for getting Price to accept input
 
-    vat_rate = VATLevelField()
-
+    @staticmethod
+    def create_orderline(order=Order(), wishable=None, state=None, price_imitator=None):
+        """
+        Function intended to create orderlines. Evades high demands of Price-class. Sets up the basics needed. The rest
+        is handled by the save function of orderlines.
+        """
+        assert wishable
+        ol = OrderLine(order=order, wishable=wishable, state=state)
+        if type(price_imitator) == PriceImitator:
+            ol.temp = price_imitator
+        return ol
 
     def get_type(self):
         return type(self)
@@ -112,12 +132,13 @@ class OrderLine(models.Model):
             assert hasattr(self, 'order')  # Order must exist
             assert hasattr(self, 'wishable')  # Type must exist
             assert self.state in OrderLineState.OL_STATE_CHOICES
-            if self.expected_sales_price is None:
-                self.expected_sales_price = 0.0
-            self.vat_rate = self.wishable.get_vat()  # Retrieves VAT-rate from wishable
-            self.currency=CurrencyField("ABC")
-            #self.currency = CurrencyField(OrderLine.get_system_currency())  # Gets currency from system
-            #print(self.currency)
+            curr = Currency(iso=OrderLine.get_system_currency())
+            if self.temp is None:
+                self.temp = PriceImitator(amount=-1)
+            self.temp.currency = curr
+            self.temp.vat = self.wishable.get_vat()
+            pr = Price(amount=Decimal(self.temp.amount), currency=self.temp.currency, vat=self.temp.vat)
+            self.expected_sales_price = pr
             super(OrderLine, self).save()
             ol_state.orderline = self
             ol_state.save()
@@ -173,12 +194,15 @@ class OrderLine(models.Model):
         self.transition('C')
 
     def __str__(self):
-        if not hasattr(self,'order'):
+        if not hasattr(self, 'order'):
             ordr = 'No order'
         else:
             ordr = self.order.pk
 
-        return "Order: {}, Wishable: {}, State: {}".format(ordr, self.wishable, self.state)
+        return "Order: {}, Wishable: {}, State: {}, Expected Sales Price: {}, Currency: {}, Vat-rate: {}".\
+            format(ordr, self.wishable, self.state, self.expected_sales_price.amount,
+                   self.expected_sales_price_currency,
+                   self.expected_sales_price_vat)
 
     @staticmethod
     def add_orderlines_to_list(orderlinelist, wishable_type, number, price):
@@ -187,11 +211,13 @@ class OrderLine(models.Model):
         :param orderlinelist: List to be amended, should only contain orderlines
         :param wishable_type: a wishabletype
         :param number: number of orderlines to add
+        :param price: Value as a float
         """
         assert type(number) == int
         assert number >= 1
-        for i in range(1, number+1):
-            ol=OrderLine(wishable=wishable_type, expected_sales_price=price)
+        for i in range(1, number + 1):
+            p = PriceImitator(amount=price, currency=None, vat=None)
+            ol = OrderLine.create_orderline(wishable=wishable_type, price_imitator=p)
             orderlinelist.append(ol)
 
     @staticmethod
