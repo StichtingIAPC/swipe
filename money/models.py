@@ -179,7 +179,7 @@ class CurrencyField(models.CharField):
 # Money describes a monetary value. It would be used to describe both cost and price values.
 # Generally Money itself isn't used in business logic, instead, price and cost are used.
 # This is intended as a 'smart'  version of a decimal, but in most cases you should look at Price, CostPrice or Cost,
-# these are the droids you are looking for.
+# these are the droids you are looking for (In models: PriceField, CostPriceField, CostField).
 class MoneyField(models.DecimalField):
     description = ugettext_lazy('An amount and type of currency')
 
