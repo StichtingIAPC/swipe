@@ -151,3 +151,13 @@ class OrderTest(TestCase):
         ol.save()
         ol2=OrderLine.objects.get()
         assert ol2.expected_sales_price_currency == "USD"
+
+    def test_olc(self):
+        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol.temp = PriceImitator(amount=2, currency=self.currency)
+        ol.save()
+        order = Order(copro=self.copro, customer=self.customer)
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
+        Order.make_order(order, orderlines)
+        OrderCombinationLine.get_ol_combinations()

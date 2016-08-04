@@ -2,6 +2,7 @@ from django.db import models
 from crm.models import *
 from article.models import *
 from money.models import *
+from django.db.models import Count
 
 # Create your models here.
 
@@ -37,7 +38,7 @@ class Order(models.Model):
         if not self.pk > 0:
             print("Unstored")
             return
-        orderlines = OrderLine.objects.filter(order=self)
+        orderlines = OrderLine.objects.filter(order=self).order_by('wishable')
         summary = []
         if len(orderlines) == 0:
             print("Empty")
@@ -224,6 +225,40 @@ class OrderLine(models.Model):
     @staticmethod
     def get_system_currency():
         return 'ABC'
+
+class OrderCombinationLine():
+    """
+    Line that combines similar orderlines into one to reduce overal size
+    """
+    pass
+
+    number = 0
+
+    wishable = WishableType
+
+    price = Price
+
+    status = ""
+
+    def __str__(self):
+        return "{:<7}{:14}{:10}{:12}".format(self.number, self.wishable, self.price.currency.iso+str(self.price.amount),
+                                             self.status)
+
+    @staticmethod
+    def get_ol_combinations(order=None, wishable=None, state=None):
+        filter={}
+        if order:
+            filter['order'] = order
+        if wishable:
+            filter['wishable'] = wishable
+        if state:
+            filter['state'] = state
+
+        orderlines = OrderLine.objects.filter(**filter).\
+                    values('wishable', 'state', 'expected_sales_price').annotate(Count('id'))
+        #for o in orderlines:
+            #print(o)
+
 
 
 class OrderLineNotSavedError(Exception):
