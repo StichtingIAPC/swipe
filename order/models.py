@@ -134,8 +134,9 @@ class OrderLine(models.Model):
             assert self.state in OrderLineState.OL_STATE_CHOICES
             curr = Currency(iso=OrderLine.get_system_currency())
             if self.temp is None:
-                self.temp = PriceImitator(amount=-1)
-            self.temp.currency = curr
+                self.temp = PriceImitator(amount=-1, currency=curr)
+            if self.temp.currency is None:
+                self.temp.currency = curr
             self.temp.vat = self.wishable.get_vat()
             pr = Price(amount=Decimal(self.temp.amount), currency=self.temp.currency, vat=self.temp.vat)
             self.expected_sales_price = pr

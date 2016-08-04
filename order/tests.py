@@ -17,6 +17,8 @@ class OrderTest(TestCase):
         self.vat_group.vatrate=1.12
         self.vat_group.save()
 
+        self.currency = Currency(iso="USD")
+
         self.acc_group = AccountingGroup()
         self.acc_group.accounting_number = 2
         self.acc_group.vat_group = self.vat_group
@@ -142,3 +144,10 @@ class OrderTest(TestCase):
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
         print(order.print_orderline_info())
+
+    def test_alt_currency(self):
+        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol.temp = PriceImitator(amount=2, currency=self.currency)
+        ol.save()
+        ol2=OrderLine.objects.get()
+        assert ol2.expected_sales_price_currency == "USD"
