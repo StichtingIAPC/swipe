@@ -2,7 +2,8 @@
  * Created by Matthias on 11/04/2016.
  */
 
-import {Product, Branch} from './models';
+import {Product, OrProduct, AndProduct, Branch} from 'js/assortment/models';
+import _ from 'js/tools/translations'
 
 /**
  * @callback Emit
@@ -12,13 +13,83 @@ import {Product, Branch} from './models';
  * @callback Refresh
  */
 
+function ProductDescription(emit, refresh) {
+  return {
+    render: renderer
+  };
+  function renderer(product) {
+    return [
+      'div', {
+        class: 'product-description'
+      },
+      [
+        'span', {
+          class: 'name'
+        },
+        `${product.name}`
+      ],
+      [
+        'span', {
+          class: `amount ${product.amount_str}`
+        },
+        `${product.amount ? product.amount : 0}`
+      ],
+      [
+        'span', {
+          class: 'spacer'
+        }
+      ],
+      [
+        'span', {
+          class: 'price'
+        },
+        `${product.price.toFixed(2)}`
+      ]
+    ]
+  }
+}
+
+function NoItems(emit, refresh) {
+  return {
+    render: renderer
+  };
+
+  function renderer() {
+    return [
+      'div', {
+        class: 'tree-list tree-list-info'
+      },
+      _('no contained items')
+    ]
+  }
+}
+
+function insert_toggle(unique_name, active) {
+  return [
+    [
+      'input', {
+        type: 'checkbox',
+        class: 'opening-mechanism',
+        id: unique_name,
+        hidden: 'true'
+      }
+    ],
+    [
+      'label', {
+        for: unique_name,
+        class: 'opening-mechanism'
+      }
+    ]
+  ]
+}
+
 /**
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {{render: renderProduct}}
  * @constructor
  */
-function ProductRenderer(emit, refresh) {
+export function ProductRenderer(emit, refresh) {
   return {
     render: renderProduct
   };
@@ -26,20 +97,16 @@ function ProductRenderer(emit, refresh) {
   /**
    * @callback renderProduct
    * @param {Product} product
+   * @param {Boolean} open
+   * @param {String} prefix
    * @returns {*[]}
    */
-  function renderProduct(product){
+  function renderProduct(product, open, prefix){
     return [
       'div', {
-        class: 'product-description'
+        class: 'product'
       },
-      [
-        'p', product.amount
-      ], [
-        'span', {}, product.name
-      ], [
-        'span', {}, product.price
-      ]
+      [ProductDescription, product]
     ]
   }
 }
@@ -50,7 +117,7 @@ function ProductRenderer(emit, refresh) {
  * @returns {{render: renderAndProduct}}
  * @constructor
  */
-function AndProductRenderer(emit, refresh) {
+export function AndProductRenderer(emit, refresh) {
   return {
     render: renderAndProduct
   };
@@ -58,35 +125,18 @@ function AndProductRenderer(emit, refresh) {
   /**
    * @callback renderAndProduct
    * @param {AndProduct} andproduct
+   * @param {Boolean} open
+   * @param {String} prefix
    * @returns {*[]}
    */
-  function renderAndProduct(andproduct){
+  function renderAndProduct(andproduct, open, prefix){
     return [
-      'div', {},
-      [
-        'div',
-        {
-          class: 'product-description and-product'
-        },
-        [ 'span', { class: 'product-amount' }, andproduct.amount ],
-        [ 'span', { class: 'product-name' }, andproduct.name ],
-        [ 'span', { class: 'product-price' }, andproduct.price]
-      ],
-      [
-        'div',
-        {
-          class: 'product-list'
-        },
-        andproduct.contained_products.map(
-          (component) -> [
-            'div',
-            {},
-            [ 'span', { class: 'product-amount' }, component.amount ],
-            [ 'span', { class: 'product-name' }, component.product.name ],
-            [ 'span', { class: 'product-price' }, component.product.price]
-          ]
-        )
-      ]
+      'div', {
+        class: `product and-product`
+      },
+      insert_toggle(`${prefix}-product-${andproduct.id}`, open),
+      [ProductDescription, andproduct],
+      [BranchList, [], andproduct.contained_products, open]
     ];
   }
 }
@@ -96,7 +146,7 @@ function AndProductRenderer(emit, refresh) {
  * @param {Refresh} refresh
  * @returns {renderOrProduct}
  */
-function OrProductRenderer(emit, refresh) {
+export function OrProductRenderer(emit, refresh) {
   return {
     render: renderOrProduct,
     cleanup: cleanUpOrProductRenderer
@@ -105,36 +155,18 @@ function OrProductRenderer(emit, refresh) {
   /**
    * @callback renderOrProduct
    * @param {OrProduct} orproduct
+   * @param {Boolean} open
+   * @param {String} prefix
    * @returns {*[]}
    */
-  function renderOrProduct(orproduct) {
-
+  function renderOrProduct(orproduct, open, prefix) {
     return [
-      'div', {},
-      [
-        'div',
-        {
-          class: 'product-description or-product'
-        },
-        [ 'span', { class: 'product-amount' }, orproduct.amount ],
-        [ 'span', { class: 'product-name' }, orproduct.name ],
-        [ 'span', { class: 'product-price' }, orproduct.price]
-      ],
-      [
-        'div',
-        {
-          class: 'product-list'
-        },
-        orproduct.contained_products.map(
-          (component) -> [
-            'div',
-            {},
-            [ 'span', { class: 'product-amount' }, component.amount ],
-            [ 'span', { class: 'product-name' }, component.product.name ],
-            [ 'span', { class: 'product-price' }, component.product.price]
-          ]
-        )
-      ]
+      'div', {
+        class: `product or-product`
+      },
+      insert_toggle(`${prefix}-product-${orproduct.id}`, open),
+      [ProductDescription, orproduct],
+      [BranchList, [], orproduct.contained_products, open, prefix]
     ];
   }
 
@@ -151,7 +183,7 @@ function OrProductRenderer(emit, refresh) {
  * @param {Refresh} refresh
  * @returns {{render: renderBranch}}
  */
-function BranchRenderer(emit, refresh) {
+export function BranchRenderer(emit, refresh, prefix) {
   return {
     render: renderBranch
   };
@@ -159,63 +191,33 @@ function BranchRenderer(emit, refresh) {
   /**
    * @callback renderBranch
    * @param {Branch} branch
+   * @param {Boolean} open
+   * @param {String} prefix
    * @returns {*[]}
    */
-  function renderBranch(branch) {
+  function renderBranch(branch, open, prefix) {
     return [
       'div', {
         branch: branch.name,
-        class: 'open'
+        class: `branch`
       },
+      insert_toggle(`${prefix}-branch-${branch.id}`, open),
       [
-        'div',
-        {
-          class: 'branch-header'
+        'div', {
+          class: 'branch-description'
         },
-        [ 'span', { class: 'branch-icon' }],
-        [ 'p', {}, branch.name ]
+        [
+          'span', {
+            class: 'name'
+          },
+          `${branch.name}`
+        ]
       ],
-      [
-        'div',
-        {
-          class: 'branch-content'
-        },
-        [BranchList, branch.children],
-        [ProductList, branch.products]
-      ]
+      [BranchList, branch.children, branch.products, open, prefix]
     ]
   }
 }
 
-/**
- * @param {Emit} emit
- * @param {Refresh} refresh
- * @returns {{render: renderProductList}}
- */
-function ProductList(emit, refresh) {
-  return {
-    render: renderProductList
-  };
-
-  /**
-   * @callback renderProductList
-   * @param {Array<Product>} products
-   * @returns {*[]}
-   */
-  function renderProductList(products) {
-    return [
-      'ul', {
-        'class': 'product-list'
-      },
-      products.map(
-        (product) -> [
-          'li', {},
-          [product.renderer, product]
-        ]
-      )
-    ];
-  }
-}
 
 /**
  * @param {Emit} emit
@@ -224,25 +226,30 @@ function ProductList(emit, refresh) {
  */
 function BranchList(emit, refresh) {
   return {
-    render: render
+    render: renderBranchList
   };
 
   /**
    * @callback renderBranchList
    * @param {Array<Branch>} branches
+   * @param {Array<Product>} products
+   * @param {Boolean} open
    * @returns {*[]}
    */
-  function renderBranchList(branches) {
+  function renderBranchList(branches, products, open, prefix) {
+    if (branches.length + products.length === 0) {
+      return [NoItems];
+    }
     return [
-      'ul', {
-        'class': 'branch-list'
+      'div', {
+        'class': 'tree-list'
       },
-      branches.map(
-        (branch) -> [
-          'li', {},
-          [BranchRenderer, branch]
-        ]
-      )
+      branches.length > 0 ? branches.map(
+        (branch) => [BranchRenderer, branch, open, prefix]
+      ) : [],
+      products.length > 0 ? products.map(
+        (product) => [product.renderer, product, open, prefix]
+      ): []
     ]
   }
 }
@@ -264,9 +271,15 @@ export function AssortmentRenderer(emit, refresh) {
 
   /**
    * @param {Assortment} assortment
+   * @param {Boolean} open
    * @returns {*[]}
    */
-  function renderAssortment(assortment) {
-    return __super.render(assortment.branches.filter((branch) => branch.parent !== null));
+  function renderAssortment(assortment, open) {
+    return __super.render(
+      assortment.branches.filter((branch) => !branch.parent),
+      [],
+      open,
+      assortment.name
+    );
   }
 }

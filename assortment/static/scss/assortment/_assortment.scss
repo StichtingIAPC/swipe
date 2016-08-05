@@ -1,0 +1,26 @@
+@import './product';
+@import './tree';
+@import './branch';
+
+@mixin swipe-assortment() {
+  .assortment {
+
+    @include swipe-tree-closing('opening-mechanism', 'tree-list');
+
+    .product {
+      @include swipe-product;
+    }
+
+    .product-description {
+      @include swipe-product-description;
+    }
+
+    .branch-description {
+      @include swipe-branch-description;
+    }
+
+    .tree-list {
+      @include swipe-tree('tree-list');
+    }
+  }
+}

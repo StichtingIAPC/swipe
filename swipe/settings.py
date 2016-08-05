@@ -83,7 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'tools.context_preprocessors.swipe_globals',
+                'tools.context_processors.swipe_globals',
             ],
         },
     },
@@ -273,7 +273,7 @@ USED_CURRENCY = "EUR"
 
 SWIPE_JS_GLOBAL_VARS = {
     'api': {
-        'assortment': reverse_lazy('api.assortment'),
+       # 'assortment': reverse_lazy('api.assortment'),
     },
 }
 

@@ -15,11 +15,15 @@ export class SubscribeAble {
 let execute_on_load = [];
 
 export function onload(func) {
-  execute_on_load.push(func);
+  console.log(func);
+  if (document.readyState === 'complete') {
+    func([{}])
+  } else {
+    execute_on_load.push(func);
+  }
 }
-
-document.onload = function(){
-  for(let func in execute_on_load) {
+window.onload = function(){
+  for(let func of execute_on_load) {
     func.apply(this, arguments);
   }
 };

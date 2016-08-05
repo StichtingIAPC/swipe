@@ -1,0 +1,68 @@
+@import 'scss/util/util';
+@import 'scss/assortment/settings';
+
+@mixin swipe-product {
+  padding: 0;
+}
+
+@mixin swipe-product-description() {
+  height: $tree-entry-height;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+
+  %flex {
+    height: $tree-entry-height - $tree-base-margin;
+    box-sizing: border-box;
+    line-height: $tree-entry-height - ($tree-base-margin * 2);
+    margin: $tree-base-margin / 2;
+    padding: $tree-base-margin / 2;
+  }
+
+  %label {
+    background-color: $medium-gray;
+    border: 1px solid $dark-gray;
+    border-radius: 2px;
+    flex-grow: 0;
+  }
+
+  .name {
+    @extend %flex;
+
+    flex-grow: 0;
+    margin-left: $tree-entry-height;
+  }
+
+  .price {
+    @extend %flex;
+    @extend %label;
+
+    flex-grow: 0;
+  }
+
+  .spacer {
+    @extend %flex;
+
+    align-self: flex-end;
+    height: (($tree-entry-height - 1px) / 2);
+
+    flex-grow: 1;
+    border-top: 1px dashed $tree-line-color;
+  }
+
+  .amount {
+    @extend %label;
+    @extend %flex;
+
+    flex-grow: 0;
+
+    @if $use-stock-colors {
+      @each $code, $bgcolor in $stock-bgcolor {
+        &.#{$code} {
+          background-color: $bgcolor;
+        }
+      }
+    }
+  }
+}

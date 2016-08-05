@@ -11,9 +11,9 @@
         <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}" />
     {% endcompress %}
     {% compress js %}
-        <script type="application/javascript" src="{% static 'bower_components/domchanger/domchanger.js' %}"></script>
-        <script type="application/javascript" src="{% static 'bower_components/axios/dist/axios.js' %}"></script>
-        <script type="application/javascript">
+        <script type="text/javascript" src="{% static 'bower_components/domchanger/domchanger.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bower_components/axios/dist/axios.js' %}"></script>
+        <script type="text/javascript">
             /**
              * @type { {
              *   local: Object|Array,
@@ -50,6 +50,14 @@
                 <div class="small-6 columns">
                     <div class="card">
                         {% trans 'This page intentionally left almost blank.' %}
+                    </div>
+                    <div class="card">
+                        <div class="tree-list assortment" article-tree="first" data-api-endpoint="dummy"></div>
+                    </div>
+                </div>
+                <div class="small-6 columns">
+                    <div class="card">
+                        <div class="tree-list assortment" article-tree="second" data-api-endpoint="dummy"></div>
                     </div>
                 </div>
             {% endblock module_content %}

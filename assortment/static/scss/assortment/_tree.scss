@@ -1,0 +1,92 @@
+@import 'scss/assortment/settings';
+
+@mixin swipe-tree-closing ($class_name, $to_close) {
+  input.#{$class_name} {
+    display: none;
+
+    + .#{$class_name} {
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 0;
+      width: 0;
+      height: 0;
+      &::before {
+        position: absolute;
+        margin-left: $tree-indent * 1;
+        margin-right: - ($tree-indent * 2);
+        width: $tree-indent;
+        height: $tree-entry-height;
+        line-height: $tree-entry-height;
+        text-align: center;
+        content: '－';
+      }
+    }
+
+    &:not(:checked) {
+      + .#{$class_name}::before {
+        content: '＋';
+      }
+
+      ~ .#{$to_close} {
+        display: none;
+      }
+    }
+  }
+}
+
+@mixin swipe-tree($class) {
+  margin: 0 0 0 ($tree-indent / 2);
+  position: relative;
+  padding: 0;
+
+  &:not(.#{$class}-info)::before {
+    display: block;
+    width: 0;
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+
+    content: "";
+    border-left: 1px solid $tree-line-color;
+  }
+
+  &-info {
+    font-style: italic;
+    margin: $tree-base-margin 0 $tree-base-margin ($tree-base-margin + $tree-entry-height + ($tree-indent / 2));
+  }
+
+  > * {
+    display: block;
+
+    position: relative;
+    padding-left: $tree-indent;
+    min-height: $tree-entry-height;
+
+    line-height: $tree-entry-height;
+
+    &::before {
+      display: block;
+      width: ($tree-indent / 2);
+      height: 0;
+
+      position: absolute;
+      top: ($tree-entry-height / 2);
+      left: 0;
+
+      border-top: 1px solid $tree-line-color;
+      margin-top: -1px;
+
+      content: "";
+    }
+
+    &:last-child::before {
+      background-color: $tree-background-color;
+      height: auto;
+      top: ($tree-entry-height / 2);
+      bottom:0;
+    }
+  }
+}

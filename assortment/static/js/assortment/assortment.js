@@ -1,9 +1,15 @@
-import {Assortment} from './models';
+import {Assortment} from 'js/assortment/models';
+import {onload} from 'js/tools/tools';
 
-const assortments = Array.prototype.map.call(
-  document.querySelectorAll('[article-tree]'),
-  node -> Assortment.create_from_element(node)
-);
+onload(function(ev) {
+  const assortments = Array.prototype.map.call(
+    document.querySelectorAll('[article-tree]'),
+    function(node) {
+      console.log(node);
+      Assortment.create_from_element(node)
+    }
+  )
+});
 // as a NodeList does not have array operations, but has (otherwise) the same
 // structure as an array, we can call array's prototype methods on it. This
 // would be the same as calling map on the NodeList.
