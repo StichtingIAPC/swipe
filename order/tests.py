@@ -140,10 +140,11 @@ class OrderTest(TestCase):
     def test_print_ol(self):
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, 1.1)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, 1.61)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
-        print(order.print_orderline_info())
+        print("\n")
+        order.print_orderline_info()
 
     def test_alt_currency(self):
         ol = OrderLine(order=self.order, wishable=self.article_type)
@@ -160,4 +161,7 @@ class OrderTest(TestCase):
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
         Order.make_order(order, orderlines)
+        ol = OrderLine(order=self.order, wishable=self.at2)
+        ol.temp = PriceImitator(amount=3.143, currency=self.currency)
+        ol.save()
         OrderCombinationLine.get_ol_combinations()

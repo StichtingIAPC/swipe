@@ -1,8 +1,11 @@
 from django.db import models
+from django.db.models.fields.related import RelatedField
+from django.db.models.fields.reverse_related import ForeignObjectRel
 from crm.models import *
 from article.models import *
 from money.models import *
-from django.db.models import Count
+from django.db.models import Count, Prefetch, ForeignObject
+
 
 # Create your models here.
 
@@ -35,38 +38,10 @@ class Order(models.Model):
         return "Customer: {}, Copro: {}, Date: {} ".format(self.customer, self.copro, self.date)
 
     def print_orderline_info(self):
-        if not self.pk > 0:
-            print("Unstored")
-            return
-        orderlines = OrderLine.objects.filter(order=self).order_by('wishable')
-        summary = []
-        if len(orderlines) == 0:
-            print("Empty")
-            return
-        wishable = 0
-        state = "-"
-        price = Price(amount=Decimal(1), currency=Currency(iso='XXX'), vat=1)
-        counter = -1
-        for i in range(0, len(orderlines)):
-            if orderlines[i].wishable.id == wishable and orderlines[i].state == state and \
-                    orderlines[i].expected_sales_price == price:
-                summary[counter][3] += 1  # Increment object with same state
-            else:
-                # Create new object in summary list
-                counter += 1
-                summary.append([orderlines[i].wishable.name, orderlines[i].state,
-                                orderlines[i].expected_sales_price, 1])
-                price = orderlines[i].expected_sales_price
-                wishable = orderlines[i].wishable.id
-                state = orderlines[i].state
-
-        print("{:<7}{:14}{:10}{:12}".format("Number", "Article", "ExpPrice", "Status"))
-        for j in range(0, len(summary)):
-            dec = summary[j][2].amount
-            dec = dec.quantize(Decimal('0.01'))
-            print("{:<7}{:14}{:10}{:12}".format(summary[j][3], summary[j][0],
-                                                summary[j][2].currency.iso + str(dec),
-                                                OrderLineState.OL_STATE_MEANING[summary[j][1]]))
+        ocls = OrderCombinationLine.get_ol_combinations(order=self)
+        print("{:<7}{:14}{:10}{:12}".format("Number","Name","Exp.Price","State"))
+        for ocl in ocls:
+            print(ocl)
 
 
 class OrderLineState(models.Model):
@@ -230,22 +205,37 @@ class OrderCombinationLine():
     """
     Line that combines similar orderlines into one to reduce overal size
     """
-    pass
-
     number = 0
 
     wishable = WishableType
 
     price = Price
 
-    status = ""
+    state = ""
+
+    def __init__(self, wishable, number, price, state):
+        self.wishable = wishable
+        self.number = number
+        self.price = price
+        self.state = state
 
     def __str__(self):
-        return "{:<7}{:14}{:10}{:12}".format(self.number, self.wishable, self.price.currency.iso+str(self.price.amount),
-                                             self.status)
+        dec = self.price.amount.quantize(Decimal('0.01'))
+        stri = "{:<7}{:14}{:10}{:12}".format(self.number, self.wishable.name , self.price.currency.iso+str(dec),
+                                              OrderLineState.OL_STATE_MEANING[self.state])
+        return stri
+    @staticmethod
+    def prefix_field_names(model, prefix):
+        fields = model._meta.get_fields()
+        ret = []
+        for field in fields:
+            if not isinstance(field, ForeignObjectRel):
+                ret.append(prefix + field.name)
+        return ret
 
     @staticmethod
-    def get_ol_combinations(order=None, wishable=None, state=None):
+    def get_ol_combinations(order=None, wishable=None, state=None, qs=OrderLine.objects):
+        result = []
         filter={}
         if order:
             filter['order'] = order
@@ -254,11 +244,19 @@ class OrderCombinationLine():
         if state:
             filter['state'] = state
 
-        orderlines = OrderLine.objects.filter(**filter).\
-                    values('wishable', 'state', 'expected_sales_price').annotate(Count('id'))
-        #for o in orderlines:
-            #print(o)
-
+        orderlines = qs.filter(**filter).\
+            values('state', 'expected_sales_price','expected_sales_price_currency','expected_sales_price_vat', * OrderCombinationLine.\
+                   prefix_field_names(WishableType, 'wishable__')).annotate(Count('id'))
+        for o in orderlines:
+            number=o['id__count']
+            state=o['state']
+            price=Price(amount=o['expected_sales_price'],currency=Currency(iso=o['expected_sales_price_currency']),
+                                        vat=o['expected_sales_price_vat'])
+            ocl = OrderCombinationLine(number=number, wishable=WishableType(name=o['wishable__name'], \
+                                       pk=o['wishable__id']), price=price,
+                                        state=state)
+            result.append(ocl)
+        return result
 
 
 class OrderLineNotSavedError(Exception):
