@@ -1,5 +1,4 @@
-from django.db import models
-from django.db.models.fields.related import RelatedField
+from django.db import models, transaction
 from django.db.models.fields.reverse_related import ForeignObjectRel
 from crm.models import *
 from article.models import *
@@ -120,6 +119,7 @@ class OrderLine(models.Model):
         else:
             super(OrderLine, self).save()
 
+    @transaction.atomic
     def transition(self, new_state):
         """
         Transitions an orderline from one state to another. This is the only safe means of transitioning, as data
