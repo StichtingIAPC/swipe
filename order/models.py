@@ -81,7 +81,7 @@ class OrderLine(models.Model):
 
     expected_sales_price = PriceField()
 
-    temp = PriceImitator()  # Workaround for getting Price to accept input
+    temp = PriceImitator()  # Workaround for getting Price to accept input. Used only at creation time.
 
     @staticmethod
     def create_orderline(order=Order(), wishable=None, state=None, price_imitator=None):
@@ -89,14 +89,11 @@ class OrderLine(models.Model):
         Function intended to create orderlines. Evades high demands of Price-class. Sets up the basics needed. The rest
         is handled by the save function of orderlines.
         """
-        assert wishable
+        assert wishable is not None
         ol = OrderLine(order=order, wishable=wishable, state=state)
         if type(price_imitator) == PriceImitator:
             ol.temp = price_imitator
         return ol
-
-    def get_type(self):
-        return type(self)
 
     def save(self):
         if self.pk is None:
@@ -113,7 +110,7 @@ class OrderLine(models.Model):
                 self.temp = PriceImitator(amount=-1, currency=curr)
             if self.temp.currency is None:
                 self.temp.currency = curr
-            self.temp.vat = self.wishable.get_vat()
+            self.temp.vat = self.wishable.get_vat_rate()
             pr = Price(amount=Decimal(self.temp.amount), currency=self.temp.currency, vat=self.temp.vat)
             self.expected_sales_price = pr
             super(OrderLine, self).save()

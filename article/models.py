@@ -36,7 +36,10 @@ class ArticleType(SellableType):
     def __str__(self):
         return self.get_name()
 
-    def get_vat(self):
+    def get_vat_group(self):
+        return self.accounting_group.vat_group
+
+    def get_vat_rate(self):
         return self.accounting_group.vat_group.vatrate
 
     def calculate_sales_price(self, cost):
