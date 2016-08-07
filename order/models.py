@@ -4,7 +4,8 @@ from django.db.models.fields.reverse_related import ForeignObjectRel
 from crm.models import *
 from article.models import *
 from money.models import *
-from django.db.models import Count, Prefetch, ForeignObject
+from django.db.models import Count
+from swipe.settings import USED_CURRENCY
 
 
 # Create your models here.
@@ -105,7 +106,7 @@ class OrderLine(models.Model):
             assert hasattr(self, 'order')  # Order must exist
             assert hasattr(self, 'wishable')  # Type must exist
             assert self.state in OrderLineState.OL_STATE_CHOICES
-            curr = Currency(iso=OrderLine.get_system_currency())
+            curr = Currency(iso=USED_CURRENCY)
             if self.temp is None:
                 self.temp = PriceImitator(amount=-1, currency=curr)
             if self.temp.currency is None:
@@ -143,7 +144,6 @@ class OrderLine(models.Model):
                 self.save()
             else:
                 raise IncorrectTransitionError("This transaction is not legal: {state} -> {new_state}".format(state=self.state, new_state=new_state))
-
 
     def order_at_supplier(self):
         self.transition('L')
@@ -184,11 +184,8 @@ class OrderLine(models.Model):
             ol = OrderLine.create_orderline(wishable=wishable_type, price_imitator=p)
             orderlinelist.append(ol)
 
-    @staticmethod
-    def get_system_currency():
-        return 'ABC'
 
-class OrderCombinationLine():
+class OrderCombinationLine:
     """
     Line that combines similar orderlines into one to reduce overal size
     """
