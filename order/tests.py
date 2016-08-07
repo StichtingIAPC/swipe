@@ -143,8 +143,8 @@ class OrderTest(TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, 1.61)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
-        print("\n")
-        order.print_orderline_info()
+        #print("\n")
+        #order.print_orderline_info()
 
     def test_alt_currency(self):
         ol = OrderLine(order=self.order, wishable=self.article_type)

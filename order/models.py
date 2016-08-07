@@ -127,33 +127,23 @@ class OrderLine(models.Model):
         if not self.pk or self.state is None:
             raise OrderLineNotSavedError
         elif self.state not in OrderLineState.OL_STATE_CHOICES:
-            raise IncorrectOrderLineStateError("State of orderline is not valid. Database might be corrupted")
+            raise IncorrectOrderLineStateError("State of orderline is not valid. Database is corrupted at Orderline",
+                                               self.pk, " with state ", self.state)
         elif new_state not in OrderLineState.OL_STATE_CHOICES:
             raise IncorrectTransitionError("New state is not a valid state")
         else:
-            if self.state == 'O':
-                if new_state in ('C', 'L'):
-                    self.state = new_state
-                    ols = OrderLineState(state=new_state, orderline=self)
-                    ols.save()
-                else:
-                    raise IncorrectTransitionError("This transition is not legal")
-            elif self.state == 'L':
-                if new_state in ('A'):
-                    self.state = new_state
-                    ols = OrderLineState(state=new_state, orderline=self)
-                    ols.save()
-                else:
-                    raise IncorrectTransitionError("This transition is not legal")
-            elif self.state == 'A':
-                if new_state in ('S'):
-                    self.state = new_state
-                    ols = OrderLineState(state=new_state, orderline=self)
-                    ols.save()
-                else:
-                    raise IncorrectTransitionError("This transition is not legal")
+            nextstates = {
+                'O': ('C', 'L'),
+                'L': ('A',),
+                'A': ('S') }
+            if new_state in nextstates[self.state]:
+                self.state = new_state
+                ols = OrderLineState(state=new_state, orderline=self)
+                ols.save()
+                self.save()
             else:
-                raise IncorrectTransitionError("You cannot transition from this state")
+                raise IncorrectTransitionError("This transaction is not legal: {state} -> {new_state}".format(state=self.state, new_state=new_state))
+
 
     def order_at_supplier(self):
         self.transition('L')
