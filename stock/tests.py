@@ -849,3 +849,5 @@ class LabelTest(TestCase):
 
     def testStockLabelNotRegistred(self):
         self.assertRaises(StockLabelNotFoundError, self.create_forgotten_stock)
+    def testEmptyStockChangeSet(self):
+        StockChangeSet.construct(description="!",entries=[],enum=0)

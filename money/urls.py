@@ -15,27 +15,15 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 
-##
-# WARNING
-##
-# Do not add urls for apps to this file, add them to www/urls.py.
-##
+import money
+from money.views import *
 
 urlpatterns = [
+    # Standard page
+    url(r'^$', money.views.index, name="money_index"),
     # Django internal documentation
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Django administration panel
-    url(r'^admin/', include(admin.site.urls)),
-
-    # Authentication URLs
-    url(r'^login/$', auth_views.login, name='login'),
-    url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
-    url(r'^switch_user/$', auth_views.logout_then_login, name='switch_user'),
-
-    # Main entry point of Swpie
-    url(r'^', include('www.urls')),
-
+    url(r'^list/$', CurrencyDataList.as_view(), name="currencydata_list"),
+    url(r'^add$', CurrencyDataCreate.as_view(), name='currencydata_add'),
+    url(r'^(?P<pk>[A-Z]+.)$', CurrencyDataDetail.as_view(), name='currencydata_detail'),
 ]

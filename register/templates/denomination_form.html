@@ -1,0 +1,16 @@
+{% extends 'www/base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% url 'add_denomination' as add %}{% if request.path == add %}{% trans 'Add Denomination' %}{% else %}{% blocktrans with name=object.name %}Edit {{ name }}{% endblocktrans %}{% endif %}{% endblock %}
+
+{% block content %}
+    {% url 'add_denomination' as add %}
+    <h2>{% if request.path == add %}{% trans 'Add Denomination' %}{% else %}{% blocktrans with name=object.name %}Edit {{ name }}{% endblocktrans %}{% endif %}</h2>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="{% trans 'Create Denomination' %}" />
+    </form>
+{% endblock %}
