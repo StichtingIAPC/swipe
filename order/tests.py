@@ -30,6 +30,10 @@ class OrderTest(TestCase):
         self.at2 = ArticleType(accounting_group=self.acc_group,name="Bar")
         self.at2.save()
 
+        self.money = Money(amount=Decimal(3.32), currency=self.currency)
+        self.oc = OtherCostType(name="Baz", accounting_group=self.acc_group, fixed_price=self.money)
+        self.oc.save()
+
         self.customer = Person()
         self.customer.save()
 
@@ -103,6 +107,13 @@ class OrderTest(TestCase):
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
         assert ol.state == 'S'
         assert len(orderlinestates) == 4
+
+    def test_othercost(self):
+        ol = OrderLine(order=self.order, wishable=self.oc)
+        ol.save()
+        assert ol.state == 'A'
+        assert len(OrderLineState.objects.all()) == 1
+
 
     def test_illegal_transition(self):
         ol = OrderLine(order=self.order, wishable=self.article_type)

@@ -96,14 +96,20 @@ class OrderLine(models.Model):
         return ol
 
     def save(self):
+        assert hasattr(self, 'order')  # Order must exist
+        assert hasattr(self, 'wishable')  # Type must exist
+        assert isinstance(self.wishable, SellableType)  # Temporary measure until complexities get worked out
         if self.pk is None:
             if not self.state:
-                ol_state = OrderLineState(state='O')
-                self.state = 'O'
+                if type(self.wishable) == OtherCostType:
+                    ol_state = OrderLineState(state='A')
+                    self.state = 'A'
+                else:
+                    ol_state = OrderLineState(state='O')
+                    self.state = 'O'
             else:
                 ol_state = OrderLineState(state=self.state)
-            assert hasattr(self, 'order')  # Order must exist
-            assert hasattr(self, 'wishable')  # Type must exist
+
             assert self.state in OrderLineState.OL_STATE_CHOICES
             curr = Currency(iso=USED_CURRENCY)
             if self.temp is None:
@@ -117,6 +123,7 @@ class OrderLine(models.Model):
             ol_state.orderline = self
             ol_state.save()
         else:
+            assert self.state in OrderLineState.OL_STATE_CHOICES
             super(OrderLine, self).save()
 
     @transaction.atomic
