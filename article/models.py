@@ -53,8 +53,10 @@ class OrProductType(WishableType):
         return None
 
 
-class AndProductType(SellableType):
+class AndProductType(WishableType):
     # A combination of ArticleTypes
+    pass
+
     def get_expected_sales_price(self):
         return None
 
