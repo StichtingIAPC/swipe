@@ -76,8 +76,8 @@ class CloseFormView(View):
             if not used_currencies.__contains__(reg.currency):
                 used_currencies.append(reg.currency)
                 if not transactions.get(reg.currency.iso, False):
-                    transactions[reg.currency.iso] = Price(Decimal("0.00000"), reg.currency.iso,
-                                                           VAT(Decimal("0.00000")))
+                    transactions[reg.currency.iso] = Price(Decimal("0.00000"), VAT(Decimal("0.00000")),
+                                                           reg.currency.iso)
 
         return render(request, self.template_name,
                       {'form': form, "transactions": transactions, "currencies": used_currencies})

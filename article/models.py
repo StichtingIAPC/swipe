@@ -36,8 +36,8 @@ class ArticleType(SellableType):
         return self.name
 
     def calculate_sales_price(self, cost):
-        return SalesPrice(cost=cost.amount, vat=self.accounting_group.vat_group.vatrate, currency=cost.currency,
-                          amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085))
+        return SalesPrice(amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085),
+                          vat=self.accounting_group.vat_group.vatrate, currency=cost.currency)
 
     def get_expected_sales_price(self):
         return None

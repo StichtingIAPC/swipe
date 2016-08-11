@@ -100,7 +100,7 @@ class BasicTest(TestCase):
         c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, amount=1)
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
-        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), self.eu, vat=Decimal("1.21")), num=1,
+        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.eu), num=1,
                                      text="HOI")
         pay = Payment(amount=Money(Decimal("1.00000"), self.eu), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
@@ -198,7 +198,7 @@ class TestTransactionNoSalesPeriod(TestCase):
         self.money = Money(Decimal("1.21000"), self.EUR)
         self.pt = PaymentType.objects.create()
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        self.price = Price(Decimal("1.21000"), self.EUR, vat=self.vat.vatrate)
+        self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
         self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
         self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
 
@@ -229,7 +229,7 @@ class TestTransaction(TestCase):
         self.money = Money(Decimal("1.21000"), self.EUR)
         self.pt = PaymentType.objects.create()
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        self.price = Price(Decimal("1.21000"), self.EUR, vat=self.vat.vatrate)
+        self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
         self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
         self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
         self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)

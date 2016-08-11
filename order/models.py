@@ -15,7 +15,8 @@ class Order(models.Model):
     # A collection of orders of a customer ordered together
     customer = models.ForeignKey(Customer)
 
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True, editable=False)
+    modified_date = models.DateTimeField(auto_now_add=True, editable=True)
 
     copro = models.ForeignKey(User)
 
@@ -65,11 +66,7 @@ class OrderLineState(models.Model):
         super(OrderLineState, self).save()
 
 
-class PriceImitator:
-    def __init__(self, amount=-1, currency=None, vat=None):
-        self.amount = amount
-        self.currency = currency
-        self.vat = vat
+
 
 
 class OrderLine(models.Model):
@@ -82,24 +79,26 @@ class OrderLine(models.Model):
 
     expected_sales_price = PriceField()
 
-    temp = PriceImitator()  # Workaround for getting Price to accept input. Used only at creation time.
+    copro = models.ForeignKey(User)
 
     @staticmethod
-    def create_orderline(order=Order(), wishable=None, state=None, price_imitator=None):
+    def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None,user=None):
         """
         Function intended to create orderlines. Evades high demands of Price-class. Sets up the basics needed. The rest
         is handled by the save function of orderlines.
         """
         assert wishable is not None
-        ol = OrderLine(order=order, wishable=wishable, state=state)
-        if type(price_imitator) == PriceImitator:
-            ol.temp = price_imitator
+        ol = OrderLine(order=order, wishable=wishable, state=state,copro=user, expected_sales_price=expected_sales_price)
+
         return ol
 
     def save(self):
         assert hasattr(self, 'order')  # Order must exist
         assert hasattr(self, 'wishable')  # Type must exist
         assert isinstance(self.wishable, SellableType)  # Temporary measure until complexities get worked out
+        assert hasattr(self, 'expected_sales_price')
+        assert isinstance(self.expected_sales_price, Price)  # Temporary measure until complexities get worked out
+
         if self.pk is None:
             if not self.state:
                 if type(self.wishable) == OtherCostType:
@@ -113,13 +112,10 @@ class OrderLine(models.Model):
 
             assert self.state in OrderLineState.OL_STATE_CHOICES
             curr = Currency(iso=USED_CURRENCY)
-            if self.temp is None:
-                self.temp = PriceImitator(amount=-1, currency=curr)
-            if self.temp.currency is None:
-                self.temp.currency = curr
-            self.temp.vat = self.wishable.get_vat_rate()
-            pr = Price(amount=Decimal(self.temp.amount), currency=self.temp.currency, vat=self.temp.vat)
-            self.expected_sales_price = pr
+
+            self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
+
+
             super(OrderLine, self).save()
             ol_state.orderline = self
             ol_state.save()
@@ -177,19 +173,19 @@ class OrderLine(models.Model):
                    self.expected_sales_price_vat)
 
     @staticmethod
-    def add_orderlines_to_list(orderlinelist, wishable_type, number, price):
+    def add_orderlines_to_list(orderlinelist, wishable_type, number, price, user):
         """
         Adds a number of orderlines of a certain wishabletype to the orderlinelist
         :param orderlinelist: List to be amended, should only contain orderlines
         :param wishable_type: a wishabletype
         :param number: number of orderlines to add
-        :param price: Value as a float
+        :param price: Value as a Price
         """
         assert type(number) == int
         assert number >= 1
         for i in range(1, number + 1):
-            p = PriceImitator(amount=price, currency=None, vat=None)
-            ol = OrderLine.create_orderline(wishable=wishable_type, price_imitator=p)
+
+            ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)
             orderlinelist.append(ol)
 
 
@@ -256,7 +252,7 @@ class OrderCombinationLine:
                 amount = o['expected_sales_price']
                 currency = o['expected_sales_price_currency']
                 vat = o['expected_sales_price_vat']
-            price = Price(amount=amount, currency=currency, vat=vat)
+            price = Price(amount=amount, vat=vat, currency=currency)
             ocl = OrderCombinationLine(number=number, wishable=WishableType(name=o['wishable__name'],
                                        pk=o['wishable__id']), price=price,
                                        state=state)

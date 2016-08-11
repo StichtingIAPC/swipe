@@ -15,7 +15,7 @@ class OrderTest(TestCase):
         self.vat_group.active = True
         self.vat_group.vatrate = 1.12
         self.vat_group.save()
-
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
         self.acc_group = AccountingGroup()
@@ -42,13 +42,12 @@ class OrderTest(TestCase):
         self.order = Order(copro=self.copro, customer=self.customer)
         self.order.save()
 
-    @skip("Skipped labour intensive test")
     def test_save_speed(self):
         big_order = Order(copro=self.copro, customer=self.customer)
         big_order.save()
         orderlines = []
         for i in range(0, 100):
-            order_line = OrderLine(order=big_order, wishable=self.article_type)
+            order_line = OrderLine(order=big_order, wishable=self.article_type,copro=self.copro, expected_sales_price=self.price)
             orderlines.append(order_line)
 
         for ol in orderlines:
@@ -56,14 +55,14 @@ class OrderTest(TestCase):
 
     def test_orderline_storing(self):
         # Simple orderline with customer order
-        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol = OrderLine(order=self.order, wishable=self.article_type,copro=self.copro, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
 
         assert orderlinestates[0].state == 'O'  # States must match
         assert len(orderlinestates) == 1  # Orderlinestate must be automatically added
 
-        ol2 = OrderLine(order=self.order, wishable=self.article_type, state='L')
+        ol2 = OrderLine(order=self.order, wishable=self.article_type, state='L',copro=self.copro, expected_sales_price=self.price)
         ol2.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol2)
         assert orderlinestates[0].state == 'L'  # Self applied state
@@ -81,7 +80,7 @@ class OrderTest(TestCase):
         # State must be valid
         try:
             excepted = False
-            ol = OrderLine(order=self.order, wishable=self.article_type, state='G')
+            ol = OrderLine(order=self.order, wishable=self.article_type, state='G',copro=self.copro, expected_sales_price=self.price)
             ol.save()
         except AssertionError:
             excepted = True
@@ -89,7 +88,7 @@ class OrderTest(TestCase):
 
     def test_transitions(self):
         # Assert transitions for a single orderline
-        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol = OrderLine(order=self.order, wishable=self.article_type,copro=self.copro, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
         assert ol.state == 'O'
@@ -108,13 +107,13 @@ class OrderTest(TestCase):
         assert len(orderlinestates) == 4
 
     def test_othercost(self):
-        ol = OrderLine(order=self.order, wishable=self.oc)
+        ol = OrderLine(order=self.order, wishable=self.oc,copro=self.copro, expected_sales_price=self.price)
         ol.save()
         assert ol.state == 'A'
         assert len(OrderLineState.objects.all()) == 1
 
     def test_illegal_transition(self):
-        ol = OrderLine(order=self.order, wishable=self.article_type)
+        ol = OrderLine(order=self.order, wishable=self.article_type,copro=self.copro, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
         assert ol.state == 'O'
@@ -129,9 +128,9 @@ class OrderTest(TestCase):
     def test_order_storage(self):
         order = Order(copro=self.copro, customer=self.customer)
         orderlines = []
-        orderlines.append(OrderLine(wishable=self.article_type))
-        orderlines.append(OrderLine(wishable=self.article_type))
-        orderlines.append(OrderLine(wishable=self.article_type))
+        orderlines.append(OrderLine(wishable=self.article_type,copro=self.copro, expected_sales_price=self.price))
+        orderlines.append(OrderLine(wishable=self.article_type,copro=self.copro, expected_sales_price=self.price))
+        orderlines.append(OrderLine(wishable=self.article_type,copro=self.copro, expected_sales_price=self.price))
         Order.make_order(order, orderlines)
         ols = OrderLine.objects.filter(order=order)
         assert len(ols) == 3
@@ -141,47 +140,47 @@ class OrderTest(TestCase):
 
     def test_add_group_of_wishables(self):
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 50, 1.1)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 50, self.price,self.copro)
         assert len(orderlines) == 50
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, 10, 1.2)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 10, self.price,self.copro)
         assert len(orderlines) == 60
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
 
     def test_print_ol(self):
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, 1.61)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, self.price,self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, self.price,self.copro)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
         # print("\n")
         # order.print_orderline_info()
 
     def test_alt_currency(self):
-        ol = OrderLine(order=self.order, wishable=self.article_type)
-        ol.temp = PriceImitator(amount=2, currency=self.currency)
+        ol = OrderLine(order=self.order, wishable=self.article_type,copro=self.copro, expected_sales_price= Price(amount=Decimal(2), currency=self.currency))
+
         ol.save()
         ol2 = OrderLine.objects.get()
         assert ol2.expected_sales_price_currency == "USD"
 
     def test_olc(self):
-        ol = OrderLine(order=self.order, wishable=self.article_type)
-        ol.temp = PriceImitator(amount=2, currency=self.currency)
+        ol = OrderLine(order=self.order, wishable=self.article_type,copro=self.copro, expected_sales_price=self.price)
+        ol.temp = Price(amount=Decimal(2), currency=self.currency)
         ol.save()
         order = Order(copro=self.copro, customer=self.customer)
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, self.price,self.copro)
         Order.make_order(order, orderlines)
-        ol = OrderLine(order=self.order, wishable=self.at2)
-        ol.temp = PriceImitator(amount=3.143, currency=self.currency)
+        ol = OrderLine(order=self.order, wishable=self.at2,copro=self.copro, expected_sales_price=Price(amount=Decimal("3.143"), currency=self.currency))
         ol.save()
         OrderCombinationLine.get_ol_combinations()
 
     def test_olc_noprice(self):
         order = Order(copro=self.copro, customer=self.customer)
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.2)
+        local_second_price = Price(amount=Decimal(183839), use_system_currency=True)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, self.price,self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, local_second_price,self.copro)
         Order.make_order(order, orderlines)
         olcl=OrderCombinationLine.get_ol_combinations(order=order)
         assert len(olcl) == 2
