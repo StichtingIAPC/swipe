@@ -227,7 +227,7 @@ class OrderCombinationLine:
         return ret
 
     @staticmethod
-    def get_ol_combinations(order=None, wishable=None, state=None, qs=OrderLine.objects):
+    def get_ol_combinations(order=None, wishable=None, state=None, qs=OrderLine.objects, include_price_field=True):
         result = []
         filtr = {}
         if order:
@@ -237,14 +237,26 @@ class OrderCombinationLine:
         if state:
             filtr['state'] = state
 
+        price_fields = []
+        if include_price_field:
+            price_fields = ['expected_sales_price','expected_sales_price_currency','expected_sales_price_vat']
+
+        flds = price_fields + OrderCombinationLine.prefix_field_names(WishableType, 'wishable__')
+
         orderlines = qs.filter(**filtr).\
-            values('state', 'expected_sales_price','expected_sales_price_currency','expected_sales_price_vat', * OrderCombinationLine.\
-                   prefix_field_names(WishableType, 'wishable__')).annotate(Count('id'))
+            values('state', *flds).annotate(Count('id'))
         for o in orderlines:
             number = o['id__count']
             state = o['state']
-            price = Price(amount=o['expected_sales_price'], currency=Currency(iso=o['expected_sales_price_currency']),
-                          vat=o['expected_sales_price_vat'])
+            if not include_price_field:
+                amount = Decimal(-1)
+                currency = Currency(iso=USED_CURRENCY)
+                vat = 0
+            else:
+                amount = o['expected_sales_price']
+                currency = o['expected_sales_price_currency']
+                vat = o['expected_sales_price_vat']
+            price = Price(amount=amount, currency=currency, vat=vat)
             ocl = OrderCombinationLine(number=number, wishable=WishableType(name=o['wishable__name'],
                                        pk=o['wishable__id']), price=price,
                                        state=state)

@@ -176,3 +176,14 @@ class OrderTest(TestCase):
         ol.temp = PriceImitator(amount=3.143, currency=self.currency)
         ol.save()
         OrderCombinationLine.get_ol_combinations()
+
+    def test_olc_noprice(self):
+        order = Order(copro=self.copro, customer=self.customer)
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.1)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, 1.2)
+        Order.make_order(order, orderlines)
+        olcl=OrderCombinationLine.get_ol_combinations(order=order)
+        assert len(olcl) == 2
+        olcl2=OrderCombinationLine.get_ol_combinations(order=order, include_price_field=False)
+        assert len(olcl2) == 1
