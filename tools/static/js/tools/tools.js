@@ -30,14 +30,35 @@ window.onload = function(){
 
 let drag_identifiers = new WeakMap();
 
-export function draggable(type, identifier) {
-  drag_identifiers[identifier] =
+export function draggable(type, data) {
+  return {
+    draggable: true,
+    ondragstart: drag
+  };
+
+  function drag(event) {
+    event.dataTransfer.setData('type', type);
+    event.dataTransfer.setData('data', data);
+  }
 }
 
-export function droppable(types, func, args, kwargs) {
-  return {}
+export function droppable(types, func, args) {
+  return {
+    ondrop: onDrop,
+    ondragover: allowDrop
+  };
+
+  /**
+   * @param {DragEvent} event
+   */
+  function allowDrop(event) {
+    if (event.dataTransfer.getData('type') in types)
+      event.preventDefault();
+  }
 
   function onDrop(event) {
-    event.
+    let type = event.dataTransfer.getData('type');
+    let data = event.dataTransfer.getData('data');
+    func.apply(event, [type, data, ...args])
   }
 }

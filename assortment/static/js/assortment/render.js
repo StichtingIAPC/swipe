@@ -4,6 +4,7 @@
 
 import {Product, OrProduct, AndProduct, Branch, BaseArticle} from 'js/assortment/models';
 import _ from 'js/tools/translations'
+import {draggable, droppable} from 'js/tools/tools'
 
 /**
  * @callback Emit
@@ -25,7 +26,8 @@ function ProductDescription(emit, refresh) {
       },
       [
         'span', {
-          class: 'name'
+          class: 'name',
+        ...draggable('product', product)
         },
         `${product.name}`
       ],
