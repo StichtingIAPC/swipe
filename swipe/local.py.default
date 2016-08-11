@@ -5,7 +5,7 @@
 
 # Debugging mode for Django
 # Set this to True if you want debugging mode enabled
-#DEBUG = True
+DEBUG = True
 
 # Custom installed apps for debugging
 #INSTALLED_APPS = INSTALLED_APPS + (
