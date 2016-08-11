@@ -10,8 +10,8 @@ import money.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('money', '0006_accountinggroup'),
-        ('article', '0001_squashed_0006_auto_20160602_2333'),
+        ('money', '0001_squashed_0006_accountinggroup'),
+        ('article', '0001_squashed_0002_auto_20160811_1947'),
     ]
 
     operations = [

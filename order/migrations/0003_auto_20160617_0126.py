@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('crm', '0005_person_user'),
+        ('crm', '0001_squashed_0005_person_user'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('order', '0002_auto_20160617_0123'),
     ]
