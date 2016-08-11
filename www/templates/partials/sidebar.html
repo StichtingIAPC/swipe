@@ -1,0 +1,54 @@
+{% load i18n %}
+
+<div class="side-bar">
+    <div class="side-bar-item">
+        <div class="title">
+            <div class="text">
+                Swipe
+            </div>
+            <div class="icon">
+                Swipe Icon
+            </div>
+        </div>
+    </div>
+    {% if request.user.is_authenticated %}
+    <div class="side-bar-item">
+        <div class="title">
+            <div class="text">
+                <a href="{% url 'crm_index' %}">{% trans 'crm' %}</a>
+            </div>
+            <div class="icon">
+                icon
+            </div>
+        </div>
+    </div>
+    <div class="side-bar-item">
+        <div class="title">
+            <div class="text">
+                <a href="{% url 'supplier_list' %}">{% trans 'suppliers' %}</a>
+            </div>
+            <div class="icon">
+                icon
+            </div>
+        </div>
+    </div>
+    <div class="side-bar-item">
+        <div class="title">
+            <div class="text">
+                <a href="{% url 'logout' %}">{% trans 'logout' %}</a>
+            </div>
+            <div class="icon">
+                icon
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="side-bar-item">
+        <div class="title">
+            <div class="text">
+                <a href="{% url 'login' %}">{% trans 'login' %}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

@@ -110,8 +110,8 @@ swipe/local.py
 # Ignore local sqlite database
 *.sqlite3
 
-# Bower install directory
-static/build
+# Staticfiles collection directory
+static/
 
 # Node package directory
-node_modules
+node_modules/
