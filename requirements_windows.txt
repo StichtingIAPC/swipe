@@ -1,0 +1,6 @@
+## first install rcssmin and rjsmin without c extensions to ensure it won't fail
+rcssmin==1.0.6 --install-option="--without-c-extensions"
+rjsmin==1.0.12 --install-option="--without-c-extensions"
+
+## then install the rest of the requirements
+-r requirements.txt

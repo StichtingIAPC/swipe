@@ -1,4 +1,4 @@
-{% extends "www/base.html" %}\
+{% extends "registration/login_base.html" %}\
 {% load i18n %}
 
 {% block content %}
@@ -12,6 +12,7 @@
     {% endif %}
     <form action="{{ app_path }}" method="post" id="login-form">
         {% csrf_token %}
+        {{ form.non_field_errors }}
         <div class="input-field">
             {{ form.username.errors }}
             {{ form.username.label_tag }} {{ form.username }}

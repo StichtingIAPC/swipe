@@ -12,6 +12,15 @@ DEBUG = True
 #    'debug_toolbar',  # Django Debugging toolbar
 #)
 
+## uncomment for Windows installs.
+# COMPRESS_ES6_COMPILER_CMD = (
+#     'set NODE_PATH={paths}; && '
+#     'browserify "{infile}" -o "{outfile}" --full-paths ' +
+#     ('-d ' if DEBUG else '') +
+#     '-t [ babelify '
+#     '--presets [ es2016 ] ]'
+# )
+
 ###
 # Logging settings
 ###

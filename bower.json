@@ -5,7 +5,8 @@
     "axios": "^0.9.1",
     "mini-signals": "^1.1.0",
     "domchanger": "https://github.com/creationix/domchanger.git#^1.0.2",
-    "almond": "^0.3.2"
+    "almond": "^0.3.2",
+    "foundation-sites": "^6.2.1"
   },
   "description": "a POS (point of sale) system written in django",
   "main": "",
@@ -14,6 +15,6 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "static/build"
+    "static"
   ]
 }
