@@ -6,15 +6,14 @@ from order.models import *
 # Create your tests here.
 
 
-
 class OrderTest(TestCase):
 
     def setUp(self):
 
         self.vat_group = VAT()
-        self.vat_group.name="Bar"
-        self.vat_group.active=True
-        self.vat_group.vatrate=1.12
+        self.vat_group.name = "Bar"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
         self.vat_group.save()
 
         self.currency = Currency(iso="USD")
@@ -24,10 +23,10 @@ class OrderTest(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.article_type = ArticleType(accounting_group=self.acc_group,name="Foo")
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo")
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group,name="Bar")
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Bar")
         self.at2.save()
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
@@ -45,12 +44,12 @@ class OrderTest(TestCase):
 
     @skip("Skipped labour intensive test")
     def test_save_speed(self):
-        big_order=Order(copro=self.copro, customer=self.customer)
+        big_order = Order(copro=self.copro, customer=self.customer)
         big_order.save()
         orderlines = []
-        for i in range (0, 100):
-            orderLine = OrderLine(order=big_order, wishable=self.article_type)
-            orderlines.append(orderLine)
+        for i in range(0, 100):
+            order_line = OrderLine(order=big_order, wishable=self.article_type)
+            orderlines.append(order_line)
 
         for ol in orderlines:
             ol.save()
@@ -114,7 +113,6 @@ class OrderTest(TestCase):
         assert ol.state == 'A'
         assert len(OrderLineState.objects.all()) == 1
 
-
     def test_illegal_transition(self):
         ol = OrderLine(order=self.order, wishable=self.article_type)
         ol.save()
@@ -138,6 +136,8 @@ class OrderTest(TestCase):
         ols = OrderLine.objects.filter(order=order)
         assert len(ols) == 3
         assert ols[0].state == 'O'
+        errors = ConsistencyChecker.non_crashing_full_check()
+        assert len(errors) == 0
 
     def test_add_group_of_wishables(self):
         orderlines = []
@@ -154,14 +154,14 @@ class OrderTest(TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, 1.61)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
-        #print("\n")
-        #order.print_orderline_info()
+        # print("\n")
+        # order.print_orderline_info()
 
     def test_alt_currency(self):
         ol = OrderLine(order=self.order, wishable=self.article_type)
         ol.temp = PriceImitator(amount=2, currency=self.currency)
         ol.save()
-        ol2=OrderLine.objects.get()
+        ol2 = OrderLine.objects.get()
         assert ol2.expected_sales_price_currency == "USD"
 
     def test_olc(self):

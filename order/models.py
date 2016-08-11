@@ -5,6 +5,7 @@ from article.models import *
 from money.models import *
 from django.db.models import Count
 from swipe.settings import USED_CURRENCY
+from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 
 
 # Create your models here.
@@ -39,16 +40,16 @@ class Order(models.Model):
 
     def print_orderline_info(self):
         ocls = OrderCombinationLine.get_ol_combinations(order=self)
-        print("{:<7}{:14}{:10}{:12}".format("Number","Name","Exp.Price","State"))
+        print("{:<7}{:14}{:10}{:12}".format("Number", "Name", "Exp.Price", "State"))
         for ocl in ocls:
             print(ocl)
 
 
 class OrderLineState(models.Model):
     # A representation of the state of a orderline
-    OL_STATE_CHOICES = ('O', 'L', 'A', 'C', 'S')
+    OL_STATE_CHOICES = ('O', 'L', 'A', 'C', 'S', 'I')
     OL_STATE_MEANING = {'O': 'Ordered by Customer', 'L': 'Ordered at Supplier',
-                        'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold'}
+                        'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold', 'I' : 'Used for Internal Purposes'}
 
     state = models.CharField(max_length=3)
 
@@ -143,7 +144,7 @@ class OrderLine(models.Model):
             nextstates = {
                 'O': ('C', 'L'),
                 'L': ('A',),
-                'A': ('S') }
+                'A': ('S', 'I')}
             if new_state in nextstates[self.state]:
                 self.state = new_state
                 ols = OrderLineState(state=new_state, orderline=self)
@@ -212,9 +213,10 @@ class OrderCombinationLine:
 
     def __str__(self):
         dec = self.price.amount.quantize(Decimal('0.01'))
-        stri = "{:<7}{:14}{:10}{:12}".format(self.number, self.wishable.name , self.price.currency.iso+str(dec),
-                                              OrderLineState.OL_STATE_MEANING[self.state])
+        stri = "{:<7}{:14}{:10}{:12}".format(self.number, self.wishable.name, self.price.currency.iso + str(dec),
+                                             OrderLineState.OL_STATE_MEANING[self.state])
         return stri
+
     @staticmethod
     def prefix_field_names(model, prefix):
         fields = model._meta.get_fields()
@@ -227,27 +229,44 @@ class OrderCombinationLine:
     @staticmethod
     def get_ol_combinations(order=None, wishable=None, state=None, qs=OrderLine.objects):
         result = []
-        filter={}
+        filtr = {}
         if order:
-            filter['order'] = order
+            filtr['order'] = order
         if wishable:
-            filter['wishable'] = wishable
+            filtr['wishable'] = wishable
         if state:
-            filter['state'] = state
+            filtr['state'] = state
 
-        orderlines = qs.filter(**filter).\
+        orderlines = qs.filter(**filtr).\
             values('state', 'expected_sales_price','expected_sales_price_currency','expected_sales_price_vat', * OrderCombinationLine.\
                    prefix_field_names(WishableType, 'wishable__')).annotate(Count('id'))
         for o in orderlines:
-            number=o['id__count']
-            state=o['state']
-            price=Price(amount=o['expected_sales_price'],currency=Currency(iso=o['expected_sales_price_currency']),
-                                        vat=o['expected_sales_price_vat'])
-            ocl = OrderCombinationLine(number=number, wishable=WishableType(name=o['wishable__name'], \
+            number = o['id__count']
+            state = o['state']
+            price = Price(amount=o['expected_sales_price'], currency=Currency(iso=o['expected_sales_price_currency']),
+                          vat=o['expected_sales_price_vat'])
+            ocl = OrderCombinationLine(number=number, wishable=WishableType(name=o['wishable__name'],
                                        pk=o['wishable__id']), price=price,
-                                        state=state)
+                                       state=state)
             result.append(ocl)
         return result
+
+
+class ConsistencyChecker:
+
+    @staticmethod
+    @consistency_check
+    def non_crashing_full_check():
+        errors = []
+        ols = OrderLine.objects.all().exclude(state__in=OrderLineState.OL_STATE_CHOICES)
+        if len(ols) > 0:
+            errors.append({
+                "text": "There are OrderLines in an impossible state",
+                "location": "OrderLine",
+                "line": -1,
+                "severity": CRITICAL
+            })
+        return errors
 
 
 class OrderLineNotSavedError(Exception):
