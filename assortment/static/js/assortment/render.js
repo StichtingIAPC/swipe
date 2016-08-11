@@ -2,7 +2,7 @@
  * Created by Matthias on 11/04/2016.
  */
 
-import {Product, OrProduct, AndProduct, Branch} from 'js/assortment/models';
+import {Product, OrProduct, AndProduct, Branch, BaseArticle} from 'js/assortment/models';
 import _ from 'js/tools/translations'
 
 /**
@@ -15,7 +15,8 @@ import _ from 'js/tools/translations'
 
 function ProductDescription(emit, refresh) {
   return {
-    render: renderer
+    render: renderer,
+    hwrender: hwrender
   };
   function renderer(product) {
     return [
@@ -46,6 +47,51 @@ function ProductDescription(emit, refresh) {
         `${product.price.toFixed(2)}`
       ]
     ]
+  }
+
+  /**
+   * @param {Element} node
+   * @param {BaseArticle} article
+   */
+  function hwrender(node, article) {
+    let nspan, aspan, sspan, pspan;
+    if (node !== null && node !== undefined && node.tagName == 'div') {
+      if (node.classList.contains('product-description')) {
+        const l = node.childNodes;
+        nspan = l[0];
+        aspan = l[1];
+        sspan = l[2];
+        pspan = l[3];
+      } else {
+        node.className = 'product-description';
+        while (node.firstChild) {
+          node.removeChild(node.firstChild);
+        }
+      }
+    } else {
+      node = node ? node : document.createElement('div');
+      node.classList.length = 0;
+      node.classList.add('product-description');
+
+      nspan = document.createElement('span');
+      nspan.classList.add('name');
+      nspan.appendChild(document.createTextNode(product.name));
+
+      aspan = document.createElement('span');
+      aspan.classList.add('amount');
+      aspan.classList.add(product.amount_str);
+      aspan.appendChild(document.createTextNode(product.amount ? product.amount : String(0)));
+
+      sspan = document.createElement('span');
+      sspan.classList.add('spacer');
+
+      pspan = document.createElement('span');
+      pspan.classList.add('price');
+      pspan.appendChild(document.createTextNode(product.price.toFixed(2)));
+
+      node.appendChild(nspan).appendChild(aspan).appendChild(sspan).appendChild(pspan);
+
+    }
   }
 }
 

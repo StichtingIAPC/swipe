@@ -27,3 +27,17 @@ window.onload = function(){
     func.apply(this, arguments);
   }
 };
+
+let drag_identifiers = new WeakMap();
+
+export function draggable(type, identifier) {
+  drag_identifiers[identifier] =
+}
+
+export function droppable(types, func, args, kwargs) {
+  return {}
+
+  function onDrop(event) {
+    event.
+  }
+}

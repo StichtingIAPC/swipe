@@ -124,7 +124,7 @@ Label.VALUE_MATCHER = '(.+)';
  */
 Label.MATCHER = LabelType.MATCHER + Label.DIVIDER + Label.VALUE_MATCHER;
 
-class BaseArticle extends SubscribeAble {
+export class BaseArticle extends SubscribeAble {
   /**
    * @param {Number}                id
    * @param {String}                name

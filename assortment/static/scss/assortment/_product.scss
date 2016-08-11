@@ -29,6 +29,7 @@
 
   .name {
     @extend %flex;
+    display: block;
 
     flex-grow: 0;
     margin-left: $tree-entry-height;
