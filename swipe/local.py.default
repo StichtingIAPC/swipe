@@ -5,12 +5,12 @@
 
 # Debugging mode for Django
 # Set this to True if you want debugging mode enabled
-DEBUG = True
+#DEBUG = True
 
 # Custom installed apps for debugging
-INSTALLED_APPS = INSTALLED_APPS + (
-    'debug_toolbar',  # Django Debugging toolbar
-)
+#INSTALLED_APPS = INSTALLED_APPS + (
+#    'debug_toolbar',  # Django Debugging toolbar
+#)
 
 ## uncomment for Windows installs.
 # COMPRESS_ES6_COMPILER_CMD = (
