@@ -49,16 +49,19 @@ class SupplierOrderLine(models.Model):
 
 
 class StockWishLine(models.Model):
+    """
+    Single line that indicates the wish for a certain number of ArticleTypes. Can be negative for obsolete wishes.
+    """
 
     article_type = models.ForeignKey(ArticleType)
 
     number = models.IntegerField()
 
-    stock_wish = models.ForeignKey()
+    stock_wish = models.ForeignKey('StockWish')
 
     def save(self):
         assert self.number is not 0
-        assert self.stock_wish is not None  # Pre-check, assumed from here on out
+        assert self.stock_wish is not None  # Pre-check, assumed present from here on out
         if self.pk is None:
             if self.number > 0:
                 StockWishTable.add_products_to_table(self.article_type, self.number, indirect=True,
@@ -71,15 +74,48 @@ class StockWishLine(models.Model):
 
 
 class StockWish(models.Model):
+    """
+    Combination of wishes for ArticleTypes to be ordered at supplier.
+    """
 
     copro = models.ForeignKey(User)
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    @staticmethod
+    def create_stock_wish(user, article_type_number_combos):
+        """
+        Creates stock wishes integrally, this function is the preferred way of creating stock wishes
+        :param user: User to be connected to the stockwish
+        :param article_type_number_combos: lists containing both ArticleTypes and a non-zero integer
+        :return:
+        """
+        ARTICLE_TYPE_LOCATION = 0
+        NUMBER_LOCATION = 1
+        # Validity checks
+        assert user and article_type_number_combos
+        assert isinstance(user, User)
+        assert len(article_type_number_combos > 0)
+        for atnc in article_type_number_combos:
+            assert isinstance(atnc[ARTICLE_TYPE_LOCATION], ArticleType)
+            assert isinstance(atnc[NUMBER_LOCATION], int)
+            assert atnc[NUMBER_LOCATION] is not 0
+
+        stock_wish = StockWish(copro=user)
+        stock_wish.save()
+        for atnc in article_type_number_combos:
+            swl = StockWishLine(article_type=atnc[ARTICLE_TYPE_LOCATION], number=atnc[NUMBER_LOCATION],
+                                stock_wish=stock_wish)
+            swl.save()
+
 
 class StockWishTableLine(models.Model):
+    """
+    Single line of all combined present wishes for a single ArticleType. Will be modified by StockWishes
+    and SupplierOrders.
+    """
 
-    article_type = models.ForeignKey(ArticleType, primary_key=True)
+    article_type = models.OneToOneField(ArticleType)
 
     number = models.IntegerField()
 
@@ -91,13 +127,16 @@ class StockWishTableLine(models.Model):
 
 
 class StockWishTable:
+    """
+    Helper methods for creating Stock Wishes. Let functions that modify the stock wish table call these functions
+    """
 
     @staticmethod
     def add_products_to_table(article_type, number, indirect=False,
                               stock_wish=None, supplier_order=None):
         if not indirect:
             raise IndirectionError("add_products_to_table must be called indirectly")
-        article_type_status = StockWishTableLine.objects.get(article_type=article_type)
+        article_type_status = StockWishTableLine.objects.filter(article_type=article_type)
         if len(article_type_status) == 0:
             swtl = StockWishTableLine(article_type=article_type, number=number)
             swtl.save(indirect=indirect)
@@ -131,6 +170,9 @@ class StockWishTable:
 
 
 class StockWishTableLog(models.Model):
+    """
+    Log of all edits of the stock wish.
+    """
 
     number = models.IntegerField()
 
@@ -145,6 +187,7 @@ class StockWishTableLog(models.Model):
             raise IndirectionError("Saving must be done indirectly")
         assert (self.supplier_order or self.stock_wish) and not(self.supplier_order and self.stock_wish)
         # ^ reason is either supplier order or stock wish modification
+        assert self.pk is None  # No edits after creation
         super(StockWishTableLog, self).save()
 
 
