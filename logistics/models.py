@@ -58,13 +58,15 @@ class StockWishLine(models.Model):
 
     def save(self):
         assert self.number is not 0
+        assert self.stock_wish is not None  # Pre-check, assumed from here on out
         if self.pk is None:
             if self.number > 0:
-                StockWishTable.add_products_to_table(self.article_type, self.number)
+                StockWishTable.add_products_to_table(self.article_type, self.number, indirect=True,
+                                                     stock_wish=self.stock_wish)
             else:
-                StockWishTable.remove_products_from_table(self.article_type, -1 * self.number)
+                StockWishTable.remove_products_from_table(self.article_type, -1 * self.number, indirect=True,
+                                                          stock_wish=self.stock_wish)
             super(StockWishLine, self).save()
-
         # Immutable after storage to prevent backlogging
 
 
@@ -81,21 +83,39 @@ class StockWishTableLine(models.Model):
 
     number = models.IntegerField()
 
+    def save(self, indirect=False):
+        if not indirect:
+            raise IndirectionError("StockWishTableLine must be called indirectly from StockWishTable")
+        else:
+            super(StockWishTableLine, self).save()
+
 
 class StockWishTable:
 
     @staticmethod
-    def add_products_to_table(article_type, number):
+    def add_products_to_table(article_type, number, indirect=False,
+                              stock_wish=None, supplier_order=None):
+        if not indirect:
+            raise IndirectionError("add_products_to_table must be called indirectly")
         article_type_status = StockWishTableLine.objects.get(article_type=article_type)
         if len(article_type_status) == 0:
             swtl = StockWishTableLine(article_type=article_type, number=number)
-            swtl.save()
+            swtl.save(indirect=indirect)
+            log = StockWishTableLog(number=number, article_type=article_type,
+                                    stock_wish=stock_wish, supplier_order=supplier_order)
+            log.save(indirect=True)
         else:
             article_type_status[0].number += number
-            article_type_status[0].save()
+            article_type_status[0].save(indirect=indirect)
+            log = StockWishTableLog(number=number, article_type=article_type,
+                                    stock_wish=stock_wish, supplier_order=supplier_order)
+            log.save(indirect=True)
 
     @staticmethod
-    def remove_products_from_table(article_type, number):
+    def remove_products_from_table(article_type, number, indirect=False,
+                                   stock_wish=False, supplier_order=None):
+        if not indirect:
+            raise IndirectionError("remove_products_from_table must be called indirectly")
         article_type_status = StockWishTableLine.objects.get(article_type=article_type)
         if len(article_type_status) == 0:
             raise CannotRemoveFromWishTableError("ArticleType is not included in table")
@@ -104,7 +124,28 @@ class StockWishTable:
                 raise CannotRemoveFromWishTableError("Less ArticleTypes present than removal number")
             else:
                 article_type_status[0].number -= number
-                article_type_status[0].save()
+                article_type_status[0].save(indirect=indirect)
+                log = StockWishTableLog(number=-number, article_type=article_type,
+                                        stock_wish=stock_wish, supplier_order=supplier_order)
+                log.save(indirect=True)
+
+
+class StockWishTableLog(models.Model):
+
+    number = models.IntegerField()
+
+    article_type = models.ForeignKey(ArticleType)
+
+    supplier_order = models.ForeignKey(SupplierOrder, null=True)
+
+    stock_wish = models.ForeignKey(StockWish, null=True)
+
+    def save(self, indirect=False):
+        if not indirect:
+            raise IndirectionError("Saving must be done indirectly")
+        assert (self.supplier_order or self.stock_wish) and not(self.supplier_order and self.stock_wish)
+        # ^ reason is either supplier order or stock wish modification
+        super(StockWishTableLog, self).save()
 
 
 class UnimplementedError(Exception):
@@ -112,4 +153,8 @@ class UnimplementedError(Exception):
 
 
 class CannotRemoveFromWishTableError(Exception):
+    pass
+
+
+class IndirectionError(Exception):
     pass
