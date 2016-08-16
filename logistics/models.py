@@ -95,7 +95,7 @@ class StockWish(models.Model):
         # Validity checks
         assert user and article_type_number_combos
         assert isinstance(user, User)
-        assert len(article_type_number_combos > 0)
+        assert len(article_type_number_combos) > 0
         for atnc in article_type_number_combos:
             assert isinstance(atnc[ARTICLE_TYPE_LOCATION], ArticleType)
             assert isinstance(atnc[NUMBER_LOCATION], int)
