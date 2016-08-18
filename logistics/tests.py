@@ -3,6 +3,7 @@ from money.models import VAT, Price, Currency, AccountingGroup, Money
 from article.models import ArticleType
 from crm.models import User, Person
 from logistics.models import *
+from order.models import *
 from decimal import Decimal
 
 
@@ -173,4 +174,52 @@ class StockWishTests(TestCase):
         assert caught
 
 
+class SupplierOrderTests(TestCase):
+
+    def setUp(self):
+        self.vat_group = VAT()
+        self.vat_group.name = "AccGrpFoo"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
+        self.vat_group.save()
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
+        self.currency = Currency(iso="USD")
+
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
+
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1")
+        self.article_type.save()
+
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2")
+        self.at2.save()
+
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
+        self.at3.save()
+
+        self.money = Money(amount=Decimal(3.32), currency=self.currency)
+
+        self.customer = Person()
+        self.customer.save()
+
+        self.copro = User()
+        self.copro.save()
+
+    def test_new_function(self):
+        # Articletypes for supplier order
+        atcs = []
+        atcs.append([self.article_type, 2])
+        atcs.append([self.article_type, 2])
+        atcs.append([self.at2, 2])
+        atcs.append([self.article_type, 2])
+
+        # Orders
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 6, self.price, self.copro)
+        order = Order(copro=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines)
+        SupplierOrder.create_supplier_order(self.copro, atcs)
 

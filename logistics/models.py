@@ -1,6 +1,6 @@
 from django.db import models, transaction
 from supplier.models import Supplier, ArticleTypeSupplier
-from order.models import OrderLine
+from order.models import OrderLine, OrderCombinationLine
 from crm.models import User
 from article.models import ArticleType, OrProductType
 
@@ -12,6 +12,52 @@ class SupplierOrder(models.Model):
     supplier = models.ForeignKey(Supplier)
 
     copro = models.ForeignKey(User)
+
+    @staticmethod
+    def create_supplier_order(user, article_type_number_combos):
+        ARTICLE_TYPE_LOCATION = 0
+        NUMBER_LOCATION = 1
+        assert user and article_type_number_combos
+        assert isinstance(user, User)
+        assert len(article_type_number_combos) > 0
+
+        # Check if there not more supply than demand
+
+        article_type_supply = {}
+
+        for atnc in article_type_number_combos:
+            assert isinstance(atnc[ARTICLE_TYPE_LOCATION], ArticleType)
+            assert isinstance(atnc[NUMBER_LOCATION], int)
+            assert atnc[NUMBER_LOCATION] > 0
+            if article_type_supply.get(atnc[ARTICLE_TYPE_LOCATION]) is None:
+                article_type_supply[atnc[ARTICLE_TYPE_LOCATION]] = atnc[NUMBER_LOCATION]
+            else:
+                article_type_supply[atnc[ARTICLE_TYPE_LOCATION]] += atnc[NUMBER_LOCATION]
+
+        article_type_demand = {}
+        swls = StockWishLine.objects.all()
+        for swl in swls:
+            article_type_demand[swl.article_type] = swl.number
+        combo_order_lines = OrderCombinationLine.get_ol_combinations(state='O',include_price_field=False)
+        for col in combo_order_lines:
+            if article_type_demand.get(col.wishable) is None:
+                article_type_demand[col.wishable] = col.number
+            else:
+                article_type_demand[col.wishable] += col.number
+
+        for supply in article_type_supply:
+            print("Article "+supply.name)
+            if (article_type_demand.get(supply) is None) or \
+                    (article_type_demand[supply] < article_type_supply[supply]):
+                #print("Demand for article" + supply.name +" is "+ article_type_demand[supply])
+                #print("Supply for article" + supply.name +" is "+ article_type_supply[supply])
+                #raise InsufficientDemandError()
+                pass
+
+
+
+
+
 
 
 class SupplierOrderLine(models.Model):
@@ -35,7 +81,13 @@ class SupplierOrderLine(models.Model):
                 # for it to work
             else:
                 assert self.order_line.wishable == self.article_type # Customer article matches ordered article
+        if self.supplier_article_type is None:
+            sup_art_types = ArticleTypeSupplier.objects.filter(article_type=self.article_type, supplier=self.supplier_order.supplier)
+            if len(sup_art_types) == 1:
+                self.supplier_article_type == sup_art_types[0]
         assert self.supplier_article_type.supplier == self.supplier_order.supplier # Article can be ordered at supplier
+        assert self.supplier_article_type == ArticleTypeSupplier.objects.get(article_type=self.article_type,
+                                                                             supplier=self.supplier_order.supplier)
 
         # Assert that everything is ok here
         if self.pk is None:
@@ -200,4 +252,8 @@ class CannotRemoveFromWishTableError(Exception):
 
 
 class IndirectionError(Exception):
+    pass
+
+
+class InsufficientDemandError(Exception):
     pass
