@@ -8,8 +8,10 @@ import {SubscribeAble} from 'js/tools/tools';
 
 import dummy_data from 'json/assortment/dummy_db'
 
-import {AssortmentRenderer, ProductRenderer, AndProductRenderer,
-  OrProductRenderer} from 'js/assortment/render';
+import { AssortmentRenderer,
+  ProductRenderer,
+  AndProductRenderer,
+  OrProductRenderer } from 'js/assortment/render';
 
 /**
  * @class {LabelType}                                   LabelType
@@ -381,11 +383,19 @@ export class Branch {
   }
 
   get children() {
-    return this._children.filter(this.assortment.filter_branches);
+    return this._children.filter(
+      this.assortment.filter_branches
+    ).sort(
+      (a, b) => a.name.localeCompare(b.name)
+    );
   }
 
   get products() {
-    return this._products.filter(this.assortment.filter_products)
+    return this._products.filter(
+      this.assortment.filter_products
+    ).sort(
+      (a, b) => a.name.localeCompare(b.name)
+    );
   }
 
   /**
@@ -453,6 +463,8 @@ Branch.MATCHER = '[a-zA-Z0-9]+';
  * @prop {Array<Branch>}            branches
  * @prop {Array<Label>}             labels
  * @prop {Array<LabelType>}         label_types
+ * @prop {String}                   name
+ * @prop {String}                   title
  */
 export class Assortment {
   /**
@@ -465,6 +477,7 @@ export class Assortment {
   constructor(element, products=[], branches=[], labels=[], label_types=[]) {
     this.rootElement = element;
     this.name = element.getAttribute('article-tree');
+    this.title = element.dataset.title;
     this.query = '';
 
     this._branches = branches;
@@ -491,11 +504,19 @@ export class Assortment {
   }
 
   get branches() {
-    return this._branches.filter(this.filter_branches);
+    return this._branches.filter(
+      this.filter_branches
+    ).sort(
+      (a, b) => a.name.localeCompare(b.name)
+    );
   }
 
   get products() {
-    return this._products.filter(this.filter_products);
+    return this._products.filter(
+      this.filter_products
+    ).sort(
+      (a, b) => a.name.localeCompare(b.name)
+    );
   }
 
   /**
@@ -520,6 +541,7 @@ export class Assortment {
     const products = Product.generate_list(product_protos, labels, branches);
     const assortment = new Assortment(domelement, products, branches, labels, label_types);
     console.log(assortment);
+    return assortment;
   }
 
   /**
@@ -532,7 +554,7 @@ export class Assortment {
       let tags = dummy_data.branches;
       let products = dummy_data.products;
 
-      Assortment.generate(domelement, products, tags, label_types);
+      return Assortment.generate(domelement, products, tags, label_types);
     } else {
 
       var assortment_api_endpoint = domelement.dataset.apiEndpoint;
@@ -562,7 +584,7 @@ export class Assortment {
    */
   search(query) {
     let t1 = performance.now();
-    let strings = query.split(' ');
+    let strings = [...(new Set(query.split(' ')))];
     this._branches.forEach(
       (br) => {
         if (br) {
@@ -570,7 +592,7 @@ export class Assortment {
             strings.filter(
               (str) => br.name.match(str)
             )
-          );
+          );// create a set of all matches it has found, and store it
           br.value = new Set(br._value)
         }
       }
@@ -592,7 +614,7 @@ export class Assortment {
             (p) => p._value = new Set(br.value)
           )
       }
-  );
+    );
     this._products.forEach(
       (pr) => {
         if (pr) {
@@ -606,16 +628,15 @@ export class Assortment {
       }
     );
     let go_products = this._products.filter(
-      (pr) => pr ? pr._value.size >= strings.length - 1 : false
+      (pr) => pr ? pr._value.size == strings.length : false
     );
     this.product_set = new Set(go_products);
     this.branches_set = new Set();
     go_products.forEach(
       (pr) => this.add_render(pr.branch)
     );
-
     let t2 = performance.now();
-    this.dom.update(this);
+    this.dom.update(this, query.length > 3);
     let t3 = performance.now();
     console.log(`querying took ${t2 - t1} ms, rendering took ${t3 - t2} ms`);
 

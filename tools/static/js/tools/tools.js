@@ -28,11 +28,9 @@ window.onload = function(){
   }
 };
 
-let drag_identifiers = new WeakMap();
-
 export function draggable(type, data) {
   return {
-    draggable: true,
+    draggable: "true",
     ondragstart: drag
   };
 

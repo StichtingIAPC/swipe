@@ -20,15 +20,16 @@ function ProductDescription(emit, refresh) {
     hwrender: hwrender
   };
   function renderer(product) {
+    let name_dict = draggable('product', product);
+    name_dict.class = 'name';
+    name_dict.editable = 'false';
     return [
       'div', {
         class: 'product-description'
       },
       [
-        'span', {
-          class: 'name',
-        ...draggable('product', product)
-        },
+        'span',
+        name_dict,
         `${product.name}`
       ],
       [
@@ -119,7 +120,8 @@ function insert_toggle(unique_name, active) {
         type: 'checkbox',
         class: 'opening-mechanism',
         id: unique_name,
-        hidden: 'true'
+        hidden: 'true',
+        checked: active ? true : false
       }
     ],
     [
@@ -229,6 +231,7 @@ export function OrProductRenderer(emit, refresh) {
 /**
  * @param {Emit} emit
  * @param {Refresh} refresh
+ * @param {String} prefix
  * @returns {{render: renderBranch}}
  */
 export function BranchRenderer(emit, refresh, prefix) {
@@ -282,6 +285,7 @@ function BranchList(emit, refresh) {
    * @param {Array<Branch>} branches
    * @param {Array<Product>} products
    * @param {Boolean} open
+   * @param {String} prefix
    * @returns {*[]}
    */
   function renderBranchList(branches, products, open, prefix) {
@@ -311,8 +315,6 @@ export function AssortmentRenderer(emit, refresh) {
   /**
    * @type {{render: renderBranchList}}
    */
-  const __super = BranchList(emit, refresh);
-
   return {
     render: renderAssortment
   };
@@ -323,11 +325,17 @@ export function AssortmentRenderer(emit, refresh) {
    * @returns {*[]}
    */
   function renderAssortment(assortment, open) {
-    return __super.render(
-      assortment.branches.filter((branch) => !branch.parent),
-      [],
-      open,
-      assortment.name
-    );
+    return [
+      'div', {
+        class: 'assortment-tree'
+      },
+      [
+        'div', {
+          class: 'assortment-description'
+        },
+        `${assortment.title}`
+      ],
+      [BranchList, assortment.branches.filter(a => a.parent && !a.parent.parent), [], open, assortment.name]
+    ]
   }
 }

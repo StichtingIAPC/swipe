@@ -6,9 +6,10 @@ onload(function(ev) {
     document.querySelectorAll('[article-tree]'),
     function(node) {
       console.log(node);
-      Assortment.create_from_element(node)
+      return Assortment.create_from_element(node);
     }
-  )
+  );
+  assortments[0].search('fiets');
 });
 // as a NodeList does not have array operations, but has (otherwise) the same
 // structure as an array, we can call array's prototype methods on it. This

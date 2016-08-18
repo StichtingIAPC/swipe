@@ -25,6 +25,7 @@
     border: 1px solid $dark-gray;
     border-radius: 2px;
     flex-grow: 0;
+    user-select: none;
   }
 
   .name {

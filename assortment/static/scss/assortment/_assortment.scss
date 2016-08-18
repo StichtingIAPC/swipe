@@ -1,6 +1,16 @@
+@import './settings';
 @import './product';
 @import './tree';
 @import './branch';
+
+@mixin swipe-assortment-description {
+  padding-left: $tree-indent;
+  padding-top: $tree-indent / 2;
+  padding-bottom: $tree-indent / 2;
+  margin: 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid $tree-line-color;
+}
 
 @mixin swipe-assortment() {
   .assortment {
@@ -17,6 +27,10 @@
 
     .branch-description {
       @include swipe-branch-description;
+    }
+
+    .assortment-description {
+      @include swipe-assortment-description;
     }
 
     .tree-list {
