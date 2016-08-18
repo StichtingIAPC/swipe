@@ -13,6 +13,8 @@ from money.models import CurrencyData
 from money.models import Denomination
 from django.core.exceptions import ValidationError
 
+from swipe.settings import USED_CURRENCY
+
 
 class MoneyTest(TestCase):
     def setUp(self):
@@ -30,6 +32,10 @@ class MoneyTest(TestCase):
             self.assertEqual(v.money.currency, Currency('EUR'))
             i += 1
         self.assertEqual(i, 1)
+
+    def testCreateMoneyWithoutCurency(self):
+        m = Money(Decimal("5.21"), None, use_system_currency=True)
+        self.assertEqual(m.currency,Currency(iso=USED_CURRENCY))
 
 
 class CostTest(TestCase):
@@ -49,11 +55,14 @@ class CostTest(TestCase):
 
         self.assertEqual(i, 1)
 
+    def testCreateCostWithoutCurrency(self):
+        m = Cost(Decimal("5.21"), None,use_system_currency=True)
+        self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 class PriceTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
-        m = Price(amount=Decimal("5.21"), currency=c, vat=Decimal("1.21"))
+        m = Price(amount=Decimal("5.21"), vat=Decimal("1.21"), currency=c)
         TestPriceType.objects.create(price=m)
 
     def testMoneyStorage(self):
@@ -68,11 +77,14 @@ class PriceTest(TestCase):
 
         self.assertEqual(i, 1)
 
+    def testCreatePriceWithoutCurrency(self):
+        m = Price(amount=Decimal("5.21"), vat=Decimal("1.21"), currency=None, use_system_currency=True)
+        self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 class SalesPriceTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
-        m = SalesPrice(amount=Decimal("5.21"), currency=c, vat=Decimal("1.93"), cost=Decimal("4.00"))
+        m = SalesPrice(amount=Decimal("5.21"), vat=Decimal("1.93"), currency=c, cost=Decimal("4"))
         TestSalesPriceType.objects.create(price=m)
 
     def testMoneyStorage(self):
@@ -88,6 +100,9 @@ class SalesPriceTest(TestCase):
 
         self.assertEqual(i, 1)
 
+    def testCreatePriceWithoutCurrency(self):
+        m = SalesPrice(amount=Decimal("5.21"), vat=Decimal("1.93"), currency=None, cost=Decimal("4"), use_system_currency=True)
+        self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 class MoneyMathTest(TestCase):
     def setUp(self):
@@ -199,10 +214,10 @@ class SalesPriceMathTest(TestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
-        self.m1 = SalesPrice(amount=Decimal("1.00000"), currency=eur, vat=Decimal("1.21"), cost=Decimal("2.00000"))
-        self.m2 = SalesPrice(amount=Decimal("0.50000"), currency=eur, vat=Decimal("1.21"), cost=Decimal("1.00000"))
-        self.m3 = SalesPrice(amount=Decimal("2.00000"), currency=usd, vat=Decimal("1.21"), cost=Decimal("2.19000"))
-        self.m4 = SalesPrice(amount=Decimal("0.50000"), currency=eur, vat=Decimal("1.06"), cost=Decimal("3.00000"))
+        self.m1 = SalesPrice(amount=Decimal("1.00000"), vat=Decimal("1.21"), currency=eur, cost = Decimal("2.00000"))
+        self.m2 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.21"), currency=eur, cost = Decimal("1.00000"))
+        self.m3 = SalesPrice(amount=Decimal("2.00000"), vat=Decimal("1.21"), currency=usd, cost = Decimal("0.00000"))
+        self.m4 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.06"), currency=eur, cost = Decimal("0.00000"))
         self.num = 4
 
     def testMoneyAdd(self):
@@ -249,7 +264,7 @@ class SalesPriceMathTest(TestCase):
             self.assertEqual(i, 1, "{} can't be multiplied with SalesPrice".format(w))
 
     def testSalesPriceMargin(self):
-        t = SalesPrice(amount=Decimal("4.00000"), currency=Currency("EUR"), vat=Decimal("2"), cost=Decimal("0.50000"))
+        t = SalesPrice(amount=Decimal("4.00000"), vat=Decimal("2"), currency=Currency("EUR"),cost=Decimal("0.5"))
         self.assertEquals(t.get_profit(), 1.5)
         self.assertEquals(t.get_margin(), 3)
 
