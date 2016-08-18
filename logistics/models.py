@@ -15,7 +15,14 @@ class SupplierOrder(models.Model):
     copro = models.ForeignKey(User)
 
     @staticmethod
-    def create_supplier_order(user, article_type_number_combos):
+    def create_supplier_order(user, supplier, article_type_number_combos):
+        """
+        Checks if supplier order information is correct and orders it at the correct supplier
+        :param user: user to which the order is authorized
+        :param supplier: supplier which should order the products
+        :param article_type_number_combos:
+        :return:
+        """
         ARTICLE_TYPE_LOCATION = 0
         NUMBER_LOCATION = 1
         assert user and article_type_number_combos
@@ -41,6 +48,8 @@ class SupplierOrder(models.Model):
             article_type_demand[swl.article_type] = swl.number
         combo_order_lines = OrderCombinationLine.get_ol_combinations(state='O',include_price_field=False)
         for col in combo_order_lines:
+            if not hasattr(col.wishable, 'sellabletype') or col.wishable.sellabletype is None:
+                raise UnimplementedError("Or products are not yet supported")
             if article_type_demand.get(col.wishable.sellabletype.articletype) is None:
                 article_type_demand[col.wishable.sellabletype.articletype] = col.number
             else:
@@ -53,16 +62,12 @@ class SupplierOrder(models.Model):
                     " which exceeded demand of " + str(article_type_demand[supply])
                 raise InsufficientDemandError(error)
 
-        DisbributionStrategy.get_current_strategy_from_string(USED_STRATEGY).distribute(user,
+        # TODO: Check if supplier can supply products
+
+        # Create supplier order and modify customer orders
+        DisbributionStrategy.get_current_strategy_from_string(USED_STRATEGY).distribute(user, supplier,
                                                                                         article_type_number_combos,
                                                                                         indirect=True)
-
-
-
-
-
-
-
 
 
 class SupplierOrderLine(models.Model):
@@ -258,14 +263,14 @@ class DisbributionStrategy():
             raise UnimplementedError("Strategy not implemented")
 
     @staticmethod
-    def distribute(user, article_type_number_combos, indirect=False):
+    def distribute(user, supplier, article_type_number_combos, indirect=False):
         pass
 
 
 class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
 
     @staticmethod
-    def distribute(user, article_type_number_combos, indirect=False):
+    def distribute(user, supplier, article_type_number_combos, indirect=False):
         pass
 
 

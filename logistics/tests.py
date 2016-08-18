@@ -207,6 +207,8 @@ class SupplierOrderTests(TestCase):
         self.copro = User()
         self.copro.save()
 
+        self.supplier = Supplier()
+
     def test_new_function(self):
         # Articletypes for supplier order
         atcs = []
@@ -221,7 +223,7 @@ class SupplierOrderTests(TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 6, self.price, self.copro)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
-        SupplierOrder.create_supplier_order(self.copro, atcs)
+        SupplierOrder.create_supplier_order(self.copro, self.supplier, atcs)
 
     def test_bla(self):
         at = ""
