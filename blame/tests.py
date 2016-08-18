@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 # Create your tests here.
-from blame.models import ImmutableBlameTest, BlameTest
+from blame.models import ImmutableBlameTest, BlameTest, BlameLog
 
 
 class OrderTest(TestCase):
@@ -26,6 +26,10 @@ class OrderTest(TestCase):
         u = User.objects.create(username="AAAAAA")
         sleep(0.01) # Force date_modified to move
         ib.user_modified=u
+        ib.data=2
         ib.save()
         assert(ib.user_created != ib.user_modified)
         assert(ib.date_created != ib.date_modified)
+        assert(len(BlameLog.objects.all()) != 0)
+        for a in BlameLog.objects.all():
+            print(a)
