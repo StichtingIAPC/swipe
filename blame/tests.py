@@ -12,6 +12,7 @@ class OrderTest(TestCase):
         u = User.objects.create()
         ib = ImmutableBlameTest.objects.create(data=1,user_created=u)
         ib.data=2
+        assert(len(BlameLog.objects.all()) == 1)
         assert ib.user_created == u
         caught = False
         try:
@@ -30,6 +31,5 @@ class OrderTest(TestCase):
         ib.save()
         assert(ib.user_created != ib.user_modified)
         assert(ib.date_created != ib.date_modified)
-        assert(len(BlameLog.objects.all()) != 0)
-        for a in BlameLog.objects.all():
-            print(a)
+        assert(len(BlameLog.objects.all()) == 2)
+

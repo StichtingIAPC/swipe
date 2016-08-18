@@ -32,6 +32,9 @@ class ImmutableBlame(BasicBlame):
     def save(self, **kwargs):
         assert self.pk is None
         super(ImmutableBlame, self).save(kwargs)
+        typ = self._meta
+        to_string=self.__str__()
+        BlameLog.objects.create(type=typ, user_modified=self.user_created, obj_pk=self.pk, to_string=to_string)
 
 
 class BlameTest(Blame):
