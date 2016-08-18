@@ -53,7 +53,8 @@ INSTALLED_APPS = (
     'stock',
     'assortment',
     'tools',
-    'order'
+    'order',
+    'blame',
 )
 
 MIDDLEWARE_CLASSES = [
@@ -94,7 +95,7 @@ WSGI_APPLICATION = 'swipe.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, '2db.sqlite3'),
     }
 }
 
