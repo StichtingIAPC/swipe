@@ -223,3 +223,6 @@ class SupplierOrderTests(TestCase):
         Order.make_order(order, orderlines)
         SupplierOrder.create_supplier_order(self.copro, atcs)
 
+    def test_bla(self):
+        at = ""
+

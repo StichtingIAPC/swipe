@@ -3,6 +3,7 @@ from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import OrderLine, OrderCombinationLine
 from crm.models import User
 from article.models import ArticleType, OrProductType
+from swipe.settings import USED_STRATEGY
 
 
 class SupplierOrder(models.Model):
@@ -40,19 +41,23 @@ class SupplierOrder(models.Model):
             article_type_demand[swl.article_type] = swl.number
         combo_order_lines = OrderCombinationLine.get_ol_combinations(state='O',include_price_field=False)
         for col in combo_order_lines:
-            if article_type_demand.get(col.wishable) is None:
-                article_type_demand[col.wishable] = col.number
+            if article_type_demand.get(col.wishable.sellabletype.articletype) is None:
+                article_type_demand[col.wishable.sellabletype.articletype] = col.number
             else:
-                article_type_demand[col.wishable] += col.number
+                article_type_demand[col.wishable.sellabletype.articletype] += col.number
 
         for supply in article_type_supply:
-            print("Article "+supply.name)
             if (article_type_demand.get(supply) is None) or \
                     (article_type_demand[supply] < article_type_supply[supply]):
-                #print("Demand for article" + supply.name +" is "+ article_type_demand[supply])
-                #print("Supply for article" + supply.name +" is "+ article_type_supply[supply])
-                #raise InsufficientDemandError()
-                pass
+                error = "Article " + supply.name + " was given a supply of " + str(article_type_supply[supply]) +\
+                    " which exceeded demand of " + str(article_type_demand[supply])
+                raise InsufficientDemandError(error)
+
+        DisbributionStrategy.get_current_strategy_from_string(USED_STRATEGY).distribute(user,
+                                                                                        article_type_number_combos,
+                                                                                        indirect=True)
+
+
 
 
 
@@ -241,6 +246,27 @@ class StockWishTableLog(models.Model):
         # ^ reason is either supplier order or stock wish modification
         assert self.pk is None  # No edits after creation
         super(StockWishTableLog, self).save()
+
+
+class DisbributionStrategy():
+
+    @staticmethod
+    def get_current_strategy_from_string(strategy):
+        if strategy == "IndiscriminateCustomerStockStrategy":
+            return IndiscriminateCustomerStockStrategy
+        else:
+            raise UnimplementedError("Strategy not implemented")
+
+    @staticmethod
+    def distribute(user, article_type_number_combos, indirect=False):
+        pass
+
+
+class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
+
+    @staticmethod
+    def distribute(user, article_type_number_combos, indirect=False):
+        pass
 
 
 class UnimplementedError(Exception):

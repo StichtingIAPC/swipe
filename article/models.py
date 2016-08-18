@@ -16,6 +16,9 @@ class WishableType(models.Model):
     def get_expected_sales_price(self):
         return None
 
+    def __str__(self):
+        return self.name
+
 
 class SellableType(WishableType):
     # This abstract type can be sold
@@ -32,8 +35,7 @@ class ArticleType(SellableType):
     # The type of an article you can put on a shelf
     fixed_price = MoneyField(null=True)
 
-    def __str__(self):
-        return self.name
+
 
     def calculate_sales_price(self, cost):
         return SalesPrice(amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085),
