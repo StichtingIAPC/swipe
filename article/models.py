@@ -16,36 +16,34 @@ class WishableType(models.Model):
             raise AbstractClassInitializationError("Abstract class cannot be initialized")
         super(WishableType, self).save(*args, **kwargs)
 
-
     def get_expected_sales_price(self):
         return None
 
 
 class SellableType(WishableType):
     # This abstract type can be sold
-    pass
+    accounting_group = models.ForeignKey(AccountingGroup)
+
+    def get_vat_group(self):
+        return self.accounting_group.vat_group
+
+    def get_vat_rate(self):
+        return self.accounting_group.vat_group.vatrate
 
 
 class ArticleType(SellableType):
     # The type of an article you can put on a shelf
     fixed_price = MoneyField(null=True)
 
-    accounting_group = models.ForeignKey(AccountingGroup)
-
     def __str__(self):
         return self.name
 
-    @property
-    def vat(self):
-        return self.book_keeping_group.vat_group
-
     def calculate_sales_price(self, cost):
-        return SalesPrice(cost=cost.amount, vat=self.accounting_group.vat_group.vatrate, currency=cost.currency,
-                          amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085))
+        return SalesPrice(amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085),
+                          vat=self.accounting_group.vat_group.vatrate, currency=cost.currency)
 
     def get_expected_sales_price(self):
         return None
-
 
 
 class OrProductType(WishableType):
@@ -58,8 +56,10 @@ class OrProductType(WishableType):
         return None
 
 
-class AndProductType(SellableType):
+class AndProductType(WishableType):
     # A combination of ArticleTypes
+    pass
+
     def get_expected_sales_price(self):
         return None
 
