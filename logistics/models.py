@@ -1,4 +1,3 @@
-import typing
 from collections import defaultdict
 
 from django.db import models, transaction
