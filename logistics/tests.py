@@ -41,18 +41,16 @@ class StockWishTests(TestCase):
         self.copro.save()
 
     def test_primitive_wish_save(self):
-
-        sw = StockWish(copro=self.copro)
-        sw.save()
         NUMBER = 2
-
-        swl1 = StockWishLine(article_type=self.article_type, number=NUMBER, stock_wish=sw)
-        swl1.save()
+        sw = StockWish.create_stock_wish(
+            user=self.copro,
+            articles_ordered=[
+                (self.article_type, NUMBER)
+            ])
 
         assert len(StockWish.objects.all()) == 1
-        assert len(StockWishLine.objects.all()) == 1
-        swl = StockWishLine.objects.get()
-        assert swl.stock_wish == sw
+        swtl = StockWishTableLog.objects.get()
+        assert swtl.stock_wish == sw
 
         swtl = StockWishTableLine.objects.all()
         assert len(swtl) == 1
@@ -60,37 +58,45 @@ class StockWishTests(TestCase):
         assert swtl[0].number == NUMBER
 
     def test_addition_wish(self):
+        NUMBER = 1
+        NUMBER2 = 2
+        NUMBER3 = -1
 
-        sw = StockWish(copro=self.copro)
-        sw.save()
-        NUMBER = 2
+        stock_wish = StockWish.create_stock_wish(
+            user=self.copro,
+            articles_ordered=[
+                (self.article_type, NUMBER),
+                (self.article_type, NUMBER2)
+            ]
+        )
 
-        swl1 = StockWishLine(article_type=self.article_type, number=NUMBER, stock_wish=sw)
-        swl1.save()
+        StockWish.create_stock_wish(
+            user=self.copro,
+            articles_ordered=[
+                (self.article_type, NUMBER3)
+            ]
+        )
 
-        NUMBER2 = 3
-        swl2 = StockWishLine(article_type=self.article_type, number=NUMBER2, stock_wish=sw)
-        swl2.save()
         swtl = StockWishTableLine.objects.all()
         assert len(swtl) == 1
-        assert swtl[0].number == NUMBER + NUMBER2
+        assert swtl[0].number == NUMBER + NUMBER2 + NUMBER3
 
         logs = StockWishTableLog.objects.all()
-        assert len(logs) == 2
+        assert len(logs) == 3
 
-        assert logs[0].supplier_order is None and logs[0].stock_wish == sw
+        assert logs[0].supplier_order is None and logs[0].stock_wish == stock_wish
 
     def test_differentiation_wish(self):
-        sw = StockWish(copro=self.copro)
-        sw.save()
         NUMBER = 2
-
-        swl1 = StockWishLine(article_type=self.article_type, number=NUMBER, stock_wish=sw)
-        swl1.save()
-
         NUMBER2 = 3
-        swl2 = StockWishLine(article_type=self.at2, number=NUMBER2, stock_wish=sw)
-        swl2.save()
+
+        sw = StockWish.create_stock_wish(
+            user=self.copro,
+            articles_ordered=[
+                (self.article_type, NUMBER),
+                (self.at2, NUMBER2)
+            ]
+        )
 
         swtls = StockWishTableLine.objects.all()
         assert len(swtls) == 2
@@ -98,16 +104,16 @@ class StockWishTests(TestCase):
         for swtl in swtls:
             if swtl.article_type == self.article_type:
                 assert swtl.number == NUMBER
-            else:
+            elif swtl.article_type == self.at2:
                 assert swtl.number == NUMBER2
 
         assert len(StockWishTableLog.objects.all()) == 2
 
     def test_mass_storage_simple(self):
 
-        atcs = []
-        atcs.append([self.article_type, 2])
-        StockWish.create_stock_wish(self.copro, atcs)
+        article_number_list = []
+        article_number_list.append([self.article_type, 2])
+        StockWish.create_stock_wish(self.copro, article_number_list)
 
         stockwish_list = StockWish.objects.all()
         assert len(stockwish_list) == 1
@@ -116,16 +122,15 @@ class StockWishTests(TestCase):
         logs = StockWishTableLog.objects.all()
         assert len(logs) == 1
 
-        swl = StockWishLine.objects.all()
-        assert len(swl) == 1
-        assert swl[0].stock_wish == stockwish_list[0]
+        assert logs[0].stock_wish == stockwish_list[0]
 
     def test_mass_storage_compound(self):
 
-        atcs = []
-        atcs.append([self.article_type, 2])
-        atcs.append([self.article_type, 2])
-        StockWish.create_stock_wish(self.copro, atcs)
+        article_number_list = [
+            (self.article_type, 2),
+            (self.article_type, 2)
+        ]
+        StockWish.create_stock_wish(self.copro, article_number_list)
 
         stockwish_list = StockWish.objects.all()
         assert len(stockwish_list) == 1
@@ -134,10 +139,8 @@ class StockWishTests(TestCase):
         logs = StockWishTableLog.objects.all()
         assert len(logs) == 2
 
-        swl = StockWishLine.objects.all()
-        assert len(swl) == 2
-        assert swl[0].stock_wish == stockwish_list[0]
-        assert swl[1].stock_wish == stockwish_list[0]
+        assert logs[0].stock_wish == stockwish_list[0]
+        assert logs[1].stock_wish == stockwish_list[0]
 
         stock_wish_table_lines = StockWishTableLine.objects.all()
         assert len(stock_wish_table_lines) == 1
@@ -158,8 +161,6 @@ class StockWishTests(TestCase):
         logs = StockWishTableLog.objects.all()
         assert len(logs) == 4
 
-        swl = StockWishLine.objects.all()
-        assert len(swl) == 4
         stock_wish_table_lines = StockWishTableLine.objects.all()
         assert len(stock_wish_table_lines) == 3
 
@@ -212,10 +213,10 @@ class SupplierOrderTests(TestCase):
     def test_new_function(self):
         # Articletypes for supplier order
         atcs = []
-        atcs.append([self.article_type, 2])
-        atcs.append([self.article_type, 2])
-        atcs.append([self.at2, 2])
-        atcs.append([self.article_type, 2])
+        atcs.append((self.article_type, 2))
+        atcs.append((self.article_type, 2))
+        atcs.append((self.at2, 2))
+        atcs.append((self.article_type, 2))
 
         # Orders
         orderlines = []
@@ -223,7 +224,7 @@ class SupplierOrderTests(TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 6, self.price, self.copro)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
-        SupplierOrder.create_supplier_order(self.copro, self.supplier, atcs)
+        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
 
     def test_bla(self):
         at = ""

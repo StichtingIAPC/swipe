@@ -40,8 +40,13 @@ class ArticleTypeSupplier(models.Model):
     availability of products at the supplier
     """
     AVAILABILITY_OPTIONS = ('A', 'S', 'L', 'U', 'D')
-    AVAILABILITY_OPTIONS_MEANINGS = {'A' : 'Available at Supplier', 'S': 'Soon available',
-                                     'L': 'Later available', 'U': 'Unknown availability', 'D': 'Defunct product'}
+    AVAILABILITY_OPTIONS_MEANINGS = {
+        'A': 'Available at Supplier',
+        'S': 'Soon available',
+        'L': 'Later available',
+        'U': 'Unknown availability',
+        'D': 'Defunct product'
+    }
 
     supplier = models.ForeignKey(Supplier)
 

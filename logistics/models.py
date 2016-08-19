@@ -1,3 +1,6 @@
+import typing
+from collections import defaultdict
+
 from django.db import models, transaction
 from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import OrderLine, OrderCombinationLine
@@ -15,59 +18,92 @@ class SupplierOrder(models.Model):
     copro = models.ForeignKey(User)
 
     @staticmethod
-    def create_supplier_order(user, supplier, article_type_number_combos):
+    def create_supplier_order(user, supplier, articles_ordered=None):
         """
         Checks if supplier order information is correct and orders it at the correct supplier
         :param user: user to which the order is authorized
         :param supplier: supplier which should order the products
-        :param article_type_number_combos:
+        :param articles_ordered:
+        :type articles_ordered: List[Tuple[ArticleType, int]]
         :return:
         """
-        ARTICLE_TYPE_LOCATION = 0
-        NUMBER_LOCATION = 1
-        assert user and article_type_number_combos
+
+        assert user and articles_ordered
         assert isinstance(user, User)
-        assert len(article_type_number_combos) > 0
+        assert articles_ordered
+        # is same as assert len(articles_ordered, but
 
-        # Check if there not more supply than demand
+        # Ensure that the number of articles ordered is not less than 0
 
-        article_type_supply = {}
+        ordered_dict = defaultdict(lambda: 0)
 
-        for atnc in article_type_number_combos:
-            assert isinstance(atnc[ARTICLE_TYPE_LOCATION], ArticleType)
-            assert isinstance(atnc[NUMBER_LOCATION], int)
-            assert atnc[NUMBER_LOCATION] > 0
-            if article_type_supply.get(atnc[ARTICLE_TYPE_LOCATION]) is None:
-                article_type_supply[atnc[ARTICLE_TYPE_LOCATION]] = atnc[NUMBER_LOCATION]
-            else:
-                article_type_supply[atnc[ARTICLE_TYPE_LOCATION]] += atnc[NUMBER_LOCATION]
+        for article, number in articles_ordered:
+            assert isinstance(article, ArticleType)
+            assert isinstance(number, int)
+            assert number > 0
+            ordered_dict[article] += number
 
-        article_type_demand = {}
-        swls = StockWishLine.objects.all()
-        for swl in swls:
-            article_type_demand[swl.article_type] = swl.number
-        combo_order_lines = OrderCombinationLine.get_ol_combinations(state='O',include_price_field=False)
-        for col in combo_order_lines:
-            if not hasattr(col.wishable, 'sellabletype') or col.wishable.sellabletype is None:
-                raise UnimplementedError("Or products are not yet supported")
-            if article_type_demand.get(col.wishable.sellabletype.articletype) is None:
-                article_type_demand[col.wishable.sellabletype.articletype] = col.number
-            else:
-                article_type_demand[col.wishable.sellabletype.articletype] += col.number
+        demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
-        for supply in article_type_supply:
-            if (article_type_demand.get(supply) is None) or \
-                    (article_type_demand[supply] < article_type_supply[supply]):
-                error = "Article " + supply.name + " was given a supply of " + str(article_type_supply[supply]) +\
-                    " which exceeded demand of " + str(article_type_demand[supply])
-                raise InsufficientDemandError(error)
+        if demand_errors:
+            err_msg = "Not enough demand for ordered articles: \n"
+            for article, number in demand_errors:
+                err_msg += \
+                    " - Article {article} was ordered {number} times, " \
+                    "but only {valid_number} were accounted for. \n".format(
+                        article=article.name,
+                        number=ordered_dict[article],
+                        valid_number=ordered_dict[article]-number
+                    )
+            raise InsufficientDemandError(err_msg)
 
         # TODO: Check if supplier can supply products
 
+        supplier.save()
+        supplier_order = SupplierOrder(supplier=supplier, copro=user)
+        supplier_order.save()
+
         # Create supplier order and modify customer orders
-        DisbributionStrategy.get_current_strategy_from_string(USED_STRATEGY).distribute(user, supplier,
-                                                                                        article_type_number_combos,
-                                                                                        indirect=True)
+        DisbributionStrategy.get_current_strategy_from_string(USED_STRATEGY)\
+            .distribute(user, supplier,
+                        articles_ordered,
+                        indirect=True)
+
+        return supplier_order
+
+    @staticmethod
+    def verify_article_demand(articles_ordered=None):
+        """
+        :param articles_ordered:
+        :type articles_ordered: Dict[ArticleType, int]
+        :return: List[Tuple[ArticleType, int]]
+        """
+        assert articles_ordered
+
+        errors = []
+
+        to_order = defaultdict(lambda: 0)
+
+        stockwish_table_lines = StockWishTableLine.objects.all()
+
+        for line in stockwish_table_lines:
+            to_order[line.article_type] += line.number
+
+        combo_order_lines = OrderCombinationLine.get_ol_combinations(state='O', include_price_field=False)
+
+        for line in combo_order_lines:
+            if not hasattr(line.wishable, 'sellabletype') or \
+                            line.wishable.sellabletype is None:
+                raise UnimplementedError("Or products are not yet supported")
+
+            to_order[line.wishable.sellabletype.articletype] += line.number
+
+        for article, number in articles_ordered.items():
+            if to_order[article] < articles_ordered[article]:
+                errors.append((article, number - to_order[article]))
+
+        return errors
+
 
 
 class SupplierOrderLine(models.Model):
@@ -83,56 +119,36 @@ class SupplierOrderLine(models.Model):
     order_line = models.ForeignKey(OrderLine, null=True)
 
     @transaction.atomic
-    def save(self):
+    def save(self, *args, **kwargs):
         if self.order_line is not None:
             if isinstance(self.order_line.wishable, OrProductType):
-                raise UnimplementedError("Functionality is not implemented yet")
-                # Working Or-products can be very complicated. A matching should be queried and worked out in order
-                # for it to work
+                assert ArticleType.objects.filter(
+                    orproducttype__id=self.order_line.id,
+                    id=self.article_type.id).exists()
             else:
                 assert self.order_line.wishable == self.article_type # Customer article matches ordered article
         if self.supplier_article_type is None:
-            sup_art_types = ArticleTypeSupplier.objects.filter(article_type=self.article_type, supplier=self.supplier_order.supplier)
-            if len(sup_art_types) == 1:
-                self.supplier_article_type == sup_art_types[0]
+            sup_art_types = ArticleTypeSupplier.objects.filter(
+                article_type=self.article_type,
+                supplier=self.supplier_order.supplier)
+
+            assert len(sup_art_types) == 1
+            self.supplier_article_type == sup_art_types[0]
+
         assert self.supplier_article_type.supplier == self.supplier_order.supplier # Article can be ordered at supplier
-        assert self.supplier_article_type == ArticleTypeSupplier.objects.get(article_type=self.article_type,
-                                                                             supplier=self.supplier_order.supplier)
+        assert self.supplier_article_type == ArticleTypeSupplier.objects.get(
+            article_type=self.article_type,
+            supplier=self.supplier_order.supplier)
 
         # Assert that everything is ok here
         if self.pk is None:
             if self.order_line is not None:
                 self.order_line.order_at_supplier()  # If this doesn't happen at exactly the same time
                                                      # as the save of the SupOrdLn, you are screwed
-            super(SupplierOrderLine, self).save()
+            super(SupplierOrderLine, self).save(*args, **kwargs)
         else:
             # Maybe some extra logic here?
-            super(SupplierOrderLine, self).save()
-
-
-class StockWishLine(models.Model):
-    """
-    Single line that indicates the wish for a certain number of ArticleTypes. Can be negative for obsolete wishes.
-    """
-
-    article_type = models.ForeignKey(ArticleType)
-
-    number = models.IntegerField()
-
-    stock_wish = models.ForeignKey('StockWish')
-
-    def save(self):
-        assert self.number is not 0
-        assert self.stock_wish is not None  # Pre-check, assumed present from here on out
-        if self.pk is None:
-            if self.number > 0:
-                StockWishTable.add_products_to_table(self.article_type, self.number, indirect=True,
-                                                     stock_wish=self.stock_wish)
-            else:
-                StockWishTable.remove_products_from_table(self.article_type, -1 * self.number, indirect=True,
-                                                          stock_wish=self.stock_wish)
-            super(StockWishLine, self).save()
-        # Immutable after storage to prevent backlogging
+            super(SupplierOrderLine, self).save(*args, **kwargs)
 
 
 class StockWish(models.Model):
@@ -145,30 +161,46 @@ class StockWish(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     @staticmethod
-    def create_stock_wish(user, article_type_number_combos):
+    @transaction.atomic
+    def create_stock_wish(user=None, articles_ordered=None):
         """
         Creates stock wishes integrally, this function is the preferred way of creating stock wishes
         :param user: User to be connected to the stockwish
-        :param article_type_number_combos: lists containing both ArticleTypes and a non-zero integer
+        :type user: User
+        :param articles_ordered: tuples containing both ArticleTypes and a non-zero integer
+        :type articles_ordered:
         :return:
         """
-        ARTICLE_TYPE_LOCATION = 0
-        NUMBER_LOCATION = 1
-        # Validity checks
-        assert user and article_type_number_combos
+
+        assert user is not None and len(articles_ordered) > 0
         assert isinstance(user, User)
-        assert len(article_type_number_combos) > 0
-        for atnc in article_type_number_combos:
-            assert isinstance(atnc[ARTICLE_TYPE_LOCATION], ArticleType)
-            assert isinstance(atnc[NUMBER_LOCATION], int)
-            assert atnc[NUMBER_LOCATION] is not 0
+
+        for article, number in articles_ordered:
+            assert isinstance(article, ArticleType)
+            assert isinstance(number, int)
+            assert number != 0
 
         stock_wish = StockWish(copro=user)
         stock_wish.save()
-        for atnc in article_type_number_combos:
-            swl = StockWishLine(article_type=atnc[ARTICLE_TYPE_LOCATION], number=atnc[NUMBER_LOCATION],
-                                stock_wish=stock_wish)
-            swl.save()
+
+        for article, number in articles_ordered:
+            if number < 0:
+                StockWishTable.remove_products_from_table(
+                    article,
+                    -number,
+                    indirect=True,
+                    stock_wish=stock_wish,
+                    supplier_order=None
+                )
+            else:
+                StockWishTable.add_products_to_table(
+                    article,
+                    number,
+                    indirect=True,
+                    stock_wish=stock_wish,
+                    supplier_order=None
+                )
+        return stock_wish
 
 
 class StockWishTableLine(models.Model):
@@ -179,13 +211,13 @@ class StockWishTableLine(models.Model):
 
     article_type = models.OneToOneField(ArticleType)
 
-    number = models.IntegerField()
+    number = models.IntegerField(default=0)
 
-    def save(self, indirect=False):
+    def save(self, indirect=False, *args, **kwargs):
         if not indirect:
             raise IndirectionError("StockWishTableLine must be called indirectly from StockWishTable")
         else:
-            super(StockWishTableLine, self).save()
+            super(StockWishTableLine, self).save(*args, **kwargs)
 
 
 class StockWishTable:
@@ -202,14 +234,20 @@ class StockWishTable:
         if len(article_type_status) == 0:
             swtl = StockWishTableLine(article_type=article_type, number=number)
             swtl.save(indirect=indirect)
-            log = StockWishTableLog(number=number, article_type=article_type,
-                                    stock_wish=stock_wish, supplier_order=supplier_order)
+            log = StockWishTableLog(
+                number=number,
+                article_type=article_type,
+                stock_wish=stock_wish,
+                supplier_order=supplier_order)
             log.save(indirect=True)
         else:
             article_type_status[0].number += number
             article_type_status[0].save(indirect=indirect)
-            log = StockWishTableLog(number=number, article_type=article_type,
-                                    stock_wish=stock_wish, supplier_order=supplier_order)
+            log = StockWishTableLog(
+                number=number,
+                article_type=article_type,
+                stock_wish=stock_wish,
+                supplier_order=supplier_order)
             log.save(indirect=True)
 
     @staticmethod
@@ -217,18 +255,21 @@ class StockWishTable:
                                    stock_wish=False, supplier_order=None):
         if not indirect:
             raise IndirectionError("remove_products_from_table must be called indirectly")
-        article_type_status = StockWishTableLine.objects.get(article_type=article_type)
-        if len(article_type_status) == 0:
-            raise CannotRemoveFromWishTableError("ArticleType is not included in table")
+        article_type_statuses = StockWishTableLine.objects.filter(article_type=article_type)
+        if not article_type_statuses:
+            return
+        article_type_status = article_type_statuses[0]
+        if article_type_status.number - number < 0:
+            raise CannotRemoveFromWishTableError("Less ArticleTypes present than removal number")
         else:
-            if article_type_status[0].number < number:
-                raise CannotRemoveFromWishTableError("Less ArticleTypes present than removal number")
-            else:
-                article_type_status[0].number -= number
-                article_type_status[0].save(indirect=indirect)
-                log = StockWishTableLog(number=-number, article_type=article_type,
-                                        stock_wish=stock_wish, supplier_order=supplier_order)
-                log.save(indirect=True)
+            article_type_status.number -= number
+            article_type_status.save(indirect=indirect)
+            log = StockWishTableLog(
+                number=-number,
+                article_type=article_type,
+                stock_wish=stock_wish,
+                supplier_order=supplier_order)
+            log.save(indirect=True)
 
 
 class StockWishTableLog(models.Model):
