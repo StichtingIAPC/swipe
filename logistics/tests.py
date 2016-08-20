@@ -4,6 +4,7 @@ from article.models import ArticleType
 from crm.models import User, Person
 from logistics.models import *
 from order.models import *
+from unittest import skip
 from decimal import Decimal
 
 
@@ -208,8 +209,46 @@ class SupplierOrderTests(TestCase):
         self.copro = User()
         self.copro.save()
 
-        self.supplier = Supplier()
+        self.supplier = Supplier(name="Nepacove")
+        self.supplier.save()
 
+    def test_ics_strategy_orders_only(self):
+        orderlines = []
+        DEMAND_1=6
+        DEMAND_2=3
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, DEMAND_2, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, DEMAND_1, self.price, self.copro)
+        order = Order(copro=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines)
+        atcs = []
+        SUP_ORD_1 = 2
+        SUP_ORD_2 = 3
+        atcs.append((self.article_type, SUP_ORD_1))
+        atcs.append((self.at2, SUP_ORD_2))
+        assert SUP_ORD_1 <= DEMAND_1
+        assert SUP_ORD_2 <= DEMAND_2
+        # We know supply <= demand
+
+        dist = IndiscriminateCustomerStockStrategy.get_distribution(atcs)
+        article_type_count = defaultdict(lambda: 0)
+        for d in dist:
+            article_type_count[d.article_type] += 1
+
+        for atc in article_type_count:
+            if atc == self.article_type:
+                assert article_type_count[atc] == SUP_ORD_1
+            else:
+                assert article_type_count[atc] == SUP_ORD_2
+
+    def test_ics_strategy_stock_only(self):
+        atcs = []
+        DEMAND_1 = 6
+        DEMAND_2 = 3
+        atcs.append((self.article_type, DEMAND_1))
+        atcs.append((self.at2, DEMAND_2))
+        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+
+    @skip("Not finished")
     def test_new_function(self):
         # Articletypes for supplier order
         atcs = []
@@ -226,16 +265,5 @@ class SupplierOrderTests(TestCase):
         Order.make_order(order, orderlines)
         #SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
 
-    def test_bla(self):
-        orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, self.price, self.copro)
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 6, self.price, self.copro)
-        order = Order(copro=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines)
-        atcs = []
-        atcs.append((self.article_type, 2))
-        atcs.append((self.at2, 2))
 
-
-        IndiscriminateCustomerStockStrategy.get_distribution(atcs)
 

@@ -16,6 +16,9 @@ class SupplierOrder(models.Model):
 
     copro = models.ForeignKey(User)
 
+    def __str__(self):
+        return "Supplier: {}, User: {}".format(self.supplier, self.copro)
+
     @staticmethod
     def create_supplier_order(user, supplier, articles_ordered=None):
         """
@@ -41,7 +44,7 @@ class SupplierOrder(models.Model):
             assert isinstance(number, int)
             assert number > 0
             ordered_dict[article] += number
-            assert ArticleTypeSupplier.objects.get(article_type=article) #  Article exists at supplier
+            assert ArticleTypeSupplier.objects.get(article_type=article)  # Article exists at supplier
 
         demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
@@ -63,8 +66,6 @@ class SupplierOrder(models.Model):
                               articles_ordered)
 
         DisbributionStrategy.distribute(user, supplier, distribution, indirect=True)
-
-
 
     @staticmethod
     def verify_article_demand(articles_ordered=None):
@@ -112,6 +113,30 @@ class SupplierOrderLine(models.Model):
 
     order_line = models.ForeignKey(OrderLine, null=True)
 
+    def __str__(self):
+        if not hasattr(self, 'supplier_order')or self.supplier_order is None:
+            supplier_order = "None"
+        else:
+            supplier_order = self.supplier_order.pk
+        if not hasattr(self, 'article_type') or self.article_type is None:
+            article_type = "None"
+        else:
+            article_type = str(self.article_type)
+        if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
+            supplier_article_type = "None"
+        else:
+            supplier_article_type = str(self.supplier_article_type.pk)
+        if not hasattr(self, 'order_line') or self.order_line is None:
+            order_line = "None"
+        else:
+            order_line = str(self.order_line.pk)
+        stri = "SupplierOrder: {}, ArticleType: {}, " \
+               "SupplierArticleType: {}, OrderLine: {}".format(supplier_order,
+                                                               article_type,
+                                                               supplier_article_type,
+                                                               order_line)
+        return stri
+
     @transaction.atomic
     def save(self, *args, **kwargs):
         if self.order_line is not None:
@@ -120,7 +145,7 @@ class SupplierOrderLine(models.Model):
                     orproducttype__id=self.order_line.id,
                     id=self.article_type.id).exists()
             else:
-                assert self.order_line.wishable == self.article_type # Customer article matches ordered article
+                assert self.order_line.wishable == self.article_type  # Customer article matches ordered article
         if self.supplier_article_type is None:
             sup_art_types = ArticleTypeSupplier.objects.filter(
                 article_type=self.article_type,
@@ -129,7 +154,7 @@ class SupplierOrderLine(models.Model):
             assert len(sup_art_types) == 1
             self.supplier_article_type == sup_art_types[0]
 
-        assert self.supplier_article_type.supplier == self.supplier_order.supplier # Article can be ordered at supplier
+        assert self.supplier_article_type.supplier == self.supplier_order.supplier  # Article can be ordered at supplier
         assert self.supplier_article_type == ArticleTypeSupplier.objects.get(
             article_type=self.article_type,
             supplier=self.supplier_order.supplier)
@@ -139,6 +164,9 @@ class SupplierOrderLine(models.Model):
             if self.order_line is not None:
                 self.order_line.order_at_supplier()  # If this doesn't happen at exactly the same time
                                                      # as the save of the SupOrdLn, you are screwed
+            else:
+                StockWishTable.remove_products_from_table(article_type=self.article_type, number=1,
+                                                          supplier_order=self.supplier_order, indirect=True)
             super(SupplierOrderLine, self).save(*args, **kwargs)
         else:
             # Maybe some extra logic here?
@@ -288,7 +316,7 @@ class StockWishTableLog(models.Model):
         super(StockWishTableLog, self).save()
 
 
-class DisbributionStrategy():
+class DisbributionStrategy:
 
     @staticmethod
     def get_strategy_from_string(strategy):
@@ -304,7 +332,7 @@ class DisbributionStrategy():
         Creates the supplier order and distributes the SupplierOrderLines to any orders
         :param user: a User for the SupplierOrder
         :param supplier: Supplier for the SupplierOrder
-        :param distribution: A list of Tuples containing SupplierOrderLines and OrderLines(possibly None)
+        :param distribution: A list of SupplierOrderLines
         :param indirect: Indirection flag. Function must be called indirectly.
         """
         assert isinstance(user, User)
@@ -312,12 +340,12 @@ class DisbributionStrategy():
         if not indirect:
             raise IndirectionError("Distribute must be called indirectly")
         supplier_order = SupplierOrder(copro=user, supplier=supplier)
-        for supplier_order_line, order_line in distribution:
+        for supplier_order_line in distribution:
             assert isinstance(supplier_order_line, SupplierOrderLine)
-            assert order_line is None or isinstance(order_line, OrderLine)
-            supplier_order_line.order_line = order_line
-            if isinstance(order_line, OrderLine):
-                assert supplier_order_line.article_type == order_line.wishable.sellabletype.articletype
+            assert supplier_order_line.order_line is None or isinstance(supplier_order_line.order_line, OrderLine)
+            if supplier_order_line.order_line is not None:
+                # Discount the possibility of OrProducts for now
+                assert supplier_order_line.article_type == supplier_order_line.order_line.wishable.sellabletype.articletype
 
         # We've checked everyting, now we start saving
         supplier_order.save()
@@ -328,9 +356,9 @@ class DisbributionStrategy():
     @staticmethod
     def get_distribution(article_type_number_combos):
         """
-        Proposes a distribution according to the specific strategy.
+        Proposes a distribution according to the specific strategy. Assume supply is not bigger than demand
         :param article_type_number_combos:
-        :return: A list of Tuples containing SupplierOrderLines and OrderLines(possibly None)
+        :return: A list containing SupplierOrderLines
         """
         return []
 
@@ -340,13 +368,29 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
     @staticmethod
     def get_distribution(article_type_number_combos):
         distribution = []
-        articletype_dict = {}
+        articletype_dict = defaultdict(lambda: 0)
         for articletype, number in article_type_number_combos:
-            articletype_dict[articletype] = True
+            articletype_dict[articletype] += number
         articletypes = articletype_dict.keys()
-        relevant_orderlines = OrderLine.objects.filter(state='O', wishable__in=articletypes)
+        relevant_orderlines = OrderLine.objects.filter(state='O', wishable__in=articletypes).order_by('pk')
         # Match the orders one-by-one, stopping when all orders and wishes are fulfilled or article from the
         # article type number combos run out
+        articletype_dict_supply = articletype_dict.copy()
+        for orderline in relevant_orderlines:
+            # Discount the possibility for OrProducts for now
+            if hasattr(orderline.wishable, 'sellabletype') and hasattr(orderline.wishable.sellabletype, 'articletype'):
+                if articletype_dict_supply[orderline.wishable.sellabletype.articletype] > 0:
+                    sup_ord_line = SupplierOrderLine(article_type=orderline.wishable.sellabletype.articletype,
+                                                     order_line=orderline)
+                    distribution.append(sup_ord_line)
+                    articletype_dict_supply[orderline.wishable.sellabletype.articletype] -= 1
+        stock_wishes = StockWishTableLine.objects.filter(article_type__in=articletypes)
+        for wish in stock_wishes:
+            assert wish.number >= articletype_dict_supply[wish.article_type]  # Assert not more supply than demand
+            if articletype_dict_supply[wish.article_type] > 0:
+                for i in range(0, wish.number):
+                    sup_ord_line = SupplierOrderLine(article_type=wish.article_type)
+                    distribution.append(sup_ord_line)
 
         return distribution
 
