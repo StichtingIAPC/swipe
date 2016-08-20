@@ -95,7 +95,7 @@ class OrderLine(models.Model):
     def save(self):
         assert hasattr(self, 'order')  # Order must exist
         assert hasattr(self, 'wishable')  # Type must exist
-        assert isinstance(self.wishable, SellableType)  # Temporary measure until complexities get worked out
+        assert hasattr(self.wishable, 'sellabletype')  # Temporary measure until complexities get worked out
         assert hasattr(self, 'expected_sales_price')
         assert isinstance(self.expected_sales_price, Price)  # Temporary measure until complexities get worked out
 
