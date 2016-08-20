@@ -274,7 +274,7 @@ class StockWishTable:
 
     @staticmethod
     def remove_products_from_table(article_type, number, indirect=False,
-                                   stock_wish=False, supplier_order=None):
+                                   stock_wish=None, supplier_order=None):
         assert number > 0
         if not indirect:
             raise IndirectionError("remove_products_from_table must be called indirectly")
