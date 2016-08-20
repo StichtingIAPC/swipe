@@ -41,6 +41,7 @@ class SupplierOrder(models.Model):
             assert isinstance(number, int)
             assert number > 0
             ordered_dict[article] += number
+            assert ArticleTypeSupplier.objects.get(article_type=article) #  Article exists at supplier
 
         demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
@@ -56,19 +57,14 @@ class SupplierOrder(models.Model):
                     )
             raise InsufficientDemandError(err_msg)
 
-        # TODO: Check if supplier can supply products
-
-        supplier.save()
-        supplier_order = SupplierOrder(supplier=supplier, copro=user)
-        supplier_order.save()
-
         # Create supplier order and modify customer orders
-        DisbributionStrategy.get_current_strategy_from_string(USED_STRATEGY)\
-            .distribute(user, supplier,
-                        articles_ordered,
-                        indirect=True)
+        distribution = DisbributionStrategy.get_strategy_from_string(USED_STRATEGY)\
+            .get_distribution(user, supplier,
+                              articles_ordered)
 
-        return supplier_order
+        DisbributionStrategy.distribute(user, supplier, distribution, indirect=True)
+
+
 
     @staticmethod
     def verify_article_demand(articles_ordered=None):
@@ -102,7 +98,6 @@ class SupplierOrder(models.Model):
                 errors.append((article, number - to_order[article]))
 
         return errors
-
 
 
 class SupplierOrderLine(models.Model):
@@ -296,22 +291,64 @@ class StockWishTableLog(models.Model):
 class DisbributionStrategy():
 
     @staticmethod
-    def get_current_strategy_from_string(strategy):
+    def get_strategy_from_string(strategy):
         if strategy == "IndiscriminateCustomerStockStrategy":
             return IndiscriminateCustomerStockStrategy
         else:
             raise UnimplementedError("Strategy not implemented")
 
     @staticmethod
-    def distribute(user, supplier, article_type_number_combos, indirect=False):
-        pass
+    @transaction.atomic()
+    def distribute(user, supplier, distribution, indirect=False):
+        """
+        Creates the supplier order and distributes the SupplierOrderLines to any orders
+        :param user: a User for the SupplierOrder
+        :param supplier: Supplier for the SupplierOrder
+        :param distribution: A list of Tuples containing SupplierOrderLines and OrderLines(possibly None)
+        :param indirect: Indirection flag. Function must be called indirectly.
+        """
+        assert isinstance(user, User)
+        assert isinstance(supplier, Supplier)
+        if not indirect:
+            raise IndirectionError("Distribute must be called indirectly")
+        supplier_order = SupplierOrder(copro=user, supplier=supplier)
+        for supplier_order_line, order_line in distribution:
+            assert isinstance(supplier_order_line, SupplierOrderLine)
+            assert order_line is None or isinstance(order_line, OrderLine)
+            supplier_order_line.order_line = order_line
+            if isinstance(order_line, OrderLine):
+                assert supplier_order_line.article_type == order_line.wishable.sellabletype.articletype
+
+        # We've checked everyting, now we start saving
+        supplier_order.save()
+        for supplier_order_line, order_line in distribution:
+            supplier_order_line.supplier_order = supplier_order
+            supplier_order_line.save()
+
+    @staticmethod
+    def get_distribution(article_type_number_combos):
+        """
+        Proposes a distribution according to the specific strategy.
+        :param article_type_number_combos:
+        :return: A list of Tuples containing SupplierOrderLines and OrderLines(possibly None)
+        """
+        return []
 
 
 class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
 
     @staticmethod
-    def distribute(user, supplier, article_type_number_combos, indirect=False):
-        pass
+    def get_distribution(article_type_number_combos):
+        distribution = []
+        articletype_dict = {}
+        for articletype, number in article_type_number_combos:
+            articletype_dict[articletype] = True
+        articletypes = articletype_dict.keys()
+        relevant_orderlines = OrderLine.objects.filter(state='O', wishable__in=articletypes)
+        # Match the orders one-by-one, stopping when all orders and wishes are fulfilled or article from the
+        # article type number combos run out
+
+        return distribution
 
 
 class UnimplementedError(Exception):

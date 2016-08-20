@@ -224,8 +224,18 @@ class SupplierOrderTests(TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 6, self.price, self.copro)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
-        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+        #SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
 
     def test_bla(self):
-        at = ""
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 6, self.price, self.copro)
+        order = Order(copro=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines)
+        atcs = []
+        atcs.append((self.article_type, 2))
+        atcs.append((self.at2, 2))
+
+
+        IndiscriminateCustomerStockStrategy.get_distribution(atcs)
 
