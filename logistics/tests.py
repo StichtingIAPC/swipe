@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.test import TestCase
 from money.models import VAT, Price, Currency, AccountingGroup, Money
 from article.models import ArticleType
 from crm.models import User, Person
@@ -165,6 +166,32 @@ class StockWishTests(TestCase):
         stock_wish_table_lines = StockWishTableLine.objects.all()
         assert len(stock_wish_table_lines) == 3
 
+    def test_deletion_of_lines(self):
+        atcs = []
+        atcs.append([self.article_type, 2])
+        StockWish.create_stock_wish(self.copro, atcs)
+        assert len(StockWishTableLog.objects.all()) == 1
+        swtl = StockWishTableLine.objects.all()
+        assert len(swtl) == 1
+        assert swtl[0].number == 2
+
+
+        atcs = []
+        atcs.append([self.article_type, -1])
+        StockWish.create_stock_wish(self.copro, atcs)
+        assert len(StockWishTableLog.objects.all()) == 2
+        swtl = StockWishTableLine.objects.all()
+        assert len(swtl) == 1
+        assert swtl[0].number == 1
+
+
+        atcs = []
+        atcs.append([self.article_type, -1])
+        StockWish.create_stock_wish(self.copro, atcs)
+        assert len(StockWishTableLog.objects.all()) == 3
+        swtl = StockWishTableLine.objects.all()
+        assert len(swtl) == 0
+
     def test_indirection(self):
 
         log = StockWishTableLog(number=3, article_type=self.article_type)
@@ -201,6 +228,17 @@ class SupplierOrderTests(TestCase):
         self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
+        cost = Cost(amount=Decimal(1), use_system_currency=True)
+
+        self.supplier = Supplier(name="Nepacove")
+        self.supplier.save()
+
+        ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
+                                  cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
+        ats.save()
+        ats2 = ArticleTypeSupplier(supplier=self.supplier, article_type=self.at2,
+                                   cost=cost, minimum_number_to_order=1, supplier_string="At2", availability='A')
+        ats2.save()
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
 
         self.customer = Person()
@@ -209,15 +247,12 @@ class SupplierOrderTests(TestCase):
         self.copro = User()
         self.copro.save()
 
-        self.supplier = Supplier(name="Nepacove")
-        self.supplier.save()
-
     def test_ics_strategy_orders_only(self):
         orderlines = []
         DEMAND_1=6
         DEMAND_2=3
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, DEMAND_2, self.price, self.copro)
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, DEMAND_1, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, DEMAND_2, self.price, self.copro)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
         atcs = []
@@ -233,6 +268,7 @@ class SupplierOrderTests(TestCase):
         article_type_count = defaultdict(lambda: 0)
         for d in dist:
             article_type_count[d.article_type] += 1
+            assert d.order_line is not None
 
         for atc in article_type_count:
             if atc == self.article_type:
@@ -248,22 +284,159 @@ class SupplierOrderTests(TestCase):
         atcs.append((self.at2, DEMAND_2))
         StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
 
-    @skip("Not finished")
-    def test_new_function(self):
-        # Articletypes for supplier order
         atcs = []
-        atcs.append((self.article_type, 2))
-        atcs.append((self.article_type, 2))
-        atcs.append((self.at2, 2))
-        atcs.append((self.article_type, 2))
+        SUPPLY_1 = 2
+        SUPPLY_2 = 3
+        atcs.append((self.article_type, SUPPLY_1))
+        atcs.append((self.at2, SUPPLY_2))
 
-        # Orders
+        distribution = IndiscriminateCustomerStockStrategy.get_distribution(article_type_number_combos=atcs)
+        count = defaultdict(lambda: 0)
+        for d in distribution:
+            count[d.article_type] += 1
+            assert d.order_line is None
+        assert (count[self.article_type]) == SUPPLY_1
+        assert (count[self.at2]) == SUPPLY_2
+
+    def test_ics_strategy_combined(self):
+        STOCK_DEMAND_1 = 2
+        STOCK_DEMAND_2 = 2
+
+        ORDER_DEMAND_1 = 2
+        ORDER_DEMAND_2 = 2
+        atcs = []
+        atcs.append((self.article_type, STOCK_DEMAND_1))
+        atcs.append((self.at2, STOCK_DEMAND_2))
+        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, 3, self.price, self.copro)
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, 6, self.price, self.copro)
+
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.copro)
         order = Order(copro=self.copro, customer=self.customer)
         Order.make_order(order, orderlines)
-        #SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+
+        SUPPLY_1 = 3
+        SUPPLY_2 = 3
+
+        atcs = []
+        atcs.append((self.article_type, SUPPLY_1))
+        atcs.append((self.at2, SUPPLY_2))
+        distribution = IndiscriminateCustomerStockStrategy.get_distribution(atcs)
+        counted_orders = 0
+        for d in distribution:
+            if d.order_line is not None:
+                counted_orders += 1
+        assert counted_orders == ORDER_DEMAND_1 + ORDER_DEMAND_2
+
+    def test_distribution_to_orders(self):
+        # Articletypes for supplier order
+        ORDER_1 = 6
+        ORDER_2 = 3
+
+        SUPPLY_1 = 5
+        SUPPLY_2 = 3
+
+        atcs = []
+        atcs.append((self.article_type, SUPPLY_1))
+        atcs.append((self.at2, SUPPLY_2))
+
+        ats = ArticleTypeSupplier(supplier=self.supplier, article_type=self.article_type)
+        # Orders
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_1, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_2, self.price, self.copro)
+
+        order = Order(copro=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines)
+
+        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+        sols = SupplierOrderLine.objects.all()
+
+        FOUND_1 = 0
+        FOUND_2 = 0
+        for sol in sols:
+            assert sol.supplier_order.supplier == self.supplier
+            assert sol.supplier_order.copro == self.copro
+            if sol.article_type == self.article_type:
+                FOUND_1 += 1
+            if sol.article_type == self.at2:
+                FOUND_2 += 1
+        assert FOUND_1 == SUPPLY_1
+        assert FOUND_2 == SUPPLY_2
+
+    def test_distribution_to_stock(self):
+
+        STOCK_1 = 6
+        STOCK_2 = 3
+
+        atcs = []
+        atcs.append((self.article_type, STOCK_1))
+        atcs.append((self.at2, STOCK_2))
+
+        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+
+
+        SUPPLY_1 = 5
+        SUPPLY_2 = 3
+
+        atcs = []
+        atcs.append((self.article_type, SUPPLY_1))
+        atcs.append((self.at2, SUPPLY_2))
+
+        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+
+        sols = SupplierOrderLine.objects.all()
+
+        FOUND_1 = 0
+        FOUND_2 = 0
+
+        for sol in sols:
+            assert sol.order_line is None
+            if sol.article_type == self.article_type:
+                FOUND_1 += 1
+            if sol.article_type == self.at2:
+                FOUND_2 += 1
+
+        assert SUPPLY_1 == FOUND_1
+        assert SUPPLY_2 == FOUND_2
+
+    def test_distribution_mixed(self):
+
+        STOCK_DEMAND_1 = 2
+        STOCK_DEMAND_2 = 2
+
+        ORDER_DEMAND_1 = 2
+        ORDER_DEMAND_2 = 2
+        atcs = []
+        atcs.append((self.article_type, STOCK_DEMAND_1))
+        atcs.append((self.at2, STOCK_DEMAND_2))
+        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+
+        orderlines = []
+
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.copro)
+        order = Order(copro=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines)
+
+        SUPPLY_1 = 3
+        SUPPLY_2 = 3
+
+        atcs = []
+        atcs.append((self.article_type, SUPPLY_1))
+        atcs.append((self.at2, SUPPLY_2))
+
+        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+        sols = SupplierOrderLine.objects.all()
+
+        ORDERS = 0
+
+        for sol in sols:
+            if sol.order_line is not None:
+                ORDERS += 1
+        assert ORDERS == ORDER_DEMAND_1+ORDER_DEMAND_2
+
 
 
 

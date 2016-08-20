@@ -44,7 +44,7 @@ class SupplierOrder(models.Model):
             assert isinstance(number, int)
             assert number > 0
             ordered_dict[article] += number
-            assert ArticleTypeSupplier.objects.get(article_type=article)  # Article exists at supplier
+            assert ArticleTypeSupplier.objects.get(article_type=article, supplier=supplier)  # Article exists at supplier
 
         demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
@@ -62,8 +62,7 @@ class SupplierOrder(models.Model):
 
         # Create supplier order and modify customer orders
         distribution = DisbributionStrategy.get_strategy_from_string(USED_STRATEGY)\
-            .get_distribution(user, supplier,
-                              articles_ordered)
+            .get_distribution(articles_ordered)
 
         DisbributionStrategy.distribute(user, supplier, distribution, indirect=True)
 
@@ -145,8 +144,8 @@ class SupplierOrderLine(models.Model):
                     orproducttype__id=self.order_line.id,
                     id=self.article_type.id).exists()
             else:
-                assert self.order_line.wishable == self.article_type  # Customer article matches ordered article
-        if self.supplier_article_type is None:
+                assert self.order_line.wishable.sellabletype.articletype == self.article_type  # Customer article matches ordered article
+        if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
             sup_art_types = ArticleTypeSupplier.objects.filter(
                 article_type=self.article_type,
                 supplier=self.supplier_order.supplier)
@@ -166,7 +165,7 @@ class SupplierOrderLine(models.Model):
                                                      # as the save of the SupOrdLn, you are screwed
             else:
                 StockWishTable.remove_products_from_table(article_type=self.article_type, number=1,
-                                                          supplier_order=self.supplier_order, indirect=True)
+                                                          supplier_order=self.supplier_order, stock_wish=None, indirect=True)
             super(SupplierOrderLine, self).save(*args, **kwargs)
         else:
             # Maybe some extra logic here?
@@ -250,6 +249,7 @@ class StockWishTable:
     @staticmethod
     def add_products_to_table(article_type, number, indirect=False,
                               stock_wish=None, supplier_order=None):
+        assert number > 0
         if not indirect:
             raise IndirectionError("add_products_to_table must be called indirectly")
         article_type_status = StockWishTableLine.objects.filter(article_type=article_type)
@@ -275,6 +275,7 @@ class StockWishTable:
     @staticmethod
     def remove_products_from_table(article_type, number, indirect=False,
                                    stock_wish=False, supplier_order=None):
+        assert number > 0
         if not indirect:
             raise IndirectionError("remove_products_from_table must be called indirectly")
         article_type_statuses = StockWishTableLine.objects.filter(article_type=article_type)
@@ -284,8 +285,12 @@ class StockWishTable:
         if article_type_status.number - number < 0:
             raise CannotRemoveFromWishTableError("Less ArticleTypes present than removal number")
         else:
-            article_type_status.number -= number
-            article_type_status.save(indirect=indirect)
+            if article_type_status.number - number == 0:
+                article_type_status.delete()
+            else:
+                article_type_status.number -= number
+                article_type_status.save(indirect=indirect)
+
             log = StockWishTableLog(
                 number=-number,
                 article_type=article_type,
@@ -315,6 +320,17 @@ class StockWishTableLog(models.Model):
         assert self.pk is None  # No edits after creation
         super(StockWishTableLog, self).save()
 
+    def __str__(self):
+        if self.supplier_order is None:
+            sup_ord = "None"
+        else:
+            sup_ord = self.supplier_order.pk
+        if self.stock_wish is None:
+            stw = "None"
+        else:
+            stw = self.stock_wish.pk
+        return "{} x {}, SupplierOrder: {}, StockWish: {}".format(self.article_type, self.number, sup_ord, stw)
+
 
 class DisbributionStrategy:
 
@@ -343,13 +359,15 @@ class DisbributionStrategy:
         for supplier_order_line in distribution:
             assert isinstance(supplier_order_line, SupplierOrderLine)
             assert supplier_order_line.order_line is None or isinstance(supplier_order_line.order_line, OrderLine)
+            supplier_order_line.supplier_article_type = ArticleTypeSupplier.objects.get(article_type=supplier_order_line.article_type,
+                                                                                        supplier=supplier)
             if supplier_order_line.order_line is not None:
                 # Discount the possibility of OrProducts for now
                 assert supplier_order_line.article_type == supplier_order_line.order_line.wishable.sellabletype.articletype
 
         # We've checked everyting, now we start saving
         supplier_order.save()
-        for supplier_order_line, order_line in distribution:
+        for supplier_order_line in distribution:
             supplier_order_line.supplier_order = supplier_order
             supplier_order_line.save()
 
@@ -388,9 +406,10 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
         for wish in stock_wishes:
             assert wish.number >= articletype_dict_supply[wish.article_type]  # Assert not more supply than demand
             if articletype_dict_supply[wish.article_type] > 0:
-                for i in range(0, wish.number):
+                for i in range(0, articletype_dict_supply[wish.article_type]):
                     sup_ord_line = SupplierOrderLine(article_type=wish.article_type)
                     distribution.append(sup_ord_line)
+                articletype_dict_supply[wish.article_type] = 0
 
         return distribution
 
