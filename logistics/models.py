@@ -30,21 +30,7 @@ class SupplierOrder(models.Model):
         :return:
         """
 
-        assert user and articles_ordered
-        assert isinstance(user, User)
-        assert articles_ordered
-        # is same as assert len(articles_ordered, but
-
-        # Ensure that the number of articles ordered is not less than 0
-
-        ordered_dict = defaultdict(lambda: 0)
-
-        for article, number in articles_ordered:
-            assert isinstance(article, ArticleType)
-            assert isinstance(number, int)
-            assert number > 0
-            ordered_dict[article] += number
-            assert ArticleTypeSupplier.objects.get(article_type=article, supplier=supplier)  # Article exists at supplier
+        ordered_dict = SupplierOrder.verify_data_assertions(user, supplier, articles_ordered)
 
         demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
@@ -98,6 +84,33 @@ class SupplierOrder(models.Model):
                 errors.append((article, number - to_order[article]))
 
         return errors
+
+    @staticmethod
+    def verify_data_assertions(user, supplier, articles_ordered):
+        """
+        Checks basic assertions about the supplied data, including the supplier ability to supply the specified products
+        :param user: user to which the order is authorized
+        :param supplier: supplier which should order the products
+        :param articles_ordered:
+        :type articles_ordered: List[Tuple[ArticleType, int]]
+        """
+        assert user and articles_ordered
+        assert isinstance(user, User)
+        assert articles_ordered
+        # is same as assert len(articles_ordered, but
+
+        # Ensure that the number of articles ordered is not less than 0
+
+        ordered_dict = defaultdict(lambda: 0)
+
+        for article, number in articles_ordered:
+            assert isinstance(article, ArticleType)
+            assert isinstance(number, int)
+            assert number > 0
+            ordered_dict[article] += number
+            assert ArticleTypeSupplier.objects.get(article_type=article,
+                                                   supplier=supplier)  # Article exists at supplier
+        return ordered_dict
 
 
 class SupplierOrderLine(models.Model):
