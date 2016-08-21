@@ -355,6 +355,7 @@ class DisbributionStrategy:
         assert isinstance(supplier, Supplier)
         if not indirect:
             raise IndirectionError("Distribute must be called indirectly")
+        assert distribution
         supplier_order = SupplierOrder(copro=user, supplier=supplier)
         for supplier_order_line in distribution:
             assert isinstance(supplier_order_line, SupplierOrderLine)
@@ -378,7 +379,7 @@ class DisbributionStrategy:
         :param article_type_number_combos:
         :return: A list containing SupplierOrderLines
         """
-        return []
+        return UnimplementedError("Super distribution class has no implementation")
 
 
 class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
