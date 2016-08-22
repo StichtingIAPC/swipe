@@ -247,6 +247,8 @@ class SupplierOrderTests(TestCase):
         self.copro = User()
         self.copro.save()
 
+        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
+
     def test_ics_strategy_orders_only(self):
         orderlines = []
         DEMAND_1=6
@@ -258,8 +260,8 @@ class SupplierOrderTests(TestCase):
         atcs = []
         SUP_ORD_1 = 2
         SUP_ORD_2 = 3
-        atcs.append((self.article_type, SUP_ORD_1))
-        atcs.append((self.at2, SUP_ORD_2))
+        atcs.append([self.article_type, SUP_ORD_1, self.cost])
+        atcs.append([self.at2, SUP_ORD_2, self.cost])
         assert SUP_ORD_1 <= DEMAND_1
         assert SUP_ORD_2 <= DEMAND_2
         # We know supply <= demand
@@ -287,8 +289,8 @@ class SupplierOrderTests(TestCase):
         atcs = []
         SUPPLY_1 = 2
         SUPPLY_2 = 3
-        atcs.append((self.article_type, SUPPLY_1))
-        atcs.append((self.at2, SUPPLY_2))
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs.append([self.at2, SUPPLY_2, self.cost])
 
         distribution = IndiscriminateCustomerStockStrategy.get_distribution(article_type_number_combos=atcs)
         count = defaultdict(lambda: 0)
@@ -320,8 +322,8 @@ class SupplierOrderTests(TestCase):
         SUPPLY_2 = 3
 
         atcs = []
-        atcs.append((self.article_type, SUPPLY_1))
-        atcs.append((self.at2, SUPPLY_2))
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs.append([self.at2, SUPPLY_2, self.cost])
         distribution = IndiscriminateCustomerStockStrategy.get_distribution(atcs)
         counted_orders = 0
         for d in distribution:
@@ -338,8 +340,8 @@ class SupplierOrderTests(TestCase):
         SUPPLY_2 = 3
 
         atcs = []
-        atcs.append((self.article_type, SUPPLY_1))
-        atcs.append((self.at2, SUPPLY_2))
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs.append([self.at2, SUPPLY_2, self.cost])
 
         ats = ArticleTypeSupplier(supplier=self.supplier, article_type=self.article_type)
         # Orders
@@ -381,8 +383,8 @@ class SupplierOrderTests(TestCase):
         SUPPLY_2 = 3
 
         atcs = []
-        atcs.append((self.article_type, SUPPLY_1))
-        atcs.append((self.at2, SUPPLY_2))
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs.append([self.at2, SUPPLY_2, self.cost])
 
         SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
 
@@ -424,8 +426,8 @@ class SupplierOrderTests(TestCase):
         SUPPLY_2 = 3
 
         atcs = []
-        atcs.append((self.article_type, SUPPLY_1))
-        atcs.append((self.at2, SUPPLY_2))
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs.append([self.at2, SUPPLY_2, self.cost])
 
         SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()

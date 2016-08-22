@@ -5,7 +5,8 @@ from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import OrderLine, OrderCombinationLine
 from crm.models import User
 from article.models import ArticleType, OrProductType
-from swipe.settings import USED_STRATEGY
+from swipe.settings import USED_STRATEGY, USED_CURRENCY
+from money.models import CostField, Cost
 
 
 class SupplierOrder(models.Model):
@@ -20,17 +21,17 @@ class SupplierOrder(models.Model):
         return "Supplier: {}, User: {}".format(self.supplier, self.copro)
 
     @staticmethod
-    def create_supplier_order(user, supplier, articles_ordered=None):
+    def create_supplier_order(user, supplier, articles_ordered=None, allow_different_currency=False):
         """
         Checks if supplier order information is correct and orders it at the correct supplier
         :param user: user to which the order is authorized
         :param supplier: supplier which should order the products
         :param articles_ordered:
-        :type articles_ordered: List[Tuple[ArticleType, int]]
-        :return:
+        :type articles_ordered: List[List[ArticleType, int, Cost]]
+        :param allow_different_currency: If true, removes checks for the currency to see if its the system currency
         """
 
-        ordered_dict = SupplierOrder.verify_data_assertions(user, supplier, articles_ordered)
+        ordered_dict = SupplierOrder.verify_data_assertions(user, supplier, articles_ordered, allow_different_currency)
 
         demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
@@ -86,13 +87,13 @@ class SupplierOrder(models.Model):
         return errors
 
     @staticmethod
-    def verify_data_assertions(user, supplier, articles_ordered):
+    def verify_data_assertions(user, supplier, articles_ordered, allow_different_currency):
         """
         Checks basic assertions about the supplied data, including the supplier ability to supply the specified products
         :param user: user to which the order is authorized
         :param supplier: supplier which should order the products
         :param articles_ordered:
-        :type articles_ordered: List[Tuple[ArticleType, int]]
+        :type articles_ordered: List[List[ArticleType, int]]
         """
         assert user and articles_ordered
         assert isinstance(user, User)
@@ -103,9 +104,12 @@ class SupplierOrder(models.Model):
 
         ordered_dict = defaultdict(lambda: 0)
 
-        for article, number in articles_ordered:
+        for article, number, cost in articles_ordered:
             assert isinstance(article, ArticleType)
             assert isinstance(number, int)
+            assert isinstance(cost, Cost)
+            if not allow_different_currency:
+                assert cost.currency.iso == USED_CURRENCY
             assert number > 0
             ordered_dict[article] += number
             assert ArticleTypeSupplier.objects.get(article_type=article,
@@ -125,6 +129,8 @@ class SupplierOrderLine(models.Model):
 
     order_line = models.ForeignKey(OrderLine, null=True)
 
+    line_cost = CostField()
+
     def __str__(self):
         if not hasattr(self, 'supplier_order')or self.supplier_order is None:
             supplier_order = "None"
@@ -143,10 +149,10 @@ class SupplierOrderLine(models.Model):
         else:
             order_line = str(self.order_line.pk)
         stri = "SupplierOrder: {}, ArticleType: {}, " \
-               "SupplierArticleType: {}, OrderLine: {}".format(supplier_order,
+               "SupplierArticleType: {}, OrderLine: {}, Cost: {}".format(supplier_order,
                                                                article_type,
                                                                supplier_article_type,
-                                                               order_line)
+                                                               order_line, self.line_cost)
         return stri
 
     @transaction.atomic
@@ -401,7 +407,7 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
     def get_distribution(article_type_number_combos):
         distribution = []
         articletype_dict = defaultdict(lambda: 0)
-        for articletype, number in article_type_number_combos:
+        for articletype, number, cost in article_type_number_combos:
             articletype_dict[articletype] += number
         articletypes = articletype_dict.keys()
         relevant_orderlines = OrderLine.objects.filter(state='O', wishable__in=articletypes).order_by('pk')
@@ -413,7 +419,7 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
             if hasattr(orderline.wishable, 'sellabletype') and hasattr(orderline.wishable.sellabletype, 'articletype'):
                 if articletype_dict_supply[orderline.wishable.sellabletype.articletype] > 0:
                     sup_ord_line = SupplierOrderLine(article_type=orderline.wishable.sellabletype.articletype,
-                                                     order_line=orderline)
+                                                     order_line=orderline, line_cost=None)
                     distribution.append(sup_ord_line)
                     articletype_dict_supply[orderline.wishable.sellabletype.articletype] -= 1
         stock_wishes = StockWishTableLine.objects.filter(article_type__in=articletypes)
@@ -421,9 +427,25 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
             assert wish.number >= articletype_dict_supply[wish.article_type]  # Assert not more supply than demand
             if articletype_dict_supply[wish.article_type] > 0:
                 for i in range(0, articletype_dict_supply[wish.article_type]):
-                    sup_ord_line = SupplierOrderLine(article_type=wish.article_type)
+                    sup_ord_line = SupplierOrderLine(article_type=wish.article_type, line_cost=None)
                     distribution.append(sup_ord_line)
                 articletype_dict_supply[wish.article_type] = 0
+
+        # Now connect the cost. I do not think this can be done more efficiently.
+        # Unfortunately, its n^2. This can be done more efficiently using maps, this should be worked out
+        # sat a later date.
+        cost_counter = article_type_number_combos.copy()
+        for single_counter in cost_counter:
+            ARTICLE_TYPE_LOCATION = 0
+            ARTICLE_TYPE_NUMBER_LOCATION = 1
+            ARTICLE_TYPE_COST_LOCATION = 2
+            while single_counter[ARTICLE_TYPE_NUMBER_LOCATION] > 0:
+                for supplier_order_line in distribution:
+                    if supplier_order_line.article_type == single_counter[ARTICLE_TYPE_LOCATION] and \
+                            (supplier_order_line.line_cost is None):
+                        supplier_order_line.line_cost = single_counter[ARTICLE_TYPE_COST_LOCATION]
+                        single_counter[ARTICLE_TYPE_NUMBER_LOCATION] -= 1
+                        break
 
         return distribution
 
