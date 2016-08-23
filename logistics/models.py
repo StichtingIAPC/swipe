@@ -131,6 +131,8 @@ class SupplierOrderLine(models.Model):
 
     line_cost = CostField()
 
+    state = models.CharField(max_length=5)
+
     def __str__(self):
         if not hasattr(self, 'supplier_order')or self.supplier_order is None:
             supplier_order = "None"
@@ -148,11 +150,20 @@ class SupplierOrderLine(models.Model):
             order_line = "None"
         else:
             order_line = str(self.order_line.pk)
+        if not hasattr(self, 'line_cost') or self.line_cost is None:
+            line_cost = "None"
+        else:
+            line_cost = str(self.line_cost)
+        if not hasattr(self, 'state') or self.state is None:
+            state = "None"
+        else:
+            state = self.state
+
         stri = "SupplierOrder: {}, ArticleType: {}, " \
-               "SupplierArticleType: {}, OrderLine: {}, Cost: {}".format(supplier_order,
-                                                               article_type,
-                                                               supplier_article_type,
-                                                               order_line, self.line_cost)
+               "SupplierArticleType: {}, OrderLine: {}, Cost: {}, State: {}".format(supplier_order,
+                                                                                    article_type,
+                                                                                    supplier_article_type,
+                                                                                    order_line, line_cost, state)
         return stri
 
     @transaction.atomic
@@ -164,19 +175,26 @@ class SupplierOrderLine(models.Model):
                     id=self.article_type.id).exists()
             else:
                 assert self.order_line.wishable.sellabletype.articletype == self.article_type  # Customer article matches ordered article
+        checked_ats = False
         if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
             sup_art_types = ArticleTypeSupplier.objects.filter(
                 article_type=self.article_type,
                 supplier=self.supplier_order.supplier)
+            checked_ats = True
 
             assert len(sup_art_types) == 1
             self.supplier_article_type == sup_art_types[0]
 
-        assert self.supplier_article_type.supplier == self.supplier_order.supplier  # Article can be ordered at supplier
-        assert self.supplier_article_type == ArticleTypeSupplier.objects.get(
-            article_type=self.article_type,
-            supplier=self.supplier_order.supplier)
+        if not checked_ats:
+            assert self.supplier_article_type.supplier == self.supplier_order.supplier  # Article can be ordered at supplier
+            assert self.supplier_article_type == ArticleTypeSupplier.objects.get(
+                article_type=self.article_type,
+                supplier=self.supplier_order.supplier)
 
+        # Set the relevant state is not implemented
+        if self.pk is None:
+            self.state = 'O'
+        assert self.state in SupplierOrderState.STATE_CHOICES
         # Assert that everything is ok here
         if self.pk is None:
             if self.order_line is not None:
@@ -186,9 +204,60 @@ class SupplierOrderLine(models.Model):
                 StockWishTable.remove_products_from_table(article_type=self.article_type, number=1,
                                                           supplier_order=self.supplier_order, stock_wish=None, indirect=True)
             super(SupplierOrderLine, self).save(*args, **kwargs)
+            sos = SupplierOrderState(supplier_order_line=self, state=self.state)
+            sos.save()
         else:
             # Maybe some extra logic here?
             super(SupplierOrderLine, self).save(*args, **kwargs)
+
+    @transaction.atomic()
+    def transition(self, new_state):
+        """
+        Transitions an orderline from one state to another. This is the only safe means of transitioning, as data
+        integrity can not be guaranteed otherwise. Transitioning is only possible with objects stored in the database.
+        """
+        if not self.pk or self.state is None:
+            raise ObjectNotSavedError()
+        elif self.state not in SupplierOrderState.STATE_CHOICES:
+            raise IncorrectStateError("State of orderline is not valid. Database is corrupted at Orderline", self.pk,
+                                      " with state ", self.state)
+        elif new_state not in SupplierOrderState.STATE_CHOICES:
+            raise IncorrectTransitionError("New state is not a valid state")
+        else:
+            nextstates = {
+                   'O': ('B', 'C', 'A'),
+                   'B': ('A', 'C')}
+            if new_state in nextstates[self.state]:
+                self.state = new_state
+                sols = SupplierOrderState(state=new_state, supplier_order_line=self)
+                sols.save()
+                self.save()
+            else:
+                raise IncorrectTransitionError(
+                       "This transaction is not legal: {state} -> {new_state}".format(state=self.state,
+                                                                                      new_state=new_state))
+
+    def send_to_backorder(self):
+        self.transition('B')
+
+    def mark_as_arrived(self):
+        self.transition('A')
+
+    def cancel_line(self):
+        self.transition('C')
+
+
+class SupplierOrderState(models.Model):
+
+    STATE_CHOICES = ('O', 'B', 'C', 'A')
+    STATE_CHOICES_MEANING = {'O': 'Ordered at supplier', 'B': 'Backorder', 'C': 'Cancelled',
+                             'A': 'Arrived at store'}
+
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    supplier_order_line = models.ForeignKey(SupplierOrderLine)
+
+    state = models.CharField(max_length=5)
 
 
 class StockWish(models.Model):
@@ -398,7 +467,7 @@ class DisbributionStrategy:
         :param article_type_number_combos:
         :return: A list containing SupplierOrderLines
         """
-        return UnimplementedError("Super distribution class has no implementation")
+        raise UnimplementedError("Super distribution class has no implementation")
 
 
 class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
@@ -463,4 +532,16 @@ class IndirectionError(Exception):
 
 
 class InsufficientDemandError(Exception):
+    pass
+
+
+class ObjectNotSavedError(Exception):
+    pass
+
+
+class IncorrectStateError(Exception):
+    pass
+
+
+class IncorrectTransitionError(Exception):
     pass
