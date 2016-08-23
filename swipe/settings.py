@@ -54,7 +54,8 @@ INSTALLED_APPS = (
     'assortment',
     'tools',
     'order',
-    'logistics'
+    'logistics',
+    'supplication'
 )
 
 MIDDLEWARE_CLASSES = [
