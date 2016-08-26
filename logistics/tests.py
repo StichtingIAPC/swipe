@@ -255,8 +255,8 @@ class SupplierOrderTests(TestCase):
         DEMAND_2=3
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, DEMAND_1, self.price, self.copro)
         OrderLine.add_orderlines_to_list(orderlines, self.at2, DEMAND_2, self.price, self.copro)
-        order = Order(copro=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines)
+        order = Order(user_modified=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines, self.copro)
         atcs = []
         SUP_ORD_1 = 2
         SUP_ORD_2 = 3
@@ -315,8 +315,8 @@ class SupplierOrderTests(TestCase):
 
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.copro)
         OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.copro)
-        order = Order(copro=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines)
+        order = Order(user_modified=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines, self.copro)
 
         SUPPLY_1 = 3
         SUPPLY_2 = 3
@@ -349,8 +349,8 @@ class SupplierOrderTests(TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_1, self.price, self.copro)
         OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_2, self.price, self.copro)
 
-        order = Order(copro=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines)
+        order = Order(user_modified=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines, self.copro)
 
         SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()
@@ -419,8 +419,8 @@ class SupplierOrderTests(TestCase):
 
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.copro)
         OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.copro)
-        order = Order(copro=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines)
+        order = Order(user_modified=self.copro, customer=self.customer)
+        Order.make_order(order, orderlines, self.copro)
 
         SUPPLY_1 = 3
         SUPPLY_2 = 3

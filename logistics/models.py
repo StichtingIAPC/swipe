@@ -198,7 +198,7 @@ class SupplierOrderLine(models.Model):
         # Assert that everything is ok here
         if self.pk is None:
             if self.order_line is not None:
-                self.order_line.order_at_supplier()  # If this doesn't happen at exactly the same time
+                self.order_line.order_at_supplier(self.supplier_order.copro)  # If this doesn't happen at exactly the same time
                                                      # as the save of the SupOrdLn, you are screwed
             else:
                 StockWishTable.remove_products_from_table(article_type=self.article_type, number=1,
