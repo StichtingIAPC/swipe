@@ -15,9 +15,8 @@ from tools.management.commands.consistencycheck import consistency_check, CRITIC
 
 class Order(Blame):
     # A collection of orders of a customer ordered together
+    # Customer that originates the order
     customer = models.ForeignKey(Customer)
-
-
 
     @staticmethod
     def make_order(order, orderlines,user):
@@ -48,15 +47,15 @@ class Order(Blame):
 
 
 class OrderLineState(ImmutableBlame):
-    # A representation of the state of a orderline
+    # A representation of the state of a orderline. Can be used as a logging tool for any OrderLine
     OL_STATE_CHOICES = ('O', 'L', 'A', 'C', 'S', 'I')
     OL_STATE_MEANING = {'O': 'Ordered by Customer', 'L': 'Ordered at Supplier',
                         'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold', 'I' : 'Used for Internal Purposes'}
-
+    # Mirrors the transition of the state of an OrderLine
     state = models.CharField(max_length=3)
-
+    # When did the transition happen?
     timestamp = models.DateTimeField(auto_now_add=True)
-
+    # The OrderLine that is transitioning
     orderline = models.ForeignKey('OrderLine')
 
     def __str__(self):
@@ -67,19 +66,16 @@ class OrderLineState(ImmutableBlame):
         super(OrderLineState, self).save()
 
 
-
-
-
 class OrderLine(Blame):
     # An order of a customer for a single product of a certain type
+    # Collection including this OrderLine
     order = models.ForeignKey(Order)
-
+    # Anything the customer desires and we can supply
     wishable = models.ForeignKey(WishableType)
-
+    # Indicates where in the process this OrderLine is. Every state allows for different actions
     state = models.CharField(max_length=3)
-
+    # The price the customer sees at the moment the Order(Line) is created
     expected_sales_price = PriceField()
-
 
     @staticmethod
     def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None):
@@ -115,7 +111,6 @@ class OrderLine(Blame):
             curr = Currency(iso=USED_CURRENCY)
 
             self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
-
 
             super(OrderLine, self).save()
             ol_state.orderline = self
@@ -192,14 +187,17 @@ class OrderLine(Blame):
 
 class OrderCombinationLine:
     """
-    Line that combines similar orderlines into one to reduce overal size
+    Line that combines similar orderlines into one to reduce overal size. This can be used to display data in an orderly fashion
+    but is also very usefull as a way to retrieve data about large collections of OrderLines. Use this in stead of combining
+    database lines directly!
     """
+    # The number of a certain wishable in this OrderCombinationLine
     number = 0
-
+    # Any product that can be wished by a customer
     wishable = WishableType
-
+    # The price decided at the moment the customer ordered products
     price = Price
-
+    # State in which a number of wishables are
     state = ""
 
     def __init__(self, wishable, number, price, state):
@@ -262,6 +260,10 @@ class OrderCombinationLine:
 
 
 class ConsistencyChecker:
+    """
+    Checks for states in the system that are unlikely to be good are are actively dangerous. Take warning seriously,
+    especially those with a higher severity.
+    """
 
     @staticmethod
     @consistency_check

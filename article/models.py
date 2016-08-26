@@ -4,6 +4,11 @@ from money.models import SalesPrice, MoneyField, AccountingGroup
 
 
 class WishableType(models.Model):
+    """
+    General product type that can be desired by a customer. This type is product is not neccesarily sellable and does
+    not exist as a type that our suppliers can provide. Ordering non-sellable types incurs significant logic in the system
+    to resolve. Keep this in mind.
+    """
 
     name = models.CharField(max_length=255)
 
@@ -18,7 +23,7 @@ class WishableType(models.Model):
 
 
 class SellableType(WishableType):
-    # This abstract type can be sold
+    # This abstract type can be sold. Handling of these types in the system is quite easy.
     accounting_group = models.ForeignKey(AccountingGroup)
 
     def get_vat_group(self):
@@ -44,7 +49,8 @@ class ArticleType(SellableType):
 
 
 class OrProductType(WishableType):
-    # A choice between a number of ArticleTypes
+    # A choice between a number of ArticleTypes. At supplier ordering time, it is decided which ArticleType fulfills
+    # the wish of the OrProductType
     article_types = models.ManyToManyField(ArticleType)
 
     fixed_price = MoneyField(null=True)
@@ -77,7 +83,7 @@ class ProductCombination(models.Model):
 
 
 class OtherCostType(SellableType):
-    # Product that does not enter stock
+    # Product that does not enter stock. This product is rarely physical.
     fixed_price = MoneyField()
 
     def get_sales_price(self):
