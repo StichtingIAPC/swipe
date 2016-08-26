@@ -16,7 +16,7 @@ from swipe.settings import USED_CURRENCY, CASH_PAYMENT_TYPE_NAME
 
 
 class PaymentType(models.Model):
-
+    # Name of the payment type. "Cash" is always used when using cash registers
     name = models.CharField(max_length=255, unique=True)
 
 
@@ -617,6 +617,8 @@ class InvalidOperationError(Exception):
 
 
 class OpeningCountDifference(models.Model):
+    # Difference that can occur when a register is opened. This indicated that money (dis)appeared between closing and
+    # opening of the register.
     difference = MoneyField()
     register_count = models.ForeignKey("RegisterCount")
 
@@ -625,6 +627,8 @@ class OpeningCountDifference(models.Model):
 
 
 class ClosingCountDifference(models.Model):
+    # Difference that can occur when a sales period closes. Since this could have any reason, it cannot be pointed to
+    # a single register. This makes it different from an OpeningCountDifference
     difference = MoneyField()
     sales_period = models.ForeignKey("SalesPeriod")
 
@@ -638,8 +642,11 @@ class Payment(models.Model):
     Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
     transaction
     """
+    # Exhange of money when something is sold to a customer
     transaction = models.ForeignKey("Transaction")
+    # An amount and currency the customer pays
     amount = MoneyField()
+    # Which payment type is this payment added to?
     payment_type = models.ForeignKey(PaymentType)
 
 
@@ -647,11 +654,17 @@ class TransactionLine(models.Model):
     """
     Superclass of transaction line. Contains all the shared information of all transaction line types.
     """
+    # A transaction has one or more transaction lines
     transaction = models.ForeignKey("Transaction")
+    # What is the id of the SellableType?
     num = models.IntegerField()
+    # What did the customer pay for this line?
     price = PriceField()
+    # How many are you selling?
     count = models.IntegerField()
+    # Is this line refunded yeu?
     isRefunded = models.BooleanField(default=False)
+    # Text storage of name of SellableType
     text = models.CharField(max_length=128)
 
 
@@ -660,7 +673,9 @@ class SalesTransactionLine(TransactionLine, StockLabeledLine):
     """
         Equivalent to one stock-modifying line on a Receipt
     """
+    # How much did the ArticleType cost?
     cost = CostField()
+    # Which ArticleType are we talking about?
     article = models.ForeignKey(ArticleType)
 
     @staticmethod
@@ -701,8 +716,11 @@ class Transaction(models.Model):
         General transaction for the use in a sales period. Contains a number of transaction lines that could be any form
         of sales.
     """
+    # When did the transaction take place?
     time = models.DateTimeField(auto_now_add=True)
+    # Which changes did it cause in the stock?
     stock_change_set = models.ForeignKey(StockChangeSet)
+    # The sales period it is connected to
     salesperiod = models.ForeignKey("SalesPeriod")
 
     def save(self, *args, indirect=False, **kwargs):
