@@ -1,5 +1,7 @@
 from django.db import models, transaction
 from django.db.models.fields.reverse_related import ForeignObjectRel
+
+from blame.models import Blame, ImmutableBlame
 from crm.models import *
 from article.models import *
 from money.models import *
@@ -11,17 +13,13 @@ from tools.management.commands.consistencycheck import consistency_check, CRITIC
 # Create your models here.
 
 
-class Order(models.Model):
+class Order(Blame):
     # A collection of orders of a customer ordered together
+    # Customer that originates the order
     customer = models.ForeignKey(Customer)
 
-    date = models.DateTimeField(auto_now_add=True, editable=False)
-    modified_date = models.DateTimeField(auto_now_add=True, editable=True)
-
-    copro = models.ForeignKey(User)
-
     @staticmethod
-    def make_order(order, orderlines):
+    def make_order(order, orderlines,user):
         """
         Creates a new order with the specified orderlines. Order must be unsaved.
         The orderlines need to be valid unsaved orderlines.
@@ -30,14 +28,16 @@ class Order(models.Model):
         """
         assert type(order) == Order
         for ol in orderlines:
+            ol.user_modified = user
             assert type(ol) == OrderLine
+        order.user_modified=user
         order.save()
         for ol in orderlines:
             ol.order = order
             ol.save()
 
     def __str__(self):
-        return "Customer: {}, Copro: {}, Date: {} ".format(self.customer, self.copro, self.date)
+        return "Customer: {}, Copro: {}, Date: {} ".format(self.customer, self.user_created, self.date_created)
 
     def print_orderline_info(self):
         ocls = OrderCombinationLine.get_ol_combinations(order=self)
@@ -46,16 +46,16 @@ class Order(models.Model):
             print(ocl)
 
 
-class OrderLineState(models.Model):
-    # A representation of the state of a orderline
+class OrderLineState(ImmutableBlame):
+    # A representation of the state of a orderline. Can be used as a logging tool for any OrderLine
     OL_STATE_CHOICES = ('O', 'L', 'A', 'C', 'S', 'I')
     OL_STATE_MEANING = {'O': 'Ordered by Customer', 'L': 'Ordered at Supplier',
                         'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold', 'I' : 'Used for Internal Purposes'}
-
+    # Mirrors the transition of the state of an OrderLine
     state = models.CharField(max_length=3)
-
+    # When did the transition happen?
     timestamp = models.DateTimeField(auto_now_add=True)
-
+    # The OrderLine that is transitioning
     orderline = models.ForeignKey('OrderLine')
 
     def __str__(self):
@@ -66,29 +66,25 @@ class OrderLineState(models.Model):
         super(OrderLineState, self).save()
 
 
-
-
-
-class OrderLine(models.Model):
+class OrderLine(Blame):
     # An order of a customer for a single product of a certain type
+    # Collection including this OrderLine
     order = models.ForeignKey(Order)
-
+    # Anything the customer desires and we can supply
     wishable = models.ForeignKey(WishableType)
-
+    # Indicates where in the process this OrderLine is. Every state allows for different actions
     state = models.CharField(max_length=3)
-
+    # The price the customer sees at the moment the Order(Line) is created
     expected_sales_price = PriceField()
 
-    copro = models.ForeignKey(User)
-
     @staticmethod
-    def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None,user=None):
+    def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None):
         """
         Function intended to create orderlines. Evades high demands of Price-class. Sets up the basics needed. The rest
         is handled by the save function of orderlines.
         """
         assert wishable is not None
-        ol = OrderLine(order=order, wishable=wishable, state=state,copro=user, expected_sales_price=expected_sales_price)
+        ol = OrderLine(order=order, wishable=wishable, state=state, expected_sales_price=expected_sales_price)
 
         return ol
 
@@ -100,21 +96,21 @@ class OrderLine(models.Model):
         assert isinstance(self.expected_sales_price, Price)  # Temporary measure until complexities get worked out
 
         if self.pk is None:
+
             if not self.state:
                 if type(self.wishable) == OtherCostType:
-                    ol_state = OrderLineState(state='A')
+                    ol_state = OrderLineState(state='A', user_created=self.user_modified)
                     self.state = 'A'
                 else:
-                    ol_state = OrderLineState(state='O')
+                    ol_state = OrderLineState(state='O', user_created=self.user_modified)
                     self.state = 'O'
             else:
-                ol_state = OrderLineState(state=self.state)
+                ol_state = OrderLineState(state=self.state, user_created=self.user_modified)
 
             assert self.state in OrderLineState.OL_STATE_CHOICES
             curr = Currency(iso=USED_CURRENCY)
 
             self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
-
 
             super(OrderLine, self).save()
             ol_state.orderline = self
@@ -124,7 +120,7 @@ class OrderLine(models.Model):
             super(OrderLine, self).save()
 
     @transaction.atomic
-    def transition(self, new_state):
+    def transition(self, new_state,user_created):
         """
         Transitions an orderline from one state to another. This is the only safe means of transitioning, as data
         integrity can not be guaranteed otherwise. Transitioning is only possible with objects stored in the database.
@@ -143,23 +139,23 @@ class OrderLine(models.Model):
                 'A': ('S', 'I')}
             if new_state in nextstates[self.state]:
                 self.state = new_state
-                ols = OrderLineState(state=new_state, orderline=self)
+                ols = OrderLineState(state=new_state, orderline=self,user_created=user_created)
                 ols.save()
                 self.save()
             else:
                 raise IncorrectTransitionError("This transaction is not legal: {state} -> {new_state}".format(state=self.state, new_state=new_state))
 
-    def order_at_supplier(self):
-        self.transition('L')
+    def order_at_supplier(self,user_created):
+        self.transition('L',user_created)
 
-    def arrive_at_store(self):
-        self.transition('A')
+    def arrive_at_store(self,user_created):
+        self.transition('A',user_created)
 
-    def sell(self):
-        self.transition('S')
+    def sell(self,user_created):
+        self.transition('S',user_created)
 
-    def cancel(self):
-        self.transition('C')
+    def cancel(self,user_created):
+        self.transition('C',user_created)
 
     def __str__(self):
         if not hasattr(self, 'order'):
@@ -185,20 +181,23 @@ class OrderLine(models.Model):
         assert number >= 1
         for i in range(1, number + 1):
 
-            ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)
+            ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price)
             orderlinelist.append(ol)
 
 
 class OrderCombinationLine:
     """
-    Line that combines similar orderlines into one to reduce overal size
+    Line that combines similar orderlines into one to reduce overal size. This can be used to display data in an orderly fashion
+    but is also very usefull as a way to retrieve data about large collections of OrderLines. Use this in stead of combining
+    database lines directly!
     """
+    # The number of a certain wishable in this OrderCombinationLine
     number = 0
-
+    # Any product that can be wished by a customer
     wishable = WishableType
-
+    # The price decided at the moment the customer ordered products
     price = Price
-
+    # State in which a number of wishables are
     state = ""
 
     def __init__(self, wishable, number, price, state):
@@ -261,6 +260,10 @@ class OrderCombinationLine:
 
 
 class ConsistencyChecker:
+    """
+    Checks for states in the system that are unlikely to be good are are actively dangerous. Take warning seriously,
+    especially those with a higher severity.
+    """
 
     @staticmethod
     @consistency_check
