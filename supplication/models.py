@@ -4,6 +4,7 @@ from supplier.models import Supplier, ArticleTypeSupplier
 from logistics.models import SupplierOrderLine
 from money.models import CostField, Cost
 from stock.models import StockChangeSet
+from stock.stocklabel import OrderLabel
 from article.models import ArticleType
 
 
@@ -89,13 +90,16 @@ class PackingDocumentLine(models.Model):
         pk = self.packing_document.pk
         super(PackingDocumentLine, self).save()
         # Modify stock
-        # TODO: Fix correct label
         entry = [{
             'article': self.supplier_order_line.article_type,
             'book_value': self.line_cost,
             'count': 1,
             'is_in': True
+
         }]
+        if hasattr(self.supplier_order_line, 'order_line'):
+            label = OrderLabel(self.supplier_order_line.order_line.pk)
+            entry['label']=label
         StockChangeSet.construct(description="Stock supplication", entries=entry, enum=pk)
 
     def __str__(self):

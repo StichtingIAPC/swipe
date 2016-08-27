@@ -57,12 +57,12 @@ class SimpleClassTests(TestCase):
         self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
 
     def test_simple_book_in_cost_from_supplier_order_line(self):
-        order = Order(copro=self.copro, customer=self.customer)
+        order = Order(user_modified=self.copro, customer=self.customer)
         order.save()
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, number=1, wishable_type=self.article_type,
                                          price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
-        Order.make_order(order, orderlines)
+        Order.make_order(order, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, 1, self.cost]])
         pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
@@ -75,12 +75,12 @@ class SimpleClassTests(TestCase):
         assert pd.line_cost == pd.supplier_order_line.line_cost
 
     def test_simple_book_in_cost_from_invoice(self):
-        order = Order(copro=self.copro, customer=self.customer)
+        order = Order(user_modified=self.copro, customer=self.customer)
         order.save()
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, number=1, wishable_type=self.article_type,
                                          price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
-        Order.make_order(order, orderlines)
+        Order.make_order(order, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, 1, self.cost]])
         pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
@@ -97,7 +97,7 @@ class SimpleClassTests(TestCase):
         assert pac_doc_line.line_cost == cost
 
     def test_illegal_article_type(self):
-        order = Order(copro=self.copro, customer=self.customer)
+        order = Order(user_modified=self.copro, customer=self.customer)
         order.save()
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, number=1, wishable_type=self.article_type,

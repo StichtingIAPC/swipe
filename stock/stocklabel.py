@@ -131,3 +131,8 @@ class StockLabeledLine(models.Model):
 
     class Meta:
         abstract = True
+
+
+@StockLabel.register
+class OrderLabel(StockLabel):
+    _labeltype = "Order"
