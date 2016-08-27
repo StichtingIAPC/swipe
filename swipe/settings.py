@@ -54,6 +54,7 @@ INSTALLED_APPS = (
     'assortment',
     'tools',
     'order',
+<<<<<<< Temporary merge branch 1
     'logistics',
     'blame',
     'supplication'
