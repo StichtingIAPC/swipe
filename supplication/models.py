@@ -97,7 +97,7 @@ class PackingDocumentLine(models.Model):
             'is_in': True
 
         }]
-        if hasattr(self.supplier_order_line, 'order_line'):
+        if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
             label = OrderLabel(self.supplier_order_line.order_line.pk)
             entry[0]['label'] = label
         StockChangeSet.construct(description="Stock supplication", entries=entry, enum=pk)
