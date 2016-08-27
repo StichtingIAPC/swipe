@@ -102,7 +102,7 @@ class SimpleClassTests(TestCase):
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, number=1, wishable_type=self.article_type,
                                          price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
-        Order.make_order(order, orderlines)
+        Order.make_order(order, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, 1, self.cost]])
         pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)

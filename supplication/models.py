@@ -85,7 +85,7 @@ class PackingDocumentLine(models.Model):
         self.supplier_order_line.mark_as_arrived()
         if self.supplier_order_line.order_line is not None:
             # If there's a customer order, we also mark it as arrived
-            self.supplier_order_line.order_line.arrive_at_store()
+            self.supplier_order_line.order_line.arrive_at_store(self.packing_document.user)
 
         pk = self.packing_document.pk
         super(PackingDocumentLine, self).save()
@@ -99,7 +99,7 @@ class PackingDocumentLine(models.Model):
         }]
         if hasattr(self.supplier_order_line, 'order_line'):
             label = OrderLabel(self.supplier_order_line.order_line.pk)
-            entry['label']=label
+            entry[0]['label'] = label
         StockChangeSet.construct(description="Stock supplication", entries=entry, enum=pk)
 
     def __str__(self):
