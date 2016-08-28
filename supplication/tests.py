@@ -8,6 +8,7 @@ from logistics.models import SupplierOrder
 from order.models import OrderLine, Order
 from supplication.models import *
 from stock.models import Stock
+from unittest import skip
 
 # Create your tests here.
 class SimpleClassTests(TestCase):
@@ -116,4 +117,119 @@ class SimpleClassTests(TestCase):
         except AssertionError:
             caught = True
         assert caught
+
+    def test_stock_storage_of_orders_one_order(self):
+        order = Order(user_modified=self.copro, customer=self.customer)
+        order.save()
+        orderlines = []
+        NUMBER_ORDERED = 2
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order, orderlines, self.copro)
+        NUMBER_SUPPLIER_ORDERED = 2
+        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc.save()
+        sols = SupplierOrderLine.objects.all()
+        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv.save()
+        cost = Cost(amount=Decimal(2.78), use_system_currency=True)
+        # Two lines, but one order
+        NUMBER_BATCHED = 2
+        pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
+                                           packing_document=pac_doc, supplier_order_line=sols[0],
+                                           line_cost=cost, invoice=inv)
+        pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
+                                             packing_document=pac_doc, supplier_order_line=sols[1],
+                                             line_cost=cost, invoice=inv)
+        pac_doc_line_1.save()
+        pac_doc_line_2.save()
+        stock = Stock.objects.all()
+        assert len(stock) == 1
+        st_line = stock[0]
+        assert st_line.count == NUMBER_BATCHED
+        assert st_line.labeltype == OrderLabel._labeltype
+        assert st_line.labelkey == 1 # Order identifier/pk
+
+    def test_stock_storage_of_orders_more_orders(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        order_2 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 1
+        NUMBER_ORDERED_2 = 1
+        NUMBER_ORDERED = NUMBER_ORDERED_1 + NUMBER_ORDERED_2
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_2, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_2, orderlines, self.copro)
+        NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
+        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc.save()
+        sols = SupplierOrderLine.objects.all()
+        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv.save()
+        cost = Cost(amount=Decimal(2.78), use_system_currency=True)
+        # Two lines, but one order
+        NUMBER_BATCHED = len(sols)
+        assert NUMBER_BATCHED == 2
+        pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
+                                             packing_document=pac_doc, supplier_order_line=sols[0],
+                                             line_cost=cost, invoice=inv)
+        pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
+                                             packing_document=pac_doc, supplier_order_line=sols[1],
+                                             line_cost=cost, invoice=inv)
+        pac_doc_line_1.save()
+        pac_doc_line_2.save()
+        stock = Stock.objects.all()
+        assert len(stock) == 2
+        for st in stock:
+            assert st.count == 1
+            assert st.labeltype == OrderLabel._labeltype
+
+        assert stock[0].labelkey == 1  # Order identifier/pk
+        assert stock[1].labelkey == 2  # Order identifier/pk
+
+    @skip("This might not work as desired")
+    def test_stock_storage_of_orders_more_prices(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 2
+        NUMBER_ORDERED = NUMBER_ORDERED_1
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
+        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc.save()
+        sols = SupplierOrderLine.objects.all()
+        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv.save()
+        cost_1 = Cost(amount=Decimal(2.78), use_system_currency=True)
+        cost_2 = Cost(amount=Decimal(2.79), use_system_currency=True)
+        # One order and supplier order
+        pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
+                                             packing_document=pac_doc, supplier_order_line=sols[0],
+                                             line_cost=cost_1, invoice=inv)
+        pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
+                                             packing_document=pac_doc, supplier_order_line=sols[1],
+                                             line_cost=cost_2, invoice=inv)
+        pac_doc_line_1.save()
+        pac_doc_line_2.save()
+        stock = Stock.objects.all()
+        print(stock)
+        assert len(stock) == 2
+        for st in stock:
+            assert st.count == 1
+            assert st.labeltype == OrderLabel._labeltype
+            assert st.labelkey == 1 # Order pk
+
+
 
