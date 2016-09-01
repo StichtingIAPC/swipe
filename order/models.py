@@ -76,6 +76,9 @@ class OrderLine(Blame):
     state = models.CharField(max_length=3)
     # The price the customer sees at the moment the Order(Line) is created
     expected_sales_price = PriceField()
+    # Final sales price. Set when products arrive at the store
+    final_sales_price = PriceField(null=True, default=None)
+
 
     @staticmethod
     def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None, user=None):
