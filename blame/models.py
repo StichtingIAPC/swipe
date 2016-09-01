@@ -47,8 +47,7 @@ class ImmutableBlame(BasicBlame):
         abstract = True
 
     def __init__(self, *args, **kwargs):
-        for key in kwargs:
-            print ("%s = %s" % (key, kwargs.get(key)))
+
 
         kwargs["user_created"] = kwargs.get("user_created",kwargs.get("user_modified", None))
         kwargs.pop("user_modified", None)
@@ -59,9 +58,7 @@ class ImmutableBlame(BasicBlame):
         if not hasattr(self,"user_created") and hasattr(self, "user_modified"):
             self.user_created = self.user_modified
             delattr(self,"user_modified")
-        print(">>")
-        print(type(self.pk))
-        print(self.pk)
+
         assert self.pk is None
         super(ImmutableBlame, self).save(kwargs)
         typ = self._meta
