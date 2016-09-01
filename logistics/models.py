@@ -274,8 +274,8 @@ class StockWish(ImmutableBlame):
     def create_stock_wish(user_modified, articles_ordered):
         """
         Creates stock wishes integrally, this function is the preferred way of creating stock wishes
-        :param user: User to be connected to the stockwish
-        :type user: User
+        :param user_modified: User to be connected to the stockwish
+        :type user_modified: User
         :param articles_ordered: tuples containing both ArticleTypes and a non-zero integer
         :type articles_ordered:
         :return:
