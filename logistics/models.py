@@ -1,6 +1,8 @@
 from collections import defaultdict
 
 from django.db import models, transaction
+
+from blame.models import ImmutableBlame, Blame
 from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import OrderLine, OrderCombinationLine
 from crm.models import User
@@ -9,19 +11,18 @@ from swipe.settings import USED_STRATEGY, USED_CURRENCY
 from money.models import CostField, Cost
 
 
-class SupplierOrder(models.Model):
+class SupplierOrder(ImmutableBlame):
     """
     Order we place at a supplier
     """
     supplier = models.ForeignKey(Supplier)
 
-    copro = models.ForeignKey(User)
 
     def __str__(self):
-        return "Supplier: {}, User: {}".format(self.supplier, self.copro)
+        return "Supplier: {}, User: {}".format(self.supplier, self.user_created)
 
     @staticmethod
-    def create_supplier_order(user, supplier, articles_ordered=None, allow_different_currency=False):
+    def create_supplier_order(user_modified, supplier, articles_ordered=None, allow_different_currency=False):
         """
         Checks if supplier order information is correct and orders it at the correct supplier
         :param user: user to which the order is authorized
@@ -31,7 +32,7 @@ class SupplierOrder(models.Model):
         :param allow_different_currency: If true, removes checks for the currency to see if its the system currency
         """
 
-        ordered_dict = SupplierOrder.verify_data_assertions(user, supplier, articles_ordered, allow_different_currency)
+        ordered_dict = SupplierOrder.verify_data_assertions(user_modified, supplier, articles_ordered, allow_different_currency)
 
         demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
@@ -51,7 +52,7 @@ class SupplierOrder(models.Model):
         distribution = DisbributionStrategy.get_strategy_from_string(USED_STRATEGY)\
             .get_distribution(articles_ordered)
 
-        DisbributionStrategy.distribute(user, supplier, distribution, indirect=True)
+        DisbributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
 
     @staticmethod
     def verify_article_demand(articles_ordered=None):
@@ -117,7 +118,7 @@ class SupplierOrder(models.Model):
         return ordered_dict
 
 
-class SupplierOrderLine(models.Model):
+class SupplierOrderLine(Blame):
     """
     Single ArticleType ordered at supplier and contained in a SupplierOrder
     """
@@ -198,13 +199,13 @@ class SupplierOrderLine(models.Model):
         # Assert that everything is ok here
         if self.pk is None:
             if self.order_line is not None:
-                self.order_line.order_at_supplier(self.supplier_order.copro)  # If this doesn't happen at exactly the same time
+                self.order_line.order_at_supplier(self.supplier_order.user_created)  # If this doesn't happen at exactly the same time
                                                      # as the save of the SupOrdLn, you are screwed
             else:
-                StockWishTable.remove_products_from_table(article_type=self.article_type, number=1,
+                StockWishTable.remove_products_from_table(self.user_modified, article_type=self.article_type, number=1,
                                                           supplier_order=self.supplier_order, stock_wish=None, indirect=True)
             super(SupplierOrderLine, self).save(*args, **kwargs)
-            sos = SupplierOrderState(supplier_order_line=self, state=self.state)
+            sos = SupplierOrderState(supplier_order_line=self, state=self.state,user_modified=self.user_modified)
             sos.save()
         else:
             # Maybe some extra logic here?
@@ -247,7 +248,7 @@ class SupplierOrderLine(models.Model):
         self.transition('C')
 
 
-class SupplierOrderState(models.Model):
+class SupplierOrderState(ImmutableBlame):
 
     STATE_CHOICES = ('O', 'B', 'C', 'A')
     STATE_CHOICES_MEANING = {'O': 'Ordered at supplier', 'B': 'Backorder', 'C': 'Cancelled',
@@ -260,18 +261,17 @@ class SupplierOrderState(models.Model):
     state = models.CharField(max_length=5)
 
 
-class StockWish(models.Model):
+class StockWish(ImmutableBlame):
     """
     Combination of wishes for ArticleTypes to be ordered at supplier.
     """
 
-    copro = models.ForeignKey(User)
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
     @staticmethod
     @transaction.atomic
-    def create_stock_wish(user=None, articles_ordered=None):
+    def create_stock_wish(user_modified, articles_ordered):
         """
         Creates stock wishes integrally, this function is the preferred way of creating stock wishes
         :param user: User to be connected to the stockwish
@@ -281,20 +281,20 @@ class StockWish(models.Model):
         :return:
         """
 
-        assert user is not None and len(articles_ordered) > 0
-        assert isinstance(user, User)
+        assert user_modified is not None and len(articles_ordered) > 0
+        assert isinstance(user_modified, User)
 
         for article, number in articles_ordered:
             assert isinstance(article, ArticleType)
             assert isinstance(number, int)
             assert number != 0
 
-        stock_wish = StockWish(copro=user)
+        stock_wish = StockWish(user_modified=user_modified)
         stock_wish.save()
 
         for article, number in articles_ordered:
             if number < 0:
-                StockWishTable.remove_products_from_table(
+                StockWishTable.remove_products_from_table(user_modified,
                     article,
                     -number,
                     indirect=True,
@@ -303,6 +303,7 @@ class StockWish(models.Model):
                 )
             else:
                 StockWishTable.add_products_to_table(
+                    user_modified,
                     article,
                     number,
                     indirect=True,
@@ -312,7 +313,7 @@ class StockWish(models.Model):
         return stock_wish
 
 
-class StockWishTableLine(models.Model):
+class StockWishTableLine(Blame):
     """
     Single line of all combined present wishes for a single ArticleType. Will be modified by StockWishes
     and SupplierOrders.
@@ -335,20 +336,20 @@ class StockWishTable:
     """
 
     @staticmethod
-    def add_products_to_table(article_type, number, indirect=False,
+    def add_products_to_table(user_modified, article_type, number, indirect=False,
                               stock_wish=None, supplier_order=None):
         assert number > 0
         if not indirect:
             raise IndirectionError("add_products_to_table must be called indirectly")
         article_type_status = StockWishTableLine.objects.filter(article_type=article_type)
         if len(article_type_status) == 0:
-            swtl = StockWishTableLine(article_type=article_type, number=number)
+            swtl = StockWishTableLine(article_type=article_type, number=number, user_modified=user_modified)
             swtl.save(indirect=indirect)
             log = StockWishTableLog(
                 number=number,
                 article_type=article_type,
                 stock_wish=stock_wish,
-                supplier_order=supplier_order)
+                supplier_order=supplier_order,  user_modified=user_modified)
             log.save(indirect=True)
         else:
             article_type_status[0].number += number
@@ -357,11 +358,11 @@ class StockWishTable:
                 number=number,
                 article_type=article_type,
                 stock_wish=stock_wish,
-                supplier_order=supplier_order)
+                supplier_order=supplier_order, user_modified=user_modified)
             log.save(indirect=True)
 
     @staticmethod
-    def remove_products_from_table(article_type, number, indirect=False,
+    def remove_products_from_table(user_modified,article_type, number, indirect=False,
                                    stock_wish=None, supplier_order=None):
         assert number > 0
         if not indirect:
@@ -383,11 +384,11 @@ class StockWishTable:
                 number=-number,
                 article_type=article_type,
                 stock_wish=stock_wish,
-                supplier_order=supplier_order)
+                supplier_order=supplier_order,user_modified=user_modified)
             log.save(indirect=True)
 
 
-class StockWishTableLog(models.Model):
+class StockWishTableLog(ImmutableBlame):
     """
     Log of all edits of the stock wish.
     """
@@ -444,7 +445,7 @@ class DisbributionStrategy:
         if not indirect:
             raise IndirectionError("Distribute must be called indirectly")
         assert distribution
-        supplier_order = SupplierOrder(copro=user, supplier=supplier)
+        supplier_order = SupplierOrder(user_modified=user, supplier=supplier)
         for supplier_order_line in distribution:
             assert isinstance(supplier_order_line, SupplierOrderLine)
             assert supplier_order_line.order_line is None or isinstance(supplier_order_line.order_line, OrderLine)
@@ -458,6 +459,7 @@ class DisbributionStrategy:
         supplier_order.save()
         for supplier_order_line in distribution:
             supplier_order_line.supplier_order = supplier_order
+            supplier_order_line.user_modified = user
             supplier_order_line.save()
 
     @staticmethod

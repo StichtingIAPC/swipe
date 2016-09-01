@@ -26,6 +26,8 @@ class Blame(BasicBlame):
     user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by")
 
     def save(self, **kwargs):
+
+
         if not self.user_created_id:
             self.user_created = self.user_modified
         super(Blame, self).save(kwargs)
@@ -44,7 +46,22 @@ class ImmutableBlame(BasicBlame):
     class Meta:
         abstract = True
 
+    def __init__(self, *args, **kwargs):
+        for key in kwargs:
+            print ("%s = %s" % (key, kwargs.get(key)))
+
+        kwargs["user_created"] = kwargs.get("user_created",kwargs.get("user_modified", None))
+        kwargs.pop("user_modified", None)
+
+        super(ImmutableBlame, self).__init__(*args, **kwargs)
+
     def save(self, **kwargs):
+        if not hasattr(self,"user_created") and hasattr(self, "user_modified"):
+            self.user_created = self.user_modified
+            delattr(self,"user_modified")
+        print(">>")
+        print(type(self.pk))
+        print(self.pk)
         assert self.pk is None
         super(ImmutableBlame, self).save(kwargs)
         typ = self._meta

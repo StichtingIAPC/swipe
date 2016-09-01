@@ -39,13 +39,13 @@ class StockWishTests(TestCase):
         self.customer = Person()
         self.customer.save()
 
-        self.copro = User()
-        self.copro.save()
+        self.user_modified = User(username= "HENK")
+        self.user_modified.save()
 
     def test_primitive_wish_save(self):
         NUMBER = 2
         sw = StockWish.create_stock_wish(
-            user=self.copro,
+            user_modified=self.user_modified,
             articles_ordered=[
                 (self.article_type, NUMBER)
             ])
@@ -65,7 +65,7 @@ class StockWishTests(TestCase):
         NUMBER3 = -1
 
         stock_wish = StockWish.create_stock_wish(
-            user=self.copro,
+            user_modified=self.user_modified,
             articles_ordered=[
                 (self.article_type, NUMBER),
                 (self.article_type, NUMBER2)
@@ -73,7 +73,7 @@ class StockWishTests(TestCase):
         )
 
         StockWish.create_stock_wish(
-            user=self.copro,
+            user_modified=self.user_modified,
             articles_ordered=[
                 (self.article_type, NUMBER3)
             ]
@@ -93,7 +93,7 @@ class StockWishTests(TestCase):
         NUMBER2 = 3
 
         sw = StockWish.create_stock_wish(
-            user=self.copro,
+            user_modified=self.user_modified,
             articles_ordered=[
                 (self.article_type, NUMBER),
                 (self.at2, NUMBER2)
@@ -115,11 +115,11 @@ class StockWishTests(TestCase):
 
         article_number_list = []
         article_number_list.append([self.article_type, 2])
-        StockWish.create_stock_wish(self.copro, article_number_list)
+        StockWish.create_stock_wish(self.user_modified, article_number_list)
 
         stockwish_list = StockWish.objects.all()
         assert len(stockwish_list) == 1
-        assert stockwish_list[0].copro == self.copro
+        assert stockwish_list[0].user_created == self.user_modified
 
         logs = StockWishTableLog.objects.all()
         assert len(logs) == 1
@@ -132,11 +132,11 @@ class StockWishTests(TestCase):
             (self.article_type, 2),
             (self.article_type, 2)
         ]
-        StockWish.create_stock_wish(self.copro, article_number_list)
+        StockWish.create_stock_wish(self.user_modified, article_number_list)
 
         stockwish_list = StockWish.objects.all()
         assert len(stockwish_list) == 1
-        assert stockwish_list[0].copro == self.copro
+        assert stockwish_list[0].user_created == self.user_modified
 
         logs = StockWishTableLog.objects.all()
         assert len(logs) == 2
@@ -154,11 +154,11 @@ class StockWishTests(TestCase):
         atcs.append([self.article_type, 2])
         atcs.append([self.at2, 3])
         atcs.append([self.at3, 5])
-        StockWish.create_stock_wish(self.copro, atcs)
+        StockWish.create_stock_wish(self.user_modified, atcs)
 
         stockwish_list = StockWish.objects.all()
         assert len(stockwish_list) == 1
-        assert stockwish_list[0].copro == self.copro
+        assert stockwish_list[0].user_created == self.user_modified
 
         logs = StockWishTableLog.objects.all()
         assert len(logs) == 4
@@ -169,7 +169,7 @@ class StockWishTests(TestCase):
     def test_deletion_of_lines(self):
         atcs = []
         atcs.append([self.article_type, 2])
-        StockWish.create_stock_wish(self.copro, atcs)
+        StockWish.create_stock_wish(self.user_modified, atcs)
         assert len(StockWishTableLog.objects.all()) == 1
         swtl = StockWishTableLine.objects.all()
         assert len(swtl) == 1
@@ -178,7 +178,7 @@ class StockWishTests(TestCase):
 
         atcs = []
         atcs.append([self.article_type, -1])
-        StockWish.create_stock_wish(self.copro, atcs)
+        StockWish.create_stock_wish(self.user_modified, atcs)
         assert len(StockWishTableLog.objects.all()) == 2
         swtl = StockWishTableLine.objects.all()
         assert len(swtl) == 1
@@ -187,7 +187,7 @@ class StockWishTests(TestCase):
 
         atcs = []
         atcs.append([self.article_type, -1])
-        StockWish.create_stock_wish(self.copro, atcs)
+        StockWish.create_stock_wish(self.user_modified, atcs)
         assert len(StockWishTableLog.objects.all()) == 3
         swtl = StockWishTableLine.objects.all()
         assert len(swtl) == 0
@@ -244,8 +244,8 @@ class SupplierOrderTests(TestCase):
         self.customer = Person()
         self.customer.save()
 
-        self.copro = User()
-        self.copro.save()
+        self.user_modified = User()
+        self.user_modified.save()
 
         self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
 
@@ -253,10 +253,10 @@ class SupplierOrderTests(TestCase):
         orderlines = []
         DEMAND_1=6
         DEMAND_2=3
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, DEMAND_1, self.price, self.copro)
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, DEMAND_2, self.price, self.copro)
-        order = Order(user_modified=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, DEMAND_1, self.price, self.user_modified)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, DEMAND_2, self.price, self.user_modified)
+        order = Order(user_modified=self.user_modified, customer=self.customer)
+        Order.make_order(order, orderlines, self.user_modified)
         atcs = []
         SUP_ORD_1 = 2
         SUP_ORD_2 = 3
@@ -284,7 +284,7 @@ class SupplierOrderTests(TestCase):
         DEMAND_2 = 3
         atcs.append((self.article_type, DEMAND_1))
         atcs.append((self.at2, DEMAND_2))
-        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
 
         atcs = []
         SUPPLY_1 = 2
@@ -309,14 +309,14 @@ class SupplierOrderTests(TestCase):
         atcs = []
         atcs.append((self.article_type, STOCK_DEMAND_1))
         atcs.append((self.at2, STOCK_DEMAND_2))
-        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
 
         orderlines = []
 
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.copro)
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.copro)
-        order = Order(user_modified=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.user_modified)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.user_modified)
+        order = Order(user_modified=self.user_modified, customer=self.customer)
+        Order.make_order(order, orderlines, self.user_modified)
 
         SUPPLY_1 = 3
         SUPPLY_2 = 3
@@ -346,20 +346,20 @@ class SupplierOrderTests(TestCase):
         ats = ArticleTypeSupplier(supplier=self.supplier, article_type=self.article_type)
         # Orders
         orderlines = []
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_1, self.price, self.copro)
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_2, self.price, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_1, self.price, self.user_modified)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_2, self.price, self.user_modified)
 
-        order = Order(user_modified=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines, self.copro)
+        order = Order(user_modified=self.user_modified, customer=self.customer)
+        Order.make_order(order, orderlines, self.user_modified)
 
-        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()
 
         FOUND_1 = 0
         FOUND_2 = 0
         for sol in sols:
             assert sol.supplier_order.supplier == self.supplier
-            assert sol.supplier_order.copro == self.copro
+            assert sol.supplier_order.user_created == self.user_modified
             if sol.article_type == self.article_type:
                 FOUND_1 += 1
             if sol.article_type == self.at2:
@@ -376,7 +376,7 @@ class SupplierOrderTests(TestCase):
         atcs.append((self.article_type, STOCK_1))
         atcs.append((self.at2, STOCK_2))
 
-        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
 
 
         SUPPLY_1 = 5
@@ -386,7 +386,7 @@ class SupplierOrderTests(TestCase):
         atcs.append([self.article_type, SUPPLY_1, self.cost])
         atcs.append([self.at2, SUPPLY_2, self.cost])
 
-        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
 
         sols = SupplierOrderLine.objects.all()
 
@@ -413,14 +413,14 @@ class SupplierOrderTests(TestCase):
         atcs = []
         atcs.append((self.article_type, STOCK_DEMAND_1))
         atcs.append((self.at2, STOCK_DEMAND_2))
-        StockWish.create_stock_wish(user=self.copro, articles_ordered=atcs)
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
 
         orderlines = []
 
-        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.copro)
-        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.copro)
-        order = Order(user_modified=self.copro, customer=self.customer)
-        Order.make_order(order, orderlines, self.copro)
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.user_modified)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.user_modified)
+        order = Order(user_modified=self.user_modified, customer=self.customer)
+        Order.make_order(order, orderlines, self.user_modified)
 
         SUPPLY_1 = 3
         SUPPLY_2 = 3
@@ -429,7 +429,7 @@ class SupplierOrderTests(TestCase):
         atcs.append([self.article_type, SUPPLY_1, self.cost])
         atcs.append([self.at2, SUPPLY_2, self.cost])
 
-        SupplierOrder.create_supplier_order(user=self.copro, supplier=self.supplier, articles_ordered=atcs)
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()
 
         ORDERS = 0
