@@ -230,7 +230,7 @@ class SupplierOrderLine(Blame):
                    'B': ('A', 'C')}
             if new_state in nextstates[self.state]:
                 self.state = new_state
-                sols = SupplierOrderState(state=new_state, supplier_order_line=self)
+                sols = SupplierOrderState(state=new_state, supplier_order_line=self,user_modified=self.user_modified)
                 sols.save()
                 self.save()
             else:
