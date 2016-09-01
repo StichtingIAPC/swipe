@@ -78,13 +78,13 @@ class OrderLine(Blame):
     expected_sales_price = PriceField()
 
     @staticmethod
-    def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None):
+    def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None, user=None):
         """
         Function intended to create orderlines. Evades high demands of Price-class. Sets up the basics needed. The rest
         is handled by the save function of orderlines.
         """
         assert wishable is not None
-        ol = OrderLine(order=order, wishable=wishable, state=state, expected_sales_price=expected_sales_price)
+        ol = OrderLine(order=order, wishable=wishable, state=state, expected_sales_price=expected_sales_price, user_modified=user)
 
         return ol
 
@@ -181,7 +181,7 @@ class OrderLine(Blame):
         assert number >= 1
         for i in range(1, number + 1):
 
-            ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price)
+            ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)
             orderlinelist.append(ol)
 
 
