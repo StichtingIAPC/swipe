@@ -238,14 +238,14 @@ class SupplierOrderLine(Blame):
                        "This transaction is not legal: {state} -> {new_state}".format(state=self.state,
                                                                                       new_state=new_state))
 
-    def send_to_backorder(self):
-        self.transition('B')
+    def send_to_backorder(self, user_modified):
+        self.transition('B', user_modified)
 
-    def mark_as_arrived(self):
-        self.transition('A')
+    def mark_as_arrived(self, user_modified):
+        self.transition('A', user_modified)
 
-    def cancel_line(self):
-        self.transition('C')
+    def cancel_line(self, user_modified):
+        self.transition('C', user_modified)
 
 
 class SupplierOrderState(ImmutableBlame):
