@@ -45,15 +45,17 @@ class Invoice(models.Model):
 
 
 class PackingDocumentLine(models.Model):
-
+    # The packing document to which this line belongs
     packing_document = models.ForeignKey(PackingDocument, on_delete=models.PROTECT)
-
+    # The line which will match this line
     supplier_order_line = models.ForeignKey(SupplierOrderLine, on_delete=models.PROTECT)
-
+    # The article type
     article_type = models.ForeignKey(ArticleType)
-
+    # The cost from the supplierOrderLine
     line_cost = CostField()
-
+    # Final cost after retrieving it from the Invoice
+    line_cost_after_invoice = CostField(null=True, default=None)
+    # Link to the invoice if available
     invoice = models.ForeignKey(Invoice, null=True, on_delete=models.PROTECT)
 
     @transaction.atomic
