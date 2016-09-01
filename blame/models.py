@@ -47,11 +47,8 @@ class ImmutableBlame(BasicBlame):
         abstract = True
 
     def __init__(self, *args, **kwargs):
-
-
         kwargs["user_created"] = kwargs.get("user_created",kwargs.get("user_modified", None))
         kwargs.pop("user_modified", None)
-
         super(ImmutableBlame, self).__init__(*args, **kwargs)
 
     def save(self, **kwargs):

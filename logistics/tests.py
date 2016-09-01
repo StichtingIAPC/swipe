@@ -194,7 +194,7 @@ class StockWishTests(TestCase):
 
     def test_indirection(self):
 
-        log = StockWishTableLog(number=3, article_type=self.article_type)
+        log = StockWishTableLog(number=3, article_type=self.article_type,user_modified=self.user_modified)
         caught = False
         try:
             log.save()
