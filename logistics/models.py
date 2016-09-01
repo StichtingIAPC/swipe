@@ -212,7 +212,7 @@ class SupplierOrderLine(Blame):
             super(SupplierOrderLine, self).save(*args, **kwargs)
 
     @transaction.atomic()
-    def transition(self, new_state):
+    def transition(self, new_state, user_modified):
         """
         Transitions an orderline from one state to another. This is the only safe means of transitioning, as data
         integrity can not be guaranteed otherwise. Transitioning is only possible with objects stored in the database.
@@ -230,7 +230,7 @@ class SupplierOrderLine(Blame):
                    'B': ('A', 'C')}
             if new_state in nextstates[self.state]:
                 self.state = new_state
-                sols = SupplierOrderState(state=new_state, supplier_order_line=self,user_modified=self.user_modified)
+                sols = SupplierOrderState(state=new_state, supplier_order_line=self, user_modified=user_modified)
                 sols.save()
                 self.save()
             else:

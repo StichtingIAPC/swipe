@@ -84,7 +84,7 @@ class PackingDocumentLine(models.Model):
         assert ArticleTypeSupplier.objects.get(supplier=self.packing_document.supplier, article_type=self.article_type)
         # All checks are done, now we save everyting
         # Mod supplierOrderLine
-        self.supplier_order_line.mark_as_arrived()
+        self.supplier_order_line.mark_as_arrived(self.packing_document.user)
         if self.supplier_order_line.order_line is not None:
             # If there's a customer order, we also mark it as arrived
             self.supplier_order_line.order_line.arrive_at_store(self.packing_document.user)
