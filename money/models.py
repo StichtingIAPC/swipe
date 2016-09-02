@@ -7,7 +7,7 @@ from django.core.validators import RegexValidator
 
 from django.utils.translation import ugettext_lazy
 
-from swipe.settings import DECIMAL_PLACES, MAX_DIGITS
+from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
 
 
 # VAT : Pay the government, alas, we have to do this.
@@ -82,7 +82,9 @@ def price_field_name(name):
 
 
 class Money:
-    def __init__(self, amount, currency):
+    def __init__(self, amount, currency=None, use_system_currency=False):
+        if use_system_currency:
+            currency = Currency(iso=USED_CURRENCY)
         self._amount = amount.quantize(Decimal(10)**(-DECIMAL_PLACES))
         self._currency = currency
 
@@ -179,7 +181,7 @@ class CurrencyField(models.CharField):
 # Money describes a monetary value. It would be used to describe both cost and price values.
 # Generally Money itself isn't used in business logic, instead, price and cost are used.
 # This is intended as a 'smart'  version of a decimal, but in most cases you should look at Price, CostPrice or Cost,
-# these are the droids you are looking for.
+# these are the droids you are looking for (In models: PriceField, CostPriceField, CostField).
 class MoneyField(models.DecimalField):
     description = ugettext_lazy('An amount and type of currency')
 
@@ -274,7 +276,10 @@ class CostField(MoneyField):
 
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
-    def __init__(self, amount, currency, vat):
+    #TODO: SAVE CHECK?``
+    def __init__(self, amount, vat=None, currency=None, use_system_currency=False):
+        if use_system_currency:
+            currency = Currency(iso=USED_CURRENCY)
         super().__init__(amount, currency)
         self._vat = vat
 
@@ -303,7 +308,7 @@ class Price(Money):
         if oth.currency != self.currency:
             raise TypeError("Trying to add different currencies")
 
-        return Price(self.amount + oth.amount, self.currency, self.vat)
+        return Price(self.amount + oth.amount, self.vat, self.currency)
 
     def __sub__(self, oth):
         if not isinstance(oth, Price):
@@ -316,11 +321,11 @@ class Price(Money):
         if oth.currency != self.currency:
             raise TypeError("Trying to subtract different currencies")
 
-        return Price(self.amount - oth.amount, self.currency, self.vat)
+        return Price(self.amount - oth.amount, self.vat, self.currency)
 
     def __mul__(self, oth):
         if isinstance(oth, int) or isinstance(oth, float) or isinstance(oth, Decimal):
-            return Price(self.amount * oth, self.currency, self.vat)
+            return Price(self.amount * oth, self.vat, self.currency)
         else:
             raise TypeError("Cannot multiply Price with {}".format(type(oth)))
 
@@ -349,7 +354,7 @@ class PriceProxy:
         if amount is None:
             return None
 
-        return Price(amount, Currency(currency), vat)
+        return Price(amount, vat, Currency(currency))
 
     def __set__(self, obj, value):
         if value is None:  # Money(0) is False
@@ -416,8 +421,10 @@ class SalesPrice(Price):
     """
         The SalesPrice is the price of an object, for which a cost is known.
     """
-    def __init__(self, amount, currency, vat, cost):
-        super().__init__(amount, currency, vat)
+    def __init__(self, amount, vat, currency, cost, use_system_currency=False):
+        if use_system_currency:
+            currency = Currency(iso=USED_CURRENCY)
+        super().__init__(amount, vat, currency)
         self._cost = cost
 
     @property
@@ -439,7 +446,7 @@ class SalesPrice(Price):
         if oth.currency != self.currency:
             raise TypeError("Trying to add different currencies")
 
-        return SalesPrice(self.amount + oth.amount, self.currency, self.vat, self.cost + oth.cost)
+        return SalesPrice(self.amount + oth.amount, self.vat, self.currency, self.cost + oth.cost)
 
     def __sub__(self, oth):
         if type(oth) != SalesPrice:
@@ -452,11 +459,11 @@ class SalesPrice(Price):
         if oth.currency != self.currency:
             raise TypeError("Trying to subtract different currencies")
 
-        return SalesPrice(self.amount - oth.amount, self.currency, self.vat, self.cost - oth.cost)
+        return SalesPrice(self.amount - oth.amount, self.vat, self.currency, self.cost - oth.cost)
 
     def __mul__(self, oth):
         if isinstance(oth, int) or isinstance(oth, float) or isinstance(oth, Decimal):
-            return SalesPrice(self.amount * oth, self.currency, self.vat, self.cost * oth)
+            return SalesPrice(self.amount * oth, self.vat, self.currency, self.cost * oth)
         else:
             raise TypeError("Cannot multiply SalesPrice with {}".format(type(oth)))
 
@@ -499,7 +506,7 @@ class SalesPriceProxy:
         if amount is None:
             return None
 
-        return SalesPrice(amount, Currency(currency), vat, cost)
+        return SalesPrice(amount, vat, Currency(currency), cost)
 
     def __set__(self, obj, value):
         if value is None:  # Money(0) is False
