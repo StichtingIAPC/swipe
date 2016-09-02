@@ -92,10 +92,11 @@ class SimpleClassTests(TestCase):
         cost = Cost(amount=Decimal(2.78), use_system_currency=True)
         pac_doc_line = PackingDocumentLine(article_type=self.article_type,
                                            packing_document=pac_doc, supplier_order_line=sol,
-                                           line_cost=cost, invoice=inv)
+                                           line_cost_after_invoice=cost, invoice=inv)
         pac_doc_line.save()
         assert pac_doc_line.invoice == inv
-        assert pac_doc_line.line_cost == cost
+        assert pac_doc_line.line_cost == self.cost
+        assert pac_doc_line.line_cost_after_invoice == cost
 
     def test_illegal_article_type(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -118,6 +119,32 @@ class SimpleClassTests(TestCase):
             caught = True
         assert caught
 
+    def test_invoice_without_associated_line_cost(self):
+        order = Order(user_modified=self.copro, customer=self.customer)
+        order.save()
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, number=1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, 1, self.cost]])
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc.save()
+        sol = SupplierOrderLine.objects.get()
+        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv.save()
+        cost = Cost(amount=Decimal(2.78), use_system_currency=True)
+        pac_doc_line = PackingDocumentLine(article_type=self.article_type,
+                                           packing_document=pac_doc, supplier_order_line=sol,
+                                           line_cost=cost, invoice=inv)
+        caught = False
+        try:
+            pac_doc_line.save()
+        except AssertionError:
+            caught = True
+        assert caught
+
+
     def test_stock_storage_of_orders_one_order(self):
         order = Order(user_modified=self.copro, customer=self.customer)
         order.save()
@@ -139,10 +166,10 @@ class SimpleClassTests(TestCase):
         NUMBER_BATCHED = 2
         pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
                                            packing_document=pac_doc, supplier_order_line=sols[0],
-                                           line_cost=cost, invoice=inv)
+                                           line_cost_after_invoice=cost, invoice=inv)
         pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[1],
-                                             line_cost=cost, invoice=inv)
+                                             line_cost_after_invoice=cost, invoice=inv)
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
@@ -180,10 +207,10 @@ class SimpleClassTests(TestCase):
         assert NUMBER_BATCHED == 2
         pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[0],
-                                             line_cost=cost, invoice=inv)
+                                             line_cost_after_invoice=cost, invoice=inv)
         pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[1],
-                                             line_cost=cost, invoice=inv)
+                                             line_cost_after_invoice=cost, invoice=inv)
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
@@ -195,7 +222,6 @@ class SimpleClassTests(TestCase):
         assert stock[0].labelkey == 1  # Order identifier/pk
         assert stock[1].labelkey == 2  # Order identifier/pk
 
-    @skip("This might not work as desired")
     def test_stock_storage_of_orders_more_prices(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
         orderlines = []
