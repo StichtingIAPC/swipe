@@ -1,4 +1,4 @@
-@import 'scss/util/util';
+@import '../../../../www/static/scss/www/util/util';
 @import 'scss/assortment/settings';
 
 @mixin swipe-product {
@@ -9,7 +9,6 @@
   height: $tree-entry-height;
   display: flex;
   flex-direction: row;
-  align-items: baseline;
   justify-content: space-between;
 
   %flex {
@@ -33,7 +32,15 @@
     display: block;
 
     flex-grow: 0;
+    flex-shrink: 1;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
     margin-left: $tree-entry-height;
+
+    max-width: calc(100% - #{$tree-entry-height});
+    min-width: 0;
   }
 
   .price {
@@ -47,10 +54,18 @@
     @extend %flex;
 
     align-self: flex-end;
-    height: (($tree-entry-height - 1px) / 2);
+    height: ($tree-entry-height / 2) - 2px;
 
     flex-grow: 1;
     border-top: 1px dashed $tree-line-color;
+    margin: {
+      left: 0;
+      right: 0;
+    }
+    padding: {
+      left: 0;
+      right: 0;
+    }
   }
 
   .amount {

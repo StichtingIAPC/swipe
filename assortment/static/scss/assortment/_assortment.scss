@@ -2,15 +2,7 @@
 @import './product';
 @import './tree';
 @import './branch';
-
-@mixin swipe-assortment-description {
-  padding-left: $tree-indent;
-  padding-top: $tree-indent / 2;
-  padding-bottom: $tree-indent / 2;
-  margin: 0;
-  box-sizing: border-box;
-  border-bottom: 1px solid $tree-line-color;
-}
+@import './header';
 
 @mixin swipe-assortment() {
   .assortment {
@@ -29,8 +21,20 @@
       @include swipe-branch-description;
     }
 
-    .assortment-description {
-      @include swipe-assortment-description;
+    .assortment-header {
+      @include swipe-assortment-header;
+    }
+
+    .assortment-tree {
+      width: 100%;
+      padding: {
+        bottom: $tree-indent / 2;
+      }
+      > .tree-list {
+        padding: {
+          right: $tree-indent / 2;
+        }
+      }
     }
 
     .tree-list {

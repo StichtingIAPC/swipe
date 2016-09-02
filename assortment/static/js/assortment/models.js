@@ -14,6 +14,12 @@ import { AssortmentRenderer,
   OrProductRenderer } from 'js/assortment/render';
 
 /**
+ * @callback Filter
+ * @param {Product} product
+ * @returns {Boolean}
+ */
+
+/**
  * @class {LabelType}                                   LabelType
  * @prop {String}                                       name
  * @prop {String}                                       value_type
@@ -153,6 +159,10 @@ export class BaseArticle extends SubscribeAble {
     this.assortment = null;
   }
 
+  get amount() {
+    return this._amount;
+  }
+
   fire_event(event){
     this.signal.fire_event(event);
   }
@@ -211,6 +221,7 @@ export class Product extends BaseArticle {
   constructor(id, name, price, amount, branch, labels) {
     super(id, name,amount, branch, labels);
     this.price = price;
+    this.value = new Set();
   }
 
   /**
@@ -249,10 +260,6 @@ export class Product extends BaseArticle {
     }
 
     return products;
-  }
-
-  get amount() {
-    return this._amount
   }
 
   get renderer() {
@@ -379,7 +386,6 @@ export class Branch {
     this._children = [];
     this.assortment = null;
     this.value = new Set();
-    this._value = new Set();
   }
 
   get children() {
@@ -473,12 +479,13 @@ export class Assortment {
    * @param {Array<Branch>}         branches
    * @param {Array<Label>}          labels
    * @param {Array<LabelType>}      label_types
+   * @param {Array<Filter>}         filters
    */
-  constructor(element, products=[], branches=[], labels=[], label_types=[]) {
+  constructor(element, products=[], branches=[], labels=[], label_types=[], filters=[]) {
     this.rootElement = element;
     this.name = element.getAttribute('article-tree');
     this.title = element.dataset.title;
-    this.query = '';
+    this.query = element.dataset.search;
 
     this._branches = branches;
     this._branches.forEach((br) => br ? br.set_assortment(this) : void 0);
@@ -496,11 +503,18 @@ export class Assortment {
     this.product_set = new Set(this._products);
     this.branches_set = new Set(this._branches);
 
+    this.filters = filters;
+
     this.dom = domChanger(AssortmentRenderer, element, true);
     let t1 = performance.now();
-    this.dom.update(this);
+    if (element.dataset.search !== undefined) {
+      this.search(element.dataset.search);
+    }
+    else {
+      this.search(' ');
+    }
     let t2 = performance.now();
-    console.log(`rendering took ${t2 - t1} ms`)
+    console.log(`rendering took ${t2 - t1} ms`);
   }
 
   get branches() {
@@ -533,13 +547,14 @@ export class Assortment {
    *              value: String|Number
    *            }
    *          }>}                                                          label_type_protos
+   * @param {Array<Filter>}                                                filters
    * @returns {Assortment}
    */
-  static generate(domelement, product_protos, branch_protos, label_type_protos) {
+  static generate(domelement, product_protos, branch_protos, label_type_protos, filters) {
     let [label_types, labels] = LabelType.generate_list(label_type_protos);
     const branches = Branch.generate_list(branch_protos);
     const products = Product.generate_list(product_protos, labels, branches);
-    const assortment = new Assortment(domelement, products, branches, labels, label_types);
+    const assortment = new Assortment(domelement, products, branches, labels, label_types, filters);
     console.log(assortment);
     return assortment;
   }
@@ -549,12 +564,17 @@ export class Assortment {
    */
   static create_from_element(domelement){
     let t1 = performance.now();
+
+    let preset_filters = [];
+    if (domelement.dataset.inStore !== undefined)
+      preset_filters.push((p) => p.amount > 0);
+
     if(domelement.dataset.apiEndpoint == "dummy") {
       let label_types = dummy_data.label_types;
       let tags = dummy_data.branches;
       let products = dummy_data.products;
 
-      return Assortment.generate(domelement, products, tags, label_types);
+      return Assortment.generate(domelement, products, tags, label_types, preset_filters);
     } else {
 
       var assortment_api_endpoint = domelement.dataset.apiEndpoint;
@@ -564,7 +584,7 @@ export class Assortment {
           var tags = response.data.branches;
           var products = response.data.products;
 
-          Assortment.generate(domelement, products, tags, label_types);
+          Assortment.generate(domelement, products, tags, label_types, preset_filters);
         }).catch(
         (error) => console.error(error)
       )
@@ -580,68 +600,57 @@ export class Assortment {
   }
 
   /**
+   * @param {Branch} branch
+   * @param {Array<RegExp>} query
+   * @param {Set<RegExp>} found
+   */
+  recursive_search_with_values(branch, query, found) {
+    branch.value = new Set(found);
+    query.forEach((q) => branch.name.match(q)? branch.value.add(q) :undefined);
+    branch._products.forEach((p) => this.search_with_values(p, query, branch.value));
+    branch._children.forEach((c) => this.recursive_search_with_values(c, query, branch.value));
+  }
+
+  search_with_values(product, query, found) {
+    product.value = new Set(found);
+    query.forEach((q) => product.name.match(q)? product.value.add(q) :undefined);
+  }
+
+  /**
    * @param query
    */
   search(query) {
+    this.query = query;
     let t1 = performance.now();
-    let strings = [...(new Set(query.split(' ')))];
-    this._branches.forEach(
-      (br) => {
-        if (br) {
-          br._value = new Set(
-            strings.filter(
-              (str) => br.name.match(str)
-            )
-          );// create a set of all matches it has found, and store it
-          br.value = new Set(br._value)
-        }
-      }
-    );
-    this._branches.forEach(
-      (br) => {
-        if (br)
-          br._children.forEach(
-            (b) => br._value.forEach(
-              (v) => b.value.add(v)
-            )
-          )
-      }
-    );
-    this._branches.forEach(
-      (br) => {
-        if (br)
-          br._products.forEach(
-            (p) => p._value = new Set(br.value)
-          )
-      }
-    );
-    this._products.forEach(
-      (pr) => {
-        if (pr) {
-          strings.forEach(
-            (str) => {
-              if (pr.name.match(str))
-                pr._value.add(str)
-            }
-          )
-        }
-      }
+    let vals = [...(new Set(query.split(' ')))];
+    let regexes = vals.map((str) => new RegExp(str, "gui"));
+    this.recursive_search_with_values(
+      this._branches.find(
+        (br) => br !== undefined && !br.parent // = root node
+      ), regexes, new Set()
     );
     let go_products = this._products.filter(
-      (pr) => pr ? pr._value.size == strings.length : false
+      (pr) => pr !== undefined && pr.value.size == regexes.length
     );
+    for (let filter of this.filters) {
+      go_products = go_products.filter(filter);
+    }
     this.product_set = new Set(go_products);
     this.branches_set = new Set();
     go_products.forEach(
       (pr) => this.add_render(pr.branch)
     );
     let t2 = performance.now();
-    this.dom.update(this, query.length > 3);
+    this.dom.update(this, this.query.length > 3);
     let t3 = performance.now();
     console.log(`querying took ${t2 - t1} ms, rendering took ${t3 - t2} ms`);
 
     /*this.query = query;
      axios.get(window.swipe.global.api.assortment)*/
 
+  }
+
+  refresh() {
+    this.dom.update(this, this.query.length > 3)
   }
 }
