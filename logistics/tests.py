@@ -439,6 +439,94 @@ class SupplierOrderTests(TestCase):
                 ORDERS += 1
         assert ORDERS == ORDER_DEMAND_1+ORDER_DEMAND_2
 
+    def test_cancel_order_with_full_cancel(self):
+        ORDER_1 = 1
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_1, self.price, self.user_modified)
+        order = Order(user_modified=self.user_modified, customer=self.customer)
+        Order.make_order(order, orderlines, self.user_modified)
+        SUPPLY_1 = 1
+        atcs = []
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
+        ol = OrderLine.objects.get()
+        assert ol.state == 'L'
+        sol = SupplierOrderLine.objects.get()
+        sol.cancel_line(user_modified=self.user_modified, cancel_order=True)
+        ol = OrderLine.objects.get()
+        assert ol.state == 'C'
+        sol = SupplierOrderLine.objects.get()
+        assert sol.state == 'C'
+
+    def test_cancel_order_with_return_to_order(self):
+        ORDER_1 = 1
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_1, self.price, self.user_modified)
+        order = Order(user_modified=self.user_modified, customer=self.customer)
+        Order.make_order(order, orderlines, self.user_modified)
+        SUPPLY_1 = 1
+        atcs = []
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
+        ol = OrderLine.objects.get()
+        assert ol.state == 'L'
+        sol = SupplierOrderLine.objects.get()
+        sol.cancel_line(user_modified=self.user_modified)
+        ol = OrderLine.objects.get()
+        assert ol.state == 'O'
+        sol = SupplierOrderLine.objects.get()
+        assert sol.state == 'C'
+
+    def test_cancel_stock_wish_with_full_cancel(self):
+
+        STOCK_DEMAND_1 = 1
+        atcs = []
+        atcs.append((self.article_type, STOCK_DEMAND_1))
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
+        SUPPLY_1 = 1
+        atcs = []
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
+        stw = StockWishTableLine.objects.all()
+        # We removed all the stockwishes from the table
+        assert len(stw) == 0
+        sol = SupplierOrderLine.objects.get()
+        sol.cancel_line(self.user_modified, cancel_order=True)
+        assert sol.state == 'C'
+        stw = StockWishTableLine.objects.all()
+        # All quiet on the stock order front
+        assert len(stw) == 0
+
+    def test_cancel_stock_wish_with_return_to_stockwish(self):
+
+        STOCK_DEMAND_1 = 1
+        atcs = []
+        atcs.append((self.article_type, STOCK_DEMAND_1))
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
+        SUPPLY_1 = 1
+        atcs = []
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
+        stw = StockWishTableLine.objects.all()
+        # We removed all the stockwishes from the table
+        assert len(stw) == 0
+        sol = SupplierOrderLine.objects.get()
+        sol.cancel_line(self.user_modified)
+        assert sol.state == 'C'
+        stw = StockWishTableLine.objects.all()
+        # All quiet on the stock order front
+        assert len(stw) == 1
+        swtls = StockWishTableLog.objects.all()
+        # Last modification and return from supplier order
+        assert swtls[2].supplier_order == sol.supplier_order
+        print(StockWishTableLog.objects.all())
+
+
+
 
 
 
