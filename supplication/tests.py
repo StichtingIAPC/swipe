@@ -243,17 +243,16 @@ class SimpleClassTests(TestCase):
         # One order and supplier order
         pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[0],
-                                             line_cost=cost_1, invoice=inv)
+                                             line_cost_after_invoice=cost_1, invoice=inv)
         pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[1],
-                                             line_cost=cost_2, invoice=inv)
+                                             line_cost_after_invoice=cost_2, invoice=inv)
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
-        print(stock)
-        assert len(stock) == 2
+        assert len(stock) == 1
         for st in stock:
-            assert st.count == 1
+            assert st.count == 2
             assert st.labeltype == OrderLabel._labeltype
             assert st.labelkey == 1 # Order pk
 

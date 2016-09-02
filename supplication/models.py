@@ -1,5 +1,6 @@
 from django.db import models, transaction
 from crm.models import User
+from stock.enumeration import enum
 from supplier.models import Supplier, ArticleTypeSupplier
 from logistics.models import SupplierOrderLine
 from money.models import CostField, Cost
@@ -20,17 +21,34 @@ class PackingDocument(models.Model):
 
     @staticmethod
     @transaction.atomic
-    def create_packing_document(user, supplier, packing_document_name, article_type_cost_combination, invoice_name=None):
+    def create_packing_document(user, supplier, packing_document_name, article_type_cost_combinations, invoice_name=None):
         """
         Creates a packing document from the supplied information. This registers that the products have arrived at the store.
         It is linked to a single supplier, since that is the way you process packing documents.
         :param user:
         :param supplier:
         :param packing_document_name:
-        :param article_type_cost_combination:
+        :param article_type_cost_combinations:
         :param invoice_name:
         :return:
         """
+        use_invoice = False
+        if invoice_name is not None:
+            use_invoice = True
+            assert isinstance(invoice_name, str)
+        assert isinstance(user, User)
+        assert isinstance(supplier, Supplier)
+        assert isinstance(packing_document_name, str)
+        assert isinstance(article_type_cost_combinations, list)
+
+        ARTICLETYPE_LOCATION = 0
+        COST_LOCATION = 1
+        for atcc in article_type_cost_combinations:
+            assert isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType)
+            if use_invoice:
+                assert atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost)
+            else:
+                assert atcc[COST_LOCATION] is None
 
 
 class Invoice(models.Model):
@@ -107,7 +125,7 @@ class PackingDocumentLine(models.Model):
         if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
             label = OrderLabel(self.supplier_order_line.order_line.order.pk)
             entry[0]['label'] = label
-        StockChangeSet.construct(description="Stock supplication", entries=entry, enum=pk)
+        StockChangeSet.construct(description="Stock supplication by {}".format(pk), entries=entry, enum=enum["supplication"])
 
     def __str__(self):
         if not hasattr(self, 'line_cost'):
