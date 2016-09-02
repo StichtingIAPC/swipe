@@ -15,6 +15,9 @@ import {draggable, droppable} from 'js/tools/tools'
  */
 
 function ProductDescription(emit, refresh) {
+  /**
+   * @type {BaseArticle?}
+   */
   return {
     render: renderer,
     hwrender: hwrender
@@ -325,15 +328,40 @@ export function AssortmentRenderer(emit, refresh) {
    * @returns {*[]}
    */
   function renderAssortment(assortment, open) {
+    /**
+     * @param {Event} event
+     */
+    function oninput(event) {
+      assortment.search(event.target.value);
+    }
     return [
       'div', {
         class: 'assortment-tree'
       },
       [
         'div', {
-          class: 'assortment-description'
+          class: 'assortment-header'
         },
-        `${assortment.title}`
+        [
+          'div', {
+            class: 'description'
+          },
+          `${assortment.title}`
+        ],
+        [
+          'div', {
+            class: 'search-box'
+          },
+          [
+            'input', {
+              type: 'search',
+              id: `${assortment.name}-search-box`,
+              oninput: oninput,
+              placeholder: _('Search'),
+              value: `${assortment.query}`
+            }
+          ]
+        ]
       ],
       [BranchList, assortment.branches.filter(a => a.parent && !a.parent.parent), [], open, assortment.name]
     ]

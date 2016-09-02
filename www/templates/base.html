@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <title>Swipe - {% block page_title %}Page{% endblock %}</title>
     {% compress css %}
-        <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}" />
+        <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/www/main.scss' %}" />
     {% endcompress %}
     {% compress js %}
         <script type="text/javascript" src="{% static 'bower_components/domchanger/domchanger.js' %}"></script>
@@ -29,9 +29,9 @@
     {% endcompress %}
 </head>
 <body class="container horizontal">
-<div class="container horizontal grow">
+<div class="content-container horizontal grow limit-width">
     {% include 'partials/sidebar.html' %}
-    <div class="container vertical grow">
+    <div class="container content vertical grow">
         <div class="top-bar">
             <div class="top-bar-left">
                 {% if request.user.is_authenticated %}Active user: {{ request.user }}{% endif %}
@@ -57,7 +57,13 @@
                 </div>
                 <div class="small-6 columns">
                     <div class="card">
-                        <div class="tree-list assortment" article-tree="second" data-api-endpoint="dummy" data-title="Second Articletree on the Page"></div>
+                        <div class="tree-list assortment"
+                             article-tree="second"
+                             data-api-endpoint="dummy"
+                             data-search="netwerk"
+                             data-in-store="true"
+                             data-title="[api-endpoint=dummy, search=network, in-store=true]">
+                        </div>
                     </div>
                 </div>
             {% endblock module_content %}
