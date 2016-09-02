@@ -6,6 +6,11 @@ from assortment.models import AssortmentLabel
 
 
 class WishableType(models.Model):
+    """
+    General product type that can be desired by a customer. This type is product is not neccesarily sellable and does
+    not exist as a type that our suppliers can provide. Ordering non-sellable types incurs significant logic in the system
+    to resolve. Keep this in mind.
+    """
     labels = models.ManyToManyField(AssortmentLabel)
 
     name = models.CharField(max_length=255)
@@ -19,9 +24,12 @@ class WishableType(models.Model):
     def get_expected_sales_price(self):
         return None
 
+    def __str__(self):
+        return self.name
+
 
 class SellableType(WishableType):
-    # This abstract type can be sold
+    # This abstract type can be sold. Handling of these types in the system is quite easy.
     accounting_group = models.ForeignKey(AccountingGroup)
 
     def get_vat_group(self):
@@ -35,8 +43,7 @@ class ArticleType(SellableType):
     # The type of an article you can put on a shelf
     fixed_price = MoneyField(null=True)
 
-    def __str__(self):
-        return self.name
+
 
     def calculate_sales_price(self, cost):
         return SalesPrice(amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085),
@@ -47,7 +54,8 @@ class ArticleType(SellableType):
 
 
 class OrProductType(WishableType):
-    # A choice between a number of ArticleTypes
+    # A choice between a number of ArticleTypes. At supplier ordering time, it is decided which ArticleType fulfills
+    # the wish of the OrProductType
     article_types = models.ManyToManyField(ArticleType)
 
     fixed_price = MoneyField(null=True)
@@ -80,7 +88,7 @@ class ProductCombination(models.Model):
 
 
 class OtherCostType(SellableType):
-    # Product that does not enter stock
+    # Product that does not enter stock. This product is rarely physical.
     fixed_price = MoneyField()
 
     def get_sales_price(self):

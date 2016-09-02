@@ -16,7 +16,7 @@ from swipe.settings import USED_CURRENCY, CASH_PAYMENT_TYPE_NAME
 
 
 class PaymentType(models.Model):
-
+    # Name of the payment type. "Cash" is always used when using cash registers
     name = models.CharField(max_length=255, unique=True)
 
 
@@ -25,14 +25,15 @@ class Register(models.Model):
     A register. This can be a cash register with denominations or a virtual register that accepts money
     in a general sense
     """
+    # Name of the register. Cosmetic
     name = models.CharField(max_length=255)
-
+    # Currency used for this register. Unchangeable
     currency = models.ForeignKey(CurrencyData)
-
+    # Indicates if register accepts cash or otherwise is a digital register
     is_cash_register = models.BooleanField(default=False)
-
+    # Do we use this register right now?(Non-active registers should be empty)
     is_active = models.BooleanField(default=True)
-
+    # How do people pay in this register?
     payment_type = models.ForeignKey(PaymentType)
 
     def get_denominations(self):
@@ -309,10 +310,11 @@ class SalesPeriod(models.Model):
     """
     A general period in which transactions on opened registers can take place
     """
+    # When does the sales period start?
     beginTime = models.DateTimeField(auto_now_add=True)
-
+    # When does the sales period end?(null indicates not ended)
     endTime = models.DateTimeField(null=True)
-
+    # Any relevant information a user wants to add?
     closing_memo = models.CharField(max_length=255, default=None, null=True)
 
     @classmethod
@@ -433,15 +435,15 @@ class RegisterPeriod(models.Model):
     """
     Opening and closing of a register are administrated here. A register can only be modified if a register is open
     """
-
+    # Register this period belongs to
     register = models.ForeignKey(Register)
-
+    # A sales period has multiple possible register periods, amongst 'self'
     sales_period = models.ForeignKey(SalesPeriod)
-
+    # When does the register period start?
     beginTime = models.DateTimeField(auto_now_add=True)
-
+    # When does the register period end?(null is not ended)
     endTime = models.DateField(null=True)
-
+    # Any extra information?
     memo = models.CharField(max_length=255, default=None, null=True)
 
     @classmethod
@@ -460,11 +462,11 @@ class RegisterCount(models.Model):
     """
     The amount of currency and perhaps the denomination in the case of a cash register is stored here
     """
-
+    # A register period has one or two counts
     register_period = models.ForeignKey(RegisterPeriod)
-
+    # Indicates if this the opening or the closing count
     is_opening_count = models.BooleanField()
-
+    # How much money is there at the moment of counting?
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=-1.0)
 
     def save(self, *args, **kwargs):
@@ -538,10 +540,11 @@ class DenominationCount(models.Model):
     """
     Counting of the denominations in a cash register
     """
+    # Every cash register count needs to count all of its denominations, amongst which is 'self'
     register_count = models.ForeignKey(RegisterCount)
-
+    # Denomination belonging to the currency of this register
     denomination = models.ForeignKey(Denomination)
-
+    # Number of pieces of denomination
     amount = models.IntegerField()
 
     def get_money_value(self):
@@ -560,6 +563,7 @@ class MoneyInOut(models.Model):
     """
     Adds money to a register during an open register period
     """
+    # Period to which the MoneyInOut belongs
     register_period = models.ForeignKey(RegisterPeriod)
 
     # Positive: ADD, negative: REMOVE moneys
@@ -588,10 +592,11 @@ class SalesPeriodDifference(models.Model):
     Resolves differences between expected amounts of money in the combined opened registers and the actual amount of money.
     Count is per type of money
     """
+    # Period in which there is a difference
     sales_period = models.ForeignKey(SalesPeriod)
-
+    # Currency of the difference
     currency_data = models.ForeignKey(CurrencyData)
-
+    # Amount of difference
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
 
 
@@ -612,6 +617,8 @@ class InvalidOperationError(Exception):
 
 
 class OpeningCountDifference(models.Model):
+    # Difference that can occur when a register is opened. This indicated that money (dis)appeared between closing and
+    # opening of the register.
     difference = MoneyField()
     register_count = models.ForeignKey("RegisterCount")
 
@@ -620,6 +627,8 @@ class OpeningCountDifference(models.Model):
 
 
 class ClosingCountDifference(models.Model):
+    # Difference that can occur when a sales period closes. Since this could have any reason, it cannot be pointed to
+    # a single register. This makes it different from an OpeningCountDifference
     difference = MoneyField()
     sales_period = models.ForeignKey("SalesPeriod")
 
@@ -633,8 +642,11 @@ class Payment(models.Model):
     Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
     transaction
     """
+    # Exhange of money when something is sold to a customer
     transaction = models.ForeignKey("Transaction")
+    # An amount and currency the customer pays
     amount = MoneyField()
+    # Which payment type is this payment added to?
     payment_type = models.ForeignKey(PaymentType)
 
 
@@ -642,11 +654,17 @@ class TransactionLine(models.Model):
     """
     Superclass of transaction line. Contains all the shared information of all transaction line types.
     """
+    # A transaction has one or more transaction lines
     transaction = models.ForeignKey("Transaction")
+    # What is the id of the SellableType?
     num = models.IntegerField()
+    # What did the customer pay for this line?
     price = PriceField()
+    # How many are you selling?
     count = models.IntegerField()
+    # Is this line refunded yeu?
     isRefunded = models.BooleanField(default=False)
+    # Text storage of name of SellableType
     text = models.CharField(max_length=128)
 
 
@@ -655,7 +673,9 @@ class SalesTransactionLine(TransactionLine, StockLabeledLine):
     """
         Equivalent to one stock-modifying line on a Receipt
     """
+    # How much did the ArticleType cost?
     cost = CostField()
+    # Which ArticleType are we talking about?
     article = models.ForeignKey(ArticleType)
 
     @staticmethod
@@ -696,8 +716,11 @@ class Transaction(models.Model):
         General transaction for the use in a sales period. Contains a number of transaction lines that could be any form
         of sales.
     """
+    # When did the transaction take place?
     time = models.DateTimeField(auto_now_add=True)
+    # Which changes did it cause in the stock?
     stock_change_set = models.ForeignKey(StockChangeSet)
+    # The sales period it is connected to
     salesperiod = models.ForeignKey("SalesPeriod")
 
     def save(self, *args, indirect=False, **kwargs):

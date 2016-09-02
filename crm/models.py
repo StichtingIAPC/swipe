@@ -7,6 +7,10 @@ from crm.exceptions import CyclicParenthoodError
 
 
 class Customer(SoftDeletable):
+    """
+    Someone or something that we can connect to an order or receipt. Can either be a person or a (sub)organisation.
+    This type is abstract and used for inheritance.
+    """
     def __str__(self):
         if hasattr(self, 'person'):
             return self.person.name
@@ -36,6 +40,9 @@ class Customer(SoftDeletable):
 
 
 class PersonTypeField(models.Model):
+    """
+    Sometimes we store extra information about students. We use TypeFields for this
+    """
     name = models.CharField(max_length=255, verbose_name=_("Field name"))
 
     def __str__(self):
@@ -43,6 +50,9 @@ class PersonTypeField(models.Model):
 
 
 class PersonTypeFieldValue(models.Model):
+    """
+    Values of the PersonTypeFields
+    """
 
     class Meta:
         unique_together = ("typefield", "type", "object")
@@ -65,6 +75,9 @@ class PersonType(models.Model):
 
 
 class Person(Customer):
+    """
+    Actual person. Can order and buy things. Can be a contact for an organisation.
+    """
     name = models.CharField(max_length=255, verbose_name=_("Customer name"))
     email = models.EmailField(verbose_name=_("Email address"))
 
@@ -130,6 +143,10 @@ class Person(Customer):
 
 
 class ContactOrganisation(Customer):
+    """
+    When selling products to organisations, we still need to contact someone in order to give them information about the process.
+    An organisation therefore, should always have a contact that we can reach for information purposes.
+    """
     contact = models.ForeignKey(to="Person", verbose_name=_("Person"))
     organisation = models.ForeignKey(to="Organisation", verbose_name=_("Organisation"))
 
@@ -149,6 +166,9 @@ class ContactOrganisation(Customer):
 
 
 class OrganisationTypeField(models.Model):
+    """
+    Organisations may contain extra information in the system. We use TypeFields for this.
+    """
     name = models.CharField(max_length=255, verbose_name=_("Field name"))
 
     def __str__(self):
@@ -156,6 +176,9 @@ class OrganisationTypeField(models.Model):
 
 
 class OrganisationTypeFieldValue(models.Model):
+    """
+    Values of the OrganisationTypeFields
+    """
 
     class Meta:
         unique_together = ("typefield", "type", "object")
