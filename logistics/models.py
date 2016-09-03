@@ -1,6 +1,9 @@
 from collections import defaultdict
-
+from decimal import Decimal
 from django.db import models, transaction
+from django.db.models import Count
+from django.db.models.fields.reverse_related import ForeignObjectRel
+
 
 from blame.models import ImmutableBlame, Blame
 from supplier.models import Supplier, ArticleTypeSupplier
@@ -8,7 +11,7 @@ from order.models import OrderLine, OrderCombinationLine
 from crm.models import User
 from article.models import ArticleType, OrProductType
 from swipe.settings import USED_STRATEGY, USED_CURRENCY
-from money.models import CostField, Cost
+from money.models import CostField, Cost, Currency
 
 
 class SupplierOrder(ImmutableBlame):
@@ -437,6 +440,75 @@ class StockWishTableLog(ImmutableBlame):
         else:
             stw = self.stock_wish.pk
         return "{} x {}, SupplierOrder: {}, StockWish: {}".format(self.article_type, self.number, sup_ord, stw)
+
+class SupplierOrderCombinationLine:
+
+    number = 0
+
+    article_type = ArticleType
+
+    cost = CostField
+
+    state = ""
+
+    def __init__(self, number, article_type, cost, state):
+        self.number = number
+        self.article_type = article_type
+        self.cost = cost
+        self.state = state
+
+    def __str__(self):
+        dec = self.cost.amount.quantize(Decimal('0.01'))
+        stri = "{:<7}{:14}{:10}{:12}".format(self.number, self.article_type.name, str(self.cost.currency) + str(dec),
+                                             SupplierOrderState.STATE_CHOICES_MEANING[self.state])
+        return stri
+
+    @staticmethod
+    def prefix_field_names(model, prefix):
+        fields = model._meta.get_fields()
+        ret = []
+        for field in fields:
+            if not isinstance(field, ForeignObjectRel):
+                ret.append(prefix + field.name)
+        return ret
+
+    @staticmethod
+    def get_sol_combinations(supplier_order=None, article_type=None, state=None, qs=SupplierOrderLine.objects, include_price_field=True):
+        # TODO: Add more fancyness like group by order
+        result = []
+        filtr = {}
+        if supplier_order:
+            filtr['supplier_order'] = supplier_order
+        if article_type:
+            filtr['article_type'] = article_type
+        if state:
+            filtr['state'] = state
+
+        price_fields = []
+        if include_price_field:
+            price_fields = ['line_cost', 'line_cost_currency']
+
+        flds = price_fields + SupplierOrderCombinationLine.prefix_field_names(ArticleType, 'article_type__')
+
+        supplierorderlines = qs.filter(**filtr). \
+            values('state', *flds).annotate(Count('id'))
+        for o in supplierorderlines:
+            number = o['id__count']
+            state = o['state']
+            if not include_price_field:
+                amount = Decimal(-1)
+                currency = Currency(iso=USED_CURRENCY)
+            else:
+                amount = o['line_cost']
+                currency = o['line_cost_currency']
+            cost = Cost(amount=amount, currency=currency)
+            socl = SupplierOrderCombinationLine(number=number,
+                                                article_type=ArticleType(name=o['article_type__name'],
+                                                                         pk=o['article_type__id']),
+                                                cost=cost,
+                                                state=state)
+            result.append(socl)
+        return result
 
 
 class DisbributionStrategy:

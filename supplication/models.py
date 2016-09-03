@@ -2,11 +2,12 @@ from django.db import models, transaction
 from crm.models import User
 from stock.enumeration import enum
 from supplier.models import Supplier, ArticleTypeSupplier
-from logistics.models import SupplierOrderLine
+from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine
 from money.models import CostField, Cost
 from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
 from article.models import ArticleType
+from collections import defaultdict
 
 
 class PackingDocument(models.Model):
@@ -49,6 +50,11 @@ class PackingDocument(models.Model):
                 assert atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost)
             else:
                 assert atcc[COST_LOCATION] is None
+        supplier_ordered_articles = defaultdict(lambda: 0)
+        socls = SupplierOrderCombinationLine.get_sol_combinations(state='O')
+        for socl in socls:
+            supplier_ordered_articles[socl.article_type] += 1
+
 
 
 class Invoice(models.Model):
