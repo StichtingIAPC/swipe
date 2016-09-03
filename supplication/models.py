@@ -77,9 +77,11 @@ class PackingDocumentLine(models.Model):
     invoice = models.ForeignKey(Invoice, null=True, on_delete=models.PROTECT)
 
     @transaction.atomic
-    def save(self):
+    def save(self, mod_stock=True):
         """
         Save function for a packing document line. WARNING: Does not modify the stock!
+        :param mod_stock: Indicated whether saving this PacDocLine also mods the stock. If not,
+        this has to be done manually
         :return:
         """
         assert self.packing_document
@@ -105,27 +107,23 @@ class PackingDocumentLine(models.Model):
         assert ArticleTypeSupplier.objects.get(supplier=self.packing_document.supplier, article_type=self.article_type)
 
         # All checks are done, now we save everyting
-        # Mod supplierOrderLine
+        # Mod supplierOrderLine and order if connected
         self.supplier_order_line.mark_as_arrived(self.packing_document.user)
-        if self.supplier_order_line.order_line is not None:
-            # If there's a customer order, we also mark it as arrived
-            self.supplier_order_line.order_line.arrive_at_store(self.packing_document.user)
 
         pk = self.packing_document.pk
         super(PackingDocumentLine, self).save()
-        # Modify stock
-        # TODO Remove the stock modification and move it to a function
-        entry = [{
-            'article': self.supplier_order_line.article_type,
-            'book_value': self.line_cost,
-            'count': 1,
-            'is_in': True
-
-        }]
-        if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
-            label = OrderLabel(self.supplier_order_line.order_line.order.pk)
-            entry[0]['label'] = label
-        StockChangeSet.construct(description="Stock supplication by {}".format(pk), entries=entry, enum=enum["supplication"])
+        if mod_stock:
+            # Modify stock
+            entry = [{
+                'article': self.supplier_order_line.article_type,
+                'book_value': self.line_cost,
+                'count': 1,
+                'is_in': True
+            }]
+            if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
+                label = OrderLabel(self.supplier_order_line.order_line.order.pk)
+                entry[0]['label'] = label
+            StockChangeSet.construct(description="Stock supplication by {}".format(pk), entries=entry, enum=enum["supplication"])
 
     def __str__(self):
         if not hasattr(self, 'line_cost'):
