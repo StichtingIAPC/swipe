@@ -138,7 +138,7 @@ class OrderLine(Blame):
         else:
             nextstates = {
                 'O': ('C', 'L'),
-                'L': ('A',),
+                'L': ('A', 'O', 'C'),
                 'A': ('S', 'I')}
             if new_state in nextstates[self.state]:
                 self.state = new_state
@@ -159,6 +159,9 @@ class OrderLine(Blame):
 
     def cancel(self,user_created):
         self.transition('C',user_created)
+
+    def return_back_to_ordered_by_customer(self, user_created):
+        self.transition('O', user_created)
 
     def __str__(self):
         if not hasattr(self, 'order'):
