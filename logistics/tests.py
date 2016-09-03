@@ -523,7 +523,6 @@ class SupplierOrderTests(TestCase):
         swtls = StockWishTableLog.objects.all()
         # Last modification and return from supplier order
         assert swtls[2].supplier_order == sol.supplier_order
-        print(StockWishTableLog.objects.all())
 
 
 
