@@ -473,7 +473,9 @@ class SupplierOrderCombinationLine:
         return ret
 
     @staticmethod
-    def get_sol_combinations(supplier_order=None, article_type=None, state=None, qs=SupplierOrderLine.objects, include_price_field=True):
+    def get_sol_combinations(supplier_order=None, article_type=None, state=None,
+                             qs=SupplierOrderLine.objects, include_price_field=True
+                             , supplier=None):
         # TODO: Add more fancyness like group by order
         result = []
         filtr = {}
@@ -483,7 +485,8 @@ class SupplierOrderCombinationLine:
             filtr['article_type'] = article_type
         if state:
             filtr['state'] = state
-
+        if supplier:
+            filtr['supplier_order__supplier'] = supplier
         price_fields = []
         if include_price_field:
             price_fields = ['line_cost', 'line_cost_currency']

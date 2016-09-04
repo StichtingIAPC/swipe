@@ -29,7 +29,8 @@ class PackingDocument(models.Model):
         :param user:
         :param supplier:
         :param packing_document_name:
-        :param article_type_cost_combinations:
+        :param article_type_cost_combinations: List[List[ArticleType number [Cost]]]. A list containing lists containing
+        A combination of an ArticleType, a number of those ArticleTypes, and potentially a cost if provided by an invoice.
         :param invoice_name:
         :return:
         """
@@ -50,10 +51,35 @@ class PackingDocument(models.Model):
                 assert atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost)
             else:
                 assert atcc[COST_LOCATION] is None
+
+
+
+    @staticmethod
+    def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
+        assert article_type_cost_combinations and isinstance(article_type_cost_combinations, list)
+
         supplier_ordered_articles = defaultdict(lambda: 0)
-        socls = SupplierOrderCombinationLine.get_sol_combinations(state='O')
+        socls = SupplierOrderCombinationLine.get_sol_combinations(state='O', supplier=supplier)
         for socl in socls:
-            supplier_ordered_articles[socl.article_type] += 1
+            supplier_ordered_articles[socl.article_type] += socl.number
+        supplied_articles = defaultdict(lambda: 0)
+        for atcc in article_type_cost_combinations:
+            assert isinstance(atcc[0], ArticleType)
+            assert isinstance(atcc[1], int)
+            if not use_invoice:
+                assert atcc[2] is None
+            else:
+                assert atcc[2] is None or isinstance(atcc[2], Cost)
+            supplied_articles[atcc[0]] += supplier_ordered_articles[atcc[1]]
+
+        errors = []
+        for article in supplied_articles:
+            assert supplied_articles[article] <= supplier_ordered_articles[article]
+            if supplied_articles[article] > supplier_ordered_articles[article]:
+                errors.append((article, supplied_articles[article] - supplier_ordered_articles[article]))
+
+        return errors
+
 
 
 

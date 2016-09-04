@@ -233,6 +233,9 @@ class SupplierOrderTests(TestCase):
         self.supplier = Supplier(name="Nepacove")
         self.supplier.save()
 
+        self.supplier2 = Supplier(name="Bas")
+        self.supplier2.save()
+
         ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
                                   cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
         ats.save()
@@ -552,14 +555,30 @@ class SupplierOrderTests(TestCase):
 
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()
-        print("\n\n")
-        for sol in sols:
-            print("sol: ", sol)
         socls = SupplierOrderCombinationLine.get_sol_combinations()
         assert len(socls) == 2
         # If the below broke, the functionality of the system might have changed a bit(especially distribution). It might be OK.
         assert socls[0].number == 3
         assert socls[1].number == 3
+
+    def test_supplier_order_combination_line_with_supplier(self):
+
+        STOCK_DEMAND_1 = 2
+        atcs = []
+        atcs.append((self.article_type, STOCK_DEMAND_1))
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
+        SUPPLY_1 = 2
+        atcs = []
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
+        socls = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier2)
+        assert len(socls) == 0
+        socls2 = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier)
+        assert len(socls2) == 1
+
+
+
 
 
 
