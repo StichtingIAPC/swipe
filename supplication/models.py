@@ -2,17 +2,16 @@ from django.db import models, transaction
 from crm.models import User
 from stock.enumeration import enum
 from supplier.models import Supplier, ArticleTypeSupplier
-from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine
+from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, InsufficientDemandError
 from money.models import CostField, Cost
 from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
 from article.models import ArticleType
+from blame.models import ImmutableBlame, Blame
 from collections import defaultdict
 
 
-class PackingDocument(models.Model):
-
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+class PackingDocument(ImmutableBlame):
 
     timestamp = models.DateTimeField(auto_now=True)
 
@@ -26,12 +25,12 @@ class PackingDocument(models.Model):
         """
         Creates a packing document from the supplied information. This registers that the products have arrived at the store.
         It is linked to a single supplier, since that is the way you process packing documents.
-        :param user:
-        :param supplier:
-        :param packing_document_name:
+        :param user: Blamed user
+        :param supplier: Supplier for this packing document
+        :param packing_document_name: Name of the packing document. Obligatory
         :param article_type_cost_combinations: List[List[ArticleType number [Cost]]]. A list containing lists containing
         A combination of an ArticleType, a number of those ArticleTypes, and potentially a cost if provided by an invoice.
-        :param invoice_name:
+        :param invoice_name: Name of an invoice. If None, no invoice is to be expected
         :return:
         """
         use_invoice = False
@@ -52,7 +51,17 @@ class PackingDocument(models.Model):
             else:
                 assert atcc[COST_LOCATION] is None
 
-
+        errors = PackingDocument.verify_article_demand(supplier, article_type_cost_combinations, use_invoice)
+        if len(errors) > 0:
+            err_msg = "Not enough demand for ordered articles: \n"
+            for article, number in errors:
+                err_msg += \
+                    " - Article {article} was ordered {number} times too many".format(
+                        article=article.name,
+                        number=number
+                    )
+                err_msg += "\n"
+            raise InsufficientDemandError(err_msg)
 
     @staticmethod
     def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
@@ -81,20 +90,16 @@ class PackingDocument(models.Model):
         return errors
 
 
-
-
-class Invoice(models.Model):
+class Invoice(ImmutableBlame):
 
     supplier_identifier = models.CharField(max_length=30)
 
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-
     timestamp = models.DateTimeField(auto_now=True)
 
 
-class PackingDocumentLine(models.Model):
+class PackingDocumentLine(Blame):
     # The packing document to which this line belongs
     packing_document = models.ForeignKey(PackingDocument, on_delete=models.PROTECT)
     # The line which will match this line
