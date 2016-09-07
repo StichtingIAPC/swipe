@@ -45,12 +45,11 @@ class Order(Blame):
         for ocl in ocls:
             print(ocl)
 
-
 class OrderLineState(ImmutableBlame):
     # A representation of the state of a orderline. Can be used as a logging tool for any OrderLine
     OL_STATE_CHOICES = ('O', 'L', 'A', 'C', 'S', 'I')
     OL_STATE_MEANING = {'O': 'Ordered by Customer', 'L': 'Ordered at Supplier',
-                        'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold', 'I' : 'Used for Internal Purposes'}
+                        'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold', 'I': 'Used for Internal Purposes'}
     # Mirrors the transition of the state of an OrderLine
     state = models.CharField(max_length=3)
     # When did the transition happen?
