@@ -212,7 +212,7 @@ class SupplierOrderLine(Blame):
             super(SupplierOrderLine, self).save(*args, **kwargs)
 
     @transaction.atomic()
-    def transition(self, new_state):
+    def transition(self, new_state, user_modified):
         """
         Transitions an orderline from one state to another. This is the only safe means of transitioning, as data
         integrity can not be guaranteed otherwise. Transitioning is only possible with objects stored in the database.
@@ -230,7 +230,8 @@ class SupplierOrderLine(Blame):
                    'B': ('A', 'C')}
             if new_state in nextstates[self.state]:
                 self.state = new_state
-                sols = SupplierOrderState(state=new_state, supplier_order_line=self,user_modified=self.user_modified)
+                self.user_modified = user_modified
+                sols = SupplierOrderState(state=new_state, supplier_order_line=self, user_modified=user_modified)
                 sols.save()
                 self.save()
             else:
@@ -241,10 +242,27 @@ class SupplierOrderLine(Blame):
     def send_to_backorder(self, user_modified):
         self.transition('B', user_modified)
 
+    @transaction.atomic()
     def mark_as_arrived(self, user_modified):
+        if self.order_line is not None:
+            self.order_line.arrive_at_store(user_modified)
         self.transition('A', user_modified)
 
-    def cancel_line(self, user_modified):
+    @transaction.atomic
+    def cancel_line(self, user_modified, cancel_order=False):
+        # Has orderline
+        if self.order_line is not None:
+            # Either cancel the order outright or revert to basic state
+            if cancel_order:
+                self.order_line.cancel(user_modified)
+            else:
+                self.order_line.return_back_to_ordered_by_customer(user_modified)
+        else:
+            if not cancel_order:
+                StockWishTable.add_products_to_table(user_modified=user_modified, number=1,
+                                                     indirect=True, article_type=self.article_type,
+                                                     supplier_order=self.supplier_order)
+
         self.transition('C', user_modified)
 
 
