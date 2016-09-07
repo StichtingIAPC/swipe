@@ -144,23 +144,25 @@ class PackingDocumentLine(Blame):
         assert ArticleTypeSupplier.objects.get(supplier=self.packing_document.supplier, article_type=self.article_type)
 
         # All checks are done, now we save everyting
-        # Mod supplierOrderLine and order if connected
-        self.supplier_order_line.mark_as_arrived(self.packing_document.user_created)
+        # Mod supplierOrderLine and order if connected and packingdoc is new
+        if self.pk is None:
+            self.supplier_order_line.mark_as_arrived(self.packing_document.user_created)
 
-        pk = self.packing_document.pk
         super(PackingDocumentLine, self).save()
-        if mod_stock:
-            # Modify stock
-            entry = [{
-                'article': self.supplier_order_line.article_type,
-                'book_value': self.line_cost,
-                'count': 1,
-                'is_in': True
-            }]
-            if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
-                label = OrderLabel(self.supplier_order_line.order_line.order.pk)
-                entry[0]['label'] = label
-            StockChangeSet.construct(description="Stock supplication by {}".format(pk), entries=entry, enum=enum["supplication"])
+        if self.pk is None:
+            pk = self.packing_document.pk
+            if mod_stock:
+                # Modify stock
+                entry = [{
+                    'article': self.supplier_order_line.article_type,
+                    'book_value': self.line_cost,
+                    'count': 1,
+                    'is_in': True
+                }]
+                if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
+                    label = OrderLabel(self.supplier_order_line.order_line.order.pk)
+                    entry[0]['label'] = label
+                StockChangeSet.construct(description="Stock supplication by {}".format(pk), entries=entry, enum=enum["supplication"])
 
     def __str__(self):
         if not hasattr(self, 'line_cost'):
