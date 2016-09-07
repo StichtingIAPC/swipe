@@ -54,6 +54,9 @@ INSTALLED_APPS = (
     'stock',
     'assortment',
     'tools',
+    'order',
+    'blame',
+    'logistics'
 )
 
 MIDDLEWARE_CLASSES = [
@@ -266,6 +269,8 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 
 # Current currency. Transactions are only possible with this currency
 USED_CURRENCY = "EUR"
+
+USED_STRATEGY = "IndiscriminateCustomerStockStrategy"
 
 ##
 # WARNING: Add own settings ABOVE this comment.
