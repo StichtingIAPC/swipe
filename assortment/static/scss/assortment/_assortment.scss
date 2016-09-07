@@ -1,11 +1,13 @@
-@import './settings';
-@import './product';
-@import './tree';
-@import './branch';
-@import './header';
+@import 'scss/assortment/settings';
+@import 'scss/assortment/product';
+@import 'scss/assortment/tree';
+@import 'scss/assortment/branch';
+@import 'scss/assortment/header';
 
 @mixin swipe-assortment() {
   .assortment {
+
+    padding: -1rem;
 
     @include swipe-tree-closing('opening-mechanism', 'tree-list');
 

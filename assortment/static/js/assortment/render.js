@@ -31,8 +31,7 @@ function ProductDescription(emit, refresh) {
    * @type {?BaseArticle}
    */
   return {
-    render: renderer,
-    hwrender: hwrender
+    render: renderer
   };
   function renderer(product) {
     let name_dict = draggable('product', product);
