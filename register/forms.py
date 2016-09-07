@@ -54,14 +54,14 @@ class RegisterCountForm(Form):
             denomination_counts = register.previous_denomination_count()
             for denom_c in denomination_counts:
                 denom = denom_c.denomination
-                formfield = DenominationCountField(min_value=0, label=str(denom.currency.symbol)+str(denom.amount),
+                formfield = DenominationCountField(label=str(denom.currency.symbol)+str(denom.amount),
                                                    initial=denom_c.amount)
                 formfield.currency = denom.currency
                 formfield.denomination_amount = denom.amount
-
-                self.fields['reg_%s_%s' % (register.name, denom.amount)] = formfield
+                print(register.name)
+                self.fields['reg_{}_{}'.format(register.name, denom.amount)] = formfield
             if is_open:
-                self.fields['reg_%s_difference'.format(register.name)] = forms.CharField(label="Difference",
+                self.fields['reg_{}_difference'.format(register.name)] = forms.CharField(label="Difference",
                                                                                          initial="EUR 0.00",
                                                                                          disabled=True)
 
@@ -108,7 +108,7 @@ class CloseForm(Form):
         self.briefs = []
         for register in registers:
             if register.is_open():
-                self.fields['brief_%s' % register.name] = BriefCountField(min_value=0, initial=0, label=register.name)
+                self.fields['brief_%s' % register.name] = BriefCountField(initial=0, label=register.name)
                 self.fields['brief_%s' % register.name].currency = register.currency
                 self.fields['brief_%s' % register.name].name = register.name
 

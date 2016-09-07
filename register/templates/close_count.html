@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block page_title%}{% trans 'Register list' %}{% endblock %}
-{% block content %}
+{% block module_content %}
 <form method="POST">
 <style>
     tr.spaceUnder > td
@@ -12,71 +12,75 @@
 }
 </style>
 {%  csrf_token %}
-<table border="1px">
-    <tr height="100%">
 
+
+<div class="row">
 
 {%  for i in form.columns %}
-       <td width="200px" height="100%">
-           <table>
-
+ <div class="small-3 columns">
+        <div class="card">
+        <table>
                <tr><td colspan="100%"><center><b>{{ i.name }}</b></center></td></tr>
-{{ i }}
-           </table>
-       </td>
+
+            {{ i }}
+       </table>
+        </div>
+    </div>
+
 {% endfor %}
-    <td width="200px" height="100%"><b>Brief Registers</b><table height="100%">{{ form }}</table></td>
+
+    <div class="small-3 columns">
+        <div class="card">
+            <b>Brief Registers</b><table height="100%">{{ form }}</table></div></div>
 
 
             {%  for cur in currencies %}
-            <td><table height="100%">
-                <tr><td width="180px"><b>{{ cur }} EXPECTED</b><br></td><td width="180px"><b>{{ cur }} RECEIVED</b><br></td></tr><tr><td>
-                        <table>
+            <div class="small-6 columns">
+                <div class="card">
+                <table>
+                <tr><td></td></tr>
+                <tr><td></td></td><td width="180px"><b>{{ cur }} EXPECTED</b><br></td><td></td><td></td><td width="180px"><b>{{ cur }} RECEIVED</b><br></td><td></td></tr>
+
                         {% for i in form.columns %}
                             {%  if i.register.currency == cur %}
-                            <tr><td >+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="OLD_{{ i.name }}">????</div></td></tr>
+                            <tr><td >+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="OLD_{{ i.name }}">????</div></td><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}"></div></td></tr>
                             {% endif %}
                         {% endfor %}
 
-                                    <tr  class="spaceUnder"><td></td><td></td><td width="120px">   </td></tr>
 
                            {% for i in transactions.values %}
                                {% if i.currency == cur.iso %}
-                                     <tr><td>+</td><td>SALES</td><td width="120px" align="right"><div id="sales_{{ i.currency }}">{{ i.amount }}</div></td></tr>
+                                     <tr><td>+</td><td>Sales</td><td width="120px" align="right"><div id="sales_{{ i.currency }}">{{ i.amount }}</div></td><td></td><td></td><td></td></tr>
                                {%  endif %}
                           {% endfor %}
 
-                        </table>
-                    </td><td>
-                     <table>
-                        {% for i in form.columns %}
-                            {%  if i.register.currency == cur %}
-                            <tr><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}"></div></td></tr>
-                            {% endif %}
-                        {% endfor %}
+
                           {% for i in form %}
                             {%  if i.currency == cur %}
-                            <tr><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}">???</div></td></tr>
+                            <tr><td></td><td><td></td><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}">???</div></td></tr>
                             {% endif %}
 
                           {% endfor %}
 
 
-                     </table></td>
-            </tr><tr><td align="right"><div id="left_total_{{cur}}"></div></td><td align="right"><div id="right_total_{{cur}}"></div>  </td></tr>
-                           <tr><td align="right">Difference:</td><td align="right"><div id="difference_{{ cur }}"></div> </td></tr>
-
+                     </td>
+            </tr><tr><td><b>TOTALS</b></td><td><i>left</i></td><td align="right"><div id="left_total_{{cur}}"></div></td><td></td><td><i>right</i></td><td align="right"><div id="right_total_{{cur}}"></div>  </td></tr>
+                           <tr><td></td><td></td><td></td><td></td><td align="right">Difference:</td><td align="right"><div id="difference_{{ cur }}"></div> </td></tr>
                 </table>
 
-                </td>
+                   </div>
+    </div>
     {% endfor %}
 
 
-
-    </tr>    <tr><td colspan="100%">
-    <button type="submit">Close Register</button><input id="MEMO" name="MEMO"></input></td>
-        </tr>
-    </table>        </form>
+            <div class="small-12 columns">
+                <div class="card">
+    <input id="MEMO" name="MEMO">MEMO</input><br />
+                    <button type="submit">Close Register</button>
+      </div>
+    </div>
+</div>
+</form>
 <script>
     cash_registers = []
     cash_register_currencies = []
@@ -124,6 +128,8 @@ function update_differences()
 
         document.getElementById(register).innerHTML = reg_count.toFixed(2)
     }
+    if (!total)
+        total=0
     for (var i=0;i<brief_registers.length; i++) {
            register = brief_registers[i]
             var counts = document.getElementById("id_brief_"+register)

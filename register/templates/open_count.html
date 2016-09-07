@@ -3,29 +3,41 @@
 {% load i18n %}
 
 {% block page_title%}{% trans 'Register list' %}{% endblock %}
-{% block content %}
+{% block module_content %}
 <form method="POST">
 {%  csrf_token %}
-<table border="1px">
-    <tr>
 
-
+<div class="row" style="max-width:100rem;">
 {%  for i in form.columns %}
-       <td width="200px">
-           <table>
 
-               <tr><td colspan="100%"><center>{{ i.name }}</center></td></tr>
-{{ i }}
-               <tr><th><label for="memo_{{ i.name }}">MEMO</label></th><td colspan="100%"> <input id="memo_{{ i.name }}" name="memo_{{ i.name }}"></td></tr>
-           </table>
-       </td>
+        <div class="small-6 columns">
+        <div class="card">
+        <table>
+
+             <tr><td colspan="100%"><center>{{ i.name }}</center></td></tr>
+            {{ i }}
+            <tr><th><label for="memo_{{ i.name }}">MEMO</label></th><td colspan="100%"> <input id="memo_{{ i.name }}" name="memo_{{ i.name }}"></td></tr>
+        </table>
+        </div>
+         </div>
 {% endfor %}
-    <td width="200px"><table>{{ form }}</table></td>
+ <div class="small-6 columns">
+<div class="card">
+<table>
+<tr>
+Brief Registers<br/></tr>
+{{ form }}
+</table>
+</div>
+</div>
+<div class="small-12 columns">
+<div class="card">
+<button type="submit">Open Register</button>
+</div>
+</div>
+</div>
 
-    </tr>    <tr><td colspan="100%">
-    <button type="submit">TAA</button></td>
-        </tr>
-    </table>        </form>
+</form>
 <script>
     cash_registers = []
 {%  for i in form.columns %}
@@ -70,4 +82,5 @@
         update_differences()
 
 </script>
+
 {% endblock %}
