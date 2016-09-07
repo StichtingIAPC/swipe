@@ -2,8 +2,6 @@ from django.conf.urls import url
 
 from assortment.views import search
 
-
-
 urlpatterns = [
     url(r'^search/$', search, name='seach'),
     url(r'^all/$', search, name='get_assortment'),

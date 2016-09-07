@@ -14,9 +14,19 @@ import {draggable, droppable} from 'js/tools/tools'
  * @callback Refresh
  */
 
+/**
+ * The functions in this file are the renderers for domChanger, for various
+ * aspects of the Assortment, like products, branches etc.
+ */
+
+/**
+ * @param emit
+ * @param refresh
+ * @returns {{render: renderer, hwrender: hwrender}}
+ */
 function ProductDescription(emit, refresh) {
   /**
-   * @type {BaseArticle?}
+   * @type {?BaseArticle}
    */
   return {
     render: renderer,
@@ -26,6 +36,14 @@ function ProductDescription(emit, refresh) {
     let name_dict = draggable('product', product);
     name_dict.class = 'name';
     name_dict.editable = 'false';
+    `
+    <div class='product-description>
+      <span draggable class='name' editable='false'>{{product.name}}</span>
+      <span class='amount {{product.amount_str}}'>{{product.amount}}</span>
+      <span class='spacer'></span>
+      <span class='price'>{{product.price}}</span>
+    </div>
+    `
     return [
       'div', {
         class: 'product-description'
@@ -54,51 +72,6 @@ function ProductDescription(emit, refresh) {
       ]
     ]
   }
-
-  /**
-   * @param {Element} node
-   * @param {BaseArticle} article
-   */
-  function hwrender(node, article) {
-    let nspan, aspan, sspan, pspan;
-    if (node !== null && node !== undefined && node.tagName == 'div') {
-      if (node.classList.contains('product-description')) {
-        const l = node.childNodes;
-        nspan = l[0];
-        aspan = l[1];
-        sspan = l[2];
-        pspan = l[3];
-      } else {
-        node.className = 'product-description';
-        while (node.firstChild) {
-          node.removeChild(node.firstChild);
-        }
-      }
-    } else {
-      node = node ? node : document.createElement('div');
-      node.classList.length = 0;
-      node.classList.add('product-description');
-
-      nspan = document.createElement('span');
-      nspan.classList.add('name');
-      nspan.appendChild(document.createTextNode(product.name));
-
-      aspan = document.createElement('span');
-      aspan.classList.add('amount');
-      aspan.classList.add(product.amount_str);
-      aspan.appendChild(document.createTextNode(product.amount ? product.amount : String(0)));
-
-      sspan = document.createElement('span');
-      sspan.classList.add('spacer');
-
-      pspan = document.createElement('span');
-      pspan.classList.add('price');
-      pspan.appendChild(document.createTextNode(product.price.toFixed(2)));
-
-      node.appendChild(nspan).appendChild(aspan).appendChild(sspan).appendChild(pspan);
-
-    }
-  }
 }
 
 function NoItems(emit, refresh) {
@@ -107,6 +80,11 @@ function NoItems(emit, refresh) {
   };
 
   function renderer() {
+    `
+    <div class='tree-list tree-list-info'>
+      {% trans 'no contained items' %}
+    </div>
+    `
     return [
       'div', {
         class: 'tree-list tree-list-info'
@@ -117,6 +95,11 @@ function NoItems(emit, refresh) {
 }
 
 function insert_toggle(unique_name, active) {
+  `
+  <input type='checkbox' class='opening-mechanism' id='{{unique_name}}'
+         hidden='true' checked='{% true if active else false %}'>
+  <label for='{{unique_name}}' class='opening_mechanism'></label>
+  `
   return [
     [
       'input', {
@@ -140,7 +123,6 @@ function insert_toggle(unique_name, active) {
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {{render: renderProduct}}
- * @constructor
  */
 export function ProductRenderer(emit, refresh) {
   return {
@@ -155,6 +137,11 @@ export function ProductRenderer(emit, refresh) {
    * @returns {*[]}
    */
   function renderProduct(product, open, prefix){
+    `
+    <div class='product'>
+      {% include ProductDescription %}
+    </div>
+    `
     return [
       'div', {
         class: 'product'
@@ -168,7 +155,6 @@ export function ProductRenderer(emit, refresh) {
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {{render: renderAndProduct}}
- * @constructor
  */
 export function AndProductRenderer(emit, refresh) {
   return {
@@ -183,6 +169,13 @@ export function AndProductRenderer(emit, refresh) {
    * @returns {*[]}
    */
   function renderAndProduct(andproduct, open, prefix){
+    `
+    <div class='product and-product'>
+      {% include insert_toggle(prefix + '-product-' + andproduct.id) %}
+      {% include ProductDescription with product=andproduct %}
+      {% include BranchList with products=andproduct.contained_products %}
+    </div>
+    `
     return [
       'div', {
         class: `product and-product`
@@ -213,6 +206,13 @@ export function OrProductRenderer(emit, refresh) {
    * @returns {*[]}
    */
   function renderOrProduct(orproduct, open, prefix) {
+    `
+    <div class='product or-product'>
+      {% include insert_toggle(prefix + '-product-' + orproduct.id) %}
+      {% include ProductDescription with product=orproduct %}
+      {% include BranchList with products=orproduct.contained_products %}
+    </div>
+    `
     return [
       'div', {
         class: `product or-product`
@@ -250,6 +250,15 @@ export function BranchRenderer(emit, refresh, prefix) {
    * @returns {*[]}
    */
   function renderBranch(branch, open, prefix) {
+    `
+    <div class='branch'>
+      {% include insert_toggle(prefix + '-branch-' + branch.id) %}
+      <div class="branch-description">
+        <span class="name">{{branch.name}}</span>
+      </div>
+      {% include BranchList with children=branch.children products=branch.products %}
+    </div>
+    `
     return [
       'div', {
         branch: branch.name,
@@ -295,6 +304,12 @@ function BranchList(emit, refresh) {
     if (branches.length + products.length === 0) {
       return [NoItems];
     }
+    `
+      <div class='tree-list'>
+        {% for branch in branches %}{% include BranchRenderer with branch=branch %}{% endfor %}
+        {% for product in products %}{% include product.renderer() with product=product %}{% endfor %}
+      </div>
+    `
     return [
       'div', {
         'class': 'tree-list'
@@ -334,6 +349,21 @@ export function AssortmentRenderer(emit, refresh) {
     function oninput(event) {
       assortment.search(event.target.value);
     }
+    `
+    <div class='assortment-tree'>
+      <div class="assortment-header">
+        <div class="description">
+          {{ assortment.title }}
+        </div>
+        <div class="search-box">
+          <input type="search" id='{{assortment.name}}-search-box'
+                 oninput="oninput" placeholder="{% trans 'Search' %}"
+                 value='{{ assortment.query }}'>
+        </div>
+      </div>
+      {% include BranchList with branches= *rootbranches* %}
+    </div>
+    `
     return [
       'div', {
         class: 'assortment-tree'

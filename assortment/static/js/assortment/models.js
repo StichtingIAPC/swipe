@@ -17,14 +17,19 @@ import { AssortmentRenderer,
  * @callback Filter
  * @param {Product} product
  * @returns {Boolean}
+ *
+ * A filter used to filter the products before the products are put into the
+ * assortment.
  */
 
 /**
- * @class {LabelType}                                   LabelType
+ * @class {Object}                                      LabelType
  * @prop {String}                                       name
  * @prop {String}                                       value_type
  * @prop {Set<Label>}                                   labels
  * @prop {Map<String|Number, Label>}                    values
+ *
+ * A label type. Has no use yet, but it's nice to have in front.
  */
 export class LabelType {
   /**
@@ -41,6 +46,8 @@ export class LabelType {
 
   /**
    * @param {Label} label
+   *
+   * Register a label value to the label type
    */
   register(label) {
     this.labels.add(label);
@@ -56,6 +63,8 @@ export class LabelType {
    *    labels: Array<{id: Number, value: String|Number}>
    *  }>} label_type_json
    * @returns {Array<LabelType>}
+   *
+   * create an array of label types from the json-array of proto-labeltypes
    */
   static generate_list(label_type_json) {
     let label_types = [];
@@ -85,10 +94,12 @@ export class LabelType {
 LabelType.MATCHER = '([a-zA-Z0-9]+)'; // currently only alphanumericals are supported as label names
 
 /**
- * @class {Label}                   Label
+ * @class {Object}                  Label
  * @prop {String}                   value
  * @prop {LabelType}                label_type
  * @prop {Set<Product>}           products
+ *
+ * A label, which has a value and an label type.
  */
 export class Label {
   /**
@@ -103,6 +114,8 @@ export class Label {
 
   /**
    * @param {Product}               product
+   *
+   * Add the product to the label's product registry
    */
   add_product(product) {
     this.products.add(product);
@@ -111,6 +124,8 @@ export class Label {
   /**
    * @param {Product}               product
    * @returns {Boolean}
+   *
+   * Returns whether or not the product has the label. (label has the product)
    */
   has_product(product) {
     return this.products.has(product);
@@ -119,19 +134,34 @@ export class Label {
 
 /**
  * @type {String}
+ *
+ * label divider. not currenly in use, but may be used for local search purposes
  */
 Label.DIVIDER = ':';
 
 /**
  * @type {String}
+ *
+ * Label value matcher. Not in use, but for local search
  */
 Label.VALUE_MATCHER = '(.+)';
 
 /**
  * @type {String}
+ *
+ * local search again
  */
 Label.MATCHER = LabelType.MATCHER + Label.DIVIDER + Label.VALUE_MATCHER;
 
+/**
+ * @class {Object} BaseArticle
+ * @prop {Number} id
+ * @prop {String} name
+ * @prop {Number} amount
+ * @prop {Branch} branch
+ * @prop {Array<Label>} labels
+ * @prop {?Assortment} assortment
+ */
 export class BaseArticle extends SubscribeAble {
   /**
    * @param {Number}                id
@@ -163,6 +193,9 @@ export class BaseArticle extends SubscribeAble {
     return this._amount;
   }
 
+  /**
+   * @param {Event} event
+   */
   fire_event(event){
     this.signal.fire_event(event);
   }
@@ -170,6 +203,8 @@ export class BaseArticle extends SubscribeAble {
   /**
    * @param {String} name
    * @returns {class<BaseArticle>}
+   *
+   * Get the class related to the name of the class.
    */
   static to_class(name){
     return {
@@ -179,6 +214,12 @@ export class BaseArticle extends SubscribeAble {
     }[name];
   }
 
+  /**
+   * @returns {String}
+   *
+   * Get a string which represents the stock amount, like
+   * {high | medium | low | none}
+   */
   get amount_str() {
     const am = this.amount;
     if (am === 0) {
@@ -195,19 +236,26 @@ export class BaseArticle extends SubscribeAble {
     throw Error();
   }
 
+  /**
+   * @param assortment
+   *
+   * Set the product's assortment
+   */
   set_assortment(assortment) {
     this.assortment = assortment
   }
 }
 
 /**
- * @class {Product}                 Product
+ * @class {BaseArticle}             Product
  * @prop {Number}                   id
  * @prop {String}                   name
  * @prop {Number}                   price
  * @prop {Number}                   amount
  * @prop {Tag}                      branch
  * @prop {Array<Label>}             labels
+ *
+ * A normal product
  */
 export class Product extends BaseArticle {
   /**\
@@ -239,6 +287,8 @@ export class Product extends BaseArticle {
    * @param {Array<Label>}          labels
    * @param {Array<Branch>}         branches
    * @returns {Array<Product>}
+   *
+   * generate products from json
    */
   static generate_list(product_json, labels, branches) {
     let products = [];
@@ -262,11 +312,23 @@ export class Product extends BaseArticle {
     return products;
   }
 
+  /**
+   * @returns {ProductRenderer}
+   *
+   * Get the rendering function of this product type
+   */
   get renderer() {
     return ProductRenderer;
   }
 }
 
+/**
+ * @class {BaseArticle} AndProduct
+ * @prop {Number} price
+ * @prop {Array<{product: Product, amount: Number}>} contained_products
+ *
+ * The JS representation of an And product
+ */
 export class AndProduct extends BaseArticle {
   /**
    * @param {Number} id
@@ -290,6 +352,8 @@ export class AndProduct extends BaseArticle {
 
   /**
    * @param {Assortment} assortment
+   *
+   * Post-init hook to finalize the data.
    */
   post_init(assortment) {
     super.post_init();
@@ -312,11 +376,20 @@ export class AndProduct extends BaseArticle {
     return min_amount;
   }
 
+  /**
+   * @returns {AndProductRenderer}
+   *
+   * get the renderer of this product type
+   */
   get renderer() {
     return AndProductRenderer;
   }
 }
 
+/**
+ * @class {BaseArticle} OrProduct
+ * @prop {Array<>} contained_products
+ */
 export class OrProduct extends BaseArticle {
   /**
    * @param {Number} id
@@ -362,13 +435,13 @@ export class OrProduct extends BaseArticle {
 Product.MATCHER = '(.+)';
 
 /**
- * @class {Branch}                  branch
+ * @class {Object}                  Branch
  * @prop {String}                   name
  * @prop {Element}                  node
  * @prop {Number}                   parent_id
  * @prop {?Tag}                     parent
- * @prop {Array<Product>}           products
- * @prop {Array<Tag>}               children
+ * @prop {Array<Product>}           _products
+ * @prop {Array<Branch>}            _children
  */
 export class Branch {
   /**
@@ -388,6 +461,10 @@ export class Branch {
     this.value = new Set();
   }
 
+  /**
+   * Gets the currently active children (as filtered required by it's assortment)
+   * @returns {Array<Branch>}
+   */
   get children() {
     return this._children.filter(
       this.assortment.filter_branches
@@ -396,6 +473,10 @@ export class Branch {
     );
   }
 
+  /**
+   * Gets the currently active products (as filtered required by it's assortment)
+   * @returns {Array<BaseArticle>}
+   */
   get products() {
     return this._products.filter(
       this.assortment.filter_products
@@ -428,6 +509,11 @@ export class Branch {
     this._children.push(branch);
   }
 
+  /**
+   * @param assortment
+   *
+   * Set the assortment for this Branch
+   */
   set_assortment(assortment) {
     this.assortment = assortment
   }
@@ -435,6 +521,8 @@ export class Branch {
   /**
    * @param {Array<{id: Number, name: String, parent_id: Number}>} branch_json
    * @returns {Array<Branch>}
+   *
+   * Generate a list of branches from a json format.
    */
   static generate_list(branch_json) {
     let branches = [];
@@ -460,17 +548,21 @@ export class Branch {
 
 /**
  * @type {String}
+ *
+ * Not used, but is useful for e.g. offline sorting
  */
 Branch.MATCHER = '[a-zA-Z0-9]+';
 
 /**
- * @class Assortment
+ * @class {Object}                  Assortment
  * @prop {String}                   query
  * @prop {Array<Branch>}            branches
  * @prop {Array<Label>}             labels
  * @prop {Array<LabelType>}         label_types
  * @prop {String}                   name
  * @prop {String}                   title
+ *
+ * The main assortment wrapper.
  */
 export class Assortment {
   /**
@@ -505,18 +597,16 @@ export class Assortment {
 
     this.filters = filters;
 
+    // Bind the assortment to it's DOM node using domChanger
     this.dom = domChanger(AssortmentRenderer, element, true);
-    let t1 = performance.now();
-    if (element.dataset.search !== undefined) {
-      this.search(element.dataset.search);
-    }
-    else {
-      this.search(' ');
-    }
-    let t2 = performance.now();
-    console.log(`rendering took ${t2 - t1} ms`);
+    // initiate the assortment by searching for the specified term or ' '
+    // (which does nothing)
+    this.search(element.dataset.search || " ");
   }
 
+  /**
+   * @returns {Array<Branch>}
+   */
   get branches() {
     return this._branches.filter(
       this.filter_branches
@@ -525,6 +615,10 @@ export class Assortment {
     );
   }
 
+  /**
+   * @returns {Array<BaseArticle>}
+   * Get the enclosed products when filtered by the assortment filter
+   */
   get products() {
     return this._products.filter(
       this.filter_products
@@ -561,6 +655,8 @@ export class Assortment {
 
   /**
    * @param {Element} domelement
+   *
+   * Create an assortment from the properties specified by the html element
    */
   static create_from_element(domelement){
     let t1 = performance.now();
@@ -603,21 +699,29 @@ export class Assortment {
    * @param {Branch} branch
    * @param {Array<RegExp>} query
    * @param {Set<RegExp>} found
+   * Search the article branch on how many products match the search query
    */
-  recursive_search_with_values(branch, query, found) {
+  recursive_search_with_found(branch, query, found) {
     branch.value = new Set(found);
     query.forEach((q) => branch.name.match(q)? branch.value.add(q) :undefined);
     branch._products.forEach((p) => this.search_with_values(p, query, branch.value));
     branch._children.forEach((c) => this.recursive_search_with_values(c, query, branch.value));
   }
 
-  search_with_values(product, query, found) {
+  /**
+   * @param {BaseArticle} product
+   * @param {Array<RegExp>} query
+   * @param {Set<RegExp>} found
+   * Search the product on how much it matches the search
+   */
+  search_with_found(product, query, found) {
     product.value = new Set(found);
     query.forEach((q) => product.name.match(q)? product.value.add(q) :undefined);
   }
 
   /**
-   * @param query
+   * @param {String} query
+   * Search the assortment on products, and display it in the dom.
    */
   search(query) {
     this.query = query;
@@ -650,6 +754,9 @@ export class Assortment {
 
   }
 
+  /**
+   * refresh the DOM
+   */
   refresh() {
     this.dom.update(this, this.query.length > 3)
   }

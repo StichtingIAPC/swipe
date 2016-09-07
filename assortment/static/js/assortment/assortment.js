@@ -2,8 +2,11 @@ import {Assortment} from 'js/assortment/models';
 import {onload} from 'js/tools/tools';
 
 onload(function(ev) {
+  // make sure that window.swipe.assortments is available
   window.swipe = window.swipe ? window.swipe : {};
   window.swipe.assortments = {};
+
+  // create an assortment for every object that has the `article-tree`-attribute
   Array.prototype.forEach.call(
     document.querySelectorAll('[article-tree]'),
     function(node) {
