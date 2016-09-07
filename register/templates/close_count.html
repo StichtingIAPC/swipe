@@ -12,71 +12,52 @@
 }
 </style>
 {%  csrf_token %}
-
-
 <div class="row">
-
 {%  for i in form.columns %}
  <div class="small-3 columns">
         <div class="card">
         <table>
                <tr><td colspan="100%"><center><b>{{ i.name }}</b></center></td></tr>
-
             {{ i }}
        </table>
         </div>
     </div>
-
 {% endfor %}
-
     <div class="small-3 columns">
         <div class="card">
             <b>Brief Registers</b><table height="100%">{{ form }}</table></div></div>
-
-
             {%  for cur in currencies %}
             <div class="small-6 columns">
                 <div class="card">
                 <table>
                 <tr><td></td></tr>
                 <tr><td></td></td><td width="180px"><b>{{ cur }} EXPECTED</b><br></td><td></td><td></td><td width="180px"><b>{{ cur }} RECEIVED</b><br></td><td></td></tr>
-
                         {% for i in form.columns %}
                             {%  if i.register.currency == cur %}
                             <tr><td >+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="OLD_{{ i.name }}">????</div></td><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}"></div></td></tr>
                             {% endif %}
                         {% endfor %}
-
-
                            {% for i in transactions.values %}
                                {% if i.currency == cur.iso %}
                                      <tr><td>+</td><td>Sales</td><td width="120px" align="right"><div id="sales_{{ i.currency }}">{{ i.amount }}</div></td><td></td><td></td><td></td></tr>
                                {%  endif %}
                           {% endfor %}
-
-
                           {% for i in form %}
                             {%  if i.currency == cur %}
                             <tr><td></td><td><td></td><td>+</td><td>{{ i.name }}</td><td width="120px" align="right"><div id="{{ i.name }}">???</div></td></tr>
                             {% endif %}
-
                           {% endfor %}
-
-
                      </td>
             </tr><tr><td><b>TOTALS</b></td><td><i>left</i></td><td align="right"><div id="left_total_{{cur}}"></div></td><td></td><td><i>right</i></td><td align="right"><div id="right_total_{{cur}}"></div>  </td></tr>
-                           <tr><td></td><td></td><td></td><td></td><td align="right">Difference:</td><td align="right"><div id="difference_{{ cur }}"></div> </td></tr>
-                </table>
-
-                   </div>
+               <tr><td></td><td></td><td></td><td></td><td align="right">Difference:</td><td align="right"><div id="difference_{{ cur }}"></div> </td></tr>
+            </table>
+           </div>
     </div>
     {% endfor %}
-
-
             <div class="small-12 columns">
                 <div class="card">
     <input id="MEMO" name="MEMO">MEMO</input><br />
-                    <button type="submit">Close Register</button>
+    <button type="submit">Close Register</button>
       </div>
     </div>
 </div>
@@ -89,14 +70,12 @@
         cash_register_currencies[cash_register_currencies.length] = document.querySelectorAll("*[register='{{ i.name }}']")[0].getAttribute("currency")
     {% endfor %}
     cash_register_counts = []
-
     brief_registers = []
     brief_register_currencies = []
     {%  for i in form.briefs %}
         brief_registers[brief_registers.length] = "{{ i }}"
         brief_register_currencies[brief_register_currencies.length] = document.getElementById("id_brief_{{ i }}").getAttribute("currency")
     {% endfor %}
-
 function get_original_counts()
 {
     var register = 0
@@ -137,8 +116,7 @@ function update_differences()
            document.getElementById("brief_"+register).innerHTML= (parseFloat(counts.value).toFixed(2))
     }
     document.getElementById("right_total_EUR").innerHTML = total.toFixed(2)
-    document.getElementById("difference_EUR").innerHTML = (document.getElementById("right_total_EUR").innerHTML - document.getElementById("left_total_EUR").innerHTML).toFixed(2)
-
+    document.getElementById("difference_EUR").innerHTML = (document.getElementById("right_total_EUR").innerHTML - document.getElementById("left_total_EUR").innerHTML).toFixed(2)``
 
 }
 

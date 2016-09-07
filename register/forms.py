@@ -49,7 +49,7 @@ class RegisterCountForm(Form):
             self.register = register
 
             if is_open:
-                self.fields['reg_%s_active' % register.name] = forms.BooleanField(label="active", initial=True)
+                self.fields['reg_%s_active' % register.name] = forms.BooleanField(label="active", initial=True, required=False)
 
             denomination_counts = register.previous_denomination_count()
             for denom_c in denomination_counts:
