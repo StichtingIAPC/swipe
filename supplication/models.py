@@ -147,10 +147,10 @@ class PackingDocumentLine(Blame):
         # Mod supplierOrderLine and order if connected and packingdoc is new
         if self.pk is None:
             self.supplier_order_line.mark_as_arrived(self.packing_document.user_created)
+            document_key = self.packing_document.pk
 
-        super(PackingDocumentLine, self).save()
         if self.pk is None:
-            pk = self.packing_document.pk
+            super(PackingDocumentLine, self).save()
             if mod_stock:
                 # Modify stock
                 entry = [{
@@ -162,7 +162,9 @@ class PackingDocumentLine(Blame):
                 if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
                     label = OrderLabel(self.supplier_order_line.order_line.order.pk)
                     entry[0]['label'] = label
-                StockChangeSet.construct(description="Stock supplication by {}".format(pk), entries=entry, enum=enum["supplication"])
+                StockChangeSet.construct(description="Stock supplication by {}".format(document_key), entries=entry, enum=enum["supplication"])
+        else:
+            super(PackingDocumentLine, self).save()
 
     def __str__(self):
         if not hasattr(self, 'line_cost'):
