@@ -728,7 +728,7 @@ export class Assortment {
     let t1 = performance.now();
     let vals = [...(new Set(query.split(' ')))];
     let regexes = vals.map((str) => new RegExp(str, "gui"));
-    this.recursive_search_with_values(
+    this.recursive_search_with_found(
       this._branches.find(
         (br) => br !== undefined && !br.parent // = root node
       ), regexes, new Set()
