@@ -23,6 +23,8 @@ import {draggable, droppable} from 'js/tools/tools'
  * @param emit
  * @param refresh
  * @returns {{render: renderer, hwrender: hwrender}}
+ *
+ * Partial renderer for product descriptions
  */
 function ProductDescription(emit, refresh) {
   /**
@@ -74,6 +76,12 @@ function ProductDescription(emit, refresh) {
   }
 }
 
+/**
+ * @param emit
+ * @param refresh
+ * @returns {{render: renderer}}
+ * Gets rendered in place of items when there are no items in an Branchlist.
+ */
 function NoItems(emit, refresh) {
   return {
     render: renderer
@@ -94,10 +102,18 @@ function NoItems(emit, refresh) {
   }
 }
 
+/**
+ * @param {String} unique_name
+ * @param {Boolean} active
+ * @returns {*[]}
+ *
+ * This inserts the toggle option into the article tree. Usage: easy, and no JS
+ * required.
+ */
 function insert_toggle(unique_name, active) {
   `
   <input type='checkbox' class='opening-mechanism' id='{{unique_name}}'
-         hidden='true' checked='{% true if active else false %}'>
+         hidden='true' checked='{{ active }}'>
   <label for='{{unique_name}}' class='opening_mechanism'></label>
   `
   return [
@@ -107,7 +123,7 @@ function insert_toggle(unique_name, active) {
         class: 'opening-mechanism',
         id: unique_name,
         hidden: 'true',
-        checked: active ? true : false
+        checked: active
       }
     ],
     [
@@ -123,6 +139,8 @@ function insert_toggle(unique_name, active) {
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {{render: renderProduct}}
+ *
+ * Renderer for normal Products
  */
 export function ProductRenderer(emit, refresh) {
   return {
@@ -155,6 +173,8 @@ export function ProductRenderer(emit, refresh) {
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {{render: renderAndProduct}}
+ *
+ * Renderer for AndProducts
  */
 export function AndProductRenderer(emit, refresh) {
   return {
@@ -191,6 +211,8 @@ export function AndProductRenderer(emit, refresh) {
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {renderOrProduct}
+ *
+ * Renderer for OrProducts
  */
 export function OrProductRenderer(emit, refresh) {
   return {
@@ -236,6 +258,8 @@ export function OrProductRenderer(emit, refresh) {
  * @param {Refresh} refresh
  * @param {String} prefix
  * @returns {{render: renderBranch}}
+ *
+ * Renderer for Branches
  */
 export function BranchRenderer(emit, refresh, prefix) {
   return {
@@ -286,6 +310,9 @@ export function BranchRenderer(emit, refresh, prefix) {
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {{render: renderBranchList}}
+ *
+ * Renders a list of branches and/or products.
+ * Used in Branches and And or OrProducts
  */
 function BranchList(emit, refresh) {
   return {
@@ -328,6 +355,8 @@ function BranchList(emit, refresh) {
  * @param {Emit} emit
  * @param {Refresh} refresh
  * @returns {{render: renderAssortment}}
+ *
+ * Renderer for Assortments
  */
 export function AssortmentRenderer(emit, refresh) {
   /**
