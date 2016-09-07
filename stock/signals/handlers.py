@@ -9,6 +9,6 @@ Example usage of a signal:
 
 @receiver(post_save, sender=StockChange)
 def example_handler(sender, **kwargs):
-    pass
+    print(sender)
 
 """
