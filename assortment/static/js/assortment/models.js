@@ -704,8 +704,8 @@ export class Assortment {
   recursive_search_with_found(branch, query, found) {
     branch.value = new Set(found);
     query.forEach((q) => branch.name.match(q)? branch.value.add(q) :undefined);
-    branch._products.forEach((p) => this.search_with_values(p, query, branch.value));
-    branch._children.forEach((c) => this.recursive_search_with_values(c, query, branch.value));
+    branch._products.forEach((p) => this.search_with_found(p, query, branch.value));
+    branch._children.forEach((c) => this.recursive_search_with_found(c, query, branch.value));
   }
 
   /**
