@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     # utilities
     'compressor',
     'compressor_toolkit',
+    'django_gravatar',
 
     # our apps
     'core',

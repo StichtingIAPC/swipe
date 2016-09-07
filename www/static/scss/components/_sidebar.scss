@@ -1,149 +1,112 @@
 @import 'bower_components/foundation-sites/scss/util/util';
 @import '../util/_util';
 
-$sidebar-closed-width: 48px !default;
-$sidebar-open-width: 288px !default;
+@mixin swipe-sidebar {
+  // Size variables
+  $sidebar-closed-width: 48px !default;
+  $sidebar-open-width: 240px !default;
+  $sidebar-icon-size: 40px !default;
+  $sidebar-icon-font-size: 24px !default;
 
-$sidebar-icon-size: 40px !default;
+  // Color Variables
+  $sidebar-primary-background-color: $black !default;
+  $sidebar-primary-foreground-color: $white !default;
+  $sidebar-secondary-foreground-color: $white !default;
+  $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !default;
+  $sidebar-home-item-bg-color: #2199e8 !default;
 
-$sidebar-primary-height-unit: 48px !default;
-$sidebar-secondary-height-unit: 40px !default;
-
-$sidebar-transition-duration: 0.2s !default;
-$sidebar-transition-delay: 0.4s !default;
-$sidebar-collapse-hover: true !default;
-
-$sidebar-primary-background-color: $black !default;
-$sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !default;
-
-@mixin side-bar {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  justify-content: flex-start; // put the items at the top of the column
-  align-items: flex-end;       // and align at the right of the column
-
-  z-index: 1;
-
-  width: $sidebar-closed-width;
-
-  transition: width $sidebar-transition-duration, margin-right $sidebar-transition-duration;
-  transition-delay: $sidebar-transition-delay;
-
-  box-sizing: border-box;
-
-  background-color: $sidebar-primary-background-color;
-
-
-  @include shadow(16px);
-
-  &:hover,
-  &:focus,
-  &.open {
-    width: $sidebar-open-width;
-    margin-right: $sidebar-closed-width - $sidebar-open-width;
-  }
-
-  &.close {
-    width: 0;
-  }
-}
-
-@mixin side-bar-item($dimension: $sidebar-primary-height-unit, $background-color: $sidebar-primary-background-color) {
-  flex-grow: 0;
-  flex-shrink: 0;
-
-  width: $sidebar-open-width;
-  box-sizing: border-box;
-
-  color: $primary-color;
-  background-color: $background-color;
-
-  border-bottom: 1px solid $primary-color;
-
-  .title {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-
-    flex-grow: 0;
-    flex-shrink: 0;
-
-    width: $sidebar-open-width;
-    height: $dimension;
-    box-sizing: border-box;
-
-    .closed {
-      height: 0;
-    }
-
-    .text {
-      flex-grow: 1;
-    }
-
-    .icon {
-      width: $dimension;
-      flex-grow: 0;
-      box-sizing: border-box;
-      padding: ($dimension - $sidebar-icon-size) / 2;
-    }
-  }
-}
-
-@mixin side-bar-collapse {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start; // put the items at the top of the column
-  align-items: flex-end;       // and align at the right of the column
-
-  flex-grow: 0;
-  flex-shrink: 0;
-
-  width: 100%;
-  box-sizing: border-box;
-  transition: max-height ($sidebar-transition-duration * 8);
-  transition-delay: $sidebar-transition-delay;
-
-  overflow: hidden;
-
-  &.closed {
-    max-height: 0;
-  }
-
-  &.open,
-  &:hover,
-  &:active {
-    max-height: 100vh;
-  }
-}
-
-@mixin collapse-hover {
-  &:hover > .side-bar-collapse {
-    max-height: 100vh;
-  }
-}
-
-@mixin swipe-side-bar {
   .side-bar {
-    @include side-bar;
-  }
+    box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1);
+    background-color: $sidebar-primary-background-color;
+    padding: 0;
+    z-index: 3000;
+    width: $sidebar-closed-width;
+    min-width: $sidebar-closed-width;
+    min-height: 100%;
+    overflow: hidden;
+    display: inline;
+    -webkit-transition: width 0.5s;
+    transition: width 0.5s;
+    -webkit-transition-timing-function: ease;
+    transition-timing-function: ease;
 
-  .side-bar-item {
-    @include side-bar-item;
-  }
+    position: absolute;
+    top: 0;
+    left: 0;
 
-  .side-bar-collapse {
-    @include side-bar-collapse;
-
-    .side-bar-item {
-      @include side-bar-item($sidebar-secondary-height-unit, $sidebar-secondary-background-color);
+    .loaded {
+        width: 45px;
     }
+
+    .expanded {
+        width: $sidebar-open-width;
+    }
+
   }
 
-  @if($sidebar-collapse-hover) {
-    .side-bar-item {
-      @include collapse-hover;
+  .sidebar-padding {
+    width: 48px;
+    float: left;
+  }
+
+  @media only screen and (min-width: 68.75em) {
+      .side-bar:active {
+          width: $sidebar-open-width;
+          cursor: pointer
+      }
+  }
+
+  @media only screen and (min-width: 68.75em) {
+      .side-bar:hover {
+          width: $sidebar-open-width;
+          cursor: pointer
+      }
+  }
+
+  .side-bar-nav li {
+    width: $sidebar-open-width;
+    background-color: $sidebar-primary-background-color;
+    list-style-type: none;
+    font-size: 15px;
+    margin-left: -20px;
+
+    a:link, a:visited {
+      display: block;
+      color: $sidebar-primary-foreground-color;
+      padding: 10px;
+      opacity: 0.75;
+    }
+
+    a:hover, a:active {
+      display: block;
+      background-color: $sidebar-secondary-background-color;
+      color: $sidebar-secondary-foreground-color;
+      opacity: 1;
+    }
+
+    .side-bar-icon {
+      height: $sidebar-icon-size;
+      font-size: $sidebar-icon-font-size;
+      width: auto;
+      float: left;
+      opacity: 1;
+      padding-right: 15px;
+    }
+
+    &.swipe {
+      background-color: $sidebar-home-item-bg-color;
+
+      a:link, a:visited {
+        opacity: 1;
+      }
+
+      a:hover {
+        background-color: transparent;
+      }
+
+      a:active {
+        background-color: transparent;
+      }
     }
   }
 }
