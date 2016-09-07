@@ -66,11 +66,11 @@ class SimpleClassTests(TestCase):
         Order.make_order(order, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, 1, self.cost]])
-        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
         pac_doc.save()
         sol = SupplierOrderLine.objects.get()
         pac_doc_line = PackingDocumentLine(article_type=self.article_type,
-                                           packing_document=pac_doc, supplier_order_line=sol)
+                                           packing_document=pac_doc, supplier_order_line=sol, user_modified=self.copro)
         pac_doc_line.save()
         pd = PackingDocumentLine.objects.get()
         assert pd.line_cost == pd.supplier_order_line.line_cost
@@ -84,15 +84,15 @@ class SimpleClassTests(TestCase):
         Order.make_order(order, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, 1, self.cost]])
-        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
         pac_doc.save()
         sol = SupplierOrderLine.objects.get()
-        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv = Invoice(user_modified=self.copro, supplier=self.supplier)
         inv.save()
         cost = Cost(amount=Decimal(2.78), use_system_currency=True)
         pac_doc_line = PackingDocumentLine(article_type=self.article_type,
                                            packing_document=pac_doc, supplier_order_line=sol,
-                                           line_cost_after_invoice=cost, invoice=inv)
+                                           line_cost_after_invoice=cost, invoice=inv, user_modified=self.copro)
         pac_doc_line.save()
         assert pac_doc_line.invoice == inv
         assert pac_doc_line.line_cost == self.cost
@@ -107,11 +107,11 @@ class SimpleClassTests(TestCase):
         Order.make_order(order, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, 1, self.cost]])
-        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
         pac_doc.save()
         sol = SupplierOrderLine.objects.get()
         pac_doc_line = PackingDocumentLine(article_type=self.at2,
-                                           packing_document=pac_doc, supplier_order_line=sol)
+                                           packing_document=pac_doc, supplier_order_line=sol, user_modified=self.copro)
         caught = False
         try:
             pac_doc_line.save()
@@ -128,22 +128,21 @@ class SimpleClassTests(TestCase):
         Order.make_order(order, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, 1, self.cost]])
-        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
         pac_doc.save()
         sol = SupplierOrderLine.objects.get()
-        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv = Invoice(user_modified=self.copro, supplier=self.supplier)
         inv.save()
         cost = Cost(amount=Decimal(2.78), use_system_currency=True)
         pac_doc_line = PackingDocumentLine(article_type=self.article_type,
                                            packing_document=pac_doc, supplier_order_line=sol,
-                                           line_cost=cost, invoice=inv)
+                                           line_cost=cost, invoice=inv, user_modified=self.copro)
         caught = False
         try:
             pac_doc_line.save()
         except AssertionError:
             caught = True
         assert caught
-
 
     def test_stock_storage_of_orders_one_order(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -156,20 +155,20 @@ class SimpleClassTests(TestCase):
         NUMBER_SUPPLIER_ORDERED = 2
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
-        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
         pac_doc.save()
         sols = SupplierOrderLine.objects.all()
-        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv = Invoice(user_modified=self.copro, supplier=self.supplier)
         inv.save()
         cost = Cost(amount=Decimal(2.78), use_system_currency=True)
         # Two lines, but one order
         NUMBER_BATCHED = 2
         pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
                                            packing_document=pac_doc, supplier_order_line=sols[0],
-                                           line_cost_after_invoice=cost, invoice=inv)
+                                           line_cost_after_invoice=cost, invoice=inv, user_modified=self.copro)
         pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[1],
-                                             line_cost_after_invoice=cost, invoice=inv)
+                                             line_cost_after_invoice=cost, invoice=inv, user_modified=self.copro)
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
@@ -196,10 +195,10 @@ class SimpleClassTests(TestCase):
         NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
-        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
         pac_doc.save()
         sols = SupplierOrderLine.objects.all()
-        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv = Invoice(user_modified=self.copro, supplier=self.supplier)
         inv.save()
         cost = Cost(amount=Decimal(2.78), use_system_currency=True)
         # Two lines, but one order
@@ -207,10 +206,10 @@ class SimpleClassTests(TestCase):
         assert NUMBER_BATCHED == 2
         pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[0],
-                                             line_cost_after_invoice=cost, invoice=inv)
+                                             line_cost_after_invoice=cost, invoice=inv, user_modified=self.copro)
         pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[1],
-                                             line_cost_after_invoice=cost, invoice=inv)
+                                             line_cost_after_invoice=cost, invoice=inv, user_modified=self.copro)
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
@@ -233,20 +232,20 @@ class SimpleClassTests(TestCase):
         NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
-        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user=self.copro)
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
         pac_doc.save()
         sols = SupplierOrderLine.objects.all()
-        inv = Invoice(user=self.copro, supplier=self.supplier)
+        inv = Invoice(user_modified=self.copro, supplier=self.supplier)
         inv.save()
         cost_1 = Cost(amount=Decimal(2.78), use_system_currency=True)
         cost_2 = Cost(amount=Decimal(2.79), use_system_currency=True)
         # One order and supplier order
         pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[0],
-                                             line_cost_after_invoice=cost_1, invoice=inv)
+                                             line_cost_after_invoice=cost_1, invoice=inv, user_modified=self.copro)
         pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[1],
-                                             line_cost_after_invoice=cost_2, invoice=inv)
+                                             line_cost_after_invoice=cost_2, invoice=inv, user_modified=self.copro)
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()

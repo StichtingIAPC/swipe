@@ -145,7 +145,7 @@ class PackingDocumentLine(Blame):
 
         # All checks are done, now we save everyting
         # Mod supplierOrderLine and order if connected
-        self.supplier_order_line.mark_as_arrived(self.packing_document.user)
+        self.supplier_order_line.mark_as_arrived(self.packing_document.user_created)
 
         pk = self.packing_document.pk
         super(PackingDocumentLine, self).save()
