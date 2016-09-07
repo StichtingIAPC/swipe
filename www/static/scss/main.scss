@@ -5,6 +5,11 @@
 
 @import 'settings/_settings';
 
+// Foundation Icons
+@import 'foundation-icons/foundation-icons';
+// Bootstrap Glyphicons
+@import 'glyphicons/bootstrap.min';
+
 @import 'components/_layout';
 @import 'components/_sidebar';
 @import 'components/_card';
@@ -13,8 +18,7 @@
 @include foundation-everything($flex: true);
 
 @include swipe-layout;
-@include swipe-side-bar;
-
+@include swipe-sidebar;
 @include swipe-cards;
 
 @include insert-foundation-inserts;

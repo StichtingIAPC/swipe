@@ -39,6 +39,17 @@
     align-items: stretch;
   }
 
+  #page-container {
+    overflow: auto;
+    flex-grow: 100;
+  }
+
+  .page-content-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin-top: 1rem;
+  }
+
   .container {
     &.horizontal {
       @include container(row);

@@ -12,26 +12,16 @@
     {% endcompress %}
     {% compress js %}
         <script type="module" src="{% static 'js/main.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bower_components/foundation-sites/dist/foundation.js' %}"></script>
     {% endcompress %}
 </head>
 <body class="container horizontal">
 <div class="container horizontal grow">
     {% include 'partials/sidebar.html' %}
-    <div class="container vertical grow">
-        <div class="top-bar">
-            <div class="top-bar-left">
-                {% if request.user.is_authenticated %}Active user: {{ request.user }}{% endif %}
-            </div>
-            <div class="top-bar-title">
-                Swipe - Title
-            </div>
-            <div class="top-bar-right">
-            {% block back %}
-                <a href="javascript:history.go(-1);">Back</a>
-            {% endblock back %}
-            </div>
-        </div>
-        <div class="grow container horizontal">
+    <div id="page-container" data-sticky-container>
+        {% include 'partials/topbar.html' %}
+        <div class="page-content-container container grow">
             {% block module_content %}
                 <div class="small-6 columns">
                     <div class="card">
@@ -42,5 +32,8 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    new Foundation.DropdownMenu($('[data-dropdown-menu]'));
+</script>
 </body>
 </html>

@@ -1,54 +1,19 @@
 {% load i18n %}
 
 <div class="side-bar">
-    <div class="side-bar-item">
-        <div class="title">
-            <div class="text">
-                Swipe
-            </div>
-            <div class="icon">
-                Swipe Icon
-            </div>
-        </div>
-    </div>
-    {% if request.user.is_authenticated %}
-    <div class="side-bar-item">
-        <div class="title">
-            <div class="text">
-                <a href="{% url 'crm_index' %}">{% trans 'crm' %}</a>
-            </div>
-            <div class="icon">
-                icon
-            </div>
-        </div>
-    </div>
-    <div class="side-bar-item">
-        <div class="title">
-            <div class="text">
-                <a href="{% url 'supplier_list' %}">{% trans 'suppliers' %}</a>
-            </div>
-            <div class="icon">
-                icon
-            </div>
-        </div>
-    </div>
-    <div class="side-bar-item">
-        <div class="title">
-            <div class="text">
-                <a href="{% url 'logout' %}">{% trans 'logout' %}</a>
-            </div>
-            <div class="icon">
-                icon
-            </div>
-        </div>
-    </div>
-    {% else %}
-    <div class="side-bar-item">
-        <div class="title">
-            <div class="text">
-                <a href="{% url 'login' %}">{% trans 'login' %}</a>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+    <ul class="side-bar-nav">
+        <li class="swipe">
+            <a href="{% url 'home' %}" title="{% trans 'Swipe' %}"><span class="glyphicon glyphicon-home side-bar-icon" aria-hidden="true"></span> {% trans 'Swipe' %}</a>
+        </li>
+        {% if request.user.is_authenticated %}
+        <li class="crm">
+            <a href="{% url 'crm_index' %}" title="{% trans 'Customers' %}"><span class="glyphicon glyphicon-user side-bar-icon" aria-hidden="true"></span> {% trans 'Customers' %}</a>
+        </li>
+        <li class="suppliers">
+            <a href="{% url 'supplier_list' %}" title="{% trans 'Suppliers' %}"><span class="glyphicon glyphicon-tags side-bar-icon" aria-hidden="true"></span> {% trans 'Suppliers' %}</a>
+        </li>
+        {% endif %}
+    </ul>
 </div>
+
+<div class="sidebar-padding"></div>
