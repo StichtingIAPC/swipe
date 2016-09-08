@@ -58,7 +58,6 @@ class RegisterCountForm(Form):
                                                    initial=denom_c.amount)
                 formfield.currency = denom.currency
                 formfield.denomination_amount = denom.amount
-                print(register.name)
                 self.fields['reg_{}_{}'.format(register.name, denom.amount)] = formfield
             if is_open:
                 self.fields['reg_{}_difference'.format(register.name)] = forms.CharField(label="Difference",
