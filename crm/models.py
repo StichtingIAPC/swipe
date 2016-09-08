@@ -93,6 +93,12 @@ class Person(Customer):
     # Optional OneToOneField to link this person to a User in the system.
     user = models.OneToOneField(User, blank=True, null=True, on_delete=models.SET_NULL, verbose_name=_("Swipe username"))
 
+    class Meta:
+        permissions = (
+            # Permission to allow linking customers to users via the swipe web interface.
+            ("link_user_to_person", "Can link Swipe users to Persons"),
+        )
+
     def verify(self):
         """
         Verify if this Person is consistent and the information is programatically correct.
@@ -108,6 +114,26 @@ class Person(Customer):
             return False, "A person requires an e-mail address", self
 
         return True, "", None
+
+    def can_manage_users(self):
+        can_link = self.can_link_users()
+        can_add = self.user and self.user.has_perm('auth.add_user')
+        can_edit = self.user and self.user.has_perm('auth.edit_user')
+        can_delete = self.user and self.user.has_perm('auth.delete_user')
+
+        return can_link or can_add or can_edit or can_delete
+
+    def can_link_users(self):
+        return self.user and self.user.has_perm('crm.link_user_to_person')
+
+    def can_add_users(self):
+        return self.user and self.user.has_perm('auth.add_user')
+
+    def can_edit_users(self):
+        return self.user and self.user.has_perm('auth.edit_user')
+
+    def can_delete_users(self):
+        return self.user and self.user.has_perm('auth.delete_user')
 
     def __str__(self):
         return self.name

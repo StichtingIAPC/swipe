@@ -1,0 +1,26 @@
+{% extends 'crm/crm_base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+<div class="row">
+    <div class="small-12 columns">
+        <div class="card">
+            <h3>{% blocktrans with username=request.user.username %}{{ username }}'s Profile{% endblocktrans %}</h3>
+            {% if request.user.person %}
+                <p>This will be your profile.</p>
+            {% else %}
+                <div class="callout warning">
+                    <h5>You do not have a profile yet.</h5>
+                    <p>There is no customer profile linked to you swipe account yet.</p>
+                    {% if request.user.is_admin %}
+                        <p>Please go to the <a href="{% url 'user_profile_link' %}">Person Linking page</a> to link a customer to this account.</p>
+                    {% else %}
+                        <p>Please ask one of the swipe administrators to link your customer to your swipe account.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

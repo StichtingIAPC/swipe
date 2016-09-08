@@ -1,0 +1,70 @@
+{% extends 'crm/crm_base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+<div class="row">
+    <div class="small-12 columns">
+        <div class="card">
+            <h2>{% trans 'Swipe User List' %}</h2>
+            {% if request.user.person.can_add_users %}
+                <span><a href="#" class="button success">{% trans 'Add new user' %}</a></span>
+            {% endif %}
+
+            <table class="hover">
+                <thead>
+                    <tr>
+                        <th>{% trans 'Username' %}</th>
+                        <th>{% trans 'Linked customer' %}</th>
+                        {% if request.user.person.can_edit_users %}
+                            <th>{% trans 'Deactivate' %}</th>
+                        {% endif %}
+                        {% if request.user.person.can_delete_users %}
+                            <th>{% trans 'Delete' %}</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in object_list %}
+                        <tr>
+                            <td>
+                                {% if request.user.person.can_edit_users %}<a href="#" title="{% blocktrans with username=user.username %}Edit {{ username }}{% endblocktrans %}">{% endif %}
+                                {{ user.username }}
+                                {% if request.user.person.can_edit_users %}</a>{% endif %}
+                            </td>
+                            <td>
+                                {% if user.person %}
+                                    {% if request.user.person.can_edit_users %}
+                                        <a href="{% url 'user_profile_link' user.pk %}" title="{% blocktrans with username=user.username %}Edit customer link for {{ username }}{% endblocktrans %}">
+                                    {% endif %}
+                                    {{ user.person }}
+                                    {% if request.user.person.can_edit_users %}</a>{% endif %}
+                                {% else %}
+                                    {% if request.user.person.can_edit_users %}
+                                        <a href="{% url 'user_profile_link' user.pk %}" title="{% blocktrans with username=user.username %}Link {{ username }} to a customer{% endblocktrans %}" class="link-user-button">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                        </a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                {% endif %}
+                                {% if request.user.person.can_edit_users %}{% endif %}
+                            </td>
+                            {% if request.user.person.can_edit_users %}
+                            <td><a href="#" title="{% blocktrans with username=user.username %}Deactivate {{ username }}{% endblocktrans %}">
+                                <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                            </a></td>
+                            {% endif %}
+                            {% if request.user.person.can_delete_users %}
+                            <td><a href="#" title="{% blocktrans with username=user.username %}Delete {{ username }}{% endblocktrans %}">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                            </a></td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}

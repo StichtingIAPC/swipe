@@ -1,6 +1,5 @@
-from django.http import Http404
 from django.shortcuts import render
 
 
 def home(request):
-    return render(request, 'www/index.html')
+    return render(request, 'www/index.html', {'page_title': 'Home'})

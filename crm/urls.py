@@ -5,9 +5,19 @@ CRM URL Configuration
 from django.conf.urls import url
 
 from crm.views import *
+from crm.profile_views import *
 
 urlpatterns = [
     url(r'^$', index, name='crm_index'),
+
+    # Swipe user profile URLs
+    url(r'^profile$', PersonProfile.as_view(), name='user_profile'),
+    url(r'^profile/edit$', PersonProfileEdit.as_view(), name='user_profile_edit'),
+
+    # User management URLs
+    url(r'^users/link/(?P<uid>[0-9]+)$', UserProfileLink.as_view(), name='user_profile_link'),
+    url(r'^users/link/apply/(?P<pk>[0-9]+)/(?P<pid>[0-9]+)$', UserProfileLinkApply.as_view(), name='user_profile_link_apply'),
+    url(r'^users/management', UserManagement.as_view(), name='user_management'),
 
     # Customer URLs
     url(r'^customers$', CustomerList.as_view(), name='customer_list'),

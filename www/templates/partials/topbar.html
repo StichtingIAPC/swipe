@@ -3,7 +3,7 @@
 
 <div class="top-bar sticky" data-sticky data-options="marginTop:0;">
     <div class="top-bar-left">
-        <h1>{% block page_topbar_title %}Page{% endblock %}</h1>
+        <h1>{% if page_title %}{{ page_title }}{% endif %}</h1>
     </div>
     <div class="top-bar-right">
         {% if request.user.is_authenticated %}
@@ -11,7 +11,10 @@
             <li class="is-dropdown-submenu-parent">
                 <a class="user-link" href="#">{{ request.user.username }} <img title="{{ request.user.username }}" src="{% gravatar_url request.user.person.email 44 %}" /></a>
                 <ul class="menu">
-                    <li><a href="#">Profile</a></li>
+                    <li><a href="{% url 'user_profile' %}">{% trans 'Profile' %}</a></li>
+                    {% if request.user.person and request.user.person.can_manage_users %}
+                        <li><a href="{% url 'user_management' %}">{% trans 'User Management' %}</a></li>
+                    {% endif %}
                     <li><a href="{% url 'logout' %}">{% trans 'Logout' %}</a></li>
                 </ul>
             </li>

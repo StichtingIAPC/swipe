@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
 
-{% block module_content %}
-    <div class="small-6 columns">
-        <div class="card">
-            {% block content %}
+{% load staticfiles %}
+{% load compress %}
 
-            {% endblock content %}
+{% block module_content %}
+    {% block content %}
+        <div class="row">
+            <div class="small-6 columns">
+                There is nothing here (yet).
+            </div>
         </div>
-    </div>
+    {% endblock content %}
 {% endblock module_content %}

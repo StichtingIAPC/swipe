@@ -6,10 +6,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Swipe - {% block page_title %}Page{% endblock %}</title>
+    <title>Swipe{% if page_title %} - {{ page_title }}{% endif %}</title>
     {% compress css %}
         <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}" />
     {% endcompress %}
+    {% block module_css %}{% endblock %}
     {% compress js %}
         <script type="module" src="{% static 'js/main.js' %}"></script>
         <script type="text/javascript" src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>

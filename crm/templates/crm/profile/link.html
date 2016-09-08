@@ -1,0 +1,30 @@
+{% extends 'crm/crm_base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+<div class="expanded row">
+    <div class="small-6 columns">
+        <div class="card">
+            <h4>{% trans 'Search customers' %}</h4>
+            <p>{% trans 'Pick or search for a customer to link to this user.' %}</p>
+            <form action="{% url 'user_profile_link' uid=user.pk %}">
+                <div class="input-group">
+                    <input type="text" name="search" placeholder="{% trans 'John Doe' %}" />
+                    <div class="input-group-button">
+                        <input type="submit" class="button" value="{% trans 'Search' %}" />
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card">
+            <h5>{% trans 'Customers' %}</h5>
+            <ul>
+                {% for p in object_list %}
+                    <li><a href="{% url 'user_profile_link_apply' user.pk p.pk %}">{{ p.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock content %}
