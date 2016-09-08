@@ -3,7 +3,7 @@ from article.models import *
 from money.models import VAT
 from django.db import connection
 
-
+# Base class, so all test-classes can use a base set of test-data.
 class INeedSettings:
     def setUp(self):
         self.vat_group = VAT()
