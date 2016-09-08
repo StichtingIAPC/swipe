@@ -255,5 +255,20 @@ class SimpleClassTests(TestCase):
             assert st.labeltype == OrderLabel._labeltype
             assert st.labelkey == 1 # Order pk
 
-
-
+    def test_packingdocumentline_storage_without_stock_mod(self):
+        order = Order(user_modified=self.copro, customer=self.customer)
+        order.save()
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, number=1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, 1, self.cost]])
+        pac_doc = PackingDocument(supplier=self.supplier, supplier_identifier="Foo", user_modified=self.copro)
+        pac_doc.save()
+        sol = SupplierOrderLine.objects.get()
+        pac_doc_line = PackingDocumentLine(article_type=self.article_type,
+                                           packing_document=pac_doc, supplier_order_line=sol, user_modified=self.copro)
+        pac_doc_line.save(mod_stock=False)
+        st = Stock.objects.all()
+        assert len(st) == 0

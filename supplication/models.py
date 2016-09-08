@@ -2,7 +2,7 @@ from django.db import models, transaction
 from crm.models import User
 from stock.enumeration import enum
 from supplier.models import Supplier, ArticleTypeSupplier
-from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, InsufficientDemandError
+from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, InsufficientDemandError, IndirectionError
 from money.models import CostField, Cost
 from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
@@ -184,10 +184,37 @@ class PackingDocumentLine(Blame):
         )
 
 
-class DistributionStrategy():
+class DistributionStrategy:
 
-    def distribute(self):
+    @staticmethod
+    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False, indirect=False):
+        """
+        Distributes the actual packing document
+        :param user: The user that caused this distribution
+        :param supplier: The supplier that ships the products
+        :param distribution: List[PackingDocumentLine], with each PackingDocumentLine
+        :param document_identifier: String, name of the packing document
+        :param invoice_identifier: String, can be empty if there is no invoice
+        :param indirect: Indirection flag. Function is only meant to be called indirectly. Change at your own peril.
+        :return:
+        """
+        if not indirect:
+            raise IndirectionError("Distribute must be called indirectly")
+        assert user and isinstance(user, User)
+        assert supplier and isinstance(supplier, Supplier)
+        assert distribution and isinstance(distribution, list)
+        assert document_identifier and isinstance(document_identifier, str)
+        for pac_doc in distribution:
+            assert pac_doc and isinstance(pac_doc, PackingDocumentLine)
+            assert pac_doc.supplier_order_line
+
+    @staticmethod
+    def get_distribution():
         pass
 
-    def get_distribution(self):
+
+class FirstSupplierOrderStrategy(DistributionStrategy):
+
+    @staticmethod
+    def get_distribution():
         pass
