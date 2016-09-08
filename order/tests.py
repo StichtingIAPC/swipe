@@ -1,15 +1,16 @@
 from django.test import TestCase
 from unittest import skip
 from article.models import *
+from article.tests import INeedSettings
 from money.models import *
 from order.models import *
 # Create your tests here.
 
 
-class OrderTest(TestCase):
+class OrderTest(INeedSettings, TestCase):
 
     def setUp(self):
-
+        super().setUp()
         self.vat_group = VAT()
         self.vat_group.name = "Bar"
         self.vat_group.active = True
@@ -23,14 +24,16 @@ class OrderTest(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo")
+        self.article_type = ArticleType(accounting_group=self.acc_group,
+                                        name="Foo", branch=self.branch)
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Bar")
+        self.at2 = ArticleType(accounting_group=self.acc_group,
+                               name="Bar", branch=self.branch)
         self.at2.save()
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
-        self.oc = OtherCostType(name="Baz", accounting_group=self.acc_group, fixed_price=self.money)
+        self.oc = OtherCostType(name="Baz", branch=self.branch, accounting_group=self.acc_group, fixed_price=self.money)
         self.oc.save()
 
         self.customer = Person()
