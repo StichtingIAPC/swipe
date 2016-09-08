@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from article.tests import INeedSettings
 from register.models import *
 from money.models import *
 from stock.exceptions import StockSmallerThanZeroError
@@ -191,8 +192,9 @@ class BasicTest(TestCase):
         ConsistencyChecker.full_check()
 
 
-class TestTransactionNoSalesPeriod(TestCase):
+class TestTransactionNoSalesPeriod(TestCase, INeedSettings):
     def setUp(self):
+        super().setUp()
         self.EUR = Currency("EUR")
         self.cost = Cost(Decimal("1.21000"), self.EUR)
         self.money = Money(Decimal("1.21000"), self.EUR)
@@ -200,7 +202,8 @@ class TestTransactionNoSalesPeriod(TestCase):
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
         self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
-        self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
+        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                              accounting_group=self.acc_group)
 
         self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
@@ -222,8 +225,9 @@ class TestTransactionNoSalesPeriod(TestCase):
         self.assertEqual(0, Payment.objects.all().__len__())
 
 
-class TestTransaction(TestCase):
+class TestTransaction(TestCase, INeedSettings):
     def setUp(self):
+        super().setUp()
         self.EUR = Currency("EUR")
         self.cost = Cost(Decimal("1.21000"), self.EUR)
         self.money = Money(Decimal("1.21000"), self.EUR)
@@ -231,8 +235,10 @@ class TestTransaction(TestCase):
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
         self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
-        self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
-        self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
+        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                              accounting_group=self.acc_group)
+        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                              accounting_group=self.acc_group)
         self.sp = SalesPeriod.objects.create()
         self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
