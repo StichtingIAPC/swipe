@@ -1,39 +1,8 @@
 {% load i18n %}
-<div id="article-tree-{{ name }}" article-tree>
-    <div data-tree-root class="">
-        <div branch="Cables" class="closed">
-            <div class="branch-header">
-                <span class="branch-icon"></span>
-                <p>Cables</p>
-            </div>
-            <div class="branch-content">
-
-            </div>
-        </div>
-        <div branch="Storage" class="open">
-            <div class="header">
-                <span class="icon minus"></span>
-                <p>Storage</p>
-            </div>
-            <div class="content">
-                <branches></branches>
-                <products></products>
-                <div data-product="1TB HDD" class="">
-
-                </div>
-            </div>
-        </div>
-    </div>
-    <div data-selector-container class="">
-        <form>
-            <div class="row">
-                <div class="small-3 columns">
-                    <label for="search-field" class="text-right middle"></label>
-                </div>
-                <div class="small-9 columns">
-                    <input type="text" id="search-field" placeholder="{% trans "Search" %}">
-                </div>
-            </div>
-        </form>
-    </div>
+<div class="tree-list assortment"
+     article-tree="{{ assortment.id }}"
+     data-api-endpoint="{{ assortment.api_endpoint }}"
+     data-search="{{ assortment.query }}"
+     data-in-store="{{ assortment.settings.in_stock }}"
+     data-title="{{ assortment.name }}">
 </div>

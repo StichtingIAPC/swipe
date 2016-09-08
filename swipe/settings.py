@@ -12,6 +12,10 @@ import sys
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from django.urls import reverse_lazy
+
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -271,6 +275,10 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 USED_CURRENCY = "EUR"
 
 USED_STRATEGY = "IndiscriminateCustomerStockStrategy"
+
+SWIPE_JS_GLOBAL_VARS = {
+    'api_endpoint': reverse_lazy('api')
+}
 
 ##
 # WARNING: Add own settings ABOVE this comment.

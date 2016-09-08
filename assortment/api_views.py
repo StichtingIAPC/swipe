@@ -6,13 +6,6 @@ from article.models import WishableType
 from assortment.models import AssortmentLabelType
 
 
-def search(request):
-    relevant_wishables = WishableType.objects.all().prefetch_related('labels')
-    relevant_labeltypes = AssortmentLabelType.objects\
-        .all()\
-        .prefetch_related('assortmentlabel_set')
-
-
 def all(request):
     relevant_wishables = WishableType.objects.all().prefetch_related('labels')
     relevant_labeltypes = AssortmentLabelType.objects\

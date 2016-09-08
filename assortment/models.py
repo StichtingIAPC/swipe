@@ -22,7 +22,7 @@ class AssortmentArticleBranch(models.Model):
     presumed_labels = models.ManyToManyField('AssortmentLabelType')
 
     def save(self, *args, **kwargs):
-        if self.turtle_and_hare():
+        if self.has_cycle():
             raise ValidationError('Cannot save branch with cyclic dependency')
 
         if self.parent_tag is not None:
@@ -34,8 +34,7 @@ class AssortmentArticleBranch(models.Model):
 
         super().save(*args, **kwargs)
 
-    def turtle_and_hare(self):
-
+    def has_cycle(self):
         if self.parent_tag is self:
             return True
 

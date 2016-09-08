@@ -19,7 +19,7 @@
 
 @include foundation-everything($flex: true);
 
-@include swipe-assortment
+@include swipe-assortment;
 
 @include swipe-layout;
 @include swipe-sidebar;
