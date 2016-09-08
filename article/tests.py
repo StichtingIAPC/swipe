@@ -59,7 +59,7 @@ class ArticleBasicTests(INeedSettings, TestCase):
             blocked = True
         assert not blocked
 
-        and_product_type = AndProductType(**self._base_article_settings)
+        and_product_type = AndProductType(branch=self.branch)
         blocked = False
         try:
             and_product_type.save()
