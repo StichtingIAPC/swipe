@@ -15,7 +15,7 @@ from money.models import Currency, VAT, Cost, AccountingGroup, SalesPriceField
 from swipe.settings import DELETE_STOCK_ZERO_LINES
 
 
-class StockTest(TestCase, INeedSettings):
+class StockTest(INeedSettings, TestCase):
     def setUp(self):
         super().setUp()
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
@@ -35,7 +35,7 @@ class StockTest(TestCase, INeedSettings):
         cur = Currency("EUR")
         try:
             sp = Cost(amount=Decimal("1.00000"), currency=cur)
-            art = ArticleType(name="P1", accounting_group=self.accountinggroup)
+            art = ArticleType(name="P1", branch=self.branch, accounting_group=self.accountinggroup)
             art.save()
             st = Stock(article=art, book_value=sp, count=2)
             st.save()
@@ -658,7 +658,7 @@ class ForgottenStockLabel(StockLabel):
     _labeltype = "forgotten"
 
 
-class LabelTest(TestCase, INeedSettings):
+class LabelTest(INeedSettings, TestCase):
     def setUp(self):
         super().setUp()
         self.eur = Currency("EUR")

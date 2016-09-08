@@ -7,7 +7,7 @@ from order.models import *
 # Create your tests here.
 
 
-class OrderTest(TestCase, INeedSettings):
+class OrderTest(INeedSettings, TestCase):
 
     def setUp(self):
         super().setUp()
@@ -33,7 +33,7 @@ class OrderTest(TestCase, INeedSettings):
         self.at2.save()
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
-        self.oc = OtherCostType(name="Baz", accounting_group=self.acc_group, fixed_price=self.money)
+        self.oc = OtherCostType(name="Baz", branch=self.branch, accounting_group=self.acc_group, fixed_price=self.money)
         self.oc.save()
 
         self.customer = Person()

@@ -27,8 +27,7 @@ class INeedSettings:
         }
 
 
-class ArticleBasicTests(TestCase, INeedSettings):
-
+class ArticleBasicTests(INeedSettings, TestCase):
     def setUp(self):
         super().setUp()
         self.vat_group = VAT()
@@ -50,7 +49,7 @@ class ArticleBasicTests(TestCase, INeedSettings):
         self.assertRaises(AbstractClassInitializationError, generic_wishable_type.save)
 
     def test_legal_save(self):
-        article_type = ArticleType(**self._base_article_settings)
+        article_type = ArticleType(branch=self.branch)
         article_type.name = "Foo"
         article_type.accounting_group = self.acc_group
         blocked = False
@@ -69,7 +68,7 @@ class ArticleBasicTests(TestCase, INeedSettings):
         assert not blocked
 
     def test_inheritance(self):
-            article_type = ArticleType(**self._base_article_settings)
+            article_type = ArticleType(branch=self.branch)
             article_type.name = "Foo"
             article_type.accounting_group = self.acc_group
             article_type.save()
@@ -84,13 +83,13 @@ class ArticleBasicTests(TestCase, INeedSettings):
                     raise Exception("Typing error: Abstract class is given while implementing type expected")
 
     def test_subclassing(self):
-            andproduct_type = AndProductType(**self._base_article_settings)
+            andproduct_type = AndProductType(branch=self.branch)
             andproduct_type.name="Test"
             andproduct_type.save()
-            orproduct_type = OrProductType(**self._base_article_settings)
+            orproduct_type = OrProductType(branch=self.branch)
             orproduct_type.name="Bar"
             orproduct_type.save()
-            article_type = ArticleType(**self._base_article_settings)
+            article_type = ArticleType(branch=self.branch)
             article_type.name = "Foo"
             article_type.accounting_group = self.acc_group
             article_type.save()

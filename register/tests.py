@@ -192,7 +192,7 @@ class BasicTest(TestCase):
         ConsistencyChecker.full_check()
 
 
-class TestTransactionNoSalesPeriod(TestCase, INeedSettings):
+class TestTransactionNoSalesPeriod(INeedSettings, TestCase):
     def setUp(self):
         super().setUp()
         self.EUR = Currency("EUR")
@@ -225,7 +225,7 @@ class TestTransactionNoSalesPeriod(TestCase, INeedSettings):
         self.assertEqual(0, Payment.objects.all().__len__())
 
 
-class TestTransaction(TestCase, INeedSettings):
+class TestTransaction(INeedSettings, TestCase):
     def setUp(self):
         super().setUp()
         self.EUR = Currency("EUR")

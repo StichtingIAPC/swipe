@@ -11,7 +11,7 @@ from unittest import skip
 from decimal import Decimal
 
 
-class StockWishTests(TestCase, INeedSettings):
+class StockWishTests(INeedSettings, TestCase):
 
     def setUp(self):
         self.vat_group = VAT()
@@ -210,7 +210,7 @@ class StockWishTests(TestCase, INeedSettings):
         assert caught
 
 
-class SupplierOrderTests(TestCase, INeedSettings):
+class SupplierOrderTests(INeedSettings, TestCase):
 
     def setUp(self):
         self.vat_group = VAT()
