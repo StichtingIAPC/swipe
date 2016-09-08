@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.db import models
 
 from money.models import SalesPrice, MoneyField, AccountingGroup
-from assortment.models import AssortmentLabel
+from assortment.models import AssortmentLabel, AssortmentArticleBranch
 
 
 class WishableType(models.Model):
@@ -12,6 +12,7 @@ class WishableType(models.Model):
     to resolve. Keep this in mind.
     """
     labels = models.ManyToManyField(AssortmentLabel)
+    branch = models.ForeignKey(AssortmentArticleBranch)
 
     name = models.CharField(max_length=255)
 

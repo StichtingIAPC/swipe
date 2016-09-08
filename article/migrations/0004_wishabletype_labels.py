@@ -18,4 +18,10 @@ class Migration(migrations.Migration):
             name='labels',
             field=models.ManyToManyField(to='assortment.AssortmentLabel'),
         ),
+        migrations.AddField(
+            model_name='wishabletype',
+            name='branch',
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='assortment.AssortmentArticleBranch'),
+            preserve_default=False,
+        ),
     ]
