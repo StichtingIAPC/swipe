@@ -4,9 +4,33 @@ from money.models import VAT
 from django.db import connection
 
 
-class ArticleBasicTests(TestCase):
+class INeedSettings:
+    def setUp(self):
+        self.vat_group = VAT()
+        self.vat_group.name="Bar"
+        self.vat_group.active=True
+        self.vat_group.vatrate=1.12
+        self.vat_group.save()
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
+
+        self.branch = AssortmentArticleBranch.objects.create(
+            name='hoi',
+            parent_tag=None)
+
+        self._base_article_settings = {
+            'accounting_group': self.acc_group,
+            'name': 'test',
+            'branch': self.branch
+        }
+
+
+class ArticleBasicTests(TestCase, INeedSettings):
 
     def setUp(self):
+        super().setUp()
         self.vat_group = VAT()
         self.vat_group.name="Bar"
         self.vat_group.active=True
@@ -26,7 +50,7 @@ class ArticleBasicTests(TestCase):
         self.assertRaises(AbstractClassInitializationError, generic_wishable_type.save)
 
     def test_legal_save(self):
-        article_type = ArticleType()
+        article_type = ArticleType(**self._base_article_settings)
         article_type.name = "Foo"
         article_type.accounting_group = self.acc_group
         blocked = False
@@ -36,7 +60,7 @@ class ArticleBasicTests(TestCase):
             blocked = True
         assert not blocked
 
-        and_product_type = AndProductType()
+        and_product_type = AndProductType(**self._base_article_settings)
         blocked = False
         try:
             and_product_type.save()
@@ -45,7 +69,7 @@ class ArticleBasicTests(TestCase):
         assert not blocked
 
     def test_inheritance(self):
-            article_type = ArticleType()
+            article_type = ArticleType(**self._base_article_settings)
             article_type.name = "Foo"
             article_type.accounting_group = self.acc_group
             article_type.save()
@@ -60,13 +84,13 @@ class ArticleBasicTests(TestCase):
                     raise Exception("Typing error: Abstract class is given while implementing type expected")
 
     def test_subclassing(self):
-            andproduct_type = AndProductType()
+            andproduct_type = AndProductType(**self._base_article_settings)
             andproduct_type.name="Test"
             andproduct_type.save()
-            orproduct_type = OrProductType()
+            orproduct_type = OrProductType(**self._base_article_settings)
             orproduct_type.name="Bar"
             orproduct_type.save()
-            article_type = ArticleType()
+            article_type = ArticleType(**self._base_article_settings)
             article_type.name = "Foo"
             article_type.accounting_group = self.acc_group
             article_type.save()
