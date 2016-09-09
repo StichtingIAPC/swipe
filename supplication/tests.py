@@ -272,3 +272,53 @@ class SimpleClassTests(TestCase):
         pac_doc_line.save(mod_stock=False)
         st = Stock.objects.all()
         assert len(st) == 0
+
+
+class DistributionTests(TestCase):
+
+    def setUp(self):
+        self.vat_group = VAT()
+        self.vat_group.name = "AccGrpFoo"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
+        self.vat_group.save()
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
+        self.currency = Currency(iso="USD")
+
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
+
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1")
+        self.article_type.save()
+
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2")
+        self.at2.save()
+
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
+        self.at3.save()
+
+        cost = Cost(amount=Decimal(1), use_system_currency=True)
+
+        self.supplier = Supplier(name="Nepacove")
+        self.supplier.save()
+
+        ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
+                                  cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
+        ats.save()
+        ats2 = ArticleTypeSupplier(supplier=self.supplier, article_type=self.at2,
+                                   cost=cost, minimum_number_to_order=1, supplier_string="At2", availability='A')
+        ats2.save()
+        self.money = Money(amount=Decimal(3.32), currency=self.currency)
+
+        self.customer = Person()
+        self.customer.save()
+
+        self.copro = User()
+        self.copro.save()
+
+        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
+
+    def test_feature(self):
+        FirstSupplierOrderStrategy.get_distribution([])

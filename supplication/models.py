@@ -2,7 +2,8 @@ from django.db import models, transaction
 from crm.models import User
 from stock.enumeration import enum
 from supplier.models import Supplier, ArticleTypeSupplier
-from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, InsufficientDemandError, IndirectionError
+from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, \
+    InsufficientDemandError, IndirectionError, UnimplementedError, SupplierOrderState
 from money.models import CostField, Cost
 from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
@@ -12,8 +13,6 @@ from collections import defaultdict
 
 
 class PackingDocument(ImmutableBlame):
-
-    timestamp = models.DateTimeField(auto_now=True)
 
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
@@ -96,8 +95,6 @@ class Invoice(ImmutableBlame):
 
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
-    timestamp = models.DateTimeField(auto_now=True)
-
 
 class PackingDocumentLine(Blame):
     # The packing document to which this line belongs
@@ -116,7 +113,8 @@ class PackingDocumentLine(Blame):
     @transaction.atomic
     def save(self, mod_stock=True):
         """
-        Save function for a packing document line. WARNING: Does not modify the stock!
+        Save function for a packing document line. Modifies related supplier orders.
+        WARNING: Modifies stock depending on flag.
         :param mod_stock: Indicated whether saving this PacDocLine also mods the stock. If not,
         this has to be done manually
         :return:
@@ -187,9 +185,11 @@ class PackingDocumentLine(Blame):
 class DistributionStrategy:
 
     @staticmethod
+    @transaction.atomic
     def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False, indirect=False):
         """
-        Distributes the actual packing document
+        Distributes the actual packing document. A line_cost_after invoice should never be used if there is not direct invoice
+        possible, indicated by the invoice_identifier. Distribution will refuse to execute in this case.
         :param user: The user that caused this distribution
         :param supplier: The supplier that ships the products
         :param distribution: List[PackingDocumentLine], with each PackingDocumentLine
@@ -204,17 +204,68 @@ class DistributionStrategy:
         assert supplier and isinstance(supplier, Supplier)
         assert distribution and isinstance(distribution, list)
         assert document_identifier and isinstance(document_identifier, str)
-        for pac_doc in distribution:
-            assert pac_doc and isinstance(pac_doc, PackingDocumentLine)
-            assert pac_doc.supplier_order_line
+        # Indicates that we are using an invoice in the process
+        if invoice_identifier:
+            assert isinstance(invoice_identifier, str)
+
+        for pac_doc_line in distribution:
+            assert pac_doc_line and isinstance(pac_doc_line, PackingDocumentLine)
+            # Asserts correct article type and supplier consistency
+            assert pac_doc_line.supplier_order_line
+            assert pac_doc_line.article_type == pac_doc_line.supplier_order_line.article_type
+            assert supplier == pac_doc_line.supplier_order_line.supplier_order.supplier
+            # There cannot be a final cost without an invoice
+            if not invoice_identifier:
+                assert not hasattr(pac_doc_line, 'line_cost_after_invoice') or not pac_doc_line.line_cost_after_invoice
+
+        if invoice_identifier:
+            invoice = Invoice(supplier=supplier, supplier_identifier=invoice_identifier, user_modified=user)
+
+        # Below here are the actual saves
+        # First, saves of related documents
+        packing_document = PackingDocument(supplier=supplier, supplier_identifier=document_identifier, user_modified=user)
+        packing_document.save()
+        if invoice_identifier:
+            invoice.save()
+        # Saves and final parameter settings of packing document lines
+        for pac_doc_line in distribution:
+            pac_doc_line.packing_document = packing_document
+            if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
+                pac_doc_line.invoice = invoice
+            pac_doc_line.user_modified = user
+            pac_doc_line.save()
 
     @staticmethod
-    def get_distribution():
-        pass
+    def get_distribution(article_type_number_combos):
+        """
+        Creates a distribution
+        :param article_type_number_combos: List[ArticleType, number, [Cost]]. A list containing articletypes, a multiplicity of thos
+        article types, and a cost if the packing document line is connected to an invoice.
+        :return:
+        """
+        raise UnimplementedError("Function does not exist at the super level. Call actual strategies")
 
 
 class FirstSupplierOrderStrategy(DistributionStrategy):
 
     @staticmethod
-    def get_distribution():
-        pass
+    def get_distribution(article_type_number_combos):
+        distribution = []
+        articletype_dict = defaultdict(lambda: 0)
+        for articletype, number, cost in article_type_number_combos:
+            articletype_dict[articletype] += number
+        articletypes = articletype_dict.keys()
+        relevant_supplier_orderline = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes)
+        article_demand = defaultdict(lambda: 0)
+
+        # Tallies the open supplier orders
+        for sol in relevant_supplier_orderline:
+            article_demand[sol.article_type] += 1
+
+        # If you have supply without demand, there is an inconsistency
+        for typ in articletypes:
+            assert not articletype_dict[typ] > article_demand[typ]
+
+
+        return distribution
