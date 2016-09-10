@@ -271,6 +271,7 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 USED_CURRENCY = "EUR"
 
 USED_STRATEGY = "IndiscriminateCustomerStockStrategy"
+USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
 ##
 # WARNING: Add own settings ABOVE this comment.

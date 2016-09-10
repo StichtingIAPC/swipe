@@ -10,6 +10,7 @@ from stock.stocklabel import OrderLabel
 from article.models import ArticleType
 from blame.models import ImmutableBlame, Blame
 from collections import defaultdict
+from swipe.settings import USED_SUPPLICATION_STRATEGY
 
 
 class PackingDocument(ImmutableBlame):
@@ -61,6 +62,15 @@ class PackingDocument(ImmutableBlame):
                     )
                 err_msg += "\n"
             raise InsufficientDemandError(err_msg)
+
+        distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY)
+        DistributionStrategy.distribute(user=user, supplier=supplier,
+                                        distribution=distribution,
+                                        document_identifier=packing_document_name,
+                                        invoice_identifier=invoice_name,
+                                        )
+
+
 
     @staticmethod
     def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
@@ -258,6 +268,15 @@ class DistributionStrategy:
         """
         raise UnimplementedError("Function does not exist at the super level. Call actual strategies")
 
+    @staticmethod
+    def get_strategy_from_string(strategy_name):
+        if strategy_name == "FirstSupplierOrderStrategy":
+            return FirstSupplierOrderStrategy
+        elif strategy_name == "FirstCustomersDateTimeThenStockDateTime":
+            return FirstCustomersDateTimeThenStockDateTime
+        else:
+            raise UnimplementedError("Strategy not implemented")
+
 
 class FirstSupplierOrderStrategy(DistributionStrategy):
 
@@ -295,6 +314,80 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
                 pac_doc_line = PackingDocumentLine(article_type=sol.article_type,
                                               line_cost=sol.line_cost
                                               ,supplier_order_line=sol)
+                distribution.append(pac_doc_line)
+                article_supply[sol.article_type] -= 1
+
+        # Should we consider costs? If true, connect cost to packing_doc_lines
+        if use_cost:
+            cost_dist = article_type_number_combos.copy()
+            for pac_doc_line in distribution:
+                for elem in cost_dist:
+                    if pac_doc_line.article_type == elem[ARTICLE_TYPE_LOCATION] and elem[NUMBER_LOCATION] > 0 \
+                            and len(elem) > 2 and elem[COST_LOCATION] is not None:
+                        pac_doc_line.line_cost_after_invoice = elem[COST_LOCATION]
+                        elem[NUMBER_LOCATION] -= 1
+                        # Go to next packing doc line
+                        break
+
+        return distribution
+
+
+class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
+
+    @staticmethod
+    def get_distribution(article_type_number_combos, supplier):
+        distribution = []
+        # Viability assertions
+        assert isinstance(supplier, Supplier)
+        articletype_dict = defaultdict(lambda: 0)
+        use_cost = False  # Indicates that invoice, provided costs are used
+        ARTICLE_TYPE_LOCATION = 0
+        NUMBER_LOCATION = 1
+        COST_LOCATION = 2
+        for elem in article_type_number_combos:
+            articletype_dict[elem[0]] += elem[1]
+            if len(elem) > 2 and elem[2] is not None and isinstance(elem[2], Cost):
+                use_cost = True
+        articletypes = articletype_dict.keys()
+        relevant_supplier_orderline = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes,
+                                                                       supplier_order__supplier=supplier,
+                                                                       )
+        article_demand = defaultdict(lambda: 0)
+        article_supply = articletype_dict.copy()
+
+        # Tallies the open supplier orders
+        for sol in relevant_supplier_orderline:
+            article_demand[sol.article_type] += 1
+
+        # If you have supply without demand, there is an inconsistency
+        for typ in articletypes:
+            assert not articletype_dict[typ] > article_demand[typ]
+
+        relevant_supplier_orderline_orders_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes,
+                                                                       supplier_order__supplier=supplier,
+                                                                       order_line__isnull=False)
+        # Create the packing_document_lines for orders
+        for sol in relevant_supplier_orderline_orders_only:
+            if article_supply[sol.article_type] > 0:
+                pac_doc_line = PackingDocumentLine(article_type=sol.article_type,
+                                                   line_cost=sol.line_cost
+                                                   , supplier_order_line=sol)
+                distribution.append(pac_doc_line)
+                article_supply[sol.article_type] -= 1
+
+        relevant_supplier_orderline_stock_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes,
+                                                                       supplier_order__supplier=supplier,
+                                                                       order_line__isnull=True)
+
+        # Create the packing_document_lines
+        for sol in relevant_supplier_orderline_stock_only:
+            if article_supply[sol.article_type] > 0:
+                pac_doc_line = PackingDocumentLine(article_type=sol.article_type,
+                                                   supplier_order_line=sol,
+                                                   line_cost=sol.line_cost)
                 distribution.append(pac_doc_line)
                 article_supply[sol.article_type] -= 1
 

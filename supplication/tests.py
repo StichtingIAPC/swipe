@@ -4,7 +4,7 @@ from money.models import VAT, AccountingGroup, Price, Currency, Cost, Money
 from article.models import ArticleType
 from crm.models import Person, User
 from supplier.models import Supplier, ArticleTypeSupplier
-from logistics.models import SupplierOrder
+from logistics.models import SupplierOrder, StockWish
 from order.models import OrderLine, Order
 from supplication.models import *
 from stock.models import Stock
@@ -476,7 +476,92 @@ class DistributionTests(TestCase):
         supply = [[self.article_type, 10]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for pac_doc_line in dist:
-            print(pac_doc_line)
+            assert pac_doc_line.line_cost == self.cost
+            assert pac_doc_line.invoice is None
+            assert pac_doc_line.line_cost_after_invoice is None
+            assert pac_doc_line.article_type == self.article_type
+
+    def test_first_supplier_order_strategy_no_cost_lesser_amount(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 10
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
+
+        supply = [[self.article_type, 8]]
+        dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
+        for i in range(0, len(dist)):
+            assert dist[i].supplier_order_line.pk == i+1
+            assert dist[i].line_cost == self.cost
+            assert dist[i].invoice is None
+            assert dist[i].line_cost_after_invoice is None
+            assert dist[i].article_type == self.article_type
+
+    def test_first_supplier_order_strategy_no_cost_with_wishes(self):
+        STOCK_WISH = 5
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, STOCK_WISH]])
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, STOCK_WISH, self.cost]])
+        orderlines = []
+        NUMBER_ORDERED_1 = 10
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
+
+        supply = [[self.article_type, 8]]
+        dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
+        for i in range(0, STOCK_WISH):
+            assert dist[i].supplier_order_line.pk == i+1
+            assert dist[i].line_cost == self.cost
+            assert dist[i].invoice is None
+            assert dist[i].line_cost_after_invoice is None
+            assert dist[i].article_type == self.article_type
+            assert dist[i].supplier_order_line.order_line is None
+        for i in range(STOCK_WISH+1, len(dist)):
+            assert dist[i].supplier_order_line.pk == i + 1
+            assert dist[i].line_cost == self.cost
+            assert dist[i].invoice is None
+            assert dist[i].line_cost_after_invoice is None
+            assert dist[i].article_type == self.article_type
+            assert dist[i].supplier_order_line.order_line is not None
+
+    def test_first_supplier_order_strategy_with_cost(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 10
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
+        NON_COST = 8
+        WITH_COST = 2
+        supply = [[self.article_type, NON_COST], [self.article_type, WITH_COST, self.cost2]]
+        dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
+        cost_counted = 0
+        for dis in dist:
+            if dis.line_cost_after_invoice == self.cost2:
+                cost_counted += 1
+        assert cost_counted == WITH_COST
+
+    def test_new_feature(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 10
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution(None, None)
+        for b in a:
+            print(b)
 
 
 
