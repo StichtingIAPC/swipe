@@ -319,6 +319,165 @@ class DistributionTests(TestCase):
         self.copro.save()
 
         self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
+        self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
 
-    def test_feature(self):
-        FirstSupplierOrderStrategy.get_distribution([])
+    def test_distribution_simple_no_invoice(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        order_2 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 1
+        NUMBER_ORDERED_2 = 1
+        NUMBER_ORDERED = NUMBER_ORDERED_1 + NUMBER_ORDERED_2
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_2, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_2, orderlines, self.copro)
+        NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
+        sols = SupplierOrderLine.objects.all()
+        pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
+                                             supplier_order_line=sols[0]
+                                             )
+        pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
+                                             supplier_order_line=sols[1]
+                                             )
+        distribution = []
+        distribution.append(pac_doc_line_1)
+        distribution.append(pac_doc_line_2)
+        DistributionStrategy.distribute(supplier=self.supplier, user=self.copro,
+                                        distribution=distribution, document_identifier="A", indirect=True)
+        pdls = PackingDocumentLine.objects.all()
+        assert len(pdls) == 2
+        assert pdls[0].packing_document == pdls[1].packing_document
+        assert not (pdls[0].supplier_order_line == pdls[1].supplier_order_line)
+        for pdl in pdls:
+            assert pdl.line_cost == self.cost
+            assert pdl.line_cost_after_invoice is None
+
+    def test_distribution_illegal_final_cost_no_invoice(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        order_2 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 1
+        NUMBER_ORDERED_2 = 1
+        NUMBER_ORDERED = NUMBER_ORDERED_1 + NUMBER_ORDERED_2
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_2, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_2, orderlines, self.copro)
+        NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
+        sols = SupplierOrderLine.objects.all()
+        pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
+                                             supplier_order_line=sols[0],
+                                             line_cost_after_invoice=self.cost
+                                             )
+        distribution = []
+        distribution.append(pac_doc_line_1)
+        caught = False
+        try:
+            DistributionStrategy.distribute(supplier=self.supplier, user=self.copro,
+                                        distribution=distribution, document_identifier="A", indirect=True)
+        except AssertionError:
+            caught = True
+
+        assert caught
+
+    def test_distribution_illegal_invoice_identifier(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        order_2 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 1
+        NUMBER_ORDERED_2 = 1
+        NUMBER_ORDERED = NUMBER_ORDERED_1 + NUMBER_ORDERED_2
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_2, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_2, orderlines, self.copro)
+        NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
+        sols = SupplierOrderLine.objects.all()
+        pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
+                                             supplier_order_line=sols[0]
+                                             )
+        distribution = []
+        distribution.append(pac_doc_line_1)
+        caught = False
+        try:
+            DistributionStrategy.distribute(supplier=self.supplier, user=self.copro,
+                                        distribution=distribution, document_identifier="A", invoice_identifier="B"
+                                            ,indirect=True)
+        except AssertionError:
+            caught = True
+
+        assert caught
+
+    def test_distribution_simple_with_invoice(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        order_2 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 1
+        NUMBER_ORDERED_2 = 1
+        NUMBER_ORDERED = NUMBER_ORDERED_1 + NUMBER_ORDERED_2
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        orderlines = []
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_2, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_2, orderlines, self.copro)
+        NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
+        sols = SupplierOrderLine.objects.all()
+        pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
+                                             supplier_order_line=sols[0], line_cost_after_invoice=self.cost2
+                                             )
+        pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
+                                             supplier_order_line=sols[1]
+                                             )
+        distribution = []
+        distribution.append(pac_doc_line_1)
+        distribution.append(pac_doc_line_2)
+        DistributionStrategy.distribute(supplier=self.supplier, user=self.copro,
+                                        distribution=distribution, document_identifier="A",
+                                        invoice_identifier="B", indirect=True)
+        pdls = PackingDocumentLine.objects.all()
+        assert len(pdls) == 2
+        assert pdls[0].packing_document == pdls[1].packing_document
+        assert not (pdls[0].supplier_order_line == pdls[1].supplier_order_line)
+        for pdl in pdls:
+            assert pdl.line_cost == self.cost
+        assert pdls[0].line_cost_after_invoice == self.cost2
+        assert pdls[0].invoice is not None
+
+    def test_first_supplier_order_strategy_no_cost(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 10
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
+
+        supply = [[self.article_type, 10]]
+        dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
+        for pac_doc_line in dist:
+            print(pac_doc_line)
+
+
+
+
