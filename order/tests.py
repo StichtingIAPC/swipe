@@ -190,3 +190,38 @@ class OrderTest(INeedSettings, TestCase):
         assert len(olcl) == 2
         olcl2=OrderCombinationLine.get_ol_combinations(order=order, include_price_field=False)
         assert len(olcl2) == 1
+
+    def test_create_order_function(self):
+        self.order.delete()
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price]])
+        # Asserts that there is only one Order
+        a = Order.objects.get()
+        b = OrderLine.objects.filter(order=a)
+        c = OrderLine.objects.all()
+        assert len(b) == len(c)
+        assert len(b) == 5
+        for i in range(0, len(b)):
+            assert b[i].pk is c[i].pk
+
+    def test_create_order_function_more_sets(self):
+        self.order.delete()
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price],
+                                                                                   [self.at2, 6, self.price]])
+        # Asserts that there is only one Order
+        a = Order.objects.get()
+        b = OrderLine.objects.filter(order=a)
+        c = OrderLine.objects.all()
+
+        assert len(b) == len(c)
+        assert len(b) == 5+6
+        tally_art1, tally_art2 = 0, 0
+        for ol in b:
+            if ol.wishable.sellabletype.articletype == self.article_type:
+                tally_art1 += 1
+            elif ol.wishable.sellabletype.articletype == self.at2:
+                tally_art2 += 1
+            else:
+                # How did that happen?
+                assert False
+        assert tally_art1 == 5
+        assert tally_art2 == 6
