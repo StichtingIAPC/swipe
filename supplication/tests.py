@@ -550,7 +550,7 @@ class DistributionTests(TestCase):
                 cost_counted += 1
         assert cost_counted == WITH_COST
 
-    def test_new_feature(self):
+    def test_second_strategy_orders_only_no_cost(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
         orderlines = []
         NUMBER_ORDERED_1 = 10
@@ -559,9 +559,57 @@ class DistributionTests(TestCase):
         Order.make_order(order_1, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
-        a = FirstCustomersDateTimeThenStockDateTime.get_distribution(None, None)
-        for b in a:
-            print(b)
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10]], self.supplier)
+        for i in range(0,len(a)):
+            assert a[i].line_cost == self.cost
+            assert a[i].supplier_order_line.pk == i+1
+            assert a[i].article_type == self.article_type
+            assert a[i].line_cost_after_invoice is None
+            assert a[i].invoice is None
+            assert not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None
+
+    def test_second_strategy_orders_only_with_cost(self):
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 10
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]], self.supplier)
+        for i in range(0, len(a)):
+            assert a[i].line_cost == self.cost
+            assert a[i].supplier_order_line.pk == i+1
+            assert a[i].article_type == self.article_type
+            assert a[i].line_cost_after_invoice == self.cost2
+            assert a[i].invoice is None
+            assert not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None
+
+    def test_second_strategy_mixed_no_cost(self):
+        STOCK_WISH = 5
+        StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH]])
+        order_1 = Order(user_modified=self.copro, customer=self.customer)
+        orderlines = []
+        NUMBER_ORDERED_1 = 5
+        TOTAL_ORDERED = 10
+        OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
+                                         price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
+        Order.make_order(order_1, orderlines, self.copro)
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]], self.supplier)
+        for i in range(0, len(a)):
+            if i< STOCK_WISH:
+                assert a[i].supplier_order_line.order_line is not None
+            else:
+                assert a[i].supplier_order_line.order_line is None
+            assert a[i].line_cost == self.cost
+            assert a[i].supplier_order_line.pk == i+1
+            assert a[i].article_type == self.article_type
+            assert a[i].line_cost_after_invoice == self.cost2
+            assert a[i].invoice is None
+            assert not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None
 
 
 
