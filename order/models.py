@@ -19,6 +19,30 @@ class Order(Blame):
     customer = models.ForeignKey(Customer)
 
     @staticmethod
+    def create_order_from_wishables_combinations(user, customer, wishable_type_number_price_combinations):
+        """
+        Creates orders from the combination of a customer and wishables with prices attached to them.
+        :param user: The user who is responsible for the order
+        :param customer: Customer of the order
+        :param wishable_type_number_price_combinations: List[List[WishableType, number, Price]] A list of lists of size 3
+        that contain all the neccesary implements in creating orderLines
+        :return:
+        """
+        assert isinstance(user, User)
+        assert isinstance(customer, Customer)
+        for combi in wishable_type_number_price_combinations:
+            assert len(combi) == 3
+            assert isinstance(combi[0], WishableType)
+            assert isinstance(combi[1], int) and combi[1] > 0
+            assert isinstance(combi[2], Price)
+        order = Order(user_created=user, customer=customer)
+        orderlines = []
+        for combi in wishable_type_number_price_combinations:
+            OrderLine.add_orderlines_to_list(orderlines, wishable_type=combi[0],
+                                             number=combi[1], user=user, price=combi[2])
+        Order.make_order(order, orderlines)
+
+    @staticmethod
     def make_order(order, orderlines,user):
         """
         Creates a new order with the specified orderlines. Order must be unsaved.
