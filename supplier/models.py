@@ -1,7 +1,9 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from money.models import CostField
+
 from article.models import ArticleType
+from money.models import CostField
+from tools.util import _assert
 
 
 class Supplier(models.Model):
@@ -68,7 +70,7 @@ class ArticleTypeSupplier(models.Model):
         return len(gps) > 0
 
     def save(self):
-        assert self.availability in ArticleTypeSupplier.AVAILABILITY_OPTIONS
+        _assert(self.availability in ArticleTypeSupplier.AVAILABILITY_OPTIONS)
         super(ArticleTypeSupplier, self).save()
 
 

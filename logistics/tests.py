@@ -1,14 +1,11 @@
-from django.test import TestCase
+from decimal import Decimal
+
 from django.test import TestCase
 
 from article.tests import INeedSettings
-from money.models import VAT, Price, Currency, AccountingGroup, Money
-from article.models import ArticleType
-from crm.models import User, Person
 from logistics.models import *
 from order.models import *
-from unittest import skip
-from decimal import Decimal
+from tools.util import _assert
 
 
 class StockWishTests(INeedSettings, TestCase):
@@ -57,14 +54,14 @@ class StockWishTests(INeedSettings, TestCase):
                 (self.article_type, NUMBER)
             ])
 
-        assert len(StockWish.objects.all()) == 1
+        _assert(len(StockWish.objects.all()) == 1)
         swtl = StockWishTableLog.objects.get()
-        assert swtl.stock_wish == sw
+        _assert(swtl.stock_wish == sw)
 
         swtl = StockWishTableLine.objects.all()
-        assert len(swtl) == 1
-        assert swtl[0].article_type == self.article_type
-        assert swtl[0].number == NUMBER
+        _assert(len(swtl) == 1)
+        _assert(swtl[0].article_type == self.article_type)
+        _assert(swtl[0].number == NUMBER)
 
     def test_addition_wish(self):
         NUMBER = 1
@@ -87,13 +84,13 @@ class StockWishTests(INeedSettings, TestCase):
         )
 
         swtl = StockWishTableLine.objects.all()
-        assert len(swtl) == 1
-        assert swtl[0].number == NUMBER + NUMBER2 + NUMBER3
+        _assert(len(swtl) == 1)
+        _assert(swtl[0].number == NUMBER + NUMBER2 + NUMBER3)
 
         logs = StockWishTableLog.objects.all()
-        assert len(logs) == 3
+        _assert(len(logs) == 3)
 
-        assert logs[0].supplier_order is None and logs[0].stock_wish == stock_wish
+        _assert(logs[0].supplier_order is None and logs[0].stock_wish == stock_wish)
 
     def test_differentiation_wish(self):
         NUMBER = 2
@@ -108,15 +105,15 @@ class StockWishTests(INeedSettings, TestCase):
         )
 
         swtls = StockWishTableLine.objects.all()
-        assert len(swtls) == 2
+        _assert(len(swtls) == 2)
 
         for swtl in swtls:
             if swtl.article_type == self.article_type:
-                assert swtl.number == NUMBER
+                _assert(swtl.number == NUMBER)
             elif swtl.article_type == self.at2:
-                assert swtl.number == NUMBER2
+                _assert(swtl.number == NUMBER2)
 
-        assert len(StockWishTableLog.objects.all()) == 2
+        _assert(len(StockWishTableLog.objects.all()) == 2)
 
     def test_mass_storage_simple(self):
 
@@ -125,13 +122,13 @@ class StockWishTests(INeedSettings, TestCase):
         StockWish.create_stock_wish(self.user_modified, article_number_list)
 
         stockwish_list = StockWish.objects.all()
-        assert len(stockwish_list) == 1
-        assert stockwish_list[0].user_created == self.user_modified
+        _assert(len(stockwish_list) == 1)
+        _assert(stockwish_list[0].user_created == self.user_modified)
 
         logs = StockWishTableLog.objects.all()
-        assert len(logs) == 1
+        _assert(len(logs) == 1)
 
-        assert logs[0].stock_wish == stockwish_list[0]
+        _assert(logs[0].stock_wish == stockwish_list[0])
 
     def test_mass_storage_compound(self):
 
@@ -142,17 +139,17 @@ class StockWishTests(INeedSettings, TestCase):
         StockWish.create_stock_wish(self.user_modified, article_number_list)
 
         stockwish_list = StockWish.objects.all()
-        assert len(stockwish_list) == 1
-        assert stockwish_list[0].user_created == self.user_modified
+        _assert(len(stockwish_list) == 1)
+        _assert(stockwish_list[0].user_created == self.user_modified)
 
         logs = StockWishTableLog.objects.all()
-        assert len(logs) == 2
+        _assert(len(logs) == 2)
 
-        assert logs[0].stock_wish == stockwish_list[0]
-        assert logs[1].stock_wish == stockwish_list[0]
+        _assert(logs[0].stock_wish == stockwish_list[0])
+        _assert(logs[1].stock_wish == stockwish_list[0])
 
         stock_wish_table_lines = StockWishTableLine.objects.all()
-        assert len(stock_wish_table_lines) == 1
+        _assert(len(stock_wish_table_lines) == 1)
 
     def test_mass_storage_differentiated(self):
 
@@ -164,40 +161,40 @@ class StockWishTests(INeedSettings, TestCase):
         StockWish.create_stock_wish(self.user_modified, atcs)
 
         stockwish_list = StockWish.objects.all()
-        assert len(stockwish_list) == 1
-        assert stockwish_list[0].user_created == self.user_modified
+        _assert(len(stockwish_list) == 1)
+        _assert(stockwish_list[0].user_created == self.user_modified)
 
         logs = StockWishTableLog.objects.all()
-        assert len(logs) == 4
+        _assert(len(logs) == 4)
 
         stock_wish_table_lines = StockWishTableLine.objects.all()
-        assert len(stock_wish_table_lines) == 3
+        _assert(len(stock_wish_table_lines) == 3)
 
     def test_deletion_of_lines(self):
         atcs = []
         atcs.append([self.article_type, 2])
         StockWish.create_stock_wish(self.user_modified, atcs)
-        assert len(StockWishTableLog.objects.all()) == 1
+        _assert(len(StockWishTableLog.objects.all()) == 1)
         swtl = StockWishTableLine.objects.all()
-        assert len(swtl) == 1
-        assert swtl[0].number == 2
+        _assert(len(swtl) == 1)
+        _assert(swtl[0].number == 2)
 
 
         atcs = []
         atcs.append([self.article_type, -1])
         StockWish.create_stock_wish(self.user_modified, atcs)
-        assert len(StockWishTableLog.objects.all()) == 2
+        _assert(len(StockWishTableLog.objects.all()) == 2)
         swtl = StockWishTableLine.objects.all()
-        assert len(swtl) == 1
-        assert swtl[0].number == 1
+        _assert(len(swtl) == 1)
+        _assert(swtl[0].number == 1)
 
 
         atcs = []
         atcs.append([self.article_type, -1])
         StockWish.create_stock_wish(self.user_modified, atcs)
-        assert len(StockWishTableLog.objects.all()) == 3
+        _assert(len(StockWishTableLog.objects.all()) == 3)
         swtl = StockWishTableLine.objects.all()
-        assert len(swtl) == 0
+        _assert(len(swtl) == 0)
 
     def test_indirection(self):
 
@@ -207,7 +204,7 @@ class StockWishTests(INeedSettings, TestCase):
             log.save()
         except IndirectionError:
             caught = True
-        assert caught
+        _assert(caught)
 
 
 class SupplierOrderTests(INeedSettings, TestCase):
@@ -273,21 +270,21 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SUP_ORD_2 = 3
         atcs.append([self.article_type, SUP_ORD_1, self.cost])
         atcs.append([self.at2, SUP_ORD_2, self.cost])
-        assert SUP_ORD_1 <= DEMAND_1
-        assert SUP_ORD_2 <= DEMAND_2
+        _assert(SUP_ORD_1 <= DEMAND_1)
+        _assert(SUP_ORD_2 <= DEMAND_2)
         # We know supply <= demand
 
         dist = IndiscriminateCustomerStockStrategy.get_distribution(atcs)
         article_type_count = defaultdict(lambda: 0)
         for d in dist:
             article_type_count[d.article_type] += 1
-            assert d.order_line is not None
+            _assert(d.order_line is not None)
 
         for atc in article_type_count:
             if atc == self.article_type:
-                assert article_type_count[atc] == SUP_ORD_1
+                _assert(article_type_count[atc] == SUP_ORD_1)
             else:
-                assert article_type_count[atc] == SUP_ORD_2
+                _assert(article_type_count[atc] == SUP_ORD_2)
 
     def test_ics_strategy_stock_only(self):
         atcs = []
@@ -307,9 +304,9 @@ class SupplierOrderTests(INeedSettings, TestCase):
         count = defaultdict(lambda: 0)
         for d in distribution:
             count[d.article_type] += 1
-            assert d.order_line is None
-        assert (count[self.article_type]) == SUPPLY_1
-        assert (count[self.at2]) == SUPPLY_2
+            _assert(d.order_line is None)
+        _assert((count[self.article_type]) == SUPPLY_1)
+        _assert((count[self.at2]) == SUPPLY_2)
 
     def test_ics_strategy_combined(self):
         STOCK_DEMAND_1 = 2
@@ -340,7 +337,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
         for d in distribution:
             if d.order_line is not None:
                 counted_orders += 1
-        assert counted_orders == ORDER_DEMAND_1 + ORDER_DEMAND_2
+        _assert(counted_orders == ORDER_DEMAND_1 + ORDER_DEMAND_2)
 
     def test_distribution_to_orders(self):
         # Articletypes for supplier order
@@ -369,14 +366,14 @@ class SupplierOrderTests(INeedSettings, TestCase):
         FOUND_1 = 0
         FOUND_2 = 0
         for sol in sols:
-            assert sol.supplier_order.supplier == self.supplier
-            assert sol.supplier_order.user_created == self.user_modified
+            _assert(sol.supplier_order.supplier == self.supplier)
+            _assert(sol.supplier_order.user_created == self.user_modified)
             if sol.article_type == self.article_type:
                 FOUND_1 += 1
             if sol.article_type == self.at2:
                 FOUND_2 += 1
-        assert FOUND_1 == SUPPLY_1
-        assert FOUND_2 == SUPPLY_2
+        _assert(FOUND_1 == SUPPLY_1)
+        _assert(FOUND_2 == SUPPLY_2)
 
     def test_distribution_to_stock(self):
 
@@ -405,14 +402,14 @@ class SupplierOrderTests(INeedSettings, TestCase):
         FOUND_2 = 0
 
         for sol in sols:
-            assert sol.order_line is None
+            _assert(sol.order_line is None)
             if sol.article_type == self.article_type:
                 FOUND_1 += 1
             if sol.article_type == self.at2:
                 FOUND_2 += 1
 
-        assert SUPPLY_1 == FOUND_1
-        assert SUPPLY_2 == FOUND_2
+        _assert(SUPPLY_1 == FOUND_1)
+        _assert(SUPPLY_2 == FOUND_2)
 
     def test_distribution_mixed(self):
 
@@ -448,7 +445,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
         for sol in sols:
             if sol.order_line is not None:
                 ORDERS += 1
-        assert ORDERS == ORDER_DEMAND_1+ORDER_DEMAND_2
+        _assert(ORDERS == ORDER_DEMAND_1+ORDER_DEMAND_2)
 
     def test_cancel_order_with_full_cancel(self):
         ORDER_1 = 1
@@ -462,13 +459,13 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         ol = OrderLine.objects.get()
-        assert ol.state == 'L'
+        _assert(ol.state == 'L')
         sol = SupplierOrderLine.objects.get()
         sol.cancel_line(user_modified=self.user_modified, cancel_order=True)
         ol = OrderLine.objects.get()
-        assert ol.state == 'C'
+        _assert(ol.state == 'C')
         sol = SupplierOrderLine.objects.get()
-        assert sol.state == 'C'
+        _assert(sol.state == 'C')
 
     def test_cancel_order_with_return_to_order(self):
         ORDER_1 = 1
@@ -482,13 +479,13 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         ol = OrderLine.objects.get()
-        assert ol.state == 'L'
+        _assert(ol.state == 'L')
         sol = SupplierOrderLine.objects.get()
         sol.cancel_line(user_modified=self.user_modified)
         ol = OrderLine.objects.get()
-        assert ol.state == 'O'
+        _assert(ol.state == 'O')
         sol = SupplierOrderLine.objects.get()
-        assert sol.state == 'C'
+        _assert(sol.state == 'C')
 
     def test_cancel_stock_wish_with_full_cancel(self):
 
@@ -503,13 +500,13 @@ class SupplierOrderTests(INeedSettings, TestCase):
                                             articles_ordered=atcs)
         stw = StockWishTableLine.objects.all()
         # We removed all the stockwishes from the table
-        assert len(stw) == 0
+        _assert(len(stw) == 0)
         sol = SupplierOrderLine.objects.get()
         sol.cancel_line(self.user_modified, cancel_order=True)
-        assert sol.state == 'C'
+        _assert(sol.state == 'C')
         stw = StockWishTableLine.objects.all()
         # All quiet on the stock order front
-        assert len(stw) == 0
+        _assert(len(stw) == 0)
 
     def test_cancel_stock_wish_with_return_to_stockwish(self):
 
@@ -524,16 +521,16 @@ class SupplierOrderTests(INeedSettings, TestCase):
                                             articles_ordered=atcs)
         stw = StockWishTableLine.objects.all()
         # We removed all the stockwishes from the table
-        assert len(stw) == 0
+        _assert(len(stw) == 0)
         sol = SupplierOrderLine.objects.get()
         sol.cancel_line(self.user_modified)
-        assert sol.state == 'C'
+        _assert(sol.state == 'C')
         stw = StockWishTableLine.objects.all()
         # All quiet on the stock order front
-        assert len(stw) == 1
+        _assert(len(stw) == 1)
         swtls = StockWishTableLog.objects.all()
         # Last modification and return from supplier order
-        assert swtls[2].supplier_order == sol.supplier_order
+        _assert(swtls[2].supplier_order == sol.supplier_order)
 
 
 
