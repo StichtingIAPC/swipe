@@ -9,6 +9,7 @@ from order.models import OrderLine, Order
 from supplication.models import *
 from stock.models import Stock
 from unittest import skip
+from assortment.models import AssortmentArticleBranch
 
 # Create your tests here.
 class SimpleClassTests(TestCase):
@@ -27,13 +28,17 @@ class SimpleClassTests(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1")
+        self.branch = AssortmentArticleBranch.objects.create(
+            name='hoi',
+            parent_tag=None)
+
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2")
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
         self.at2.save()
 
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
@@ -290,13 +295,17 @@ class DistributionTests(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1")
+        self.branch = AssortmentArticleBranch.objects.create(
+            name='hoi',
+            parent_tag=None)
+
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2")
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
         self.at2.save()
 
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
