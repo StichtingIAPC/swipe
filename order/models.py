@@ -19,6 +19,30 @@ class Order(Blame):
     customer = models.ForeignKey(Customer)
 
     @staticmethod
+    def create_order_from_wishables_combinations(user, customer, wishable_type_number_price_combinations):
+        """
+        Creates orders from the combination of a customer and wishables with prices attached to them.
+        :param user: The user who is responsible for the order
+        :param customer: Customer of the order
+        :param wishable_type_number_price_combinations: List[List[WishableType, number, Price]] A list of lists of size 3
+        that contain all the neccesary implements in creating orderLines
+        :return:
+        """
+        assert isinstance(user, User)
+        assert isinstance(customer, Customer)
+        for wishable, number, price in wishable_type_number_price_combinations:
+            assert isinstance(wishable, WishableType)
+            assert isinstance(number, int) and number > 0
+            assert isinstance(price, Price)
+
+        order = Order(user_created=user, customer=customer)
+        orderlines = []
+        for wishable, number, price in wishable_type_number_price_combinations:
+            OrderLine.add_orderlines_to_list(orderlines, wishable_type=wishable,
+                                             number=number, user=user, price=price)
+        Order.make_order(order, orderlines, user)
+
+    @staticmethod
     def make_order(order, orderlines,user):
         """
         Creates a new order with the specified orderlines. Order must be unsaved.
@@ -165,9 +189,12 @@ class OrderLine(Blame):
             ordr = 'No order'
         else:
             ordr = self.order.pk
-
-        return "Order: {}, Wishable: {}, State: {}, Expected Sales Price: {}, Currency: {}, Vat-rate: {}".\
-            format(ordr, self.wishable, self.state, self.expected_sales_price.amount,
+        if not hasattr(self, 'pk') or self.pk is None:
+            pk = "None"
+        else:
+            pk = self.pk
+        return "pk: {}, Order: {}, Wishable: {}, State: {}, Expected Sales Price: {}, Currency: {}, Vat-rate: {}".\
+            format(pk, ordr, self.wishable, self.state, self.expected_sales_price.amount,
                    self.expected_sales_price_currency,
                    self.expected_sales_price_vat)
 
