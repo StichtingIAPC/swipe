@@ -1,0 +1,80 @@
+@import 'scss/www/util/_util';
+
+@mixin swipe-top-bar {
+  .top-bar {
+    @include shadow(4px);
+
+    width: 100%;
+    height: 44px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-left: 48px + 8px;
+    padding-right: 0;
+
+    .top-bar-left, .top-bar-right {
+      flex: 1 0 50%;
+    }
+
+    .top-bar-left h1 {
+      font-size: 1.6rem;
+      margin: auto;
+    }
+
+    .top-bar-right {
+
+      ul li {
+        .user-link {
+          padding: 0 0 0 1rem;
+          line-height: 44px;
+
+          &.login {
+            padding-right: 0.6rem;
+          }
+
+          img {
+            margin: 0 0 0 1rem;
+          }
+
+          .top-bar-icon {
+            height: 44px;
+            font-size: 24px;
+            width: auto;
+            float: right;
+            opacity: 1;
+            padding-left: 0.6rem;
+            line-height: 44px;
+          }
+
+          .top-bar-icon::before {
+            display: inline-block;
+          }
+        }
+
+        .user-link:hover {
+          background-color: rgba(0,0,0,0.2);
+        }
+      }
+
+      ul li .user-link::after {
+        display: none;
+      }
+
+      .login a {
+        float: right;
+        margin: auto;
+        padding-right: 0.6rem;
+        line-height:44px;
+        height:44px;
+        font-size: 1.2rem;
+      }
+
+      .login a .side-bar-icon {
+      }
+    }
+  }
+
+  .topbar-padding {
+    height: 44px;
+  }
+}
