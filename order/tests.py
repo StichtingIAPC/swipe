@@ -1,15 +1,16 @@
 from django.test import TestCase
 from unittest import skip
 from article.models import *
+from article.tests import INeedSettings
 from money.models import *
 from order.models import *
 # Create your tests here.
 
 
-class OrderTest(TestCase):
+class OrderTest(INeedSettings, TestCase):
 
     def setUp(self):
-
+        super().setUp()
         self.vat_group = VAT()
         self.vat_group.name = "Bar"
         self.vat_group.active = True
@@ -23,14 +24,16 @@ class OrderTest(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo")
+        self.article_type = ArticleType(accounting_group=self.acc_group,
+                                        name="Foo", branch=self.branch)
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Bar")
+        self.at2 = ArticleType(accounting_group=self.acc_group,
+                               name="Bar", branch=self.branch)
         self.at2.save()
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
-        self.oc = OtherCostType(name="Baz", accounting_group=self.acc_group, fixed_price=self.money)
+        self.oc = OtherCostType(name="Baz", branch=self.branch, accounting_group=self.acc_group, fixed_price=self.money)
         self.oc.save()
 
         self.customer = Person()
@@ -187,3 +190,38 @@ class OrderTest(TestCase):
         assert len(olcl) == 2
         olcl2=OrderCombinationLine.get_ol_combinations(order=order, include_price_field=False)
         assert len(olcl2) == 1
+
+    def test_create_order_function(self):
+        self.order.delete()
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price]])
+        # Asserts that there is only one Order
+        a = Order.objects.get()
+        b = OrderLine.objects.filter(order=a)
+        c = OrderLine.objects.all()
+        assert len(b) == len(c)
+        assert len(b) == 5
+        for i in range(0, len(b)):
+            assert b[i].pk is c[i].pk
+
+    def test_create_order_function_more_sets(self):
+        self.order.delete()
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price],
+                                                                                   [self.at2, 6, self.price]])
+        # Asserts that there is only one Order
+        a = Order.objects.get()
+        b = OrderLine.objects.filter(order=a)
+        c = OrderLine.objects.all()
+
+        assert len(b) == len(c)
+        assert len(b) == 5+6
+        tally_art1, tally_art2 = 0, 0
+        for ol in b:
+            if ol.wishable.sellabletype.articletype == self.article_type:
+                tally_art1 += 1
+            elif ol.wishable.sellabletype.articletype == self.at2:
+                tally_art2 += 1
+            else:
+                # How did that happen?
+                assert False
+        assert tally_art1 == 5
+        assert tally_art2 == 6

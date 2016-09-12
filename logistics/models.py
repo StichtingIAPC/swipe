@@ -274,6 +274,8 @@ class SupplierOrderState(ImmutableBlame):
     STATE_CHOICES = ('O', 'B', 'C', 'A')
     STATE_CHOICES_MEANING = {'O': 'Ordered at supplier', 'B': 'Backorder', 'C': 'Cancelled',
                              'A': 'Arrived at store'}
+    OPEN_STATES = ('O', 'B')
+    CLOSED_STATES = ('C', 'A')
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -559,7 +561,7 @@ class DisbributionStrategy:
     def get_distribution(article_type_number_combos):
         """
         Proposes a distribution according to the specific strategy. Assume supply is not bigger than demand
-        :param article_type_number_combos:
+        :param article_type_number_combos: List[ArticleType, number, Cost]
         :return: A list containing SupplierOrderLines
         """
         raise UnimplementedError("Super distribution class has no implementation")

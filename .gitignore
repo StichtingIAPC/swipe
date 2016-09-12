@@ -105,13 +105,13 @@ docs/_build/
 target/
 
 # Ignore local settings.
-swipe/local.py
+/swipe/local.py
 
 # Ignore local sqlite database
 *.sqlite3
 
 # Staticfiles collection directory
-static/
+/static/
 
 # Node package directory
 node_modules/

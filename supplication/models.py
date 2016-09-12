@@ -2,18 +2,18 @@ from django.db import models, transaction
 from crm.models import User
 from stock.enumeration import enum
 from supplier.models import Supplier, ArticleTypeSupplier
-from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, InsufficientDemandError
+from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, \
+    InsufficientDemandError, IndirectionError, UnimplementedError, SupplierOrderState
 from money.models import CostField, Cost
 from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
 from article.models import ArticleType
 from blame.models import ImmutableBlame, Blame
 from collections import defaultdict
+from swipe.settings import USED_SUPPLICATION_STRATEGY
 
 
 class PackingDocument(ImmutableBlame):
-
-    timestamp = models.DateTimeField(auto_now=True)
 
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
@@ -63,6 +63,15 @@ class PackingDocument(ImmutableBlame):
                 err_msg += "\n"
             raise InsufficientDemandError(err_msg)
 
+        distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY)
+        DistributionStrategy.distribute(user=user, supplier=supplier,
+                                        distribution=distribution,
+                                        document_identifier=packing_document_name,
+                                        invoice_identifier=invoice_name,
+                                        )
+
+
+
     @staticmethod
     def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
         assert article_type_cost_combinations and isinstance(article_type_cost_combinations, list)
@@ -96,8 +105,6 @@ class Invoice(ImmutableBlame):
 
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
-    timestamp = models.DateTimeField(auto_now=True)
-
 
 class PackingDocumentLine(Blame):
     # The packing document to which this line belongs
@@ -116,7 +123,8 @@ class PackingDocumentLine(Blame):
     @transaction.atomic
     def save(self, mod_stock=True):
         """
-        Save function for a packing document line. WARNING: Does not modify the stock!
+        Save function for a packing document line. Modifies related supplier orders.
+        WARNING: Modifies stock depending on flag.
         :param mod_stock: Indicated whether saving this PacDocLine also mods the stock. If not,
         this has to be done manually
         :return:
@@ -147,10 +155,10 @@ class PackingDocumentLine(Blame):
         # Mod supplierOrderLine and order if connected and packingdoc is new
         if self.pk is None:
             self.supplier_order_line.mark_as_arrived(self.packing_document.user_created)
+            document_key = self.packing_document.pk
 
-        super(PackingDocumentLine, self).save()
         if self.pk is None:
-            pk = self.packing_document.pk
+            super(PackingDocumentLine, self).save()
             if mod_stock:
                 # Modify stock
                 entry = [{
@@ -162,7 +170,9 @@ class PackingDocumentLine(Blame):
                 if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
                     label = OrderLabel(self.supplier_order_line.order_line.order.pk)
                     entry[0]['label'] = label
-                StockChangeSet.construct(description="Stock supplication by {}".format(pk), entries=entry, enum=enum["supplication"])
+                StockChangeSet.construct(description="Stock supplication by {}".format(document_key), entries=entry, enum=enum["supplication"])
+        else:
+            super(PackingDocumentLine, self).save()
 
     def __str__(self):
         if not hasattr(self, 'line_cost'):
@@ -177,15 +187,220 @@ class PackingDocumentLine(Blame):
             final_cost = "None"
         else:
             final_cost = str(self.line_cost_after_invoice)
+        if not hasattr(self, 'packing_document') or self.packing_document is None:
+            packing_doc = "None"
+        else:
+            packing_doc = self.packing_document.pk
+        if not hasattr(self, 'supplier_order_line') or self.supplier_order_line is None:
+            sol = "None"
+        else:
+            sol = self.supplier_order_line.pk
         return "Packing Document: {}, SupplierOrderLine: {}, ArticleType: {}, SupOrdCost: {}, InvoiceCost: {}, Invoice: {}".format(
-            self.packing_document.pk, self.supplier_order_line.pk, self.article_type, cost, final_cost, invoice
+            packing_doc, sol, self.article_type, cost, final_cost, invoice
         )
 
 
-class DistributionStrategy():
+class DistributionStrategy:
 
-    def distribute(self):
-        pass
+    @staticmethod
+    @transaction.atomic
+    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False, indirect=False):
+        """
+        Distributes the actual packing document. A line_cost_after invoice should never be used if there is not direct invoice
+        possible, indicated by the invoice_identifier. Distribution will refuse to execute in this case.
+        :param user: The user that caused this distribution
+        :param supplier: The supplier that ships the products
+        :param distribution: List[PackingDocumentLine], with each PackingDocumentLine
+        :param document_identifier: String, name of the packing document
+        :param invoice_identifier: String, can be empty if there is no invoice
+        :param indirect: Indirection flag. Function is only meant to be called indirectly. Change at your own peril.
+        :return:
+        """
+        if not indirect:
+            raise IndirectionError("Distribute must be called indirectly")
+        assert user and isinstance(user, User)
+        assert supplier and isinstance(supplier, Supplier)
+        assert distribution and isinstance(distribution, list)
+        assert document_identifier and isinstance(document_identifier, str)
+        # Indicates that we are using an invoice in the process
+        if invoice_identifier:
+            assert isinstance(invoice_identifier, str)
 
-    def get_distribution(self):
-        pass
+        found_final_cost = False
+        for pac_doc_line in distribution:
+            assert pac_doc_line and isinstance(pac_doc_line, PackingDocumentLine)
+            # Asserts correct article type and supplier consistency
+            assert pac_doc_line.supplier_order_line
+            assert pac_doc_line.article_type == pac_doc_line.supplier_order_line.article_type
+            assert supplier == pac_doc_line.supplier_order_line.supplier_order.supplier
+            # There cannot be a final cost without an invoice
+            if not invoice_identifier:
+                assert not hasattr(pac_doc_line, 'line_cost_after_invoice') or not pac_doc_line.line_cost_after_invoice
+            if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice is not None:
+                found_final_cost = True
+
+        if invoice_identifier:
+            # Checks if there is an actual final_line_cost for a pac_doc_line to create an invoice for
+            assert found_final_cost
+            invoice = Invoice(supplier=supplier, supplier_identifier=invoice_identifier, user_modified=user)
+
+        # Below here are the actual saves
+        # First, saves of related documents
+        packing_document = PackingDocument(supplier=supplier, supplier_identifier=document_identifier, user_modified=user)
+        packing_document.save()
+        if invoice_identifier:
+            invoice.save()
+        # Saves and final parameter settings of packing document lines
+        for pac_doc_line in distribution:
+            pac_doc_line.packing_document = packing_document
+            if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
+                pac_doc_line.invoice = invoice
+            pac_doc_line.user_modified = user
+            pac_doc_line.save()
+
+    @staticmethod
+    def get_distribution(article_type_number_combos, supplier):
+        """
+        Creates a distribution
+        :param article_type_number_combos: List[ArticleType, number, [Cost]]. A list containing articletypes, a multiplicity of thos
+        article types, and a cost if the packing document line is connected to an invoice.
+        :return:
+        """
+        raise UnimplementedError("Function does not exist at the super level. Call actual strategies")
+
+    @staticmethod
+    def get_strategy_from_string(strategy_name):
+        if strategy_name == "FirstSupplierOrderStrategy":
+            return FirstSupplierOrderStrategy
+        elif strategy_name == "FirstCustomersDateTimeThenStockDateTime":
+            return FirstCustomersDateTimeThenStockDateTime
+        else:
+            raise UnimplementedError("Strategy not implemented")
+
+
+class FirstSupplierOrderStrategy(DistributionStrategy):
+
+    @staticmethod
+    def get_distribution(article_type_number_combos, supplier):
+        distribution = []
+        # Viability assertions
+        assert isinstance(supplier, Supplier)
+        articletype_dict = defaultdict(lambda: 0)
+        use_cost = False # Indicates that invoice, provided costs are used
+        ARTICLE_TYPE_LOCATION=0
+        NUMBER_LOCATION=1
+        COST_LOCATION=2
+        for elem in article_type_number_combos:
+            articletype_dict[elem[0]] += elem[1]
+            if len(elem) > 2 and elem[2] is not None and isinstance(elem[2], Cost):
+                use_cost = True
+        articletypes = articletype_dict.keys()
+        relevant_supplier_orderline = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes,
+                                                                       supplier_order__supplier=supplier)
+        article_demand = defaultdict(lambda: 0)
+        article_supply = articletype_dict.copy()
+
+        # Tallies the open supplier orders
+        for sol in relevant_supplier_orderline:
+            article_demand[sol.article_type] += 1
+
+        # If you have supply without demand, there is an inconsistency
+        for typ in articletypes:
+            assert not articletype_dict[typ] > article_demand[typ]
+        # Create the packing_document_lines
+        for sol in relevant_supplier_orderline:
+            if article_supply[sol.article_type] > 0:
+                pac_doc_line = PackingDocumentLine(article_type=sol.article_type,
+                                              line_cost=sol.line_cost
+                                              ,supplier_order_line=sol)
+                distribution.append(pac_doc_line)
+                article_supply[sol.article_type] -= 1
+
+        # Should we consider costs? If true, connect cost to packing_doc_lines
+        if use_cost:
+            cost_dist = article_type_number_combos.copy()
+            for pac_doc_line in distribution:
+                for elem in cost_dist:
+                    if pac_doc_line.article_type == elem[ARTICLE_TYPE_LOCATION] and elem[NUMBER_LOCATION] > 0 \
+                            and len(elem) > 2 and elem[COST_LOCATION] is not None:
+                        pac_doc_line.line_cost_after_invoice = elem[COST_LOCATION]
+                        elem[NUMBER_LOCATION] -= 1
+                        # Go to next packing doc line
+                        break
+
+        return distribution
+
+
+class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
+
+    @staticmethod
+    def get_distribution(article_type_number_combos, supplier):
+        distribution = []
+        # Viability assertions
+        assert isinstance(supplier, Supplier)
+        articletype_dict = defaultdict(lambda: 0)
+        use_cost = False  # Indicates that invoice, provided costs are used
+        ARTICLE_TYPE_LOCATION = 0
+        NUMBER_LOCATION = 1
+        COST_LOCATION = 2
+        for elem in article_type_number_combos:
+            articletype_dict[elem[0]] += elem[1]
+            if len(elem) > 2 and elem[2] is not None and isinstance(elem[2], Cost):
+                use_cost = True
+        articletypes = articletype_dict.keys()
+        relevant_supplier_orderline = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes,
+                                                                       supplier_order__supplier=supplier,
+                                                                       )
+        article_demand = defaultdict(lambda: 0)
+        article_supply = articletype_dict.copy()
+
+        # Tallies the open supplier orders
+        for sol in relevant_supplier_orderline:
+            article_demand[sol.article_type] += 1
+
+        # If you have supply without demand, there is an inconsistency
+        for typ in articletypes:
+            assert not articletype_dict[typ] > article_demand[typ]
+
+        relevant_supplier_orderline_orders_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes,
+                                                                       supplier_order__supplier=supplier,
+                                                                       order_line__isnull=False)
+        # Create the packing_document_lines for orders
+        for sol in relevant_supplier_orderline_orders_only:
+            if article_supply[sol.article_type] > 0:
+                pac_doc_line = PackingDocumentLine(article_type=sol.article_type,
+                                                   line_cost=sol.line_cost
+                                                   , supplier_order_line=sol)
+                distribution.append(pac_doc_line)
+                article_supply[sol.article_type] -= 1
+
+        relevant_supplier_orderline_stock_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
+                                                                       article_type__in=articletypes,
+                                                                       supplier_order__supplier=supplier,
+                                                                       order_line__isnull=True)
+
+        # Create the packing_document_lines
+        for sol in relevant_supplier_orderline_stock_only:
+            if article_supply[sol.article_type] > 0:
+                pac_doc_line = PackingDocumentLine(article_type=sol.article_type,
+                                                   supplier_order_line=sol,
+                                                   line_cost=sol.line_cost)
+                distribution.append(pac_doc_line)
+                article_supply[sol.article_type] -= 1
+
+        # Should we consider costs? If true, connect cost to packing_doc_lines
+        if use_cost:
+            cost_dist = article_type_number_combos.copy()
+            for pac_doc_line in distribution:
+                for elem in cost_dist:
+                    if pac_doc_line.article_type == elem[ARTICLE_TYPE_LOCATION] and elem[NUMBER_LOCATION] > 0 \
+                            and len(elem) > 2 and elem[COST_LOCATION] is not None:
+                        pac_doc_line.line_cost_after_invoice = elem[COST_LOCATION]
+                        elem[NUMBER_LOCATION] -= 1
+                        # Go to next packing doc line
+                        break
+
+        return distribution

@@ -1,0 +1,46 @@
+@import 'scss/assortment/settings';
+@import 'scss/assortment/product';
+@import 'scss/assortment/tree';
+@import 'scss/assortment/branch';
+@import 'scss/assortment/header';
+
+@mixin swipe-assortment() {
+  .assortment {
+
+    padding: -1rem;
+
+    @include swipe-tree-closing('opening-mechanism', 'tree-list');
+
+    .product {
+      @include swipe-product;
+    }
+
+    .product-description {
+      @include swipe-product-description;
+    }
+
+    .branch-description {
+      @include swipe-branch-description;
+    }
+
+    .assortment-header {
+      @include swipe-assortment-header;
+    }
+
+    .assortment-tree {
+      width: 100%;
+      padding: {
+        bottom: $tree-indent / 2;
+      }
+      > .tree-list {
+        padding: {
+          right: $tree-indent / 2;
+        }
+      }
+    }
+
+    .tree-list {
+      @include swipe-tree('tree-list');
+    }
+  }
+}

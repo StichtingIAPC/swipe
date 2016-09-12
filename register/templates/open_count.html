@@ -2,72 +2,89 @@
 
 {% load i18n %}
 
-{% block page_title%}{% trans 'Register list' %}{% endblock %}
-{% block content %}
-<form method="POST">
-{%  csrf_token %}
-<table border="1px">
-    <tr>
+{% block page_title %}{% trans 'Register list' %}{% endblock %}
+{% block module_content %}
+    <form method="POST">
+        {% csrf_token %}
 
+        <div class="expanded row">
+            {% for i in form.columns %}
 
-{%  for i in form.columns %}
-       <td width="200px">
-           <table>
+                <div class="small-6 columns">
+                    <div class="card">
+                        <table>
 
-               <tr><td colspan="100%"><center>{{ i.name }}</center></td></tr>
-{{ i }}
-               <tr><th><label for="memo_{{ i.name }}">MEMO</label></th><td colspan="100%"> <input id="memo_{{ i.name }}" name="memo_{{ i.name }}"></td></tr>
-           </table>
-       </td>
-{% endfor %}
-    <td width="200px"><table>{{ form }}</table></td>
+                            <tr>
+                                <td colspan="100%">
+                                    <center>{{ i.name }}</center>
+                                </td>
+                            </tr>
+                            {{ i }}
+                            <tr>
+                                <th><label for="memo_{{ i.name }}">MEMO</label></th>
+                                <td colspan="100%"><input id="memo_{{ i.name }}" name="memo_{{ i.name }}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="small-6 columns">
+                <div class="card">
+                    <table>
+                        <tr>
+                            Brief Registers<br/></tr>
+                        {{ form }}
+                    </table>
+                </div>
+            </div>
+            <div class="small-12 columns">
+                <div class="card">
+                    <button type="submit">Open Register</button>
+                </div>
+            </div>
+        </div>
 
-    </tr>    <tr><td colspan="100%">
-    <button type="submit">TAA</button></td>
-        </tr>
-    </table>        </form>
-<script>
-    cash_registers = []
-{%  for i in form.columns %}
-        cash_registers[cash_registers.length] = "{{ i.name }}"
-    {% endfor %}
+    </form>
+    <script>
+        cash_registers = []
+        {%  for i in form.columns %}
+            cash_registers[cash_registers.length] = "{{ i.name }}"
+        {% endfor %}
 
-    brief_registers = []
-    {%  for i in form.briefs %}
-        brief_registers[brief_registers.length] = "{{ i }}"
-    {% endfor %}
-    reg_counts = []
-     for (var i=0;i<cash_registers.length; i++) {
-                var register = cash_registers[i]
-                var register_counts = document.querySelectorAll("*[register='" + register + "']")
-                var reg_count = 0
-                for (var j = 0; j < register_counts.length; j++) {
-                    reg_count = reg_count + parseFloat(register_counts[j].getAttribute("denomination")).toFixed(4) * register_counts[j].value
-                }
-
-               reg_counts[i]= reg_count
-    }
-
-
-
-
-        function update_differences()
-    {
-
-            for (var i=0;i<cash_registers.length; i++) {
-                var register = cash_registers[i]
-                var register_counts = document.querySelectorAll("*[register='" + register + "']")
-                var reg_count = 0
-                for (var j = 0; j < register_counts.length; j++) {
-                    reg_count = reg_count + parseFloat(register_counts[j].getAttribute("denomination")).toFixed(4) * register_counts[j].value
-                }
-
-                document.getElementById("id_reg_" + register + "_difference").value = "EUR " + (reg_count-reg_counts[i]).toFixed(2)
+        brief_registers = []
+        {%  for i in form.briefs %}
+            brief_registers[brief_registers.length] = "{{ i }}"
+        {% endfor %}
+        reg_counts = []
+        for (var i = 0; i < cash_registers.length; i++) {
+            var register = cash_registers[i]
+            var register_counts = document.querySelectorAll("*[register='" + register + "']")
+            var reg_count = 0
+            for (var j = 0; j < register_counts.length; j++) {
+                reg_count = reg_count + parseFloat(register_counts[j].getAttribute("denomination")).toFixed(4) * register_counts[j].value
             }
 
-    }
+            reg_counts[i] = reg_count
+        }
+
+
+        function update_differences() {
+
+            for (var i = 0; i < cash_registers.length; i++) {
+                var register = cash_registers[i]
+                var register_counts = document.querySelectorAll("*[register='" + register + "']")
+                var reg_count = 0
+                for (var j = 0; j < register_counts.length; j++) {
+                    reg_count = reg_count + parseFloat(register_counts[j].getAttribute("denomination")).toFixed(4) * register_counts[j].value
+                }
+
+                document.getElementById("id_reg_" + register + "_difference").value = "EUR " + (reg_count - reg_counts[i]).toFixed(2)
+            }
+
+        }
 
         update_differences()
 
-</script>
+    </script>
+
 {% endblock %}
