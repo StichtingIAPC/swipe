@@ -30,16 +30,16 @@ class Order(Blame):
         """
         assert isinstance(user, User)
         assert isinstance(customer, Customer)
-        for combi in wishable_type_number_price_combinations:
-            assert len(combi) == 3
-            assert isinstance(combi[0], WishableType)
-            assert isinstance(combi[1], int) and combi[1] > 0
-            assert isinstance(combi[2], Price)
+        for wishable, number, price in wishable_type_number_price_combinations:
+            assert isinstance(wishable, WishableType)
+            assert isinstance(number, int) and number > 0
+            assert isinstance(price, Price)
+
         order = Order(user_created=user, customer=customer)
         orderlines = []
-        for combi in wishable_type_number_price_combinations:
-            OrderLine.add_orderlines_to_list(orderlines, wishable_type=combi[0],
-                                             number=combi[1], user=user, price=combi[2])
+        for wishable, number, price in wishable_type_number_price_combinations:
+            OrderLine.add_orderlines_to_list(orderlines, wishable_type=wishable,
+                                             number=number, user=user, price=price)
         Order.make_order(order, orderlines, user)
 
     @staticmethod
