@@ -43,6 +43,7 @@ class Order(Blame):
         Order.make_order(order, orderlines, user)
 
     @staticmethod
+    @transaction.atomic()
     def make_order(order, orderlines,user):
         """
         Creates a new order with the specified orderlines. Order must be unsaved.
