@@ -11,6 +11,7 @@ from article.models import ArticleType
 from blame.models import ImmutableBlame, Blame
 from collections import defaultdict
 from swipe.settings import USED_SUPPLICATION_STRATEGY
+from tools.util import _assert
 
 
 class PackingDocument(ImmutableBlame):
@@ -37,19 +38,19 @@ class PackingDocument(ImmutableBlame):
         if invoice_name is not None:
             use_invoice = True
             assert isinstance(invoice_name, str)
-        assert isinstance(user, User)
-        assert isinstance(supplier, Supplier)
-        assert isinstance(packing_document_name, str)
-        assert isinstance(article_type_cost_combinations, list)
+        _assert(isinstance(user, User))
+        _assert(isinstance(supplier, Supplier) )
+        _assert(isinstance(packing_document_name, str))
+        _assert(isinstance(article_type_cost_combinations, list))
 
         ARTICLETYPE_LOCATION = 0
         COST_LOCATION = 1
         for atcc in article_type_cost_combinations:
-            assert isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType)
+            _assert(isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType))
             if use_invoice:
-                assert atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost)
+                _assert(atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost))
             else:
-                assert atcc[COST_LOCATION] is None
+                _assert(atcc[COST_LOCATION] is None)
 
         errors = PackingDocument.verify_article_demand(supplier, article_type_cost_combinations, use_invoice)
         if len(errors) > 0:
@@ -74,7 +75,7 @@ class PackingDocument(ImmutableBlame):
 
     @staticmethod
     def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
-        assert article_type_cost_combinations and isinstance(article_type_cost_combinations, list)
+        _assert(article_type_cost_combinations and isinstance(article_type_cost_combinations, list))
 
         supplier_ordered_articles = defaultdict(lambda: 0)
         socls = SupplierOrderCombinationLine.get_sol_combinations(state='O', supplier=supplier)
@@ -82,12 +83,12 @@ class PackingDocument(ImmutableBlame):
             supplier_ordered_articles[socl.article_type] += socl.number
         supplied_articles = defaultdict(lambda: 0)
         for atcc in article_type_cost_combinations:
-            assert isinstance(atcc[0], ArticleType)
-            assert isinstance(atcc[1], int)
+            _assert(isinstance(atcc[0], ArticleType))
+            _assert(isinstance(atcc[1], int))
             if not use_invoice:
-                assert atcc[2] is None
+                _assert(atcc[2] is None)
             else:
-                assert atcc[2] is None or isinstance(atcc[2], Cost)
+                _assert(atcc[2] is None or isinstance(atcc[2], Cost))
             supplied_articles[atcc[0]] += supplier_ordered_articles[atcc[1]]
 
         errors = []
@@ -129,12 +130,12 @@ class PackingDocumentLine(Blame):
         this has to be done manually
         :return:
         """
-        assert self.packing_document
-        assert isinstance(self.packing_document, PackingDocument)
-        assert self.supplier_order_line
-        assert isinstance(self.supplier_order_line, SupplierOrderLine)
+        _assert(self.packing_document)
+        _assert(isinstance(self.packing_document, PackingDocument))
+        _assert(self.supplier_order_line)
+        _assert(isinstance(self.supplier_order_line, SupplierOrderLine))
         if self.line_cost is not None:
-            assert isinstance(self.line_cost, Cost)
+            _assert(isinstance(self.line_cost, Cost))
 
         # All assertions done, now we check the cost
         # Line_cost_after_invoice should be connected to an invoice. Therefore, we cannot have an invoice
@@ -218,30 +219,30 @@ class DistributionStrategy:
         """
         if not indirect:
             raise IndirectionError("Distribute must be called indirectly")
-        assert user and isinstance(user, User)
-        assert supplier and isinstance(supplier, Supplier)
-        assert distribution and isinstance(distribution, list)
-        assert document_identifier and isinstance(document_identifier, str)
+        _assert(user and isinstance(user, User))
+        _assert(supplier and isinstance(supplier, Supplier))
+        _assert(distribution and isinstance(distribution, list))
+        _assert(document_identifier and isinstance(document_identifier, str))
         # Indicates that we are using an invoice in the process
         if invoice_identifier:
             assert isinstance(invoice_identifier, str)
 
         found_final_cost = False
         for pac_doc_line in distribution:
-            assert pac_doc_line and isinstance(pac_doc_line, PackingDocumentLine)
+            _assert(pac_doc_line and isinstance(pac_doc_line, PackingDocumentLine))
             # Asserts correct article type and supplier consistency
-            assert pac_doc_line.supplier_order_line
-            assert pac_doc_line.article_type == pac_doc_line.supplier_order_line.article_type
-            assert supplier == pac_doc_line.supplier_order_line.supplier_order.supplier
+            _assert(pac_doc_line.supplier_order_line)
+            _assert(pac_doc_line.article_type == pac_doc_line.supplier_order_line.article_type)
+            _assert(supplier == pac_doc_line.supplier_order_line.supplier_order.supplier)
             # There cannot be a final cost without an invoice
             if not invoice_identifier:
-                assert not hasattr(pac_doc_line, 'line_cost_after_invoice') or not pac_doc_line.line_cost_after_invoice
+                _assert(not hasattr(pac_doc_line, 'line_cost_after_invoice') or not pac_doc_line.line_cost_after_invoice)
             if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice is not None:
                 found_final_cost = True
 
         if invoice_identifier:
             # Checks if there is an actual final_line_cost for a pac_doc_line to create an invoice for
-            assert found_final_cost
+            _assert(found_final_cost)
             invoice = Invoice(supplier=supplier, supplier_identifier=invoice_identifier, user_modified=user)
 
         # Below here are the actual saves
@@ -284,7 +285,7 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
     def get_distribution(article_type_number_combos, supplier):
         distribution = []
         # Viability assertions
-        assert isinstance(supplier, Supplier)
+        _assert(isinstance(supplier, Supplier))
         articletype_dict = defaultdict(lambda: 0)
         use_cost = False # Indicates that invoice, provided costs are used
         ARTICLE_TYPE_LOCATION=0
@@ -307,7 +308,7 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
 
         # If you have supply without demand, there is an inconsistency
         for typ in articletypes:
-            assert not articletype_dict[typ] > article_demand[typ]
+            _assert(not articletype_dict[typ] > article_demand[typ])
         # Create the packing_document_lines
         for sol in relevant_supplier_orderline:
             if article_supply[sol.article_type] > 0:
@@ -338,7 +339,7 @@ class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
     def get_distribution(article_type_number_combos, supplier):
         distribution = []
         # Viability assertions
-        assert isinstance(supplier, Supplier)
+        _assert(isinstance(supplier, Supplier))
         articletype_dict = defaultdict(lambda: 0)
         use_cost = False  # Indicates that invoice, provided costs are used
         ARTICLE_TYPE_LOCATION = 0
@@ -362,7 +363,7 @@ class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
 
         # If you have supply without demand, there is an inconsistency
         for typ in articletypes:
-            assert not articletype_dict[typ] > article_demand[typ]
+            _assert(not articletype_dict[typ] > article_demand[typ])
 
         relevant_supplier_orderline_orders_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
                                                                        article_type__in=articletypes,

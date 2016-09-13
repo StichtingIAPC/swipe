@@ -10,6 +10,7 @@ from supplication.models import *
 from stock.models import Stock
 from unittest import skip
 from assortment.models import AssortmentArticleBranch
+from tools.util import _assert
 
 # Create your tests here.
 class SimpleClassTests(TestCase):
@@ -78,7 +79,7 @@ class SimpleClassTests(TestCase):
                                            packing_document=pac_doc, supplier_order_line=sol, user_modified=self.copro)
         pac_doc_line.save()
         pd = PackingDocumentLine.objects.get()
-        assert pd.line_cost == pd.supplier_order_line.line_cost
+        _assert(pd.line_cost == pd.supplier_order_line.line_cost)
 
     def test_simple_book_in_cost_from_invoice(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -99,9 +100,9 @@ class SimpleClassTests(TestCase):
                                            packing_document=pac_doc, supplier_order_line=sol,
                                            line_cost_after_invoice=cost, invoice=inv, user_modified=self.copro)
         pac_doc_line.save()
-        assert pac_doc_line.invoice == inv
-        assert pac_doc_line.line_cost == self.cost
-        assert pac_doc_line.line_cost_after_invoice == cost
+        _assert(pac_doc_line.invoice == inv)
+        _assert(pac_doc_line.line_cost == self.cost)
+        _assert(pac_doc_line.line_cost_after_invoice == cost)
 
     def test_illegal_article_type(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -122,7 +123,7 @@ class SimpleClassTests(TestCase):
             pac_doc_line.save()
         except AssertionError:
             caught = True
-        assert caught
+        _assert(caught)
 
     def test_invoice_without_associated_line_cost(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -147,7 +148,7 @@ class SimpleClassTests(TestCase):
             pac_doc_line.save()
         except AssertionError:
             caught = True
-        assert caught
+        _assert(caught)
 
     def test_stock_storage_of_orders_one_order(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -177,11 +178,11 @@ class SimpleClassTests(TestCase):
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
-        assert len(stock) == 1
+        _assert(len(stock) == 1)
         st_line = stock[0]
-        assert st_line.count == NUMBER_BATCHED
-        assert st_line.labeltype == OrderLabel._labeltype
-        assert st_line.labelkey == 1 # Order identifier/pk
+        _assert(st_line.count == NUMBER_BATCHED)
+        _assert(st_line.labeltype == OrderLabel._labeltype)
+        _assert(st_line.labelkey == 1) # Order identifier/pk
 
     def test_stock_storage_of_orders_more_orders(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -218,13 +219,13 @@ class SimpleClassTests(TestCase):
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
-        assert len(stock) == 2
+        _assert(len(stock) == 2)
         for st in stock:
-            assert st.count == 1
-            assert st.labeltype == OrderLabel._labeltype
+            _assert(st.count == 1)
+            _assert(st.labeltype == OrderLabel._labeltype)
 
-        assert stock[0].labelkey == 1  # Order identifier/pk
-        assert stock[1].labelkey == 2  # Order identifier/pk
+        _assert(stock[0].labelkey == 1)  # Order identifier/pk
+        _assert(stock[1].labelkey == 2)  # Order identifier/pk
 
     def test_stock_storage_of_orders_more_prices(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -254,11 +255,11 @@ class SimpleClassTests(TestCase):
         pac_doc_line_1.save()
         pac_doc_line_2.save()
         stock = Stock.objects.all()
-        assert len(stock) == 1
+        _assert(len(stock) == 1)
         for st in stock:
-            assert st.count == 2
-            assert st.labeltype == OrderLabel._labeltype
-            assert st.labelkey == 1 # Order pk
+            _assert(st.count == 2)
+            _assert(st.labeltype == OrderLabel._labeltype)
+            _assert(st.labelkey == 1) # Order pk
 
     def test_packingdocumentline_storage_without_stock_mod(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -276,7 +277,7 @@ class SimpleClassTests(TestCase):
                                            packing_document=pac_doc, supplier_order_line=sol, user_modified=self.copro)
         pac_doc_line.save(mod_stock=False)
         st = Stock.objects.all()
-        assert len(st) == 0
+        _assert(len(st) == 0)
 
 
 class DistributionTests(TestCase):
@@ -360,12 +361,12 @@ class DistributionTests(TestCase):
         DistributionStrategy.distribute(supplier=self.supplier, user=self.copro,
                                         distribution=distribution, document_identifier="A", indirect=True)
         pdls = PackingDocumentLine.objects.all()
-        assert len(pdls) == 2
-        assert pdls[0].packing_document == pdls[1].packing_document
-        assert not (pdls[0].supplier_order_line == pdls[1].supplier_order_line)
+        _assert(len(pdls) == 2)
+        _assert(pdls[0].packing_document == pdls[1].packing_document)
+        _assert(not (pdls[0].supplier_order_line == pdls[1].supplier_order_line))
         for pdl in pdls:
-            assert pdl.line_cost == self.cost
-            assert pdl.line_cost_after_invoice is None
+            _assert(pdl.line_cost == self.cost)
+            _assert(pdl.line_cost_after_invoice is None)
 
     def test_distribution_illegal_final_cost_no_invoice(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -398,7 +399,7 @@ class DistributionTests(TestCase):
         except AssertionError:
             caught = True
 
-        assert caught
+        _assert(caught)
 
     def test_distribution_illegal_invoice_identifier(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -431,7 +432,7 @@ class DistributionTests(TestCase):
         except AssertionError:
             caught = True
 
-        assert caught
+        _assert(caught)
 
     def test_distribution_simple_with_invoice(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -464,13 +465,13 @@ class DistributionTests(TestCase):
                                         distribution=distribution, document_identifier="A",
                                         invoice_identifier="B", indirect=True)
         pdls = PackingDocumentLine.objects.all()
-        assert len(pdls) == 2
-        assert pdls[0].packing_document == pdls[1].packing_document
-        assert not (pdls[0].supplier_order_line == pdls[1].supplier_order_line)
+        _assert(len(pdls) == 2)
+        _assert(pdls[0].packing_document == pdls[1].packing_document)
+        _assert(not (pdls[0].supplier_order_line == pdls[1].supplier_order_line))
         for pdl in pdls:
-            assert pdl.line_cost == self.cost
-        assert pdls[0].line_cost_after_invoice == self.cost2
-        assert pdls[0].invoice is not None
+            _assert(pdl.line_cost == self.cost)
+        _assert(pdls[0].line_cost_after_invoice == self.cost2)
+        _assert(pdls[0].invoice is not None)
 
     def test_first_supplier_order_strategy_no_cost(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -485,10 +486,10 @@ class DistributionTests(TestCase):
         supply = [[self.article_type, 10]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for pac_doc_line in dist:
-            assert pac_doc_line.line_cost == self.cost
-            assert pac_doc_line.invoice is None
-            assert pac_doc_line.line_cost_after_invoice is None
-            assert pac_doc_line.article_type == self.article_type
+            _assert(pac_doc_line.line_cost == self.cost)
+            _assert(pac_doc_line.invoice is None)
+            _assert(pac_doc_line.line_cost_after_invoice is None)
+            _assert(pac_doc_line.article_type == self.article_type)
 
     def test_first_supplier_order_strategy_no_cost_lesser_amount(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -503,11 +504,11 @@ class DistributionTests(TestCase):
         supply = [[self.article_type, 8]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for i in range(0, len(dist)):
-            assert dist[i].supplier_order_line.pk == i+1
-            assert dist[i].line_cost == self.cost
-            assert dist[i].invoice is None
-            assert dist[i].line_cost_after_invoice is None
-            assert dist[i].article_type == self.article_type
+            _assert(dist[i].supplier_order_line.pk == i+1)
+            _assert(dist[i].line_cost == self.cost)
+            _assert(dist[i].invoice is None)
+            _assert(dist[i].line_cost_after_invoice is None)
+            _assert(dist[i].article_type == self.article_type)
 
     def test_first_supplier_order_strategy_no_cost_with_wishes(self):
         STOCK_WISH = 5
@@ -526,19 +527,19 @@ class DistributionTests(TestCase):
         supply = [[self.article_type, 8]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for i in range(0, STOCK_WISH):
-            assert dist[i].supplier_order_line.pk == i+1
-            assert dist[i].line_cost == self.cost
-            assert dist[i].invoice is None
-            assert dist[i].line_cost_after_invoice is None
-            assert dist[i].article_type == self.article_type
-            assert dist[i].supplier_order_line.order_line is None
+            _assert(dist[i].supplier_order_line.pk == i+1)
+            _assert(dist[i].line_cost == self.cost)
+            _assert(dist[i].invoice is None)
+            _assert(dist[i].line_cost_after_invoice is None)
+            _assert(dist[i].article_type == self.article_type)
+            _assert(dist[i].supplier_order_line.order_line is None)
         for i in range(STOCK_WISH+1, len(dist)):
-            assert dist[i].supplier_order_line.pk == i + 1
-            assert dist[i].line_cost == self.cost
-            assert dist[i].invoice is None
-            assert dist[i].line_cost_after_invoice is None
-            assert dist[i].article_type == self.article_type
-            assert dist[i].supplier_order_line.order_line is not None
+            _assert(dist[i].supplier_order_line.pk == i + 1)
+            _assert(dist[i].line_cost == self.cost)
+            _assert(dist[i].invoice is None)
+            _assert(dist[i].line_cost_after_invoice is None)
+            _assert(dist[i].article_type == self.article_type)
+            _assert(dist[i].supplier_order_line.order_line is not None)
 
     def test_first_supplier_order_strategy_with_cost(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -557,7 +558,8 @@ class DistributionTests(TestCase):
         for dis in dist:
             if dis.line_cost_after_invoice == self.cost2:
                 cost_counted += 1
-        assert cost_counted == WITH_COST
+
+        _assert(cost_counted == WITH_COST)
 
     def test_second_strategy_orders_only_no_cost(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -570,12 +572,12 @@ class DistributionTests(TestCase):
                                             articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
         a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10]], self.supplier)
         for i in range(0,len(a)):
-            assert a[i].line_cost == self.cost
-            assert a[i].supplier_order_line.pk == i+1
-            assert a[i].article_type == self.article_type
-            assert a[i].line_cost_after_invoice is None
-            assert a[i].invoice is None
-            assert not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None
+            _assert(a[i].line_cost == self.cost)
+            _assert(a[i].supplier_order_line.pk == i+1)
+            _assert(a[i].article_type == self.article_type)
+            _assert(a[i].line_cost_after_invoice is None)
+            _assert(a[i].invoice is None)
+            _assert(not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None)
 
     def test_second_strategy_orders_only_with_cost(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -588,12 +590,12 @@ class DistributionTests(TestCase):
                                             articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
         a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]], self.supplier)
         for i in range(0, len(a)):
-            assert a[i].line_cost == self.cost
-            assert a[i].supplier_order_line.pk == i+1
-            assert a[i].article_type == self.article_type
-            assert a[i].line_cost_after_invoice == self.cost2
-            assert a[i].invoice is None
-            assert not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None
+            _assert(a[i].line_cost == self.cost)
+            _assert(a[i].supplier_order_line.pk == i+1)
+            _assert(a[i].article_type == self.article_type)
+            _assert(a[i].line_cost_after_invoice == self.cost2)
+            _assert(a[i].invoice is None)
+            _assert(not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None)
 
     def test_second_strategy_mixed_no_cost(self):
         STOCK_WISH = 5
@@ -610,15 +612,16 @@ class DistributionTests(TestCase):
         a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]], self.supplier)
         for i in range(0, len(a)):
             if i< STOCK_WISH:
-                assert a[i].supplier_order_line.order_line is not None
+                _assert(a[i].supplier_order_line.order_line is not None)
             else:
-                assert a[i].supplier_order_line.order_line is None
-            assert a[i].line_cost == self.cost
-            assert a[i].supplier_order_line.pk == i+1
-            assert a[i].article_type == self.article_type
-            assert a[i].line_cost_after_invoice == self.cost2
-            assert a[i].invoice is None
-            assert not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None
+                _assert(a[i].supplier_order_line.order_line is None)
+                _assert(a[i].line_cost == self.cost)
+
+            _assert(a[i].supplier_order_line.pk == i+1)
+            _assert(a[i].article_type == self.article_type)
+            _assert(a[i].line_cost_after_invoice == self.cost2)
+            _assert(a[i].invoice is None)
+            _assert(not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None)
 
 
 
