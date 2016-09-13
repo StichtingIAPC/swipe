@@ -280,6 +280,7 @@ class SimpleClassTests(TestCase):
         _assert(len(st) == 0)
 
 
+# noinspection PyPackageRequirements,PyPackageRequirements
 class DistributionTests(TestCase):
 
     def setUp(self):
@@ -458,9 +459,7 @@ class DistributionTests(TestCase):
         pac_doc_line_2 = PackingDocumentLine(article_type=self.article_type,
                                              supplier_order_line=sols[1]
                                              )
-        distribution = []
-        distribution.append(pac_doc_line_1)
-        distribution.append(pac_doc_line_2)
+        distribution = [pac_doc_line_1, pac_doc_line_2]
         DistributionStrategy.distribute(supplier=self.supplier, user=self.copro,
                                         distribution=distribution, document_identifier="A",
                                         invoice_identifier="B", indirect=True)
@@ -622,6 +621,21 @@ class DistributionTests(TestCase):
             _assert(a[i].line_cost_after_invoice == self.cost2)
             _assert(a[i].invoice is None)
             _assert(not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None)
+
+    def test_stock_change_set_generation(self):
+        STOCK_WISH = 5
+        StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH]])
+        NUMBER_ORDERED_1 = 5
+        TOTAL_ORDERED = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+                                                       [[self.article_type, NUMBER_ORDERED_1, self.price]])
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]],
+                                                                     self.supplier)
+        b = DistributionStrategy.build_changeset(a)
+        print(b)
+
 
 
 

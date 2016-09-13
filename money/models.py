@@ -271,6 +271,9 @@ class Cost(Money):
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
+    def __str__(self):
+        return super(Cost, self).__str__()
+
 
 class CostField(MoneyField):
     def __init__(self, *args, **kwargs):
