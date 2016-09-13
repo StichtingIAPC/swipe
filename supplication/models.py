@@ -65,6 +65,8 @@ class PackingDocument(ImmutableBlame):
             raise InsufficientDemandError(err_msg)
 
         distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY)
+        changeset = []
+
         DistributionStrategy.distribute(user=user, supplier=supplier,
                                         distribution=distribution,
                                         document_identifier=packing_document_name,
@@ -205,7 +207,8 @@ class DistributionStrategy:
 
     @staticmethod
     @transaction.atomic
-    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False, indirect=False):
+    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False,
+                   indirect=False, mod_stock=True):
         """
         Distributes the actual packing document. A line_cost_after invoice should never be used if there is not direct invoice
         possible, indicated by the invoice_identifier. Distribution will refuse to execute in this case.
@@ -215,6 +218,7 @@ class DistributionStrategy:
         :param document_identifier: String, name of the packing document
         :param invoice_identifier: String, can be empty if there is no invoice
         :param indirect: Indirection flag. Function is only meant to be called indirectly. Change at your own peril.
+        :param mod_stock: Indicates whether the function actually
         :return:
         """
         if not indirect:
@@ -257,7 +261,7 @@ class DistributionStrategy:
             if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
                 pac_doc_line.invoice = invoice
             pac_doc_line.user_modified = user
-            pac_doc_line.save()
+            pac_doc_line.save(mod_stock=mod_stock)
 
     @staticmethod
     def get_distribution(article_type_number_combos, supplier):
@@ -277,6 +281,27 @@ class DistributionStrategy:
             return FirstCustomersDateTimeThenStockDateTime
         else:
             raise UnimplementedError("Strategy not implemented")
+
+    @staticmethod
+    def build_changeset(distribution):
+        """
+        Builds a changeset for the storage of the articles from the packing document lines
+        :param distribution: List[PackingDocumentLine] containing fully complete packingDocLines
+        ready for saving
+        :return: A StockChangeSet with the necessary storages
+        """
+        _assert(distribution and isinstance(distribution, list))
+        for pac_doc_line in distribution:
+            _assert(isinstance(pac_doc_line, PackingDocumentLine))
+        order_summary = {}
+        for pac_doc_line in distribution:
+            if pac_doc_line.supplier_order_line.order_line is not None:
+                pass
+            else:
+                pass
+
+
+
 
 
 class FirstSupplierOrderStrategy(DistributionStrategy):
