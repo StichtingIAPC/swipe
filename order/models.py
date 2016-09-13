@@ -1,16 +1,16 @@
-from django.db import models, transaction
+from django.db import transaction
+from django.db.models import Count
 from django.db.models.fields.reverse_related import ForeignObjectRel
 
+from article.models import *
 from blame.models import Blame, ImmutableBlame
 from crm.models import *
-from article.models import *
 from money.models import *
-from django.db.models import Count
 from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 
-
 # Create your models here.
+from tools.util import _assert
 
 
 class Order(Blame):
@@ -28,18 +28,18 @@ class Order(Blame):
         that contain all the neccesary implements in creating orderLines
         :return:
         """
-        assert isinstance(user, User)
-        assert isinstance(customer, Customer)
-        for combi in wishable_type_number_price_combinations:
-            assert len(combi) == 3
-            assert isinstance(combi[0], WishableType)
-            assert isinstance(combi[1], int) and combi[1] > 0
-            assert isinstance(combi[2], Price)
+        _assert(isinstance(user, User))
+        _assert(isinstance(customer, Customer))
+        for wishable, number, price in wishable_type_number_price_combinations:
+            _assert(isinstance(wishable, WishableType))
+            _assert(isinstance(number, int) and number > 0)
+            _assert(isinstance(price, Price))
+
         order = Order(user_created=user, customer=customer)
         orderlines = []
-        for combi in wishable_type_number_price_combinations:
-            OrderLine.add_orderlines_to_list(orderlines, wishable_type=combi[0],
-                                             number=combi[1], user=user, price=combi[2])
+        for wishable, number, price in wishable_type_number_price_combinations:
+            OrderLine.add_orderlines_to_list(orderlines, wishable_type=wishable,
+                                             number=number, user=user, price=price)
         Order.make_order(order, orderlines, user)
 
     @staticmethod
@@ -50,10 +50,10 @@ class Order(Blame):
         :param order: The order that needs to be saved
         :param orderlines: The orderlines that need to be connected to the order and saved
         """
-        assert type(order) == Order
+        _assert(type(order) == Order)
         for ol in orderlines:
             ol.user_modified = user
-            assert type(ol) == OrderLine
+            _assert(type(ol) == OrderLine)
         order.user_modified=user
         order.save()
         for ol in orderlines:
@@ -86,7 +86,7 @@ class OrderLineState(ImmutableBlame):
         return "Orderline_id: {}, State: {}, Timestamp: {}".format(self.orderline.pk, self.state, self.timestamp)
 
     def save(self):
-        assert self.state in OrderLineState.OL_STATE_CHOICES
+        _assert(self.state in OrderLineState.OL_STATE_CHOICES)
         super(OrderLineState, self).save()
 
 
@@ -110,17 +110,17 @@ class OrderLine(Blame):
         Function intended to create orderlines. Evades high demands of Price-class. Sets up the basics needed. The rest
         is handled by the save function of orderlines.
         """
-        assert wishable is not None
+        _assert(wishable is not None)
         ol = OrderLine(order=order, wishable=wishable, state=state, expected_sales_price=expected_sales_price, user_modified=user)
 
         return ol
 
     def save(self):
-        assert hasattr(self, 'order')  # Order must exist
-        assert hasattr(self, 'wishable')  # Type must exist
-        assert hasattr(self.wishable, 'sellabletype') # Temporary measure until complexities get worked out
-        assert hasattr(self, 'expected_sales_price')
-        assert isinstance(self.expected_sales_price, Price)  # Temporary measure until complexities get worked out
+        _assert(hasattr(self, 'order'))  # Order must exist
+        _assert(hasattr(self, 'wishable'))  # Type must exist
+        _assert(hasattr(self.wishable, 'sellabletype'))  # Temporary measure until complexities get worked out
+        _assert(hasattr(self, 'expected_sales_price'))
+        _assert(isinstance(self.expected_sales_price, Price))  # Temporary measure until complexities get worked out
 
         if self.pk is None:
 
@@ -134,7 +134,7 @@ class OrderLine(Blame):
             else:
                 ol_state = OrderLineState(state=self.state, user_created=self.user_modified)
 
-            assert self.state in OrderLineState.OL_STATE_CHOICES
+            _assert(self.state in OrderLineState.OL_STATE_CHOICES)
             curr = Currency(iso=USED_CURRENCY)
 
             self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
@@ -143,7 +143,7 @@ class OrderLine(Blame):
             ol_state.orderline = self
             ol_state.save()
         else:
-            assert self.state in OrderLineState.OL_STATE_CHOICES
+            _assert(self.state in OrderLineState.OL_STATE_CHOICES)
             super(OrderLine, self).save()
 
     @transaction.atomic
@@ -210,8 +210,8 @@ class OrderLine(Blame):
         :param number: number of orderlines to add
         :param price: Value as a Price
         """
-        assert type(number) == int
-        assert number >= 1
+        _assert(type(number) == int)
+        _assert(number >= 1)
         for i in range(1, number + 1):
 
             ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)

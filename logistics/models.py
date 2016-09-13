@@ -5,13 +5,14 @@ from django.db.models import Count
 from django.db.models.fields.reverse_related import ForeignObjectRel
 
 
-from blame.models import ImmutableBlame, Blame
-from supplier.models import Supplier, ArticleTypeSupplier
-from order.models import OrderLine, OrderCombinationLine
-from crm.models import User
 from article.models import ArticleType, OrProductType
-from swipe.settings import USED_STRATEGY, USED_CURRENCY
+from blame.models import ImmutableBlame, Blame
+from crm.models import User
 from money.models import CostField, Cost, Currency
+from order.models import OrderLine, OrderCombinationLine
+from supplier.models import Supplier, ArticleTypeSupplier
+from swipe.settings import USED_STRATEGY, USED_CURRENCY
+from tools.util import _assert
 
 
 class SupplierOrder(ImmutableBlame):
@@ -64,7 +65,7 @@ class SupplierOrder(ImmutableBlame):
         :type articles_ordered: Dict[ArticleType, int]
         :return: List[Tuple[ArticleType, int]]
         """
-        assert articles_ordered
+        _assert(articles_ordered)
 
         errors = []
 
@@ -99,9 +100,9 @@ class SupplierOrder(ImmutableBlame):
         :param articles_ordered:
         :type articles_ordered: List[List[ArticleType, int]]
         """
-        assert user and articles_ordered
-        assert isinstance(user, User)
-        assert articles_ordered
+        _assert(user and articles_ordered)
+        _assert(isinstance(user, User))
+        _assert(articles_ordered)
         # is same as assert len(articles_ordered, but
 
         # Ensure that the number of articles ordered is not less than 0
@@ -109,15 +110,15 @@ class SupplierOrder(ImmutableBlame):
         ordered_dict = defaultdict(lambda: 0)
 
         for article, number, cost in articles_ordered:
-            assert isinstance(article, ArticleType)
-            assert isinstance(number, int)
-            assert isinstance(cost, Cost)
+            _assert(isinstance(article, ArticleType))
+            _assert(isinstance(number, int))
+            _assert(isinstance(cost, Cost))
             if not allow_different_currency:
-                assert cost.currency.iso == USED_CURRENCY
-            assert number > 0
+                _assert(cost.currency.iso == USED_CURRENCY)
+            _assert(number > 0)
             ordered_dict[article] += number
-            assert ArticleTypeSupplier.objects.get(article_type=article,
-                                                   supplier=supplier)  # Article exists at supplier
+            _assert(ArticleTypeSupplier.objects.get(article_type=article,
+                                                    supplier=supplier))  # Article exists at supplier
         return ordered_dict
 
 
@@ -174,11 +175,11 @@ class SupplierOrderLine(Blame):
     def save(self, *args, **kwargs):
         if self.order_line is not None:
             if isinstance(self.order_line.wishable, OrProductType):
-                assert ArticleType.objects.filter(
+                _assert(ArticleType.objects.filter(
                     orproducttype__id=self.order_line.id,
-                    id=self.article_type.id).exists()
+                    id=self.article_type.id).exists())
             else:
-                assert self.order_line.wishable.sellabletype.articletype == self.article_type  # Customer article matches ordered article
+                _assert(self.order_line.wishable.sellabletype.articletype == self.article_type)  # Customer article matches ordered article
         checked_ats = False
         if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
             sup_art_types = ArticleTypeSupplier.objects.filter(
@@ -186,19 +187,19 @@ class SupplierOrderLine(Blame):
                 supplier=self.supplier_order.supplier)
             checked_ats = True
 
-            assert len(sup_art_types) == 1
+            _assert(len(sup_art_types) == 1)
             self.supplier_article_type == sup_art_types[0]
 
         if not checked_ats:
-            assert self.supplier_article_type.supplier == self.supplier_order.supplier  # Article can be ordered at supplier
-            assert self.supplier_article_type == ArticleTypeSupplier.objects.get(
+            _assert(self.supplier_article_type.supplier == self.supplier_order.supplier)  # Article can be ordered at supplier
+            _assert(self.supplier_article_type == ArticleTypeSupplier.objects.get(
                 article_type=self.article_type,
-                supplier=self.supplier_order.supplier)
+                supplier=self.supplier_order.supplier))
 
         # Set the relevant state is not implemented
         if self.pk is None:
             self.state = 'O'
-        assert self.state in SupplierOrderState.STATE_CHOICES
+        _assert(self.state in SupplierOrderState.STATE_CHOICES)
         # Assert that everything is ok here
         if self.pk is None:
             if self.order_line is not None:
@@ -304,13 +305,13 @@ class StockWish(ImmutableBlame):
         :return:
         """
 
-        assert user_modified is not None and len(articles_ordered) > 0
-        assert isinstance(user_modified, User)
+        _assert(user_modified is not None and len(articles_ordered) > 0)
+        _assert(isinstance(user_modified, User))
 
         for article, number in articles_ordered:
-            assert isinstance(article, ArticleType)
-            assert isinstance(number, int)
-            assert number != 0
+            _assert(isinstance(article, ArticleType))
+            _assert(isinstance(number, int))
+            _assert(number != 0)
 
         stock_wish = StockWish(user_modified=user_modified)
         stock_wish.save()
@@ -361,7 +362,7 @@ class StockWishTable:
     @staticmethod
     def add_products_to_table(user_modified, article_type, number, indirect=False,
                               stock_wish=None, supplier_order=None):
-        assert number > 0
+        _assert(number > 0)
         if not indirect:
             raise IndirectionError("add_products_to_table must be called indirectly")
         article_type_status = StockWishTableLine.objects.filter(article_type=article_type)
@@ -387,7 +388,7 @@ class StockWishTable:
     @staticmethod
     def remove_products_from_table(user_modified,article_type, number, indirect=False,
                                    stock_wish=None, supplier_order=None):
-        assert number > 0
+        _assert(number > 0)
         if not indirect:
             raise IndirectionError("remove_products_from_table must be called indirectly")
         article_type_statuses = StockWishTableLine.objects.filter(article_type=article_type)
@@ -427,9 +428,9 @@ class StockWishTableLog(ImmutableBlame):
     def save(self, indirect=False):
         if not indirect:
             raise IndirectionError("Saving must be done indirectly")
-        assert (self.supplier_order or self.stock_wish) and not(self.supplier_order and self.stock_wish)
+        _assert((self.supplier_order or self.stock_wish) and not(self.supplier_order and self.stock_wish))
         # ^ reason is either supplier order or stock wish modification
-        assert self.pk is None  # No edits after creation
+        _assert(self.pk is None)  # No edits after creation
         super(StockWishTableLog, self).save()
 
     def __str__(self):
@@ -535,20 +536,20 @@ class DisbributionStrategy:
         :param distribution: A list of SupplierOrderLines
         :param indirect: Indirection flag. Function must be called indirectly.
         """
-        assert isinstance(user, User)
-        assert isinstance(supplier, Supplier)
+        _assert(isinstance(user, User))
+        _assert(isinstance(supplier, Supplier))
         if not indirect:
             raise IndirectionError("Distribute must be called indirectly")
-        assert distribution
+        _assert(distribution)
         supplier_order = SupplierOrder(user_modified=user, supplier=supplier)
         for supplier_order_line in distribution:
-            assert isinstance(supplier_order_line, SupplierOrderLine)
-            assert supplier_order_line.order_line is None or isinstance(supplier_order_line.order_line, OrderLine)
+            _assert(isinstance(supplier_order_line, SupplierOrderLine))
+            _assert(supplier_order_line.order_line is None or isinstance(supplier_order_line.order_line, OrderLine))
             supplier_order_line.supplier_article_type = ArticleTypeSupplier.objects.get(article_type=supplier_order_line.article_type,
                                                                                         supplier=supplier)
             if supplier_order_line.order_line is not None:
                 # Discount the possibility of OrProducts for now
-                assert supplier_order_line.article_type == supplier_order_line.order_line.wishable.sellabletype.articletype
+                _assert(supplier_order_line.article_type == supplier_order_line.order_line.wishable.sellabletype.articletype)
 
         # We've checked everyting, now we start saving
         supplier_order.save()
@@ -590,7 +591,7 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
                     articletype_dict_supply[orderline.wishable.sellabletype.articletype] -= 1
         stock_wishes = StockWishTableLine.objects.filter(article_type__in=articletypes)
         for wish in stock_wishes:
-            assert wish.number >= articletype_dict_supply[wish.article_type]  # Assert not more supply than demand
+            _assert(wish.number >= articletype_dict_supply[wish.article_type])  # Assert not more supply than demand
             if articletype_dict_supply[wish.article_type] > 0:
                 for i in range(0, articletype_dict_supply[wish.article_type]):
                     sup_ord_line = SupplierOrderLine(article_type=wish.article_type, line_cost=None)
