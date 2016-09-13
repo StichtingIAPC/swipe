@@ -1,19 +1,19 @@
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from money.models import Currency, TestSalesPriceType, SalesPrice
-from money.models import TestMoneyType
-from money.models import Money
 from money.models import Cost
-from money.models import TestCostType
-from money.models import Price
-from money.models import TestPriceType
+from money.models import Currency, TestSalesPriceType, SalesPrice
 from money.models import CurrencyData
 from money.models import Denomination
-from django.core.exceptions import ValidationError
-
+from money.models import Money
+from money.models import Price
+from money.models import TestCostType
+from money.models import TestMoneyType
+from money.models import TestPriceType
 from swipe.settings import USED_CURRENCY
+from tools.util import _assert
 
 
 class MoneyTest(TestCase):
@@ -285,7 +285,7 @@ class CurrencyDenomTest(TestCase):
             bar = True
         except ValidationError:
             bar = True
-        assert bar
+        _assert(bar)
 
     def test_currency_symbol(self):
         try:
@@ -297,7 +297,7 @@ class CurrencyDenomTest(TestCase):
             bar = True
         except ValidationError:
             bar = True
-        assert bar
+        _assert(bar)
 
     def test_currency_equals(self):
         self.assertNotEquals(self.euro, self.dollar)
@@ -307,15 +307,15 @@ class CurrencyDenomTest(TestCase):
     def test_denomination_currency(self):
         self.denom1 = Denomination(currency=self.euro, amount=2.2)
         self.denom2 = Denomination(currency=self.euro, amount=2.2)
-        assert(self.denom1.has_same_currency(self.denom2))
+        _assert(self.denom1.has_same_currency(self.denom2))
 
     def test_denomination_equals(self):
         self.denom1 = Denomination(currency=self.euro, amount=2.2)
         self.denom2 = Denomination(currency=self.euro, amount=2.2)
         self.denom3 = Denomination(currency=self.dollar, amount=2.2)
-        assert(self.denom1 == self.denom2)
-        assert(self.denom1 != self.denom3)
+        _assert(self.denom1 == self.denom2)
+        _assert(self.denom1 != self.denom3)
 
     def test_denom_srt(self):
         denom1 = Denomination(currency=self.euro, amount=2.2)
-        assert(str(denom1) == "EUR 2.2")
+        _assert(str(denom1) == "EUR 2.2")

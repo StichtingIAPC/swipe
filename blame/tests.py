@@ -5,6 +5,7 @@ from django.test import TestCase
 
 # Create your tests here.
 from blame.models import ImmutableBlameTest, BlameTest, BlameLog
+from tools.util import _assert
 
 
 class OrderTest(TestCase):
@@ -12,14 +13,14 @@ class OrderTest(TestCase):
         u = User.objects.create()
         ib = ImmutableBlameTest.objects.create(data=1,user_created=u)
         ib.data=2
-        assert(len(BlameLog.objects.all()) == 1)
-        assert ib.user_created == u
+        _assert(len(BlameLog.objects.all()) == 1)
+        _assert(ib.user_created == u)
         caught = False
         try:
             ib.save()
         except AssertionError:
             caught = True
-        assert caught
+        _assert(caught)
 
     def test_create_update(self):
         u = User.objects.create(username="HARRY")
@@ -29,7 +30,7 @@ class OrderTest(TestCase):
         ib.user_modified=u
         ib.data=2
         ib.save()
-        assert(ib.user_created != ib.user_modified)
-        assert(ib.date_created != ib.date_modified)
-        assert(len(BlameLog.objects.all()) == 2)
+        _assert(ib.user_created != ib.user_modified)
+        _assert(ib.date_created != ib.date_modified)
+        _assert(len(BlameLog.objects.all()) == 2)
 
