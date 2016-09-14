@@ -66,13 +66,17 @@ class PackingDocument(ImmutableBlame):
             raise InsufficientDemandError(err_msg)
 
         distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY)
-        changeset = []
+        changeset = DistributionStrategy.build_changeset(distribution)
+
 
         DistributionStrategy.distribute(user=user, supplier=supplier,
                                         distribution=distribution,
                                         document_identifier=packing_document_name,
                                         invoice_identifier=invoice_name,
+                                        mod_stock=False
                                         )
+        pd = PackingDocument.objects.last()
+        StockChangeSet.construct("Stock supplication by {}".format(pd.pk), entries=changeset, enum=enum["supplication"])
 
 
 
