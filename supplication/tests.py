@@ -865,5 +865,10 @@ class PackingDocumentCreationTests(TestCase):
         Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1, self.price], [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
                                             articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
-        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier, article_type_cost_combinations=[[self.article_type, AMOUNT_1],[self.at2, AMOUNT_2]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],[self.at2, AMOUNT_2]], packing_document_name="Foo")
+        st = Stock.objects.all()
+        for line in st:
+            print(line)
+        _assert(len(st) == 2)
 
