@@ -3,17 +3,15 @@ from django.db import transaction, IntegrityError, models
 from django.utils import timezone
 
 from article.models import ArticleType
-from money.models import Money, Decimal, Denomination, CurrencyData, Currency, MoneyField, CostField, PriceField
-from stock.enumeration import enum
+from money.models import Money, Decimal, Denomination, CurrencyData, Currency, MoneyField
 from stock.stocklabel import StockLabeledLine
 from sales.models import TransactionLine, Transaction
 
 # Stop PyCharm from seeing tools as a package.
 # noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
-from stock.exceptions import Id10TError
 from stock.models import StockChange, StockChangeSet
-from swipe.settings import USED_CURRENCY, CASH_PAYMENT_TYPE_NAME
+from swipe.settings import CASH_PAYMENT_TYPE_NAME
 from tools.util import _assert
 
 

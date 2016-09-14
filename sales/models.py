@@ -1,12 +1,12 @@
 from django.db import models, transaction
 from money.models import MoneyField, PriceField, CostField
-from register.models import PaymentType, Id10TError, InactiveError, RegisterMaster
 from stock.stocklabel import StockLabeledLine
-from stock.models import StockChangeSet
+from stock.models import StockChangeSet, Id10TError
 from article.models import ArticleType
 from stock.enumeration import enum
 from tools.util import _assert
 from swipe.settings import USED_CURRENCY
+from register.models import RegisterMaster, PaymentType, SalesPeriod
 
 
 class Payment(models.Model):
@@ -93,7 +93,7 @@ class Transaction(models.Model):
     # Which changes did it cause in the stock?
     stock_change_set = models.ForeignKey(StockChangeSet)
     # The sales period it is connected to
-    salesperiod = models.ForeignKey("SalesPeriod")
+    salesperiod = models.ForeignKey(SalesPeriod)
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -169,4 +169,8 @@ class Transaction(models.Model):
             transaction_line.transaction = trans
             transaction_line.save()
         return trans
+
+
+class InactiveError(Exception):
+    pass
 

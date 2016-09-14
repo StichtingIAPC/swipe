@@ -8,8 +8,9 @@ from django.views.generic import View, ListView, CreateView, DetailView
 
 from money.models import Denomination, Price, VAT
 from register.forms import CloseForm, OpenForm
-from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, Transaction, \
+from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
     RegisterPeriod
+from sales.models import Transaction
 
 
 class OpenFormView(View):
