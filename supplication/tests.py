@@ -622,7 +622,7 @@ class DistributionTests(TestCase):
             _assert(a[i].invoice is None)
             _assert(not hasattr(a[i], 'packing_document' ) or a[i].packing_document is None)
 
-    def test_stock_change_set_generation(self):
+    def test_stock_change_set_generation_mixed(self):
         STOCK_WISH = 5
         StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH]])
         NUMBER_ORDERED_1 = 5
@@ -643,7 +643,110 @@ class DistributionTests(TestCase):
             _assert(elem['is_in'] == True) # All is in
             _assert(elem['book_value'] == self.cost) # Checks if PackingDocLines retrieve cost from SupOrdLines
 
+    def test_stock_change_set_generation_wishes_only(self):
+        STOCK_WISH_1 = 5
+        STOCK_WISH_2 = 6
+        StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH_1], [self.at2, STOCK_WISH_2]])
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, STOCK_WISH_1, self.cost],
+                                                              [self.at2, STOCK_WISH_2, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, STOCK_WISH_1, self.cost],
+                                                              [self.at2, STOCK_WISH_2, self.cost]], supplier=self.supplier)
+        b = DistributionStrategy.build_changeset(a)
+        for elem in b:
+            _assert(elem.get('label') is None)
+            _assert(elem['book_value'] == self.cost)
+            _assert(elem['is_in'] == True)
+            if elem['article'] == self.article_type:
+                _assert(elem['count'] == STOCK_WISH_1)
+            else:
+                _assert(elem['count'] == STOCK_WISH_2)
+
+    def test_stock_change_set_generation_orders_only(self):
+        NUMBER_ORDERED_1 = 5
+        NUMBER_ORDERED_ARTICLE_2 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+                                                       [[self.article_type, NUMBER_ORDERED_1, self.price], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, NUMBER_ORDERED_1, self.price],
+                                                        [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1*2, self.cost], [self.at2, NUMBER_ORDERED_ARTICLE_2*2, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, NUMBER_ORDERED_1*2], [self.at2, NUMBER_ORDERED_ARTICLE_2*2]],
+                                                                     self.supplier)
+        b = DistributionStrategy.build_changeset(a)
+        print(b)
+        _assert( len(b) == 4)
+        for elem in b:
+            _assert(elem.get('label') is not None)
+            _assert(elem['article'] == self.article_type or elem['article'] == self.at2)
+            _assert(elem['count'] == 5) # Checks if all counts are correct
+            _assert(elem['is_in'] == True) # All is in
+            _assert(elem['book_value'] == self.cost) # Checks if PackingDocLines retrieve cost from SupOrdLines
 
 
+class PackingDocumentCreationTests(TestCase):
+
+    def setUp(self):
+        self.vat_group = VAT()
+        self.vat_group.name = "AccGrpFoo"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
+        self.vat_group.save()
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
+        self.currency = Currency(iso="USD")
+
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
+
+        self.branch = AssortmentArticleBranch.objects.create(
+            name='hoi',
+            parent_tag=None)
+
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
+        self.article_type.save()
+
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
+        self.at2.save()
+
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3.save()
+
+        cost = Cost(amount=Decimal(1), use_system_currency=True)
+
+        self.supplier = Supplier(name="Nepacove")
+        self.supplier.save()
+
+        ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
+                                  cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
+        ats.save()
+        ats2 = ArticleTypeSupplier(supplier=self.supplier, article_type=self.at2,
+                                   cost=cost, minimum_number_to_order=1, supplier_string="At2", availability='A')
+        ats2.save()
+        self.money = Money(amount=Decimal(3.32), currency=self.currency)
+
+        self.customer = Person()
+        self.customer.save()
+
+        self.copro = User()
+        self.copro.save()
+
+        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
+        self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
+
+    def test_verify_article_demand_pass_1(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 300
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1-1, self.price]])
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, 1, self.price], [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1-2, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        result = PackingDocument.verify_article_demand(supplier=self.supplier, article_type_cost_combinations=[[self.article_type, AMOUNT_1-2],[self.at2, AMOUNT_2]], use_invoice=False)
+        _assert(len(result) == 0)
+
+    #def test_veri
 
 

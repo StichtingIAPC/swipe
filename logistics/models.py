@@ -180,21 +180,24 @@ class SupplierOrderLine(Blame):
                     id=self.article_type.id).exists())
             else:
                 _assert(self.order_line.wishable.sellabletype.articletype == self.article_type)  # Customer article matches ordered article
+            # +1 query for customer ordered lines
         checked_ats = False
         if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
             sup_art_types = ArticleTypeSupplier.objects.filter(
                 article_type=self.article_type,
                 supplier=self.supplier_order.supplier)
+            # shouldn't get triggered, but +1 query
             checked_ats = True
 
             _assert(len(sup_art_types) == 1)
             self.supplier_article_type == sup_art_types[0]
 
-        if not checked_ats:
+        if not checked_ats:  #should happen all the time
             _assert(self.supplier_article_type.supplier == self.supplier_order.supplier)  # Article can be ordered at supplier
+            # +2 query to get the supplier from the supplier_article_type and supplier_order
             _assert(self.supplier_article_type == ArticleTypeSupplier.objects.get(
                 article_type=self.article_type,
-                supplier=self.supplier_order.supplier))
+                supplier=self.supplier_order.supplier))  # optional +1 for article type
 
         # Set the relevant state is not implemented
         if self.pk is None:
@@ -205,12 +208,16 @@ class SupplierOrderLine(Blame):
             if self.order_line is not None:
                 self.order_line.order_at_supplier(self.supplier_order.user_created)  # If this doesn't happen at exactly the same time
                                                      # as the save of the SupOrdLn, you are screwed
+            # +1 query for the user_created from supplier_order
             else:
                 StockWishTable.remove_products_from_table(self.user_modified, article_type=self.article_type, number=1,
                                                           supplier_order=self.supplier_order, stock_wish=None, indirect=True)
+            # +1 query to remove one product from the stockwishtable, or to change the state of our order_line
             super(SupplierOrderLine, self).save(*args, **kwargs)
+            # +1 query to save the SOL itself
             sos = SupplierOrderState(supplier_order_line=self, state=self.state,user_modified=self.user_modified)
             sos.save()
+            # +1 query to save the state transition
         else:
             # Maybe some extra logic here?
             super(SupplierOrderLine, self).save(*args, **kwargs)

@@ -93,14 +93,14 @@ class PackingDocument(ImmutableBlame):
             _assert(isinstance(atcc[0], ArticleType))
             _assert(isinstance(atcc[1], int))
             if not use_invoice:
-                _assert(atcc[2] is None)
+                _assert(len(atcc) == 2)
             else:
                 _assert(atcc[2] is None or isinstance(atcc[2], Cost))
             supplied_articles[atcc[0]] += supplier_ordered_articles[atcc[1]]
 
         errors = []
         for article in supplied_articles:
-            assert supplied_articles[article] <= supplier_ordered_articles[article]
+            _assert(supplied_articles[article] <= supplier_ordered_articles[article])
             if supplied_articles[article] > supplier_ordered_articles[article]:
                 errors.append((article, supplied_articles[article] - supplier_ordered_articles[article]))
 
@@ -153,11 +153,11 @@ class PackingDocumentLine(Blame):
         # Retrieve Cost from SupplierOrderLine
         self.line_cost = self.supplier_order_line.line_cost
 
-        assert self.article_type
-        assert isinstance(self.article_type, ArticleType)
-        assert self.article_type == self.supplier_order_line.article_type
+        _assert(self.article_type)
+        _assert(isinstance(self.article_type, ArticleType))
+        _assert(self.article_type == self.supplier_order_line.article_type)
 
-        assert ArticleTypeSupplier.objects.get(supplier=self.packing_document.supplier, article_type=self.article_type)
+        _assert(ArticleTypeSupplier.objects.get(supplier=self.packing_document.supplier, article_type=self.article_type))
 
         # All checks are done, now we save everyting
         # Mod supplierOrderLine and order if connected and packingdoc is new
