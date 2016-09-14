@@ -51,7 +51,7 @@ class PackingDocument(ImmutableBlame):
             _assert(isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType))
             _assert(isinstance(atcc[NUMBER_LOCATION], int))
             if use_invoice:
-                _assert(atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost))
+                _assert(len(atcc) == 2 or atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost))
             else:
                 _assert(len(atcc) == 2 or atcc[COST_LOCATION] is None)
 
@@ -98,7 +98,7 @@ class PackingDocument(ImmutableBlame):
             if not use_invoice:
                 _assert(len(atcc) == 2)
             else:
-                _assert(atcc[2] is None or isinstance(atcc[2], Cost))
+                _assert(len(atcc) == 2 or atcc[2] is None or isinstance(atcc[2], Cost))
             supplied_articles[atcc[0]] += atcc[1]
 
         errors = []

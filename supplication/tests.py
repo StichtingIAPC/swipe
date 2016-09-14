@@ -868,7 +868,165 @@ class PackingDocumentCreationTests(TestCase):
         PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
                                                 article_type_cost_combinations=[[self.article_type, AMOUNT_1],[self.at2, AMOUNT_2]], packing_document_name="Foo")
         st = Stock.objects.all()
+        art_1 = 0
+        art_2 = 0
         for line in st:
-            print(line)
+            _assert(isinstance(line.label, OrderLabel))
+            _assert(line.labelkey == 1)
+            if line.article == self.article_type:
+                art_1 += 1
+            elif line.article == self.at2:
+                art_2 += 1
+            else:
+                _assert(False)
+        _assert(art_1 == 1)
+        _assert(art_2 == 1)
         _assert(len(st) == 2)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 0)
+
+    def test_big_creation_function_order_only_with_invoice(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1, self.price], [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1, self.cost2],[self.at2, AMOUNT_2]], packing_document_name="Foo", invoice_name="Bar")
+        st = Stock.objects.all()
+        art_1 = 0
+        art_2 = 0
+        for line in st:
+            _assert(isinstance(line.label, OrderLabel))
+            _assert(line.labelkey == 1)
+            if line.article == self.article_type:
+                art_1 += 1
+            elif line.article == self.at2:
+                art_2 += 1
+            else:
+                _assert(False)
+        _assert(art_1 == 1)
+        _assert(art_2 == 1)
+        _assert(len(st) == 2)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 1)
+
+    def test_big_creation_function_order_only_fail_cost_no_invoice(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1, self.price], [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        caught = False
+        try:
+            PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1, self.cost2],[self.at2, AMOUNT_2]], packing_document_name="Foo")
+        except AssertionError:
+            caught = True
+        _assert(caught)
+
+
+    def test_big_creation_function_stock_only_no_invoice(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1], [self.at2, AMOUNT_2]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],[self.at2, AMOUNT_2]], packing_document_name="Foo")
+        st = Stock.objects.all()
+        art_1 = 0
+        art_2 = 0
+        for line in st:
+            _assert(line.label is None)
+            if line.article == self.article_type:
+                art_1 += 1
+            elif line.article == self.at2:
+                art_2 += 1
+            else:
+                _assert(False)
+        _assert(art_1 == 1)
+        _assert(art_2 == 1)
+        _assert(len(st) == 2)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 0)
+
+    def test_big_creation_function_stock_only_with_invoice(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1], [self.at2, AMOUNT_2]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1, self.cost2],[self.at2, AMOUNT_2]], packing_document_name="Foo", invoice_name="Bar")
+        st = Stock.objects.all()
+        art_1 = 0
+        art_2 = 0
+        for line in st:
+            _assert(line.label is None)
+            if line.article == self.article_type:
+                art_1 += 1
+            elif line.article == self.at2:
+                art_2 += 1
+            else:
+                _assert(False)
+        _assert(art_1 == 1)
+        _assert(art_2 == 1)
+        _assert(len(st) == 2)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 1)
+
+    def test_big_creation_function_mixed_no_invoice(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1-2], [self.at2, AMOUNT_2-2]])
+        Order.create_order_from_wishables_combinations(user=self.copro, customer=self.customer, wishable_type_number_price_combinations=[[self.article_type, 2, self.price],
+                                                                                                                                         [self.at2, 2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],[self.at2, AMOUNT_2]], packing_document_name="Foo")
+        st = Stock.objects.all()
+        art_1 = 0
+        art_2 = 0
+        for line in st:
+            if line.article == self.article_type:
+                art_1 += 1
+            elif line.article == self.at2:
+                art_2 += 1
+            else:
+                _assert(False)
+        _assert(art_1 == 2)
+        _assert(art_2 == 2)
+        _assert(len(st) == 4)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 0)
+
+    def test_big_creation_function_mixed_with_invoice(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1-2], [self.at2, AMOUNT_2-2]])
+        Order.create_order_from_wishables_combinations(user=self.copro, customer=self.customer, wishable_type_number_price_combinations=[[self.article_type, 2, self.price],
+                                                                                                                                         [self.at2, 2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1, self.cost2],[self.at2, AMOUNT_2]], packing_document_name="Foo", invoice_name="Bar")
+        st = Stock.objects.all()
+        art_1 = 0
+        art_2 = 0
+        for line in st:
+            if line.article == self.article_type:
+                art_1 += 1
+            elif line.article == self.at2:
+                art_2 += 1
+            else:
+                _assert(False)
+        _assert(art_1 == 2)
+        _assert(art_2 == 2)
+        _assert(len(st) == 4)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 1)
+
+
 
