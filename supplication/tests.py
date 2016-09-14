@@ -7,7 +7,7 @@ from supplier.models import Supplier, ArticleTypeSupplier
 from logistics.models import SupplierOrder, StockWish
 from order.models import OrderLine, Order
 from supplication.models import *
-from stock.models import Stock
+from stock.models import Stock, StockChange
 from unittest import skip
 from assortment.models import AssortmentArticleBranch
 from tools.util import _assert
@@ -675,7 +675,6 @@ class DistributionTests(TestCase):
         a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, NUMBER_ORDERED_1*2], [self.at2, NUMBER_ORDERED_ARTICLE_2*2]],
                                                                      self.supplier)
         b = DistributionStrategy.build_changeset(a)
-        print(b)
         _assert( len(b) == 4)
         for elem in b:
             _assert(elem.get('label') is not None)
@@ -684,6 +683,84 @@ class DistributionTests(TestCase):
             _assert(elem['is_in'] == True) # All is in
             _assert(elem['book_value'] == self.cost) # Checks if PackingDocLines retrieve cost from SupOrdLines
 
+    def test_distribute_no_invoice(self):
+        STOCK_WISH = 5
+        StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH]])
+        NUMBER_ORDERED_1 = 5
+        NUMBER_ORDERED_ARTICLE_2 = 5
+        TOTAL_ORDERED = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+                                                       [[self.article_type, NUMBER_ORDERED_1, self.price], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10], [self.at2, 5]],
+                                                                     self.supplier)
+        DistributionStrategy.distribute(distribution=a, user=self.copro, supplier=self.supplier, indirect=True, document_identifier="Dloa")
+        pdls = PackingDocumentLine.objects.all()
+        PackingDocument.objects.get()
+        stock = Stock.objects.all()
+        counted_stock_lines_in_order = 0
+        for line in stock:
+            _assert(line.count == 5)
+            if line.label is not None:
+                counted_stock_lines_in_order += 1
+        _assert(counted_stock_lines_in_order == 2)
+        _assert(len(stock) == 3)
+
+        _assert(len(pdls) == 15)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 0)
+        stc = StockChange.objects.all()
+        _assert(len(stc) == 15)
+
+    def test_distribute_with_invoice(self):
+        STOCK_WISH = 5
+        StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH]])
+        NUMBER_ORDERED_1 = 5
+        NUMBER_ORDERED_ARTICLE_2 = 5
+        TOTAL_ORDERED = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+                                                       [[self.article_type, NUMBER_ORDERED_1, self.price], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2], [self.at2, 5]],
+                                                                     self.supplier)
+        DistributionStrategy.distribute(distribution=a, user=self.copro, supplier=self.supplier, indirect=True, document_identifier="Dloa", invoice_identifier="Bar")
+        pdls = PackingDocumentLine.objects.all()
+        PackingDocument.objects.get()
+        stock = Stock.objects.all()
+        counted_stock_lines_in_order = 0
+        for line in stock:
+            _assert(line.count == 5)
+            if line.label is not None:
+                counted_stock_lines_in_order += 1
+        _assert(counted_stock_lines_in_order == 2)
+        _assert(len(stock) == 3)
+
+        _assert(len(pdls) == 15)
+        inv = Invoice.objects.all()
+        _assert(len(inv) == 1)
+        stc = StockChange.objects.all()
+        _assert(len(stc) == 15)
+
+    def test_distribute_fail_cost_without_invoice(self):
+        STOCK_WISH = 5
+        StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH]])
+        NUMBER_ORDERED_1 = 5
+        NUMBER_ORDERED_ARTICLE_2 = 5
+        TOTAL_ORDERED = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+                                                       [[self.article_type, NUMBER_ORDERED_1, self.price], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
+        SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2], [self.at2, 5]],
+                                                                     self.supplier)
+        caught = False
+        try:
+            DistributionStrategy.distribute(distribution=a, user=self.copro, supplier=self.supplier, indirect=True, document_identifier="Dloa")
+        except AssertionError:
+            caught = True
+        _assert(caught)
 
 class PackingDocumentCreationTests(TestCase):
 
@@ -738,7 +815,7 @@ class PackingDocumentCreationTests(TestCase):
 
     def test_verify_article_demand_pass_1(self):
         AMOUNT_1 = 6
-        AMOUNT_2 = 300
+        AMOUNT_2 = 10
         Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1-1, self.price]])
         Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, 1, self.price], [self.at2, AMOUNT_2, self.price]])
@@ -747,6 +824,46 @@ class PackingDocumentCreationTests(TestCase):
         result = PackingDocument.verify_article_demand(supplier=self.supplier, article_type_cost_combinations=[[self.article_type, AMOUNT_1-2],[self.at2, AMOUNT_2]], use_invoice=False)
         _assert(len(result) == 0)
 
-    #def test_veri
+    def test_verify_article_demand_fail_size(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1-1, self.price]])
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, 1, self.price], [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1-2, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        result = PackingDocument.verify_article_demand(supplier=self.supplier, article_type_cost_combinations=[[self.article_type, AMOUNT_1-1],[self.at2, AMOUNT_2]], use_invoice=False)
+        _assert(len(result) == 1)
+        _assert(result[0][1] == 1)
 
+    def test_verify_article_demand_fail_supplier(self):
+        AMOUNT_1 = 6
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost]])
+        supplier2 = Supplier(name="Foorab")
+        supplier2.save()
+        result = PackingDocument.verify_article_demand(supplier=supplier2, article_type_cost_combinations=[[self.article_type, AMOUNT_1]], use_invoice=False)
+        _assert(len(result) == 1)
+        _assert(result[0][0] == self.article_type)
+        _assert(result[0][1] == AMOUNT_1)
+
+    def test_verify_article_demand_fail_list(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1, self.price], [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        result = PackingDocument.verify_article_demand(supplier=self.supplier, article_type_cost_combinations=[[self.article_type, AMOUNT_1+2],[self.at2, AMOUNT_2+3]], use_invoice=False)
+        _assert(len(result) == 2)
+        _assert(result[0][1] == 2)
+        _assert(result[1][1] == 3)
+
+    def test_big_creation_function_order_only_no_invoice(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, AMOUNT_1, self.price], [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],[self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier, article_type_cost_combinations=[[self.article_type, AMOUNT_1],[self.at2, AMOUNT_2]])
 

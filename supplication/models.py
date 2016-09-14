@@ -96,11 +96,10 @@ class PackingDocument(ImmutableBlame):
                 _assert(len(atcc) == 2)
             else:
                 _assert(atcc[2] is None or isinstance(atcc[2], Cost))
-            supplied_articles[atcc[0]] += supplier_ordered_articles[atcc[1]]
+            supplied_articles[atcc[0]] += atcc[1]
 
         errors = []
         for article in supplied_articles:
-            _assert(supplied_articles[article] <= supplier_ordered_articles[article])
             if supplied_articles[article] > supplier_ordered_articles[article]:
                 errors.append((article, supplied_articles[article] - supplier_ordered_articles[article]))
 
