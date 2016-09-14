@@ -19,7 +19,8 @@ def all(request):
     relevant_labeltypes = AssortmentLabelType.objects\
         .all()\
         .prefetch_related('assortmentlabel_set')
-    return json.dumps(list(relevant_labeltypes)) + json.dumps([*relevant_wishables])
+    return json.dumps(list(relevant_labeltypes)) + \
+           json.dumps(list(relevant_wishables))
 
 
 def by_label(request, pk):
