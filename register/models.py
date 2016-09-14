@@ -521,9 +521,9 @@ class RegisterCount(models.Model):
         if isinstance(register, Register):
             last_register_period = RegisterPeriod.objects.filter(register=register).last("beginTime")
             counts = RegisterCount.objects.filter(register_period=last_register_period)
-            if counts.length == 1:
+            if len(counts) == 1:
                 return counts[0]
-            _assert(counts.length == 2)
+            _assert(len(counts) == 2)
             for count in counts:
                 if not count.is_opening_count:
                     return count
