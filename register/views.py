@@ -1,4 +1,6 @@
 from decimal import Decimal
+
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.core.urlresolvers import reverse_lazy
@@ -12,7 +14,8 @@ from register.models import RegisterMaster, Register, DenominationCount, SalesPe
     RegisterPeriod
 
 
-class OpenFormView(View):
+class OpenFormView(PermissionRequiredMixin, View):
+    permission_required = 'register.open_register'
     form_class = OpenForm
     initial = {'key': 'value'}
     template_name = 'open_count.html'
@@ -51,14 +54,15 @@ class OpenFormView(View):
         return render(request, self.template_name, {'form': form})
 
 
-class IsOpenStateView(View):
+class IsOpenStateView(LoginRequiredMixin, View):
     template_name = 'is_open_view.html'
 
     def get(self, request):
         return render(request, self.template_name, {"is_open": RegisterMaster.sales_period_is_open()})
 
 
-class CloseFormView(View):
+class CloseFormView(PermissionRequiredMixin, View):
+    permission_required = 'register.close_register'
     form_class = CloseForm
     initial = {'key': 'value'}
     template_name = 'open_count.html'
@@ -123,31 +127,35 @@ class CloseFormView(View):
         return self.get_or_post_from_form(request, form)
 
 
-class RegisterList(ListView):
+class RegisterList(LoginRequiredMixin,ListView):
     model = Register
 
 
-class DenominationList(ListView):
+class DenominationList(LoginRequiredMixin,ListView):
     model = Denomination
 
 
-class RegisterPeriodList(ListView):
+class RegisterPeriodList(LoginRequiredMixin,ListView):
     model = RegisterPeriod
 
 
-class DenominationCreate(CreateView):
+class DenominationCreate(PermissionRequiredMixin, CreateView):
+    permission_required = 'register.create_denomination'
+
     model = Denomination
     fields = ['currency', 'amount']
     success_url = reverse_lazy('register_list_denomination')
 
 
-class RegisterCreate(CreateView):
+class RegisterCreate(PermissionRequiredMixin, CreateView):
+    permission_required = 'register.create_register'
+
     model = Register
     fields = ['name', 'currency', 'is_cash_register', 'is_active', 'payment_type']
     success_url = reverse_lazy('list_register')
 
 
-class DenominationDetail(DetailView):
+class DenominationDetail(LoginRequiredMixin,DetailView):
     model = Denomination
 
 
