@@ -626,15 +626,22 @@ class DistributionTests(TestCase):
         STOCK_WISH = 5
         StockWish.create_stock_wish(self.copro, [[self.article_type, STOCK_WISH]])
         NUMBER_ORDERED_1 = 5
+        NUMBER_ORDERED_ARTICLE_2 = 5
         TOTAL_ORDERED = 10
         Order.create_order_from_wishables_combinations(self.copro, self.customer ,
-                                                       [[self.article_type, NUMBER_ORDERED_1, self.price]])
+                                                       [[self.article_type, NUMBER_ORDERED_1, self.price], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
-                                            articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost]])
-        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]],
+                                            articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost], [self.at2, NUMBER_ORDERED_ARTICLE_2, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2], [self.at2, 5, self.cost2]],
                                                                      self.supplier)
         b = DistributionStrategy.build_changeset(a)
-        print(b)
+        _assert( len(b) == 3)
+        for elem in b:
+            if elem.get('label') is None:
+                _assert(elem['article'] == self.article_type) # Stockwish are of article_type
+            _assert(elem['count'] == 5) # Checks if all counts are correct
+            _assert(elem['is_in'] == True) # All is in
+            _assert(elem['book_value'] == self.cost) # Checks if PackingDocLines retrieve cost from SupOrdLines
 
 
 

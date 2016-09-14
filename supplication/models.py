@@ -297,98 +297,51 @@ class DistributionStrategy:
         # Creates a dictionary of dictionaries. The first layer comprises the Order pk's with 0 articles for stock.
         # The second layer is an articleType with a multiplicity and cost
 
-        # Helper class to combine items into dictionary. Only used here so defined in a small scope
-        # class ArtCostCombiner:
-        #     art = ArticleType()
-        #     cost = Cost(Decimal(0), Currency("ABC"))
-        #
-        #     def __eq__(self, other):
-        #         return self.art == other.art and self.cost == other.cost
-        #
-        #     def __init__(self, art, cost):
-        #         self.art = art
-        #         self.cost = cost
-        #
-        #     def __hash__(self):
-        #         return hash(str(self.art.pk)+"|"+str(self.cost._currency)+str(self.cost._amount))
-
-        # for pac_doc_line in distribution:
-        #     if pac_doc_line.supplier_order_line.order_line is not None:
-        #         pk = pac_doc_line.supplier_order_line.order_line.order.pk
-        #         result = order_summary.get(pk)
-        #         if result is None:
-        #             order_summary[result] = {}
-        #         result2 = order_summary[result].get(ArtCostCombiner(pac_doc_line.article_type, pac_doc_line.line_cost))
-        #         if result2 is None:
-        #             order_summary[result][ArtCostCombiner(pac_doc_line.article_type, pac_doc_line.line_cost)] = 1
-        #         else:
-        #             print("Up it in order "+pk)
-        #             order_summary[result][ArtCostCombiner(pac_doc_line.article_type, pac_doc_line.line_cost)] += 1
-        #
-        #     else:
-        #         result = order_summary.get(0)
-        #         if result is None:
-        #             order_summary[0] = {}
-        #         result2 = order_summary[0].get(ArtCostCombiner(pac_doc_line.article_type, pac_doc_line.line_cost))
-        #         if result2 is None:
-        #             order_summary[0][ArtCostCombiner(pac_doc_line.article_type, pac_doc_line.line_cost)] = 1
-        #         else:
-        #             order_summary[0][ArtCostCombiner(pac_doc_line.article_type, pac_doc_line.line_cost)] += 1
-        order_summary = []
+        order_summary = {}
         for pac_doc_line in distribution:
             if pac_doc_line.supplier_order_line.order_line is not None:
-                found = False
-                for article_type, number, cost, order in order_summary:
-                    if pac_doc_line.article_type == article_type and pac_doc_line.line_cost == cost \
-                     and pac_doc_line.supplier_order_line.order_line.order == order:
-                        number += 1
-                        found = True
-                        break
-                if not found:
-                    order_summary.append([pac_doc_line.article_type, 1,
-                                          pac_doc_line.line_cost, pac_doc_line.supplier_order_line.order_line.order])
+                pk = pac_doc_line.supplier_order_line.order_line.order.pk
+                result = order_summary.get(pk)
+                if result is None:
+                    order_summary[pk] = {}
+                result2 = order_summary[pk].get((pac_doc_line.article_type, pac_doc_line.line_cost))
+                if result2 is None:
+                    order_summary[pk][(pac_doc_line.article_type, pac_doc_line.line_cost)] = 1
+                else:
+                    order_summary[pk][(pac_doc_line.article_type, pac_doc_line.line_cost)] += 1
+
             else:
-                found = False
-                for article_type, number, cost, order in order_summary:
-                    if pac_doc_line.article_type == article_type and pac_doc_line.line_cost == cost and order is None:
-                        number += 1
-                        found = True
-                        break
-                if not found:
-                    order_summary.append([pac_doc_line.article_type, 1,
-                                          pac_doc_line.line_cost, None])
-        for ordd in order_summary:
-            print(ordd)
+                result = order_summary.get(0)
+                if result is None:
+                    order_summary[0] = {}
+                result2 = order_summary[0].get((pac_doc_line.article_type, pac_doc_line.line_cost))
+                if result2 is None:
+                    order_summary[0][(pac_doc_line.article_type, pac_doc_line.line_cost)] = 1
+                else:
+                    order_summary[0][(pac_doc_line.article_type, pac_doc_line.line_cost)] += 1
+        ARTICLE_TYPE_LOCATION = 0
+        COST_LOCATION = 1
 
-
-
-
-
-        #print(order_summary)
         stock_change_set = []
-        # for key in order_summary:
-        #     for artcc in order_summary[key]:
-        #         if key == 0:
-        #             stock_change_set.append({
-        #                 'article': artcc.art,
-        #                 'book_value': artcc.cost,
-        #                 'count': order_summary[key][artcc],
-        #                 'is_in': True
-        #             })
-        #         else:
-        #             stock_change_set.append({
-        #                 'article': artcc.art,
-        #                 'book_value': artcc.cost,
-        #                 'count': order_summary[key][artcc],
-        #                 'is_in': True,
-        #                 'label': OrderLabel(key)
-        #             })
-
+        for key in order_summary:
+            if key == 0:
+                for atcc in order_summary[0]:
+                    stock_change_set.append({
+                        'article': atcc[ARTICLE_TYPE_LOCATION],
+                        'book_value': atcc[COST_LOCATION],
+                        'count': order_summary[key][atcc],
+                        'is_in': True,
+                    })
+            else:
+                for atcc in order_summary[key]:
+                    stock_change_set.append({
+                        'article': atcc[0],
+                        'book_value': atcc[1],
+                        'count': order_summary[key][atcc],
+                        'is_in': True,
+                        'label': OrderLabel(key)
+                    })
         return stock_change_set
-
-
-
-
 
 
 class FirstSupplierOrderStrategy(DistributionStrategy):
