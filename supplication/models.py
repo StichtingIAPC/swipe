@@ -45,13 +45,15 @@ class PackingDocument(ImmutableBlame):
         _assert(isinstance(article_type_cost_combinations, list))
 
         ARTICLETYPE_LOCATION = 0
-        COST_LOCATION = 1
+        NUMBER_LOCATION = 1
+        COST_LOCATION = 2
         for atcc in article_type_cost_combinations:
             _assert(isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType))
+            _assert(isinstance(atcc[NUMBER_LOCATION], int))
             if use_invoice:
                 _assert(atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost))
             else:
-                _assert(atcc[COST_LOCATION] is None)
+                _assert(len(atcc) == 2 or atcc[COST_LOCATION] is None)
 
         errors = PackingDocument.verify_article_demand(supplier, article_type_cost_combinations, use_invoice)
         if len(errors) > 0:
@@ -65,7 +67,7 @@ class PackingDocument(ImmutableBlame):
                 err_msg += "\n"
             raise InsufficientDemandError(err_msg)
 
-        distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY)
+        distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY).get_distribution(supplier=supplier, article_type_number_combos=article_type_cost_combinations)
         changeset = DistributionStrategy.build_changeset(distribution)
 
 
@@ -73,7 +75,8 @@ class PackingDocument(ImmutableBlame):
                                         distribution=distribution,
                                         document_identifier=packing_document_name,
                                         invoice_identifier=invoice_name,
-                                        mod_stock=False
+                                        mod_stock=False,
+                                        indirect=True
                                         )
         pd = PackingDocument.objects.last()
         StockChangeSet.construct("Stock supplication by {}".format(pd.pk), entries=changeset, enum=enum["supplication"])
