@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from article.tests import INeedSettings
-from money.models import CurrencyData, Denomination
+from money.models import CurrencyData, Denomination, Price, Money
 from register.models import PaymentType, Register, RegisterMaster, \
     SalesPeriod, DenominationCount, AlreadyOpenError, ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
 from stock.exceptions import StockSmallerThanZeroError

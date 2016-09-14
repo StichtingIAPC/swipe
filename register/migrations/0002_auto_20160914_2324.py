@@ -12,42 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='othercosttransactionline',
-            name='transactionline_ptr',
-        ),
-        migrations.RemoveField(
-            model_name='othertransactionline',
-            name='transactionline_ptr',
-        ),
-        migrations.RemoveField(
-            model_name='payment',
-            name='payment_type',
-        ),
-        migrations.RemoveField(
-            model_name='payment',
-            name='transaction',
-        ),
-        migrations.RemoveField(
-            model_name='salestransactionline',
-            name='article',
-        ),
-        migrations.RemoveField(
-            model_name='salestransactionline',
-            name='transactionline_ptr',
-        ),
-        migrations.RemoveField(
-            model_name='transaction',
-            name='salesperiod',
-        ),
-        migrations.RemoveField(
-            model_name='transaction',
-            name='stock_change_set',
-        ),
-        migrations.RemoveField(
-            model_name='transactionline',
-            name='transaction',
-        ),
         migrations.DeleteModel(
             name='OtherCostTransactionLine',
         ),
