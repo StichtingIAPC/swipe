@@ -1,4 +1,3 @@
-from django.db import models, transaction
 from money.models import MoneyField, PriceField, CostField
 from stock.stocklabel import StockLabeledLine
 from stock.models import StockChangeSet, Id10TError
@@ -6,20 +5,8 @@ from article.models import ArticleType
 from stock.enumeration import enum
 from tools.util import _assert
 from swipe.settings import USED_CURRENCY
-from register.models import RegisterMaster, PaymentType, SalesPeriod
 
-
-class Payment(models.Model):
-    """
-    Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
-    transaction
-    """
-    # Exhange of money when something is sold to a customer
-    transaction = models.ForeignKey("Transaction")
-    # An amount and currency the customer pays
-    amount = MoneyField()
-    # Which payment type is this payment added to?
-    payment_type = models.ForeignKey(PaymentType)
+from django.db import models, transaction
 
 
 class TransactionLine(models.Model):
@@ -78,9 +65,22 @@ class OtherTransactionLine(TransactionLine):
     def handle(changes, register_id):
         pass
 
-# List of all types of transaction lines
-transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
-                          "other": OtherTransactionLine}
+
+class InactiveError(Exception):
+    pass
+
+
+class Payment(models.Model):
+    """
+    Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
+    transaction
+    """
+    # Exhange of money when something is sold to a customer
+    transaction = models.ForeignKey("Transaction")
+    # An amount and currency the customer pays
+    amount = MoneyField()
+    # Which payment type is this payment added to?
+    payment_type = models.ForeignKey('register.PaymentType')
 
 
 class Transaction(models.Model):
@@ -93,7 +93,7 @@ class Transaction(models.Model):
     # Which changes did it cause in the stock?
     stock_change_set = models.ForeignKey(StockChangeSet)
     # The sales period it is connected to
-    salesperiod = models.ForeignKey(SalesPeriod)
+    salesperiod = models.ForeignKey('register.SalesPeriod')
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -103,15 +103,18 @@ class Transaction(models.Model):
     @staticmethod
     @transaction.atomic()
     def construct(payments, transaction_lines):
-
+        from register.models import RegisterMaster
         #
         sum_of_payments = None
         trans = Transaction()
         transaction_store = {}
         if not RegisterMaster.sales_period_is_open():
+            from register.models import InactiveError
             raise InactiveError("Sales period is closed")
 
         salesperiod = RegisterMaster.get_open_sales_period()
+
+        from sales.models import transaction_line_types
 
         # Get all stockchangeset lines
         for transaction_line in transaction_lines:
@@ -171,6 +174,6 @@ class Transaction(models.Model):
         return trans
 
 
-class InactiveError(Exception):
-    pass
-
+# List of all types of transaction lines
+transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
+                          "other": OtherTransactionLine}
