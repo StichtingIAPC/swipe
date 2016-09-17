@@ -1,15 +1,17 @@
 from money.models import MoneyField, PriceField, CostField
 from stock.stocklabel import StockLabeledLine
 from stock.models import StockChangeSet, Id10TError
-from article.models import ArticleType
+from article.models import ArticleType, OtherCostType
 from stock.enumeration import enum
 from tools.util import _assert
 from swipe.settings import USED_CURRENCY
+from blame.models import Blame, ImmutableBlame
+from money.models import Price
 
 from django.db import models, transaction
 
 
-class TransactionLine(models.Model):
+class TransactionLine(Blame):
     """
     Superclass of transaction line. Contains all the shared information of all transaction line types.
     """
@@ -25,6 +27,9 @@ class TransactionLine(models.Model):
     isRefunded = models.BooleanField(default=False)
     # Text storage of name of SellableType
     text = models.CharField(max_length=128)
+
+    def save(self):
+        raise Id10TError("Cannot instantiate super class TransactionLine. Use specific instead!")
 
 
 # noinspection PyShadowingBuiltins
@@ -51,6 +56,7 @@ class OtherCostTransactionLine(TransactionLine):
     """
         Transaction for a product that has no stock but is orderable.
     """
+    other_cost_type = models.ForeignKey(OtherCostType)
     @staticmethod
     def handle(changes, register_id):
         pass
@@ -70,7 +76,7 @@ class InactiveError(Exception):
     pass
 
 
-class Payment(models.Model):
+class Payment(ImmutableBlame):
     """
     Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
     transaction
@@ -83,7 +89,7 @@ class Payment(models.Model):
     payment_type = models.ForeignKey('register.PaymentType')
 
 
-class Transaction(models.Model):
+class Transaction(Blame):
     """
         General transaction for the use in a sales period. Contains a number of transaction lines that could be any form
         of sales.
@@ -113,8 +119,6 @@ class Transaction(models.Model):
             raise InactiveError("Sales period is closed")
 
         salesperiod = RegisterMaster.get_open_sales_period()
-
-        from sales.models import transaction_line_types
 
         # Get all stockchangeset lines
         for transaction_line in transaction_lines:
@@ -172,6 +176,31 @@ class Transaction(models.Model):
             transaction_line.transaction = trans
             transaction_line.save()
         return trans
+
+    @staticmethod
+    def create_transaction(user, payments, order_article_type_helpers, customer=None):
+        """
+        Creates a transaction with the necessary information
+        :param user: The user which handled the Transaction
+        :param payments: List[Payment]. A list of payments to pay for the products. Must match the prices.
+        :param order_article_type_helpers: List[OrderArticleTypeHelper]
+        :param customer:
+        :return:
+        """
+
+
+
+class OrderArticleTypeHelper:
+    """
+    Helper class to create transactions in a standardised manner.
+    Indicates from which position from stock to take the items, if applicable.
+    """
+    # Order, from which the sales takes place. 0 if from stock
+    order = 0
+    # List[List[SellableType, number]].
+    article_type_combinations = []
+    # Price. A price per product paid.
+    price = Price(amount=0)
 
 
 # List of all types of transaction lines
