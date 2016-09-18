@@ -1,7 +1,7 @@
 from money.models import MoneyField, PriceField, CostField
-from stock.stocklabel import StockLabeledLine
-from stock.models import StockChangeSet, Id10TError
-from article.models import ArticleType, OtherCostType
+from stock.stocklabel import StockLabeledLine, OrderLabel
+from stock.models import StockChangeSet, Id10TError, Stock
+from article.models import ArticleType, OtherCostType, SellableType
 from stock.enumeration import enum
 from tools.util import _assert
 from swipe.settings import USED_CURRENCY
@@ -184,19 +184,72 @@ class Transaction(Blame):
     @staticmethod
     def create_transaction(user, payments, order_article_type_helpers, customer=None):
         """
-        Creates a transaction with the necessary information
+        Creates a transaction with the necessary information. Checks stock and payment assertions.
         :param user: The user which handled the Transaction
         :param payments: List[Payment]. A list of payments to pay for the products. Must match the prices.
         :param order_article_type_helpers: List[OrderArticleTypeHelper]
-        :param customer:
+        :param customer: A Customer
         :return:
         """
+        # Basic assertions
         _assert(isinstance(user, User))
         _assert(customer is None or isinstance(customer, Customer))
         for payment in payments:
             _assert(isinstance(payment, Payment))
         for oath in order_article_type_helpers:
             _assert(isinstance(oath, OrderArticleTypeHelper))
+        # Now some more advanced stock checks
+        stock_level_dict = {}
+        for oath in order_article_type_helpers:
+            if type(oath.sellable_type) == ArticleType:
+                st = stock_level_dict.get((oath.order, oath.sellable_type), None)
+                if not st:
+                    stock_level_dict[(oath.order, oath.sellable_type)] = oath.number
+                else:
+                    stock_level_dict[(oath.order, oath.sellable_type)] += oath.number
+            elif type(oath.sellable_type) == OtherCostType:
+                pass
+                # Does not matter for stock but needs to be caught
+            else:
+                raise UnimplementedError("This type is not implemented")
+        ORDER_POSITION = 0
+        ARTICLE_TYPE_POSITION = 1
+        for key in stock_level_dict.keys():
+            # Checks for stock level, no order
+            if key[ORDER_POSITION] == 0:
+                arts = Stock.objects.filter(labeltype__isnull=True, article=key[ARTICLE_TYPE_POSITION])
+                length = arts.__len__()
+                if length == 0:
+                    raise NotEnoughStockError("There is no stock without any label for article type {}".format(key[ARTICLE_TYPE_POSITION]))
+                elif length > 1:
+                    raise UnimplementedError("There are more than two lines for stock of the same label. "
+                                             "This shouldn't be happening.")
+                else:
+                    if arts[0].count < stock_level_dict[key]:
+                        raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {}".
+                                                  format(key[ARTICLE_TYPE_POSITION], arts[0].count, stock_level_dict[key]))
+                # Assumes unity of all stock with same label. If this is not true, break
+                _assert(arts[0].count >= stock_level_dict[key])
+            else:
+                arts = Stock.objects.filter(labeltype__isnull=OrderLabel, labelkey=key[ORDER_POSITION],
+                                            article=key[ARTICLE_TYPE_POSITION])
+                length = arts.__len__()
+                if length == 0:
+                    raise NotEnoughStockError("There is no stock for order {} for article type".format(key[ORDER_POSITION]),
+                                              key[ARTICLE_TYPE_POSITION])
+                elif length > 1:
+                    raise UnimplementedError("There are more than two lines for stock of the same label. "
+                                             "This shouldn't be happening.")
+                else:
+                    if arts[0].count < stock_level_dict[key]:
+                        raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {} in order {}".
+                                                  format(key[ARTICLE_TYPE_POSITION], arts[0].count,
+                                                         stock_level_dict[key], key[ORDER_POSITION]))
+            # If the interpreter is here, it means there are no problems with the stock.
+            # Test payments
+
+
+
 
 
 class OrderArticleTypeHelper:
@@ -206,12 +259,44 @@ class OrderArticleTypeHelper:
     """
     # Order, from which the sales takes place. 0 if from stock
     order = 0
-    # List[List[SellableType, number]].
-    article_type_combinations = []
+    # The sellabletype to be sold
+    sellable_type = SellableType
+    # Number of items to be sold
+    number = 0
     # Price. A price per product paid.
     price = Price(amount=Decimal(0))
+
+    def __init__(self, order, sellable_type, number, price):
+        """
+
+        :param order:
+        :type order: int
+        :param sellable_type:
+        :type sellable_type: SellableType
+        :param number:
+        :type number: int
+        :param price:
+        :type price: Price
+        """
+        _assert(isinstance(order, int))
+        _assert(isinstance(sellable_type, SellableType))
+        _assert(isinstance(number, int))
+        _assert(isinstance(price, Price))
+
+        self.order = order
+        self.sellable_type = sellable_type
+        self.number = number
+        self.price = price
 
 
 # List of all types of transaction lines
 transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
                           "other": OtherTransactionLine}
+
+
+class UnimplementedError(Exception):
+    pass
+
+
+class NotEnoughStockError(Exception):
+    pass
