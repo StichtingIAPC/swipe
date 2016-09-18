@@ -7,6 +7,7 @@ from article.models import ArticleType
 from sales.models import SalesTransactionLine, Payment, Transaction
 from stock.models import StockChange, StockSmallerThanZeroError, StockChangeSet
 from register.models import PaymentType
+from crm.models import User
 
 # Create your tests here.
 class TestTransactionNoSalesPeriod(INeedSettings, TestCase):
@@ -24,9 +25,11 @@ class TestTransactionNoSalesPeriod(INeedSettings, TestCase):
 
         self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
+        self.copro = User()
+        self.copro.save()
 
     def do_transaction(self):
-        Transaction.construct([self.simple_payment], [self.simplest])
+        Transaction.construct([self.simple_payment], [self.simplest], self.copro)
 
     def test_simple(self):
         SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
@@ -59,12 +62,14 @@ class TestTransaction(INeedSettings, TestCase):
         self.sp = SalesPeriod.objects.create()
         self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
+        self.copro = User()
+        self.copro.save()
 
     def do_transaction(self):
-        Transaction.construct([self.simple_payment], [self.simplest])
+        Transaction.construct([self.simple_payment], [self.simplest], self.copro)
 
     def test_simple(self):
-        SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
+        SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1, user_modified=self.copro)
         Payment(amount=self.money)
         StockChangeSet.construct("HENK", [{
             'article': self.art,

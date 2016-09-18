@@ -8,6 +8,7 @@ from stock.exceptions import StockSmallerThanZeroError
 from tools.util import _assert
 from sales.models import Payment, OtherTransactionLine, Transaction
 from decimal import Decimal
+from crm.models import User
 
 
 class BasicTest(TestCase):
@@ -27,6 +28,8 @@ class BasicTest(TestCase):
         self.denom2.save()
         self.denom3 = Denomination(currency=self.eu, amount=Decimal("0.02000"))
         self.denom3.save()
+        self.copro = User()
+        self.copro.save()
 
     def test_register_init(self):
         reg = Register(currency=self.eu, is_cash_register=False)
@@ -106,11 +109,11 @@ class BasicTest(TestCase):
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
         trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.eu), num=1,
-                                     text="HOI")
+                                     text="HOI", user_modified=self.copro)
         pay = Payment(amount=Money(Decimal("1.00000"), self.eu), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
                                   amount=Decimal("1.0000"))
-        Transaction.construct([pay], [trans])
+        Transaction.construct([pay], [trans], self.copro)
 
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
         _assert(RegisterMaster.number_of_open_registers() == 0)

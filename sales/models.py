@@ -7,6 +7,8 @@ from tools.util import _assert
 from swipe.settings import USED_CURRENCY
 from blame.models import Blame, ImmutableBlame
 from money.models import Price
+from crm.models import User, Customer
+from decimal import Decimal
 
 from django.db import models, transaction
 
@@ -28,8 +30,10 @@ class TransactionLine(Blame):
     # Text storage of name of SellableType
     text = models.CharField(max_length=128)
 
-    def save(self):
-        raise Id10TError("Cannot instantiate super class TransactionLine. Use specific instead!")
+    def save(self, *args, **kwargs):
+        if type(self) == TransactionLine:
+            raise Id10TError("Cannot instantiate super class TransactionLine. Use specific instead!")
+        super(TransactionLine, self).save(*args, **kwargs)
 
 
 # noinspection PyShadowingBuiltins
@@ -76,7 +80,7 @@ class InactiveError(Exception):
     pass
 
 
-class Payment(ImmutableBlame):
+class Payment(models.Model):
     """
     Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
     transaction
@@ -94,8 +98,6 @@ class Transaction(Blame):
         General transaction for the use in a sales period. Contains a number of transaction lines that could be any form
         of sales.
     """
-    # When did the transaction take place?
-    time = models.DateTimeField(auto_now_add=True)
     # Which changes did it cause in the stock?
     stock_change_set = models.ForeignKey(StockChangeSet)
     # The sales period it is connected to
@@ -108,7 +110,7 @@ class Transaction(Blame):
 
     @staticmethod
     @transaction.atomic()
-    def construct(payments, transaction_lines):
+    def construct(payments, transaction_lines, user):
         from register.models import RegisterMaster
         #
         sum_of_payments = None
@@ -167,6 +169,7 @@ class Transaction(Blame):
 
         # save all data
         trans.salesperiod = salesperiod
+        trans.user_modified = user
         trans.save(indirect=True)
         for payment in payments:
             payment.transaction = trans
@@ -174,6 +177,7 @@ class Transaction(Blame):
 
         for transaction_line in transaction_lines:
             transaction_line.transaction = trans
+            transaction_line.user_modified = user
             transaction_line.save()
         return trans
 
@@ -187,7 +191,12 @@ class Transaction(Blame):
         :param customer:
         :return:
         """
-
+        _assert(isinstance(user, User))
+        _assert(customer is None or isinstance(customer, Customer))
+        for payment in payments:
+            _assert(isinstance(payment, Payment))
+        for oath in order_article_type_helpers:
+            _assert(isinstance(oath, OrderArticleTypeHelper))
 
 
 class OrderArticleTypeHelper:
@@ -200,7 +209,7 @@ class OrderArticleTypeHelper:
     # List[List[SellableType, number]].
     article_type_combinations = []
     # Price. A price per product paid.
-    price = Price(amount=0)
+    price = Price(amount=Decimal(0))
 
 
 # List of all types of transaction lines
