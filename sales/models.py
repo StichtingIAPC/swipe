@@ -26,7 +26,7 @@ class TransactionLine(Blame):
     price = PriceField()
     # How many are you selling?
     count = models.IntegerField()
-    # Is this line refunded yeu?
+    # Is this line refunded yet?
     isRefunded = models.BooleanField(default=False)
     # Text storage of name of SellableType
     text = models.CharField(max_length=128)
@@ -198,7 +198,7 @@ class Transaction(Blame):
         for payment in payments:
             _assert(isinstance(payment, Payment))
         for oath in order_article_type_helpers:
-            _assert(isinstance(oath, OrderArticleTypeHelper))
+            _assert(isinstance(oath, OrderSellableTypeHelper))
         # Now some more advanced stock checks
         stock_level_dict = {}
         for oath in order_article_type_helpers:
@@ -243,8 +243,8 @@ class Transaction(Blame):
                                             article=key[ARTICLE_TYPE_POSITION])
                 length = arts.__len__()
                 if length == 0:
-                    raise NotEnoughStockError("There is no stock for order {} for article type".format(key[ORDER_POSITION]),
-                                              key[ARTICLE_TYPE_POSITION])
+                    raise NotEnoughStockError("There is no stock for order {} for article type {}".format(key[ORDER_POSITION],
+                                              key[ARTICLE_TYPE_POSITION]))
                 elif length > 1:
                     raise UnimplementedError("There are more than two lines for stock of the same label. "
                                              "This shouldn't be happening.")
@@ -280,10 +280,39 @@ class Transaction(Blame):
                                                                                                    key, is_paid[key]))
 
         # We assume everything succeeded, now we construct the stock changes
+        change_set = []
+        # A bit hackish, but this is a list of costs for all OrderArticleTypeHelpers, which is necessary in creation
+        # Transaction lines
+        costs = []
+        for oath in order_article_type_helpers:
+            if type(oath.sellable_type) == ArticleType:
+                if oath.order == 0:
+                    # OtherCostTypes don't do stock
+                    stock_line = Stock.objects.get(article=oath.sellable_type, labelkey__isnull=True)
+                    change = {'article': oath.sellable_type,
+                              'book_value': stock_line.book_value,
+                              'count': oath.number,
+                              'is_in': False}
+                    costs.append(stock_line.book_value)
+                    change_set.append(change)
+                else:
+                    stock_line = Stock.objects.get(article=oath.sellable_type, labeltype=OrderLabel, labelkey=oath.order)
+                    change = {'article': oath.sellable_type,
+                              'book_value': stock_line.book_value,
+                              'count': oath.number,
+                              'is_in': False,
+                              'label': OrderLabel(oath.order)}
+                    costs.append(stock_line.book_value)
+                    change_set.append(change)
+            else:
+                costs.append(None)
+        # Final constructions of all related values
+        trans = Transaction(salesperiod=salesperiod)
 
 
 
-class OrderArticleTypeHelper:
+
+class OrderSellableTypeHelper:
     """
     Helper class to create transactions in a standardised manner.
     Indicates from which position from stock to take the items, if applicable.
@@ -331,6 +360,7 @@ class UnimplementedError(Exception):
 
 class NotEnoughStockError(Exception):
     pass
+
 
 class PaymentMisMatchError(Exception):
     pass

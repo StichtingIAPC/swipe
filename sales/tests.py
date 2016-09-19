@@ -4,7 +4,7 @@ from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup
 from register.models import SalesPeriod, InactiveError
 from decimal import Decimal
 from article.models import ArticleType
-from sales.models import SalesTransactionLine, Payment, Transaction, OrderArticleTypeHelper, NotEnoughStockError
+from sales.models import SalesTransactionLine, Payment, Transaction, OrderSellableTypeHelper, NotEnoughStockError
 from stock.models import StockChange, StockSmallerThanZeroError, StockChangeSet
 from register.models import PaymentType
 from crm.models import User
@@ -124,16 +124,15 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
 
     def test_dict(self):
         oalist = []
-        oalist.append(OrderArticleTypeHelper(number=3, order=2, price=self.price, sellable_type=self.art))
-        oalist.append(OrderArticleTypeHelper(number=3, order=2, price=self.price, sellable_type=self.art))
-        oalist.append(OrderArticleTypeHelper(number=3, order=4, price=self.price, sellable_type=self.art))
+        oalist.append(OrderSellableTypeHelper(number=3, order=2, price=self.price, sellable_type=self.art))
+        oalist.append(OrderSellableTypeHelper(number=3, order=2, price=self.price, sellable_type=self.art))
+        oalist.append(OrderSellableTypeHelper(number=3, order=4, price=self.price, sellable_type=self.art))
         caught = False
         try:
             Transaction.create_transaction(self.copro, [self.simple_payment], oalist)
         except NotEnoughStockError:
             caught = True
         _assert(caught)
-
 
     def test_dict_manual(self):
         dt = {}
