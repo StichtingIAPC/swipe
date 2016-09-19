@@ -9,6 +9,7 @@ from blame.models import Blame, ImmutableBlame
 from money.models import Price
 from crm.models import User, Customer
 from decimal import Decimal
+from collections import defaultdict
 
 from django.db import models, transaction
 
@@ -212,6 +213,13 @@ class Transaction(Blame):
                 # Does not matter for stock but needs to be caught
             else:
                 raise UnimplementedError("This type is not implemented")
+        from register.models import RegisterMaster
+        if not RegisterMaster.sales_period_is_open():
+            from register.models import InactiveError
+            raise InactiveError("Sales period is closed")
+
+        salesperiod = RegisterMaster.get_open_sales_period()
+
         ORDER_POSITION = 0
         ARTICLE_TYPE_POSITION = 1
         for key in stock_level_dict.keys():
@@ -245,10 +253,33 @@ class Transaction(Blame):
                         raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {} in order {}".
                                                   format(key[ARTICLE_TYPE_POSITION], arts[0].count,
                                                          stock_level_dict[key], key[ORDER_POSITION]))
-            # If the interpreter is here, it means there are no problems with the stock.
-            # Test payments
+        # If the interpreter is here, it means there are no problems with the stock.
+        # Test payments
+        should_be_paid = defaultdict(lambda: 0)
+        for oath in order_article_type_helpers:
+            curr = oath.price.currency
+            amount = oath.price.amount
+            should_be_paid[curr] += amount
 
+        is_paid = defaultdict(lambda: 0)
+        for payment in payments:
+            amt = payment.amount.amount
+            curr = payment.amount.currency
+            is_paid[curr] += amt
 
+        if len(should_be_paid) != len(is_paid):
+            raise PaymentMisMatchError("Number of currencies does not match. Aborting transaction")
+        else:
+            for key in should_be_paid.keys():
+                paid = is_paid.get(key)
+                if paid is None:
+                    raise PaymentMisMatchError("Payment does not exist for currency {}".format(str(key)))
+                else:
+                    if should_be_paid[key] != is_paid[key]:
+                        raise PaymentMisMatchError("Expected {} for currency {} but got {}".format(should_be_paid[key],
+                                                                                                   key, is_paid[key]))
+
+        # We assume everything succeeded, now we construct the stock changes
 
 
 
@@ -299,4 +330,7 @@ class UnimplementedError(Exception):
 
 
 class NotEnoughStockError(Exception):
+    pass
+
+class PaymentMisMatchError(Exception):
     pass
