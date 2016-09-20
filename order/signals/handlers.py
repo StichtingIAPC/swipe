@@ -9,20 +9,21 @@ from order.models import OrderLine, InconsistencyError
 def stock_change_handler(sender, **kwargs):
     stock_change = kwargs['instance']  # type: StockChange
     if stock_change.change_set.enum == 0:
-        if sender.labeltype == OrderLabel:
-            if not sender.is_in:
-                pass
+        if stock_change.labeltype == "Order":
+            if not stock_change.is_in:
                 # This means something was sold!
                 orders_to_complete = stock_change.count
                 order_number = stock_change.labelkey
-                user = stock_change.user_created
-                lines = OrderLine.objects.filter(order_id=order_number, state='A')
+                art_type = stock_change.article
+                lines = OrderLine.objects.filter(order_id=order_number, state='A',
+                                                 wishable__sellabletype__articletype=art_type)
                 if len(lines) < orders_to_complete:
                     raise InconsistencyError("Something happened and there are not enough OrderLines to transition"
                                              "to 'sold' for order {}. I cannot fix this :( Have fun fixing it in the"
                                              "database".format(order_number))
                 else:
-                    for i in range(order_number):
-                        lines[i].sell(user)
+                    for i in range(orders_to_complete):
+                        # We do need a hack for the user. But things work for the rest.
+                        lines[i].sell(lines[i].user_modified)
 
     # Nothing else (yet!)

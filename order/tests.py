@@ -254,7 +254,16 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
         self.eur = Currency(iso="EUR")
         self.cost = Cost(amount=Decimal(3), currency=self.eur)
 
-    def test_signal_catching(self):
+        self.customer = Person()
+        self.customer.save()
+
+        self.copro = User()
+        self.copro.save()
+
+        self.order = Order(user_modified=self.copro, customer=self.customer)
+        self.order.save()
+
+    def test_signal_not_enough_orderlines(self):
         changeset=[{
             'article': self.article_type,
             'book_value': self.cost,
@@ -263,4 +272,47 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'label': OrderLabel(1)
         }]
         StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': 1,
+            'is_in': False,
+            'label': OrderLabel(1)
+        }]
+        caught = False
+        try:
+            StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        except InconsistencyError:
+            caught = True
+        _assert(caught)
+
+    def test_signal_proper(self):
+        pk = self.order.pk
+        for i in range(8):
+            line = OrderLine(order=self.order, state='A', wishable=self.article_type,
+                             user_modified=self.copro, expected_sales_price=self.price)
+            line.save()
+        ols = OrderLine.objects.all()
+        for ol in ols:
+            print(ol)
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': 5,
+            'is_in': True,
+            'label': OrderLabel(pk)
+        }]
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': 5,
+            'is_in': False,
+            'label': OrderLabel(pk)
+        }]
+
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        ols = OrderLine.objects.all()
+        for ol in ols:
+            print(ol)
 
