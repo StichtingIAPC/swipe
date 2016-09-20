@@ -23,7 +23,6 @@ def stock_change_handler(sender, **kwargs):
                                              "database".format(order_number))
                 else:
                     for i in range(order_number):
-                        # There is no user to check things with. Let's reuse an old one
-                        lines[i].sell(lines[i].user_modified)
+                        lines[i].sell(user)
 
     # Nothing else (yet!)
