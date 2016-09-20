@@ -2,6 +2,8 @@ from django.test import TestCase
 
 from article.tests import INeedSettings
 from order.models import *
+from stock.stocklabel import OrderLabel
+from stock.models import StockChangeSet
 
 # Create your tests here.
 from tools.util import _assert
@@ -224,3 +226,41 @@ class OrderTest(INeedSettings, TestCase):
                 _assert(False)
         _assert(tally_art1 == 5)
         _assert(tally_art2 == 6)
+
+
+class TestStockChangeSetFiltering(TestCase, INeedSettings):
+
+    def setUp(self):
+        super().setUp()
+        self.vat_group = VAT()
+        self.vat_group.name = "Bar"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
+        self.vat_group.save()
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
+        self.currency = Currency(iso="USD")
+
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
+        self.branch = AssortmentArticleBranch.objects.create(
+            name='hoi',
+            parent_tag=None)
+
+        self.article_type = ArticleType(accounting_group=self.acc_group,
+                                        name="Foo", branch=self.branch)
+        self.article_type.save()
+        self.eur = Currency(iso="EUR")
+        self.cost = Cost(amount=Decimal(3), currency=self.eur)
+
+    def test_signal_catching(self):
+        changeset=[{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': 1,
+            'is_in': True,
+            'label': OrderLabel(1)
+        }]
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+

@@ -10,6 +10,7 @@ from money.models import Price
 from crm.models import User, Customer
 from decimal import Decimal
 from collections import defaultdict
+from typing import List
 
 from django.db import models, transaction
 
@@ -114,7 +115,7 @@ class Transaction(Blame):
         super(Transaction, self).save(*args, **kwargs)
 
     @staticmethod
-    def create_transaction(user: User, payments: list[Payment], transaction_lines: list[TransactionLine],
+    def create_transaction(user: User, payments: List[Payment], transaction_lines: List[TransactionLine],
                            customer=None):
         """
         Creates a transaction with the necessary information. Checks stock and payment assertions. The transactionLines provided

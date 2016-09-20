@@ -321,3 +321,7 @@ class IncorrectOrderLineStateError(Exception):
 
 class IncorrectTransitionError(Exception):
     pass
+
+
+class InconsistencyError(Exception):
+    pass
