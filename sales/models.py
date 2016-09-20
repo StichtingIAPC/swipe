@@ -30,6 +30,8 @@ class TransactionLine(Blame):
     isRefunded = models.BooleanField(default=False)
     # Text storage of name of SellableType
     text = models.CharField(max_length=128)
+    # Reference to order, null if stock
+    order = models.IntegerField(null=True)
 
     def save(self, *args, **kwargs):
         if type(self) == TransactionLine:
@@ -38,7 +40,7 @@ class TransactionLine(Blame):
 
 
 # noinspection PyShadowingBuiltins
-class SalesTransactionLine(TransactionLine, StockLabeledLine):
+class SalesTransactionLine(TransactionLine):
     """
         Equivalent to one stock-modifying line on a Receipt
     """
@@ -103,6 +105,8 @@ class Transaction(Blame):
     stock_change_set = models.ForeignKey(StockChangeSet)
     # The sales period it is connected to
     salesperiod = models.ForeignKey('register.SalesPeriod')
+    # Customer. Null for anonymous customer
+    customer = models.ForeignKey(Customer, null=True)
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -158,9 +162,9 @@ class Transaction(Blame):
         # Count sum of transactions
         for transaction_line in transaction_lines:
             if first:
-                sum2 = transaction_line.price
+                sum2 = transaction_line.price * transaction_line.count
             else:
-                sum2 += transaction_line.price
+                sum2 += transaction_line.price * transaction_line.count
             first = False
         # Check Quid pro Quo
         _assert(sum2.currency == sum_of_payments.currency)
@@ -220,6 +224,7 @@ class Transaction(Blame):
 
         salesperiod = RegisterMaster.get_open_sales_period()
 
+        # Checks if there is enough stock
         ORDER_POSITION = 0
         ARTICLE_TYPE_POSITION = 1
         for key in stock_level_dict.keys():
@@ -307,7 +312,30 @@ class Transaction(Blame):
             else:
                 costs.append(None)
         # Final constructions of all related values
-        trans = Transaction(salesperiod=salesperiod)
+        trans = Transaction(salesperiod=salesperiod, customer=customer)
+        transaction_lines = []
+        for i in range(0, len(order_article_type_helpers)):
+            obj = order_article_type_helpers[i]
+            if type(obj.sellable_type) == OtherCostType:
+                if obj.order == 0:
+                    order_reference = None
+                else:
+                    order_reference = obj.order
+                line = OtherCostTransactionLine(num=obj.sellable_type.pk, price=obj.price, count=obj.number,
+                                                isRefunded=False, text=obj.sellable_type.name, other_cost_type=obj.sellable_type,
+                                                order=order_reference)
+                transaction_lines.append(line)
+            elif type(obj.sellable_type) == ArticleType:
+                if obj.order == 0:
+                    order_reference = None
+                else:
+                    order_reference = obj.order
+                line = SalesTransactionLine(num=obj.sellable_type.pk, price=obj.price, count=obj.number, isRefunded=False,
+                                            text=obj.sellable_type.name,  cost=costs[i], article=obj.sellable_type,
+                                            order=order_reference)
+                transaction_lines.append(line)
+            else:
+                raise UnimplementedError("This class is not implemented for sale yet")
 
 
 
