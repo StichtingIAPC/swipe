@@ -20,7 +20,7 @@ class TransactionLine(Blame):
     """
     # A transaction has one or more transaction lines
     transaction = models.ForeignKey("Transaction")
-    # What is the id of the SellableType?
+    # What is the id of the SellableType(0 for no SellableType)?
     num = models.IntegerField()
     # What did the customer pay for this line?
     price = PriceField()
@@ -114,85 +114,19 @@ class Transaction(Blame):
         super(Transaction, self).save(*args, **kwargs)
 
     @staticmethod
-    @transaction.atomic()
-    def construct(payments, transaction_lines, user):
-        from register.models import RegisterMaster
-        #
-        sum_of_payments = None
-        trans = Transaction()
-        transaction_store = {}
-        if not RegisterMaster.sales_period_is_open():
-            from register.models import InactiveError
-            raise InactiveError("Sales period is closed")
-
-        salesperiod = RegisterMaster.get_open_sales_period()
-
-        # Get all stockchangeset lines
-        for transaction_line in transaction_lines:
-            key = (key for key, value in transaction_line_types.items() if value == type(transaction_line)).__next__()
-            if not transaction_store.get(key, None):
-                transaction_store[key] = []
-            transaction_store[key].append(transaction_line)
-
-        # Create stockchangeset; here final handling for other types of changesets might be done.
-        sl = None
-        for key in transaction_store.keys():
-            line = transaction_line_types[key].handle(transaction_store[key], trans.id)
-            if key == "sales":
-                sl = line
-        if sl is None:
-            sl = StockChangeSet.construct(description="Empty stockchangeset for Receipt", entries=[], enum=0)
-
-        trans.stock_change_set = sl
-
-        # Count payments
-        first = True
-        for payment in payments:
-            if first:
-                sum_of_payments = payment.amount
-            else:
-                sum_of_payments += payment.amount
-            first = False
-
-        _assert(not first)
-
-        first = True
-        sum2 = None
-
-        # Count sum of transactions
-        for transaction_line in transaction_lines:
-            if first:
-                sum2 = transaction_line.price * transaction_line.count
-            else:
-                sum2 += transaction_line.price * transaction_line.count
-            first = False
-        # Check Quid pro Quo
-        _assert(sum2.currency == sum_of_payments.currency)
-        _assert(sum2.currency.iso == USED_CURRENCY)
-        _assert(sum2.amount == sum_of_payments.amount)
-        _assert(salesperiod)
-
-        # save all data
-        trans.salesperiod = salesperiod
-        trans.user_modified = user
-        trans.save(indirect=True)
-        for payment in payments:
-            payment.transaction = trans
-            payment.save()
-
-        for transaction_line in transaction_lines:
-            transaction_line.transaction = trans
-            transaction_line.user_modified = user
-            transaction_line.save()
-        return trans
-
-    @staticmethod
-    def create_transaction(user, payments, order_article_type_helpers, customer=None):
+    def create_transaction(user: User, payments: list[Payment], transaction_lines: list[TransactionLine],
+                           customer=None):
         """
-        Creates a transaction with the necessary information. Checks stock and payment assertions.
+        Creates a transaction with the necessary information. Checks stock and payment assertions. The transactionLines provided
+        will be checked and modified until they are in such a state that they can be saved.
         :param user: The user which handled the Transaction
         :param payments: List[Payment]. A list of payments to pay for the products. Must match the prices.
-        :param order_article_type_helpers: List[OrderArticleTypeHelper]
+        :param transaction_lines: List[TransactionLine]. A list if TransactionLines. It is important to supply at least the
+        following information for each TransactionLine:
+        - All: price, count, order
+        - SalesTransactionLine: article
+        - OtherCostTransactionLine: other_cost_type
+        - OtherTransactionLine:
         :param customer: A Customer
         :return:
         """
@@ -201,22 +135,14 @@ class Transaction(Blame):
         _assert(customer is None or isinstance(customer, Customer))
         for payment in payments:
             _assert(isinstance(payment, Payment))
-        for oath in order_article_type_helpers:
-            _assert(isinstance(oath, OrderSellableTypeHelper))
-        # Now some more advanced stock checks
-        stock_level_dict = {}
-        for oath in order_article_type_helpers:
-            if type(oath.sellable_type) == ArticleType:
-                st = stock_level_dict.get((oath.order, oath.sellable_type), None)
-                if not st:
-                    stock_level_dict[(oath.order, oath.sellable_type)] = oath.number
-                else:
-                    stock_level_dict[(oath.order, oath.sellable_type)] += oath.number
-            elif type(oath.sellable_type) == OtherCostType:
-                pass
-                # Does not matter for stock but needs to be caught
-            else:
-                raise UnimplementedError("This type is not implemented")
+        for tr_line in transaction_lines:
+            tp = type(tr_line)
+            if not (tp == SalesTransactionLine or tp == OtherCostTransactionLine or
+                    tp == OtherTransactionLine):
+                raise UnimplementedError("Only SalesTransactionLine, OtherCostTransactionLine"
+                                         " and OtherTransactionLine are implemented")
+
+        # Early fail for closed sales period
         from register.models import RegisterMaster
         if not RegisterMaster.sales_period_is_open():
             from register.models import InactiveError
@@ -224,12 +150,32 @@ class Transaction(Blame):
 
         salesperiod = RegisterMaster.get_open_sales_period()
 
+        ILLEGAL_ORDER_REFERENCE = -1 # Primary key chosen in such a way that it is never chosen
+
+        # Now some stock checks
+        # Build up supply
+        stock_level_dict = {}
+        for tr_line in transaction_lines:
+            if type(tr_line) == SalesTransactionLine:
+                ordr = tr_line.order
+                if ordr is None:
+                    order_reference = ILLEGAL_ORDER_REFERENCE
+                else:
+                    order_reference = ordr
+                st = stock_level_dict.get((order_reference, tr_line.article), None)
+                if not st:
+                    stock_level_dict[(order_reference, tr_line.article)] = tr_line.count
+                else:
+                    stock_level_dict[(order_reference, tr_line.article)] += tr_line.count
+
+
+
         # Checks if there is enough stock
         ORDER_POSITION = 0
         ARTICLE_TYPE_POSITION = 1
         for key in stock_level_dict.keys():
             # Checks for stock level, no order
-            if key[ORDER_POSITION] == 0:
+            if key[ORDER_POSITION] == ILLEGAL_ORDER_REFERENCE:
                 arts = Stock.objects.filter(labeltype__isnull=True, article=key[ARTICLE_TYPE_POSITION])
                 length = arts.__len__()
                 if length == 0:
@@ -261,10 +207,11 @@ class Transaction(Blame):
         # If the interpreter is here, it means there are no problems with the stock.
         # Test payments
         should_be_paid = defaultdict(lambda: 0)
-        for oath in order_article_type_helpers:
-            curr = oath.price.currency
-            amount = oath.price.amount
-            should_be_paid[curr] += amount
+        for tr_line in transaction_lines:
+            curr = tr_line.price.currency
+            amount = tr_line.price.amount
+            count = tr_line.count
+            should_be_paid[curr] += amount*count
 
         is_paid = defaultdict(lambda: 0)
         for payment in payments:
@@ -288,93 +235,48 @@ class Transaction(Blame):
         change_set = []
         # A bit hackish, but this is a list of costs for all OrderArticleTypeHelpers, which is necessary in creation
         # Transaction lines
-        costs = []
-        for oath in order_article_type_helpers:
-            if type(oath.sellable_type) == ArticleType:
-                if oath.order == 0:
-                    # OtherCostTypes don't do stock
-                    stock_line = Stock.objects.get(article=oath.sellable_type, labelkey__isnull=True)
-                    change = {'article': oath.sellable_type,
+        for i in range(0, len(transaction_lines)):
+            if type(transaction_lines[i]) == SalesTransactionLine:
+                if transaction_lines[i].order is None:
+                    stock_line = Stock.objects.get(article=transaction_lines[i].article, labeltype__isnull=True)
+                    transaction_lines[i].cost = stock_line.book_value
+                    change = {'article': transaction_lines[i].article,
                               'book_value': stock_line.book_value,
-                              'count': oath.number,
+                              'count': transaction_lines[i].count,
                               'is_in': False}
-                    costs.append(stock_line.book_value)
                     change_set.append(change)
                 else:
-                    stock_line = Stock.objects.get(article=oath.sellable_type, labeltype=OrderLabel, labelkey=oath.order)
-                    change = {'article': oath.sellable_type,
+                    stock_line = Stock.objects.get(article=transaction_lines[i].article, labeltype=OrderLabel,
+                                                   labelkey=transaction_lines[i].order)
+                    transaction_lines[i].cost = stock_line.book_value
+                    change = {'article': transaction_lines[i].article,
                               'book_value': stock_line.book_value,
-                              'count': oath.number,
+                              'count': transaction_lines[i].count,
                               'is_in': False,
-                              'label': OrderLabel(oath.order)}
-                    costs.append(stock_line.book_value)
+                              'label': OrderLabel(transaction_lines[i].order)}
                     change_set.append(change)
+                # Set rest of relevant properties for SalesTransactionLine
+                transaction_lines[i].num = transaction_lines[i].article.pk
+                transaction_lines[i].text = str(transaction_lines[i].article)
+            elif type(transaction_lines[i]) == OtherTransactionLine:
+                transaction_lines[i].num = transaction_lines[i].other_cost_type.pk
+                transaction_lines[i].text = str(transaction_lines[i].other_cost_type)
             else:
-                costs.append(None)
-        # Final constructions of all related values
-        trans = Transaction(salesperiod=salesperiod, customer=customer)
-        transaction_lines = []
-        for i in range(0, len(order_article_type_helpers)):
-            obj = order_article_type_helpers[i]
-            if type(obj.sellable_type) == OtherCostType:
-                if obj.order == 0:
-                    order_reference = None
-                else:
-                    order_reference = obj.order
-                line = OtherCostTransactionLine(num=obj.sellable_type.pk, price=obj.price, count=obj.number,
-                                                isRefunded=False, text=obj.sellable_type.name, other_cost_type=obj.sellable_type,
-                                                order=order_reference)
-                transaction_lines.append(line)
-            elif type(obj.sellable_type) == ArticleType:
-                if obj.order == 0:
-                    order_reference = None
-                else:
-                    order_reference = obj.order
-                line = SalesTransactionLine(num=obj.sellable_type.pk, price=obj.price, count=obj.number, isRefunded=False,
-                                            text=obj.sellable_type.name,  cost=costs[i], article=obj.sellable_type,
-                                            order=order_reference)
-                transaction_lines.append(line)
-            else:
-                raise UnimplementedError("This class is not implemented for sale yet")
+                _assert(len(transaction_lines[i].text) > 0)
+            # Don't forget the user
+            transaction_lines[i].user_modified = user
+        with transaction.atomic():
+            # Final constructions of all related values
+            trans = Transaction(salesperiod=salesperiod, customer=customer, user_modified=user)
+            trans.save()
 
+            for i in range(0,len(transaction_lines)):
+                transaction_lines[i].transaction = trans
+                transaction_lines[i].save()
 
-
-
-class OrderSellableTypeHelper:
-    """
-    Helper class to create transactions in a standardised manner.
-    Indicates from which position from stock to take the items, if applicable.
-    """
-    # Order, from which the sales takes place. 0 if from stock
-    order = 0
-    # The sellabletype to be sold
-    sellable_type = SellableType
-    # Number of items to be sold
-    number = 0
-    # Price. A price per product paid.
-    price = Price(amount=Decimal(0))
-
-    def __init__(self, order, sellable_type, number, price):
-        """
-
-        :param order:
-        :type order: int
-        :param sellable_type:
-        :type sellable_type: SellableType
-        :param number:
-        :type number: int
-        :param price:
-        :type price: Price
-        """
-        _assert(isinstance(order, int))
-        _assert(isinstance(sellable_type, SellableType))
-        _assert(isinstance(number, int))
-        _assert(isinstance(price, Price))
-
-        self.order = order
-        self.sellable_type = sellable_type
-        self.number = number
-        self.price = price
+            # The post signal of the StockChangeSet should solve the problems of the OrderLines
+            CASH_REGISTER_ENUM = 0
+            StockChangeSet.construct(description="Transaction: {}".format(trans.pk), entries=change_set, enum=CASH_REGISTER_ENUM)
 
 
 # List of all types of transaction lines

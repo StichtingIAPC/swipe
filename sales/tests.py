@@ -103,6 +103,7 @@ class TestTransaction(INeedSettings, TestCase):
         self.assertEqual(0, Payment.objects.all().__len__())
 
 
+@TestCase.skipTest("","WIP")
 class TestTransactionCreationFunction(INeedSettings, TestCase):
 
     def setUp(self):
@@ -121,6 +122,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
         self.copro = User()
         self.copro.save()
+
 
     def test_dict(self):
         oalist = []
