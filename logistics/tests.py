@@ -241,6 +241,9 @@ class SupplierOrderTests(INeedSettings, TestCase):
         self.supplier = Supplier(name="Nepacove")
         self.supplier.save()
 
+        self.supplier2 = Supplier(name="Bas")
+        self.supplier2.save()
+
         ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
                                   cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
         ats.save()
@@ -531,6 +534,61 @@ class SupplierOrderTests(INeedSettings, TestCase):
         swtls = StockWishTableLog.objects.all()
         # Last modification and return from supplier order
         _assert(swtls[2].supplier_order == sol.supplier_order)
+
+    def test_supplier_order_combination_line(self):
+
+        STOCK_DEMAND_1 = 2
+        STOCK_DEMAND_2 = 2
+
+        ORDER_DEMAND_1 = 2
+        ORDER_DEMAND_2 = 2
+        atcs = []
+        atcs.append((self.article_type, STOCK_DEMAND_1))
+        atcs.append((self.at2, STOCK_DEMAND_2))
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
+
+        orderlines = []
+
+        OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_DEMAND_1, self.price, self.user_modified)
+        OrderLine.add_orderlines_to_list(orderlines, self.at2, ORDER_DEMAND_2, self.price, self.user_modified)
+        order = Order(user_modified=self.user_modified, customer=self.customer)
+        Order.make_order(order, orderlines, self.user_modified)
+
+        SUPPLY_1 = 3
+        SUPPLY_2 = 3
+
+        atcs = []
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs.append([self.at2, SUPPLY_2, self.cost])
+
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
+        sols = SupplierOrderLine.objects.all()
+        socls = SupplierOrderCombinationLine.get_sol_combinations()
+        _assert(len(socls) == 2)
+        # If the below broke, the functionality of the system might have changed a bit(especially distribution). It might be OK.
+        _assert(socls[0].number == 3)
+        _assert(socls[1].number == 3)
+
+    def test_supplier_order_combination_line_with_supplier(self):
+
+        STOCK_DEMAND_1 = 2
+        atcs = []
+        atcs.append((self.article_type, STOCK_DEMAND_1))
+        StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
+        SUPPLY_1 = 2
+        atcs = []
+        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
+        socls = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier2)
+        _assert(len(socls) == 0)
+        socls2 = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier)
+        _assert(len(socls2) == 1)
+
+
+
+
+
 
 
 

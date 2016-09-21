@@ -271,6 +271,12 @@ class Cost(Money):
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
+    def __str__(self):
+        return "{}: {}".format(self.currency.iso, self._amount)
+
+    def __hash__(self):
+        return hash(str(self._currency)+"|"+str(self.amount))
+
 
 class CostField(MoneyField):
     def __init__(self, *args, **kwargs):
