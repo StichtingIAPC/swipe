@@ -564,10 +564,10 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()
         socls = SupplierOrderCombinationLine.get_sol_combinations()
-        assert len(socls) == 2
+        _assert(len(socls) == 2)
         # If the below broke, the functionality of the system might have changed a bit(especially distribution). It might be OK.
-        assert socls[0].number == 3
-        assert socls[1].number == 3
+        _assert(socls[0].number == 3)
+        _assert(socls[1].number == 3)
 
     def test_supplier_order_combination_line_with_supplier(self):
 
@@ -581,9 +581,9 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         socls = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier2)
-        assert len(socls) == 0
+        _assert(len(socls) == 0)
         socls2 = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier)
-        assert len(socls2) == 1
+        _assert(len(socls2) == 1)
 
 
 
