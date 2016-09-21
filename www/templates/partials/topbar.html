@@ -9,7 +9,7 @@
         {% if request.user.is_authenticated %}
         <ul class="dropdown menu align-right" data-dropdown-menu>
             <li class="is-dropdown-submenu-parent">
-                <a class="user-link" href="#">{{ request.user.username }} <img title="{{ request.user.username }}" src="{% gravatar_url request.user.person.email 44 %}" /></a>
+                <a class="user-link" href="#">{{ request.user.username }} <img title="{{ request.user.username }}" src="{% gravatar_url request.user.email 44 %}" /></a>
                 <ul class="menu">
                     <li><a href="{% url 'user_profile' %}">{% trans 'Profile' %}</a></li>
                     {% if request.user.person and request.user.person.can_manage_users %}

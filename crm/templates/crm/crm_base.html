@@ -12,3 +12,9 @@
         </div>
     {% endblock content %}
 {% endblock module_content %}
+
+{% block module_css %}
+{% compress css %}
+    <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/crm_main.scss' %}" />
+{% endcompress %}
+{% endblock %}
