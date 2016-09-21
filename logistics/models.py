@@ -1,11 +1,14 @@
 from collections import defaultdict
-
+from decimal import Decimal
 from django.db import models, transaction
+from django.db.models import Count
+from django.db.models.fields.reverse_related import ForeignObjectRel
+
 
 from article.models import ArticleType, OrProductType
 from blame.models import ImmutableBlame, Blame
 from crm.models import User
-from money.models import CostField, Cost
+from money.models import CostField, Cost, Currency
 from order.models import OrderLine, OrderCombinationLine
 from supplier.models import Supplier, ArticleTypeSupplier
 from swipe.settings import USED_STRATEGY, USED_CURRENCY
@@ -177,21 +180,24 @@ class SupplierOrderLine(Blame):
                     id=self.article_type.id).exists())
             else:
                 _assert(self.order_line.wishable.sellabletype.articletype == self.article_type)  # Customer article matches ordered article
+            # +1 query for customer ordered lines
         checked_ats = False
         if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
             sup_art_types = ArticleTypeSupplier.objects.filter(
                 article_type=self.article_type,
                 supplier=self.supplier_order.supplier)
+            # shouldn't get triggered, but +1 query
             checked_ats = True
 
             _assert(len(sup_art_types) == 1)
             self.supplier_article_type == sup_art_types[0]
 
-        if not checked_ats:
+        if not checked_ats:  #should happen all the time
             _assert(self.supplier_article_type.supplier == self.supplier_order.supplier)  # Article can be ordered at supplier
+            # +2 query to get the supplier from the supplier_article_type and supplier_order
             _assert(self.supplier_article_type == ArticleTypeSupplier.objects.get(
                 article_type=self.article_type,
-                supplier=self.supplier_order.supplier))
+                supplier=self.supplier_order.supplier))  # optional +1 for article type
 
         # Set the relevant state is not implemented
         if self.pk is None:
@@ -202,12 +208,16 @@ class SupplierOrderLine(Blame):
             if self.order_line is not None:
                 self.order_line.order_at_supplier(self.supplier_order.user_created)  # If this doesn't happen at exactly the same time
                                                      # as the save of the SupOrdLn, you are screwed
+            # +1 query for the user_created from supplier_order
             else:
                 StockWishTable.remove_products_from_table(self.user_modified, article_type=self.article_type, number=1,
                                                           supplier_order=self.supplier_order, stock_wish=None, indirect=True)
+            # +1 query to remove one product from the stockwishtable, or to change the state of our order_line
             super(SupplierOrderLine, self).save(*args, **kwargs)
+            # +1 query to save the SOL itself
             sos = SupplierOrderState(supplier_order_line=self, state=self.state,user_modified=self.user_modified)
             sos.save()
+            # +1 query to save the state transition
         else:
             # Maybe some extra logic here?
             super(SupplierOrderLine, self).save(*args, **kwargs)
@@ -272,6 +282,8 @@ class SupplierOrderState(ImmutableBlame):
     STATE_CHOICES = ('O', 'B', 'C', 'A')
     STATE_CHOICES_MEANING = {'O': 'Ordered at supplier', 'B': 'Backorder', 'C': 'Cancelled',
                              'A': 'Arrived at store'}
+    OPEN_STATES = ('O', 'B')
+    CLOSED_STATES = ('C', 'A')
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -439,6 +451,77 @@ class StockWishTableLog(ImmutableBlame):
             stw = self.stock_wish.pk
         return "{} x {}, SupplierOrder: {}, StockWish: {}".format(self.article_type, self.number, sup_ord, stw)
 
+class SupplierOrderCombinationLine:
+
+    number = 0
+
+    article_type = ArticleType
+
+    cost = CostField
+
+    state = ""
+
+    def __init__(self, number, article_type, cost, state):
+        self.number = number
+        self.article_type = article_type
+        self.cost = cost
+        self.state = state
+
+    def __str__(self):
+        dec = self.cost.amount.quantize(Decimal('0.01'))
+        stri = "{:<7}{:14}{:10}{:12}".format(self.number, self.article_type.name, str(self.cost.currency) + str(dec),
+                                             SupplierOrderState.STATE_CHOICES_MEANING[self.state])
+        return stri
+
+    @staticmethod
+    def prefix_field_names(model, prefix):
+        fields = model._meta.get_fields()
+        ret = []
+        for field in fields:
+            if not isinstance(field, ForeignObjectRel):
+                ret.append(prefix + field.name)
+        return ret
+
+    @staticmethod
+    def get_sol_combinations(supplier_order=None, article_type=None, state=None,
+                             qs=SupplierOrderLine.objects, include_price_field=True
+                             , supplier=None):
+        result = []
+        filtr = {}
+        if supplier_order:
+            filtr['supplier_order'] = supplier_order
+        if article_type:
+            filtr['article_type'] = article_type
+        if state:
+            filtr['state'] = state
+        if supplier:
+            filtr['supplier_order__supplier'] = supplier
+        price_fields = []
+        if include_price_field:
+            price_fields = ['line_cost', 'line_cost_currency']
+
+        flds = price_fields + SupplierOrderCombinationLine.prefix_field_names(ArticleType, 'article_type__')
+
+        supplierorderlines = qs.filter(**filtr). \
+            values('state', *flds).annotate(Count('id'))
+        for o in supplierorderlines:
+            number = o['id__count']
+            state = o['state']
+            if not include_price_field:
+                amount = Decimal(-1)
+                currency = Currency(iso=USED_CURRENCY)
+            else:
+                amount = o['line_cost']
+                currency = o['line_cost_currency']
+            cost = Cost(amount=amount, currency=currency)
+            socl = SupplierOrderCombinationLine(number=number,
+                                                article_type=ArticleType(name=o['article_type__name'],
+                                                                         pk=o['article_type__id']),
+                                                cost=cost,
+                                                state=state)
+            result.append(socl)
+        return result
+
 
 class DisbributionStrategy:
 
@@ -485,7 +568,7 @@ class DisbributionStrategy:
     def get_distribution(article_type_number_combos):
         """
         Proposes a distribution according to the specific strategy. Assume supply is not bigger than demand
-        :param article_type_number_combos:
+        :param article_type_number_combos: List[ArticleType, number, Cost]
         :return: A list containing SupplierOrderLines
         """
         raise UnimplementedError("Super distribution class has no implementation")
