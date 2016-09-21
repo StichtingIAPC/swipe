@@ -1,8 +1,10 @@
 from django.test import TestCase
 
-from register.models import *
+from article.tests import INeedSettings
 from money.models import *
+from register.models import *
 from stock.exceptions import StockSmallerThanZeroError
+from tools.util import _assert
 
 
 class BasicTest(TestCase):
@@ -25,7 +27,7 @@ class BasicTest(TestCase):
 
     def test_register_init(self):
         reg = Register(currency=self.eu, is_cash_register=False)
-        assert reg
+        _assert(reg)
 
     def test_get_denoms(self):
         self.eu.save()
@@ -35,60 +37,60 @@ class BasicTest(TestCase):
         self.denom3.save()
         if self.reg1.is_cash_register:
             a = self.reg1.get_denominations()
-            assert (len(a) == 3)
+            _assert(len(a) == 3)
 
     def test_checking_sales_periods(self):
-        assert (not RegisterMaster.get_open_sales_period())
+        _assert(not RegisterMaster.get_open_sales_period())
         s = SalesPeriod()
         s.save()
-        assert (RegisterMaster.get_open_sales_period())
+        _assert(RegisterMaster.get_open_sales_period())
 
     def test_open_registers(self):
         self.eu.save()
-        assert (RegisterMaster.number_of_open_registers() == 0)
+        _assert(RegisterMaster.number_of_open_registers() == 0)
         sales_period = SalesPeriod()
         sales_period.save()
         self.reg1.save()
-        assert (RegisterMaster.number_of_open_registers() == 0)
-        assert (len(RegisterMaster.get_open_registers()) == 0)
-        assert (not self.reg1.is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 0)
+        _assert(len(RegisterMaster.get_open_registers()) == 0)
+        _assert(not self.reg1.is_open())
         c1 = DenominationCount(denomination=self.denom1, amount=1)
         c2 = DenominationCount(denomination=self.denom2, amount=1)
         c3 = DenominationCount(denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
-        assert (self.reg1.is_open())
-        assert (RegisterMaster.number_of_open_registers() == 1)
+        _assert(self.reg1.is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 1)
         val = False
         try:
             self.reg1.open(Decimal("1.21"))
         except AlreadyOpenError:
             val = True
-        assert val
-        assert (len(RegisterMaster.get_open_registers()) == 1)
+        _assert(val)
+        _assert(len(RegisterMaster.get_open_registers()) == 1)
 
     def test_empty_database(self):
         ConsistencyChecker.full_check()
-        assert (RegisterMaster.number_of_open_registers() == 0)
-        assert (not RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 0)
+        _assert(not RegisterMaster.sales_period_is_open())
 
     def test_open_multiple_registers(self):
         self.eu.save()
         ConsistencyChecker.full_check()
-        assert (RegisterMaster.number_of_open_registers() == 0)
-        assert (not RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 0)
+        _assert(not RegisterMaster.sales_period_is_open())
         self.reg1.save()
         c1 = DenominationCount(denomination=self.denom1, amount=1)
         c2 = DenominationCount(denomination=self.denom2, amount=1)
         c3 = DenominationCount(denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
-        assert (RegisterMaster.sales_period_is_open())
-        assert (RegisterMaster.number_of_open_registers() == 1)
+        _assert(RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 1)
         self.reg2.save()
         self.reg2.open(Decimal("1.21"))
-        assert (RegisterMaster.sales_period_is_open())
-        assert (RegisterMaster.number_of_open_registers() == 2)
+        _assert(RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 2)
         reg_count_1 = RegisterCount()
         reg_count_1.register_period = self.reg1.get_current_open_register_period()
         reg_count_1.amount = Decimal("4.22371")
@@ -108,8 +110,8 @@ class BasicTest(TestCase):
         Transaction.construct([pay], [trans])
 
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
-        assert (RegisterMaster.number_of_open_registers() == 0)
-        assert (not RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 0)
+        _assert(not RegisterMaster.sales_period_is_open())
         ConsistencyChecker.full_check()
 
     def test_mult_open_close(self):
@@ -140,8 +142,8 @@ class BasicTest(TestCase):
     def test_mult_currency_registers(self):
         self.eu.save()
         ConsistencyChecker.full_check()
-        assert (RegisterMaster.number_of_open_registers() == 0)
-        assert (not RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 0)
+        _assert(not RegisterMaster.sales_period_is_open())
         self.reg1.save()
 
         c1 = DenominationCount(denomination=self.denom1, amount=1)
@@ -149,12 +151,12 @@ class BasicTest(TestCase):
         c3 = DenominationCount(denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
-        assert (RegisterMaster.sales_period_is_open())
-        assert (RegisterMaster.number_of_open_registers() == 1)
+        _assert(RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 1)
         self.reg3.save()
         self.reg3.open(Decimal("1.21"))
-        assert (RegisterMaster.sales_period_is_open())
-        assert (RegisterMaster.number_of_open_registers() == 2)
+        _assert(RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 2)
         ConsistencyChecker.full_check()
 
     def test_illegal_payment_type(self):
@@ -166,33 +168,34 @@ class BasicTest(TestCase):
             b.save()
         except AssertionError:
             foo = True
-        assert foo
+        _assert(foo)
 
     def test_payment_types(self):
         self.eu.save()
-        assert (RegisterMaster.number_of_open_registers() == 0)
-        assert (not RegisterMaster.sales_period_is_open())
+        _assert(RegisterMaster.number_of_open_registers() == 0)
+        _assert(not RegisterMaster.sales_period_is_open())
         self.reg1.save()
         self.reg2.save()
         self.reg3.save()
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
-        assert len(payment_types) == 0
+        _assert(len(payment_types) == 0)
         self.reg1.open(Decimal("4.22371"), denominations=[DenominationCount(denomination=self.denom1, amount=1),
                                                           DenominationCount(denomination=self.denom2, amount=1),
                                                           DenominationCount(denomination=self.denom3, amount=1)])
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
-        assert len(payment_types) == 1
+        _assert(len(payment_types) == 1)
         self.reg2.open(Decimal("1.21"))
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
-        assert len(payment_types) == 2
+        _assert(len(payment_types) == 2)
         self.reg3.open(Decimal("1.21"))
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
-        assert len(payment_types) == 2
+        _assert(len(payment_types) == 2)
         ConsistencyChecker.full_check()
 
 
-class TestTransactionNoSalesPeriod(TestCase):
+class TestTransactionNoSalesPeriod(INeedSettings, TestCase):
     def setUp(self):
+        super().setUp()
         self.EUR = Currency("EUR")
         self.cost = Cost(Decimal("1.21000"), self.EUR)
         self.money = Money(Decimal("1.21000"), self.EUR)
@@ -200,7 +203,8 @@ class TestTransactionNoSalesPeriod(TestCase):
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
         self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
-        self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
+        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                              accounting_group=self.acc_group)
 
         self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
@@ -222,8 +226,9 @@ class TestTransactionNoSalesPeriod(TestCase):
         self.assertEqual(0, Payment.objects.all().__len__())
 
 
-class TestTransaction(TestCase):
+class TestTransaction(INeedSettings, TestCase):
     def setUp(self):
+        super().setUp()
         self.EUR = Currency("EUR")
         self.cost = Cost(Decimal("1.21000"), self.EUR)
         self.money = Money(Decimal("1.21000"), self.EUR)
@@ -231,8 +236,10 @@ class TestTransaction(TestCase):
         self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
         self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
-        self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
-        self.art = ArticleType.objects.create(name="P1", accounting_group=self.acc_group)
+        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                              accounting_group=self.acc_group)
+        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                              accounting_group=self.acc_group)
         self.sp = SalesPeriod.objects.create()
         self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)

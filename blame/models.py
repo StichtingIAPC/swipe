@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from tools.util import _assert
+
 
 class BasicBlame(models.Model):
     """
@@ -56,10 +58,10 @@ class ImmutableBlame(BasicBlame):
             self.user_created = self.user_modified
             delattr(self,"user_modified")
 
-        assert self.pk is None
+        _assert(self.pk is None)
         super(ImmutableBlame, self).save(kwargs)
         typ = self._meta
-        to_string=self.__str__()
+        to_string = self.__str__()
         BlameLog.objects.create(type=typ, user_modified=self.user_created, obj_pk=self.pk, to_string=to_string)
 
 

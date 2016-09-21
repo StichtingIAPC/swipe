@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.db import transaction, IntegrityError, models
 from django.utils import timezone
-from django.conf import settings
 
 from article.models import ArticleType
 from money.models import Money, Decimal, Denomination, CurrencyData, Currency, MoneyField, CostField, PriceField
@@ -13,6 +13,7 @@ from tools.management.commands.consistencycheck import consistency_check, CRITIC
 from stock.exceptions import Id10TError
 from stock.models import StockChange, StockChangeSet
 from swipe.settings import USED_CURRENCY, CASH_PAYMENT_TYPE_NAME
+from tools.util import _assert
 
 
 class PaymentType(models.Model):
@@ -133,7 +134,7 @@ class Register(models.Model):
                         counted_amount -= denomination.amount * denomination.denomination.amount
                         denomination.register_count = reg_count
 
-                    assert(counted_amount == Decimal("0.00000"))
+                    _assert(counted_amount == Decimal("0.00000"))
                     for denomination in denominations:
                         denomination.save()
 
@@ -185,7 +186,7 @@ class Register(models.Model):
 
     def save(self, **kwargs):
         if self.is_cash_register:
-            assert(self.payment_type.name == CASH_PAYMENT_TYPE_NAME)
+            _assert(self.payment_type.name == CASH_PAYMENT_TYPE_NAME)
         super(Register, self).save()
 
     def __str__(self):
@@ -352,7 +353,7 @@ class SalesPeriod(models.Model):
                     if registercount.register_period == reg_per:
                         found = True
                         if reg_per.register.is_cash_register:
-                            assert registercount.amount >= 0
+                            _assert(registercount.amount >= 0)
                             for denom in denominationcounts:
                                 if denom.register_count == registercount:
                                     if not reg_per.register.is_cash_register:
@@ -496,7 +497,7 @@ class RegisterCount(models.Model):
                 raise InvalidDenominationList("Denominations invalid: GOT {}, EXPECTED {}".format(denominations,
                                                                                                   denoms_for_register))
         else:
-            assert(not denominations)
+            _assert(not denominations)
         super().save()
 
     @classmethod
@@ -521,9 +522,9 @@ class RegisterCount(models.Model):
         if isinstance(register, Register):
             last_register_period = RegisterPeriod.objects.filter(register=register).last("beginTime")
             counts = RegisterCount.objects.filter(register_period=last_register_period)
-            if counts.length == 1:
+            if len(counts) == 1:
                 return counts[0]
-            assert (counts.length == 2)
+            _assert(len(counts) == 2)
             for count in counts:
                 if not count.is_opening_count:
                     return count
@@ -768,7 +769,7 @@ class Transaction(models.Model):
                 sum_of_payments += payment.amount
             first = False
 
-        assert(not first)
+        _assert(not first)
 
         first = True
         sum2 = None
@@ -781,10 +782,10 @@ class Transaction(models.Model):
                 sum2 += transaction_line.price
             first = False
         # Check Quid pro Quo
-        assert (sum2.currency == sum_of_payments.currency)
-        assert(sum2.currency.iso == USED_CURRENCY)
-        assert (sum2.amount == sum_of_payments.amount)
-        assert salesperiod
+        _assert(sum2.currency == sum_of_payments.currency)
+        _assert(sum2.currency.iso == USED_CURRENCY)
+        _assert(sum2.amount == sum_of_payments.amount)
+        _assert(salesperiod)
 
         # save all data
         trans.salesperiod = salesperiod

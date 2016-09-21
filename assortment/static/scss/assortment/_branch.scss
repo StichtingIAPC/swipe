@@ -1,0 +1,8 @@
+@import 'scss/assortment/settings';
+
+@mixin swipe-branch-description {
+  .name {
+    margin-left: $tree-entry-height;
+    user-select: none;
+  }
+}

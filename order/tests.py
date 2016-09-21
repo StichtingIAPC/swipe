@@ -1,15 +1,16 @@
 from django.test import TestCase
-from unittest import skip
-from article.models import *
-from money.models import *
+
+from article.tests import INeedSettings
 from order.models import *
+
 # Create your tests here.
+from tools.util import _assert
 
 
-class OrderTest(TestCase):
+class OrderTest(INeedSettings, TestCase):
 
     def setUp(self):
-
+        super().setUp()
         self.vat_group = VAT()
         self.vat_group.name = "Bar"
         self.vat_group.active = True
@@ -23,14 +24,16 @@ class OrderTest(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo")
+        self.article_type = ArticleType(accounting_group=self.acc_group,
+                                        name="Foo", branch=self.branch)
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Bar")
+        self.at2 = ArticleType(accounting_group=self.acc_group,
+                               name="Bar", branch=self.branch)
         self.at2.save()
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
-        self.oc = OtherCostType(name="Baz", accounting_group=self.acc_group, fixed_price=self.money)
+        self.oc = OtherCostType(name="Baz", branch=self.branch, accounting_group=self.acc_group, fixed_price=self.money)
         self.oc.save()
 
         self.customer = Person()
@@ -59,14 +62,14 @@ class OrderTest(TestCase):
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
 
-        assert orderlinestates[0].state == 'O'  # States must match
-        assert len(orderlinestates) == 1  # Orderlinestate must be automatically added
+        _assert(orderlinestates[0].state == 'O')  # States must match
+        _assert(len(orderlinestates) == 1)  # Orderlinestate must be automatically added
 
         ol2 = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, state='L', expected_sales_price=self.price)
         ol2.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol2)
-        assert orderlinestates[0].state == 'L'  # Self applied state
-        assert len(orderlinestates) == 1  # Exactly one state
+        _assert(orderlinestates[0].state == 'L')  # Self applied state
+        _assert(len(orderlinestates) == 1)  # Exactly one state
 
         ol3 = OrderLine(user_modified=self.copro,)
         caught = False
@@ -74,7 +77,7 @@ class OrderTest(TestCase):
             ol3.save()
         except AssertionError:
             caught = True
-        assert caught
+        _assert(caught)
 
     def test_illegal_state(self):
         # State must be valid
@@ -84,47 +87,46 @@ class OrderTest(TestCase):
             ol.save()
         except AssertionError:
             excepted = True
-        assert excepted
+        _assert(excepted)
 
     def test_transitions(self):
         # Assert transitions for a single orderline
         ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        assert ol.state == 'O'
-        assert len(orderlinestates) == 1
+        _assert(ol.state == 'O')
+        _assert(len(orderlinestates) == 1)
         ol.order_at_supplier(user_created=self.copro)
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        assert ol.state == 'L'
-        assert ol.state == 'L'
-        assert len(orderlinestates) == 2
+        _assert(ol.state == 'L')
+        _assert(len(orderlinestates) == 2)
         ol.arrive_at_store(user_created=self.copro)
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        assert ol.state == 'A'
-        assert len(orderlinestates) == 3
+        _assert(ol.state == 'A')
+        _assert(len(orderlinestates) == 3)
         ol.sell(user_created=self.copro)
         orderlinestates = OrderLineState.objects.filter(orderline=ol,)
-        assert ol.state == 'S'
-        assert len(orderlinestates) == 4
+        _assert(ol.state == 'S')
+        _assert(len(orderlinestates) == 4)
 
     def test_othercost(self):
         ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.oc, expected_sales_price=self.price)
         ol.save()
-        assert ol.state == 'A'
-        assert len(OrderLineState.objects.all()) == 1
+        _assert(ol.state == 'A')
+        _assert(len(OrderLineState.objects.all()) == 1)
 
     def test_illegal_transition(self):
         ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        assert ol.state == 'O'
-        assert len(orderlinestates) == 1
+        _assert(ol.state == 'O')
+        _assert(len(orderlinestates) == 1)
         caught = False
         try:
             ol.sell(self.copro)
         except IncorrectTransitionError:
             caught = True
-        assert caught
+        _assert(caught)
 
     def test_order_storage(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -134,17 +136,17 @@ class OrderTest(TestCase):
         orderlines.append(OrderLine(user_modified=self.copro,wishable=self.article_type, expected_sales_price=self.price))
         Order.make_order(order, orderlines,self.copro)
         ols = OrderLine.objects.filter(order=order)
-        assert len(ols) == 3
-        assert ols[0].state == 'O'
+        _assert(len(ols) == 3)
+        _assert(ols[0].state == 'O')
         errors = ConsistencyChecker.non_crashing_full_check()
-        assert len(errors) == 0
+        _assert(len(errors) == 0)
 
     def test_add_group_of_wishables(self):
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 50, self.price,self.copro)
-        assert len(orderlines) == 50
+        _assert(len(orderlines) == 50)
         OrderLine.add_orderlines_to_list(orderlines, self.at2, 10, self.price,self.copro)
-        assert len(orderlines) == 60
+        _assert(len(orderlines) == 60)
         order = Order(customer=self.customer,user_modified=self.copro)
         Order.make_order(order, orderlines, self.copro)
 
@@ -162,7 +164,7 @@ class OrderTest(TestCase):
 
         ol.save()
         ol2 = OrderLine.objects.get()
-        assert ol2.expected_sales_price_currency == "USD"
+        _assert(ol2.expected_sales_price_currency == "USD")
 
     def test_olc(self):
         ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, expected_sales_price=self.price)
@@ -184,6 +186,41 @@ class OrderTest(TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, local_second_price,self.copro)
         Order.make_order(order, orderlines,self.copro)
         olcl=OrderCombinationLine.get_ol_combinations(order=order)
-        assert len(olcl) == 2
+        _assert(len(olcl) == 2)
         olcl2=OrderCombinationLine.get_ol_combinations(order=order, include_price_field=False)
-        assert len(olcl2) == 1
+        _assert(len(olcl2) == 1)
+
+    def test_create_order_function(self):
+        self.order.delete()
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price]])
+        # Asserts that there is only one Order
+        a = Order.objects.get()
+        b = OrderLine.objects.filter(order=a)
+        c = OrderLine.objects.all()
+        _assert(len(b) == len(c))
+        _assert(len(b) == 5)
+        for i in range(0, len(b)):
+            _assert(b[i].pk is c[i].pk)
+
+    def test_create_order_function_more_sets(self):
+        self.order.delete()
+        Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price],
+                                                                                   [self.at2, 6, self.price]])
+        # Asserts that there is only one Order
+        a = Order.objects.get()
+        b = OrderLine.objects.filter(order=a)
+        c = OrderLine.objects.all()
+
+        _assert(len(b) == len(c))
+        _assert(len(b) == 5+6)
+        tally_art1, tally_art2 = 0, 0
+        for ol in b:
+            if ol.wishable.sellabletype.articletype == self.article_type:
+                tally_art1 += 1
+            elif ol.wishable.sellabletype.articletype == self.at2:
+                tally_art2 += 1
+            else:
+                # How did that happen?
+                _assert(False)
+        _assert(tally_art1 == 5)
+        _assert(tally_art2 == 6)

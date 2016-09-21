@@ -1,6 +1,7 @@
 from decimal import Decimal
-from django.db import models
+
 from django.core.validators import RegexValidator
+from django.db import models
 
 # Based on https://git.iapc.utwente.nl/swipe/swipe-design/issues/22
 # Global money representation parameters
@@ -11,6 +12,9 @@ from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
 
 
 # VAT : Pay the government, alas, we have to do this.
+from tools.util import _assert
+
+
 class VAT(models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
     vatrate = models.DecimalField(decimal_places=6, max_digits=8)
@@ -51,7 +55,7 @@ class VATLevelField(models.DecimalField):
 # Currency describes the currency of a monetary value. It's also used to describe the currency used in a till
 class Currency:
     def __init__(self, iso: str):
-        assert len(iso) == 3, "Valid ISO currency codes are exactly three characters long, given {}".format(iso)
+        _assert(len(iso) == 3), "Valid ISO currency codes are exactly three characters long, given {}".format(iso)
         self._iso = iso
 
     @property
@@ -623,7 +627,7 @@ class Denomination(models.Model):
             return cls(*args, **kwargs)
 
     def save(self, **kwargs):
-        assert(self.currency and self.amount)
+        _assert(self.currency and self.amount)
         super(Denomination, self).save()
 
     def __str__(self):

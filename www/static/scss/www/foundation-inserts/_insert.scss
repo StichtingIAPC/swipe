@@ -1,4 +1,4 @@
-@import "topbar";
+@import "scss/www/foundation-inserts/topbar";
 
 @mixin insert-foundation-inserts {
   @include swipe-top-bar;

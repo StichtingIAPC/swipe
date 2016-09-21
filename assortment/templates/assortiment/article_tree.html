@@ -1,0 +1,8 @@
+{% load i18n %}
+<div class="tree-list assortment"
+     article-tree="{{ assortment.id }}"
+     data-api-endpoint="{{ assortment.api_endpoint }}"
+     data-search="{{ assortment.query }}"
+     data-in-store="{{ assortment.settings.in_stock }}"
+     data-title="{{ assortment.name }}">
+</div>
