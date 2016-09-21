@@ -209,7 +209,7 @@ class SimpleClassTests(TestCase):
         cost = Cost(amount=Decimal(2.78), use_system_currency=True)
         # Two lines, but one order
         NUMBER_BATCHED = len(sols)
-        assert NUMBER_BATCHED == 2
+        _assert(NUMBER_BATCHED == 2)
         pac_doc_line_1 = PackingDocumentLine(article_type=self.article_type,
                                              packing_document=pac_doc, supplier_order_line=sols[0],
                                              line_cost_after_invoice=cost, invoice=inv, user_modified=self.copro)
