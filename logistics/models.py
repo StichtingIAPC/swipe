@@ -486,7 +486,6 @@ class SupplierOrderCombinationLine:
     def get_sol_combinations(supplier_order=None, article_type=None, state=None,
                              qs=SupplierOrderLine.objects, include_price_field=True
                              , supplier=None):
-        # TODO: Add more fancyness like group by order
         result = []
         filtr = {}
         if supplier_order:

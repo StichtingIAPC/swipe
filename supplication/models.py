@@ -38,7 +38,7 @@ class PackingDocument(ImmutableBlame):
         use_invoice = False
         if invoice_name is not None:
             use_invoice = True
-            assert isinstance(invoice_name, str)
+            _assert(isinstance(invoice_name, str))
         _assert(isinstance(user, User))
         _assert(isinstance(supplier, Supplier) )
         _assert(isinstance(packing_document_name, str))
@@ -150,7 +150,7 @@ class PackingDocumentLine(Blame):
         # Line_cost_after_invoice should be connected to an invoice. Therefore, we cannot have an invoice
         # without the other
         if hasattr(self, 'invoice') and self.invoice is not None:
-            assert self.line_cost_after_invoice is not None
+            _assert(self.line_cost_after_invoice is not None)
 
         # Retrieve Cost from SupplierOrderLine
         self.line_cost = self.supplier_order_line.line_cost
@@ -236,7 +236,7 @@ class DistributionStrategy:
         _assert(document_identifier and isinstance(document_identifier, str))
         # Indicates that we are using an invoice in the process
         if invoice_identifier:
-            assert isinstance(invoice_identifier, str)
+            _assert(isinstance(invoice_identifier, str))
 
         found_final_cost = False
         for pac_doc_line in distribution:
