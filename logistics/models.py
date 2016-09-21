@@ -1,5 +1,4 @@
 from collections import defaultdict
-
 from django.db import models, transaction
 
 from article.models import ArticleType, OrProductType
