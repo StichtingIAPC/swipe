@@ -1,8 +1,11 @@
 {% load i18n %}
+{% load is_open %}
+
+{% is_register_open as is_swipe_open %}
 
 <div class="side-bar">
     <ul class="side-bar-nav">
-        <li class="swipe">
+        <li class="swipe{% if is_swipe_open %} open{% endif %}">
             <a href="{% url 'home' %}" title="{% trans 'Swipe' %}"><span class="glyphicon glyphicon-home side-bar-icon" aria-hidden="true"></span> {% trans 'Swipe' %}</a>
         </li>
         {% if request.user.is_authenticated %}

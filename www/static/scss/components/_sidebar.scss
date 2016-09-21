@@ -13,7 +13,8 @@
   $sidebar-primary-foreground-color: $white !default;
   $sidebar-secondary-foreground-color: $white !default;
   $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !default;
-  $sidebar-home-item-bg-color: #2199e8 !default;
+  $sidebar-home-item-open-bg-color: #22bb5b !default;
+  $sidebar-home-item-closed-bg-color: #ec5840 !default;
 
   .side-bar {
     box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1);
@@ -94,7 +95,11 @@
     }
 
     &.swipe {
-      background-color: $sidebar-home-item-bg-color;
+      background-color: $sidebar-home-item-closed-bg-color;
+
+      &.open {
+        background-color: $sidebar-home-item-open-bg-color;
+      }
 
       a:link, a:visited {
         opacity: 1;
