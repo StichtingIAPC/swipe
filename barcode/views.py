@@ -5,6 +5,7 @@ from django.shortcuts import render
 from reportlab.graphics.barcode import createBarcodeDrawing
 
 # Create your views here.
+from swipe.settings import BASE_URL
 
 
 def qr(request, str):
@@ -24,7 +25,7 @@ def qr_url(request, str):
     """
         Create QR Code for a url within swipe
     """
-    return qr(request, "https://s.iapc.utwente.nl/c/"+str)
+    return qr(request, BASE_URL+"/c/"+str)
 
 
 def barcode(request, str):
