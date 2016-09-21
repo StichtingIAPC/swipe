@@ -10,7 +10,8 @@ from money.models import Price
 from crm.models import User, Customer
 from decimal import Decimal
 from collections import defaultdict
-from typing import List
+from order.models import OrderLine
+#from typing import List
 
 from django.db import models, transaction
 
@@ -115,7 +116,7 @@ class Transaction(Blame):
         super(Transaction, self).save(*args, **kwargs)
 
     @staticmethod
-    def create_transaction(user: User, payments: List[Payment], transaction_lines: List[TransactionLine],
+    def create_transaction(user: User, payments, transaction_lines,
                            customer=None):
         """
         Creates a transaction with the necessary information. Checks stock and payment assertions. The transactionLines provided
@@ -232,9 +233,16 @@ class Transaction(Blame):
                         raise PaymentMisMatchError("Expected {} for currency {} but got {}".format(should_be_paid[key],
                                                                                                    key, is_paid[key]))
 
+        order_other_cost_count = defaultdict(lambda: 0)
+        for tr_line in transaction_lines:
+            if type(tr_line) == OtherCostTransactionLine:
+                if tr_line.order is not None:
+                    OrderLine.objects.filter(wishable_id=tr_line.other_cost_type)
+
+
+
         # We assume everything succeeded, now we construct the stock changes
         change_set = []
-        # A bit hackish, but this is a list of costs for all OrderArticleTypeHelpers, which is necessary in creation
         # Transaction lines
         for i in range(0, len(transaction_lines)):
             if type(transaction_lines[i]) == SalesTransactionLine:
@@ -266,6 +274,8 @@ class Transaction(Blame):
                 _assert(len(transaction_lines[i].text) > 0)
             # Don't forget the user
             transaction_lines[i].user_modified = user
+
+
         with transaction.atomic():
             # Final constructions of all related values
             trans = Transaction(salesperiod=salesperiod, customer=customer, user_modified=user)

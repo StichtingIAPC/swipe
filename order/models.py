@@ -8,6 +8,7 @@ from crm.models import *
 from money.models import *
 from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
+from collections import defaultdict
 
 # Create your models here.
 from tools.util import _assert
@@ -60,6 +61,25 @@ class Order(Blame):
         for ol in orderlines:
             ol.order = order
             ol.save()
+
+    @staticmethod
+    @transaction.atomic()
+    def sell_othercosts(othercost_tuples, order_id: int, user: User):
+        """
+        Makes sure a number of othercosts is transitioned to sold from sellable.
+        :param othercost_tuples:
+        :type othercost_tuples: list(tuple(OtherCostType, int))
+        :return:
+        """
+        total_othercosts = defaultdict(lambda: 0)
+        for othercost, number in othercost_tuples:
+            total_othercosts[othercost] += number
+        for key in total_othercosts.keys():
+            othercost_lines = OrderLine.objects.filter(order_id=order_id, wishable_id=key.pk)
+            _assert(len(othercost_lines) >= total_othercosts[key], "Not enough orderlines for order {}, othercost {}".format(order_id, key))
+            for i in range(total_othercosts[key]):
+                othercost_lines[i].sell(user)
+
 
     def __str__(self):
         return "Customer: {}, Copro: {}, Date: {} ".format(self.customer, self.user_created, self.date_created)
