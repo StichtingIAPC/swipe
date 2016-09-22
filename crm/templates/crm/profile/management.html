@@ -28,7 +28,7 @@
                     {% for user in object_list %}
                         <tr>
                             <td>
-                                {% if request.user.person.can_edit_users %}<a href="#" title="{% blocktrans with username=user.username %}Edit {{ username }}{% endblocktrans %}">{% endif %}
+                                {% if request.user.person.can_edit_users %}<a href="{% url 'user_profile' user.id %}" title="{% blocktrans with username=user.username %}Edit {{ username }}{% endblocktrans %}">{% endif %}
                                 {{ user.username }}
                                 {% if request.user.person.can_edit_users %}</a>{% endif %}
                             </td>

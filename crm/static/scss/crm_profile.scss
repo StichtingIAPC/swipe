@@ -2,3 +2,17 @@ ul.profile-list {
   list-style-type: none;
   margin-left: 0;
 }
+
+div.profile-picture {
+  margin-right: 16px;
+}
+
+span.profile-icon {
+  margin-right: 8px;
+}
+
+span.blank-profile-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}

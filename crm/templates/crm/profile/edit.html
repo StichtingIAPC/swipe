@@ -1,5 +1,57 @@
 {% extends 'crm/crm_base.html' %}
 
+{% load i18n %}
+{% load gravatar %}
+{% load user_filters %}
+
 {% block content %}
-Edit Profile!
+<div class="row">
+    <div class="small-12 columns">
+        <div class="card">
+            <h3>{% blocktrans with username=object.username %}Edit user {{ username }}{% endblocktrans %}</h3>
+            {% with u=object p=object.person %}
+                <hr/>
+                <div class="row">
+                    <div class="small-12 medium-9 columns">
+                        <form method="POST">
+                            {% csrf_token %}
+                            {% if form.non_field_errors %}
+                                <div class="callout alert">{{ form.non_field_errors }}</div>
+                            {% endif %}
+                            <fieldset class="fieldset">
+                                <legend>Basic user information</legend>
+                                <div class="row">
+                                    <div class="small-12 columns">
+                                        <label>
+                                            {{ form.username.label }}
+                                            {{ form.username }}
+                                            {% for error in form.username.errors %}
+                                                <span class="form-error">{{ error }}</span>
+                                            {% endfor %}
+                                        </label>
+                                        <p class="help-text">{{ form.email.help_text }}</p>
+                                    </div>
+                                    <div class="small-12 columns">
+                                        <label>
+                                            {{ form.email.label }}
+                                            {{ form.email }}
+                                            {% for error in form.email.errors %}
+                                                <span class="form-error">{{ error }}</span>
+                                            {% endfor %}
+                                        </label>
+                                        <p class="help-text">{{ form.email.help_text }}</p>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <button type="submit" class="success button">{% trans 'Save' %}</button>
+                        </form>
+                    </div>
+                    <div class="small-12 medium-3 columns">
+                        <a href="{% gravatar_profile_url u.email %}" target="_blank"><img title="Gravatar" class="thumbnail" src="{% gravatar_url u.email 150 %}" /></a>
+                    </div>
+                </div>
+            {% endwith %}
+        </div>
+    </div>
+</div>
 {% endblock content %}

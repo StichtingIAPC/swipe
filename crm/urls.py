@@ -12,7 +12,9 @@ urlpatterns = [
 
     # Swipe user profile URLs
     url(r'^profile$', PersonProfile.as_view(), name='user_profile'),
+    url(r'^profile/(?P<pk>[0-9]+)$', PersonProfile.as_view(), name='user_profile'),
     url(r'^profile/edit$', PersonProfileEdit.as_view(), name='user_profile_edit'),
+    url(r'^profile/(?P<pk>[0-9]+)/edit$', PersonProfileEdit.as_view(), name='user_profile_edit'),
 
     # User management URLs
     url(r'^users/link/(?P<uid>[0-9]+)$', UserProfileLink.as_view(), name='user_profile_link'),

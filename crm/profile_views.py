@@ -2,23 +2,49 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.auth.models import User
 from django.http import Http404
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.views import View
+from django.views.generic import DetailView
 from django.views.generic import ListView
+from django.views.generic import UpdateView
 
 from crm.models import Person
 from www.mixins import NamedPageMixin
-from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
 
 
-class PersonProfile(LoginRequiredMixin, NamedPageMixin, TemplateView):
+class PersonProfile(LoginRequiredMixin, NamedPageMixin, DetailView):
     template_name = 'crm/profile/detail.html'
     page_name = "User Profile"
+    model = User
+
+    def get_object(self, queryset=None):
+        """
+        Get the object to show details for. If no object is given in kwargs, show the user's own profile.
+        """
+        if self.pk_url_kwarg not in self.kwargs.keys():
+            self.kwargs[self.pk_url_kwarg] = self.request.user.id
+
+        return super(PersonProfile, self).get_object(queryset=queryset)
 
 
-class PersonProfileEdit(LoginRequiredMixin, NamedPageMixin, TemplateView):
+class PersonProfileEdit(LoginRequiredMixin, NamedPageMixin, UpdateView):
     template_name = 'crm/profile/edit.html'
     page_name = "Edit Profile"
+    model = User
+    fields = ["username", "email"]
+
+    def get_success_url(self):
+        return reverse("user_profile", kwargs={'pk': self.object.pk})
+
+    def get_object(self, queryset=None):
+        """
+        Get the object to show details for. If no object is given in kwargs, show the user's own profile.
+        """
+        if self.pk_url_kwarg not in self.kwargs.keys():
+            self.kwargs[self.pk_url_kwarg] = self.request.user.id
+
+        return super(PersonProfileEdit, self).get_object(queryset=queryset)
 
 
 class UserProfileLink(LoginRequiredMixin, PermissionRequiredMixin, NamedPageMixin, ListView):
