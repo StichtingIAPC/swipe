@@ -59,9 +59,12 @@ INSTALLED_APPS = (
     'assortment',
     'tools',
     'order',
-    'blame',
     'logistics',
-    'sales'
+    'blame',
+    'supplication',
+    'barcode',
+    'sales',
+
 )
 
 MIDDLEWARE_CLASSES = [
@@ -195,7 +198,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Login paths
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
-
+BASE_URL = "https://swipe.iapc.utwente.nl/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -232,8 +235,13 @@ STATICFILES_FINDERS = (
 )
 
 COMPRESS_PRECOMPILERS = (
-    ('module', 'compressor_toolkit.precompilers.ES6Compiler'),
-    ('text/x-scss', 'compressor_toolkit.precompilers.SCSSCompiler'),
+    ('module', 'tools.precompilers.CachedES6Compiler'),
+    ('text/x-scss', 'tools.precompilers.CachedSCSSCompiler'),
+)
+
+COMPRESS_CACHEABLE_PRECOMPILERS = (
+    'module',
+    'text/x-scss'
 )
 
 COMPRESS_NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')
@@ -276,6 +284,7 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 USED_CURRENCY = "EUR"
 
 USED_STRATEGY = "IndiscriminateCustomerStockStrategy"
+USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
 SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')
