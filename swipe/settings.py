@@ -60,7 +60,6 @@ INSTALLED_APPS = (
     'tools',
     'order',
     'blame',
-    'logistics',
     'barcode',
 
 )
