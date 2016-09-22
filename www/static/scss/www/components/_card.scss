@@ -8,6 +8,8 @@
 
 @mixin swipe-cards {
   .card {
+
     @include card;
+
   }
 }

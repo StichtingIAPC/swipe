@@ -61,7 +61,9 @@ INSTALLED_APPS = (
     'order',
     'logistics',
     'blame',
-    'supplication'
+    'supplication',
+    'barcode',
+
 )
 
 MIDDLEWARE_CLASSES = [
@@ -195,7 +197,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Login paths
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
-
+BASE_URL = "https://swipe.iapc.utwente.nl/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
