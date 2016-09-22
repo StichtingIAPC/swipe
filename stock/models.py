@@ -239,7 +239,8 @@ class StockChangeSet(models.Model):
 
         # Return the created StockChangeSet
         return sl
-
+    def __str__(self):
+        return "{} : {}; {} changes".format(self.memo,self.enum, len(self.stockchange_set.all()))
 
 class StockChange(StockLabeledLine):
     """
@@ -274,4 +275,4 @@ class StockChange(StockLabeledLine):
         return self.change_set.date
 
     def __str__(self):
-        return "{}| {} x {} {}".format(self.pk, self.count, self.article, self.label)
+        return "{}| {} x {} @ {}, for {} ".format(self.pk, self.count, self.article, self.book_value, self.label)
