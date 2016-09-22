@@ -61,8 +61,7 @@ INSTALLED_APPS = (
     'order',
     'logistics',
     'blame',
-    'supplication'
-    'logistics',
+    'supplication',
     'barcode',
 
 )
