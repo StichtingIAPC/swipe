@@ -282,7 +282,7 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 # Current currency. Transactions are only possible with this currency
 USED_CURRENCY = "EUR"
 
-USED_STRATEGY = "IndiscriminateCustomerStockStrategy"
+USED_SUPPLIERORDER_STRATEGY = "IndiscriminateCustomerStockStrategy"
 USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
 SWIPE_JS_GLOBAL_VARS = {
