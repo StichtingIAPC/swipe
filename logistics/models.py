@@ -26,6 +26,7 @@ class SupplierOrder(ImmutableBlame):
         return "Supplier: {}, User: {}".format(self.supplier, self.user_created)
 
     @staticmethod
+    @transaction.atomic()
     def create_supplier_order(user_modified, supplier, articles_ordered=None, allow_different_currency=False):
         """
         Checks if supplier order information is correct and orders it at the correct supplier
