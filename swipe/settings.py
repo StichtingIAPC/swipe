@@ -234,8 +234,13 @@ STATICFILES_FINDERS = (
 )
 
 COMPRESS_PRECOMPILERS = (
-    ('module', 'compressor_toolkit.precompilers.ES6Compiler'),
-    ('text/x-scss', 'compressor_toolkit.precompilers.SCSSCompiler'),
+    ('module', 'tools.precompilers.CachedES6Compiler'),
+    ('text/x-scss', 'tools.precompilers.CachedSCSSCompiler'),
+)
+
+COMPRESS_CACHEABLE_PRECOMPILERS = (
+    'module',
+    'text/x-scss'
 )
 
 COMPRESS_NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')

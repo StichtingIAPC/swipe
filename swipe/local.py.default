@@ -132,6 +132,7 @@ BASE_URL = "https://swipe.iapc.utwente.nl/"
 # COMPRESS_CACHEABLE_PRECOMPILERS = (
 #     'module',
 # )
+
 # cache only the SCSS compilers, for when you are working on js:
 # COMPRESS_CACHEABLE_PRECOMPILERS = (
 #     'text/x-scss',
