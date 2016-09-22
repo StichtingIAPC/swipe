@@ -14,6 +14,7 @@
 
 @import 'scss/www/components/_layout';
 @import 'scss/www/components/_sidebar';
+@import 'scss/www/components/_topbar';
 @import 'scss/www/components/_card';
 
 
@@ -23,6 +24,7 @@
 
 @include swipe-layout;
 @include swipe-sidebar;
+@include swipe-topbar;
 @include swipe-cards;
 
 @include insert-foundation-inserts;
