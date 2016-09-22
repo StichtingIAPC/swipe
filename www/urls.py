@@ -24,6 +24,9 @@ urlpatterns = [
     # Include API URLs
     url(r'^api/', include('api.urls')),
 
+    url(r'^barcode/', include('barcode.urls')),
+
+
     url(r'^sales/', include('sales.urls')),
 
 ]
