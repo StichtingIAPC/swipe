@@ -8,6 +8,12 @@ from money.models import CurrencyData, Denomination, VAT, AccountingGroup, Curre
 from register.models import PaymentType
 from register.models import Register
 from stock.models import StockChangeSet
+from money.models import Price
+from order.models import Order
+from crm.models import Person, User
+from logistics.models import SupplierOrder
+from supplier.models import Supplier, ArticleTypeSupplier
+from supplication.models import PackingDocument
 
 
 class Command(BaseCommand):
@@ -44,7 +50,6 @@ class Command(BaseCommand):
             name='hoi',
             parent_tag=None)
 
-
         cur = Currency("EUR")
         print(cur.iso)
 
@@ -71,3 +76,68 @@ class Command(BaseCommand):
         # Execute two stock modifications, creating two StockLogs
 
         StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
+
+        user_1 = User(username="jsteen")
+        user_1.save()
+
+        user_2 = User(username="astaartjes")
+        user_2.save()
+
+        customer_1 = Person.objects.create(address="Drienerlolaan 5", city="Enschede", email="bestuur@iapc.utwente.nl",
+                                        name="Jaap de Steen", phone="0534893927", zip_code="7522NB")
+        customer_2 = Person.objects.create(address="Drienerlolaan 5", city="Enschede", email="schaduwbestuur@iapc.utwente.nl",
+                                           name="Gerda Steenhuizen", phone="0534894260", zip_code="7522NB")
+
+        supplier_1 = Supplier.objects.create(name="Copaco")
+
+        supplier_2 = Supplier.objects.create(name="McDos")
+
+        cost_1 = Cost(amount=Decimal(0.74), use_system_currency=True)
+
+        cost_2 = Cost(amount=Decimal(0.85), use_system_currency=True)
+
+        cost_3 = Cost(amount=Decimal(0.23), use_system_currency=True)
+
+        cost_4 = Cost(amount=Decimal(2.37), use_system_currency=True)
+
+        ats_1 = ArticleTypeSupplier(article_type=art1, supplier=supplier_1,
+                                  cost=cost_1, minimum_number_to_order=1, supplier_string="At1", availability='A')
+        ats_1.save()
+
+        ats2 = ArticleTypeSupplier(supplier=supplier_1, article_type=art2,
+                                   cost=cost_2, minimum_number_to_order=1, supplier_string="At2", availability='A')
+        ats2.save()
+
+        ats_3 = ArticleTypeSupplier(article_type=art1, supplier=supplier_2,
+                                  cost=cost_3, minimum_number_to_order=1, supplier_string="FD1", availability='A')
+        ats_3.save()
+
+        ats_4 = ArticleTypeSupplier(article_type=art2, supplier=supplier_2,
+                                    cost=cost_4, minimum_number_to_order=1, supplier_string="FD2", availability='A')
+        ats_4.save()
+
+        price_1 = Price(amount=Decimal(1.11), use_system_currency=True)
+        price_2 = Price(amount=Decimal(2.23), use_system_currency=True)
+
+        Order.create_order_from_wishables_combinations(customer=customer_1,
+                                                       wishable_type_number_price_combinations=[[art1, 5, price_1],
+                                                                                                [art2, 7, price_2]],
+                                                       user=user_1)
+
+        Order.create_order_from_wishables_combinations(customer=customer_2,
+                                                       wishable_type_number_price_combinations=[[art1, 11, price_1],
+                                                                                                [art2, 13, price_2]],
+                                                       user=user_2)
+
+        SupplierOrder.create_supplier_order(user_modified=user_1, supplier=supplier_1, articles_ordered=[[art1, 7, cost_1],
+                                                                                                         [art2, 5, cost_2]])
+
+        SupplierOrder.create_supplier_order(user_modified=user_2, supplier=supplier_2,
+                                            articles_ordered=[[art1, 3, cost_3],
+                                                              [art2, 4, cost_4]])
+
+        PackingDocument.create_packing_document(user=user_1, supplier=supplier_1, packing_document_name="0118999",
+                                                article_type_cost_combinations=[[art1, 4], [art2, 3]])
+
+        PackingDocument.create_packing_document(user=user_2, supplier=supplier_2, packing_document_name="|--|<<<",
+                                                article_type_cost_combinations=[[art1, 2], [art2, 3]])
