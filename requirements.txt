@@ -2,7 +2,8 @@
 pip>=7.0
 setuptools>=8.0
 
-## Django 1.9+ and utils
+
+## Django 1.10+ and utils
 Django>=1.10
 docutils>=0.12
 django-auth-ldap>=1.2.7

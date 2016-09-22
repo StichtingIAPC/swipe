@@ -64,7 +64,8 @@ INSTALLED_APPS = (
     'barcode',
 
     'logistics',
-    'sales'
+    'sales',
+    'supplication'
 )
 
 MIDDLEWARE_CLASSES = [
@@ -280,6 +281,7 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 USED_CURRENCY = "EUR"
 
 USED_STRATEGY = "IndiscriminateCustomerStockStrategy"
+USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
 SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')

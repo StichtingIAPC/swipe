@@ -1,0 +1,150 @@
+{% extends 'sales/sales_base.html' %}
+
+{% load i18n %}
+
+{% block page_title %}{% trans 'Supplier list' %}{% endblock %}
+
+{% block content %}
+
+    <div class="expanded row">
+        <div class="small-12 columns">
+            <div class="card">
+                Customer Selection Screen!!!
+            </div>
+        </div>
+        <div class="small-12 medium-12 large-8 columns">
+            <div class="card">
+                <ul class="tabs" data-tabs id="example-tabs">
+                    <li class="tabs-title is-active"><a href="#stock" aria-selected="true">Products from Stock</a></li>
+                    <li class="tabs-title"><a href="#order">Order Products</a></li>
+                    <li class="tabs-title"><a href="#cust">Orders by Customer</a></li>
+
+                </ul>
+
+                <div class="tabs-content" data-tabs-content="example-tabs">
+                    <div class="tabs-panel is-active" id="stock">
+                <table>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                </table>
+
+
+                    </div>
+                    <div class="tabs-panel" id="order">
+                        <table>
+                    <tr>
+                        <td>OOOO></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                </table>
+                    </div>
+                    <div class="tabs-panel" id="cust">
+                        <table>
+                    <tr>
+                        <td>CUST></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                </table>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+        <div class="small-12 medium-12 large-4 columns">
+            <div class="card">
+                Current Product List
+                <table>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                    <tr>
+                        <td>AAAA></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="small-12 medium-12 large-3 columns">
+            <div class="card">
+                Selection thingies
+
+            </div>
+        </div>
+
+        <div class="small-12 medium-12 large-5 columns">
+            <div class="card">
+                MEMO: <br/>
+                Payment Types
+
+            </div>
+        </div>
+            <div class="small-12 medium-12 large-4 columns">
+            <div class="card">
+                Print Receipt
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    new Foundation.Tabs($("#example-tabs"));
+
+</script>
+{% endblock %}
