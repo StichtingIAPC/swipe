@@ -23,4 +23,7 @@ urlpatterns = [
 
     # Include API URLs
     url(r'^api/', include('api.urls')),
+
+    url(r'^sales/', include('sales.urls')),
+
 ]
