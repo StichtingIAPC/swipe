@@ -59,8 +59,11 @@ INSTALLED_APPS = (
     'assortment',
     'tools',
     'order',
+    'logistics',
     'blame',
-    'logistics'
+    'supplication',
+    'barcode',
+
 )
 
 MIDDLEWARE_CLASSES = [
@@ -194,7 +197,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Login paths
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
-
+BASE_URL = "https://swipe.iapc.utwente.nl/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -231,8 +234,20 @@ STATICFILES_FINDERS = (
 )
 
 COMPRESS_PRECOMPILERS = (
-    ('module', 'compressor_toolkit.precompilers.ES6Compiler'),
-    ('text/x-scss', 'compressor_toolkit.precompilers.SCSSCompiler'),
+    # use type module or text/x-scss for ES6/scss that are to be compiled
+    ('module', 'tools.precompilers.CachedES6Compiler'),
+    ('text/x-scss', 'tools.precompilers.CachedSCSSCompiler'),
+    # use type module-once or text/x-scss-once for js/scss that should be
+    # compiled only once after the server starts
+    ('module-once', 'tools.precompilers.OnceES6Compiler'),
+    ('text/x-scss-once', 'tools.precompilers.OnceSCSSCompiler'),
+)
+
+COMPRESS_CACHEABLE_PRECOMPILERS = (
+    'module',
+    'module-once',
+    'text/x-scss',
+    'text/x-scss-once',
 )
 
 COMPRESS_NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')
@@ -274,7 +289,8 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 # Current currency. Transactions are only possible with this currency
 USED_CURRENCY = "EUR"
 
-USED_STRATEGY = "IndiscriminateCustomerStockStrategy"
+USED_SUPPLIERORDER_STRATEGY = "IndiscriminateCustomerStockStrategy"
+USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
 SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')

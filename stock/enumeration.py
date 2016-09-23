@@ -1,1 +1,1 @@
-enum = {"cash_register": 0}
+enum = {"cash_register": 0, "supplication": 1}

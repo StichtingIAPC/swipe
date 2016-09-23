@@ -9,6 +9,7 @@
     <title>Swipe{% if page_title %} - {{ page_title }}{% endif %}</title>
     {% compress css %}
         <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/www/main.scss' %}" />
+        <link rel="stylesheet" type="text/x-scss-once" href="{% static 'scss/www/framework.scss' %}" />
     {% endcompress %}
     {% block module_css %}{% endblock %}
     {% compress js %}

@@ -27,6 +27,14 @@ class Register(models.Model):
     in a general sense
     """
     # Name of the register. Cosmetic
+
+    class Meta:
+        permissions = (
+            # Permission to allow linking customers to users via the swipe web interface.
+            ("open_register", "Can open a register"),
+            ("close_register", "Can close a register"),
+        )
+
     name = models.CharField(max_length=255)
     # Currency used for this register. Unchangeable
     currency = models.ForeignKey(CurrencyData)
