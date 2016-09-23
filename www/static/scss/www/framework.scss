@@ -1,0 +1,14 @@
+@import 'bower_components/foundation-sites/scss/util/util';
+@import 'bower_components/foundation-sites/scss/foundation';
+
+@import 'scss/www/foundation-inserts/_insert';
+@import 'scss/www/settings/_settings';
+
+// Foundation Icons
+@import 'scss/www/foundation-icons/foundation-icons';
+// Bootstrap Glyphicons
+@import 'scss/www/glyphicons/bootstrap.min';
+
+@include foundation-everything($flex: true);
+
+@include insert-foundation-inserts;
