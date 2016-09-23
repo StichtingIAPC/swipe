@@ -234,13 +234,20 @@ STATICFILES_FINDERS = (
 )
 
 COMPRESS_PRECOMPILERS = (
+    # use type module or text/x-scss for ES6/scss that are to be compiled
     ('module', 'tools.precompilers.CachedES6Compiler'),
     ('text/x-scss', 'tools.precompilers.CachedSCSSCompiler'),
+    # use type module-once or text/x-scss-once for js/scss that should be
+    # compiled only once after the server starts
+    ('module-once', 'tools.precompilers.OnceES6Compiler'),
+    ('text/x-scss-once', 'tools.precompilers.OnceSCSSCompiler'),
 )
 
 COMPRESS_CACHEABLE_PRECOMPILERS = (
     'module',
-    'text/x-scss'
+    'module-once',
+    'text/x-scss',
+    'text/x-scss-once',
 )
 
 COMPRESS_NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')

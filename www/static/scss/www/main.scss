@@ -1,15 +1,5 @@
-@import 'bower_components/foundation-sites/scss/util/util';
-@import 'bower_components/foundation-sites/scss/foundation';
-
-@import 'scss/www/foundation-inserts/_insert';
 @import 'scss/www/settings/_settings';
 
-// Foundation Icons
-@import 'foundation-icons/foundation-icons';
-// Bootstrap Glyphicons
-@import 'glyphicons/bootstrap.min';
-
-// assortment
 @import 'scss/assortment/assortment';
 
 @import 'scss/www/components/_layout';
@@ -17,12 +7,8 @@
 @import 'scss/www/components/_card';
 
 
-@include foundation-everything($flex: true);
-
 @include swipe-assortment;
 
 @include swipe-layout;
 @include swipe-sidebar;
 @include swipe-cards;
-
-@include insert-foundation-inserts;
