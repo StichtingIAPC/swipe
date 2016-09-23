@@ -103,8 +103,6 @@ class Transaction(Blame):
         General transaction for the use in a sales period. Contains a number of transaction lines that could be any form
         of sales.
     """
-    # Which changes did it cause in the stock?
-    stock_change_set = models.ForeignKey(StockChangeSet)
     # The sales period it is connected to
     salesperiod = models.ForeignKey('register.SalesPeriod')
     # Customer. Null for anonymous customer
@@ -267,7 +265,7 @@ class Transaction(Blame):
                 # Set rest of relevant properties for SalesTransactionLine
                 transaction_lines[i].num = transaction_lines[i].article.pk
                 transaction_lines[i].text = str(transaction_lines[i].article)
-            elif type(transaction_lines[i]) == OtherTransactionLine:
+            elif type(transaction_lines[i]) == OtherCostTransactionLine:
                 transaction_lines[i].num = transaction_lines[i].other_cost_type.pk
                 transaction_lines[i].text = str(transaction_lines[i].other_cost_type)
             else:
@@ -279,7 +277,7 @@ class Transaction(Blame):
         with transaction.atomic():
             # Final constructions of all related values
             trans = Transaction(salesperiod=salesperiod, customer=customer, user_modified=user)
-            trans.save()
+            trans.save(indirect=True)
 
             for i in range(0,len(transaction_lines)):
                 transaction_lines[i].transaction = trans

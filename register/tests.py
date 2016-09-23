@@ -113,7 +113,8 @@ class BasicTest(TestCase):
         pay = Payment(amount=Money(Decimal("1.00000"), self.eu), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
                                   amount=Decimal("1.0000"))
-        Transaction.construct([pay], [trans], self.copro)
+        Transaction.create_transaction(user=self.copro, payments=[pay], transaction_lines=[trans])
+        #Transaction.construct([pay], [trans], self.copro)
 
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
         _assert(RegisterMaster.number_of_open_registers() == 0)
