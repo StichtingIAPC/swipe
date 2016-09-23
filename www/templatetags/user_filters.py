@@ -17,6 +17,20 @@ def display_name(user):
     return name
 
 
+@register.filter()
+def can(user, perm):
+    """
+    Check if a user has a given permission
+    :param user: The user to check
+    :type user: User
+    :param perm: The permission to check for
+    :type perm: str
+    :return: True if the user has the permission, False if not
+    :rtype: bool
+    """
+    return user.has_perm(perm)
+
+
 @register.filter(is_safe=True)
 @stringfilter
 def posessive(string):

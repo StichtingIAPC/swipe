@@ -13,7 +13,7 @@
                 <a class="user-link" href="#">{{ request.user|display_name }} <img title="{{ request.user.username }}" src="{% gravatar_url request.user.email 44 %}" /></a>
                 <ul class="menu">
                     <li><a href="{% url 'user_profile' %}">{% trans 'Profile' %}</a></li>
-                    {% if request.user.person and request.user.person.can_manage_users %}
+                    {% if request.user|can:"auth.change_user" %}
                         <li><a href="{% url 'user_management' %}">{% trans 'User Management' %}</a></li>
                     {% endif %}
                     <li><a href="{% url 'logout' %}">{% trans 'Logout' %}</a></li>

@@ -19,6 +19,7 @@
         </div>
         <div class="card">
             <h5>{% trans 'Customers' %}</h5>
+            <a class="button alert" href="{% url 'user_profile_link_apply' user.pk -1 %}">{% trans 'Unlink current customer' %}</a>
             <ul>
                 {% for p in object_list %}
                     <li><a href="{% url 'user_profile_link_apply' user.pk p.pk %}">{{ p.name }}</a></li>

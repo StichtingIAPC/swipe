@@ -115,26 +115,6 @@ class Person(Customer):
 
         return True, "", None
 
-    def can_manage_users(self):
-        can_link = self.can_link_users()
-        can_add = self.user and self.user.has_perm('auth.add_user')
-        can_edit = self.user and self.user.has_perm('auth.edit_user')
-        can_delete = self.user and self.user.has_perm('auth.delete_user')
-
-        return can_link or can_add or can_edit or can_delete
-
-    def can_link_users(self):
-        return self.user and self.user.has_perm('crm.link_user_to_person')
-
-    def can_add_users(self):
-        return self.user and self.user.has_perm('auth.add_user')
-
-    def can_edit_users(self):
-        return self.user and self.user.has_perm('auth.edit_user')
-
-    def can_delete_users(self):
-        return self.user and self.user.has_perm('auth.delete_user')
-
     def __str__(self):
         return self.name
 

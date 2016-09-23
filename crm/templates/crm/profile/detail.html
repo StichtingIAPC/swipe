@@ -9,41 +9,51 @@
     <div class="small-12 columns">
         <div class="card">
             <h3>{% blocktrans with username=object|display_name suffix=object|display_name|posessive %}{{ username }}{{ suffix }} Profile{% endblocktrans %}</h3>
-            {% if object.person %}
-                {% with u=object p=object.person %}
-                    <hr/>
-                    <div class="row">
-                        <div class="small-12 medium-6 columns">
-                        <h4>{% trans 'User profile' %} <a href="{% url 'user_profile_edit' %}" class="button float-right">{% trans 'edit' %}</a></h4>
-                            <div class="float-left profile-picture">
-                                <a href="{% gravatar_profile_url u.email %}" target="_blank"><img title="Gravatar" class="thumbnail" src="{% gravatar_url u.email 150 %}" /></a>
-                            </div>
-                            <div class="float-left">
-                                <ul class="profile-list">
-                                    <li><span title="{% trans 'Username' %}" class="glyphicon glyphicon-user profile-icon" aria-hidden="true"></span>{{ u.username }}</li>
-                                    <li><span title="{% trans 'E-mail address' %}" class="glyphicon glyphicon-envelope profile-icon" aria-hidden="true"></span> {{ u.email|urlize }}</li>
-                                    <li><b>{% trans 'Account roles' %}:</b>
-                                        <ul>
-                                            {% if u.is_active %}<li>{% trans 'Active' %}</li>{% endif %}
-                                            {% if u.is_staff %}<li>{% trans 'Staff' %}</li>{% endif %}
-                                            {% if u.is_superuser %}<li>{% trans 'Superuser' %}</li>{% endif %}
-                                            {% if not u.is_active and not u.is_staff and not u.is_superuser %}<li>{% trans 'No roles' %}</li>{% endif %}
-                                        </ul>
-                                    </li>
-                                    <li><b>{% trans 'Account groups' %}:</b>
-                                        <ul>
-                                            {% for group in u.groups_set %}
-                                                <li>{{ group }}</li>
-                                            {% empty %}
-                                                <li>{% trans 'No groups' %}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </div>
+            {% with u=object p=object.person %}
+                <hr/>
+                <div class="row">
+                    <div class="small-12 medium-6 columns">
+                        <h4>
+                            {% trans 'User profile' %}
+                            {% if request.user|can:"auth.edit_user" %}
+                                <a href="{% url 'user_profile_edit' u.pk %}" class="button float-right">{% trans 'edit' %}</a>
+                            {% endif %}
+                        </h4>
+                        <div class="float-left profile-picture">
+                            <a href="{% gravatar_profile_url u.email %}" target="_blank"><img title="Gravatar" class="thumbnail" src="{% gravatar_url u.email 150 %}" /></a>
                         </div>
-                        <div class="small-12 medium-6 columns">
-                            <h4>{% trans 'Customer profile' %} <a href="{% url 'customer_edit_person' p.pk %}" class="button float-right">{% trans 'edit' %}</a></h4>
+                        <div class="float-left">
+                            <ul class="profile-list">
+                                <li><span title="{% trans 'Username' %}" class="glyphicon glyphicon-user profile-icon" aria-hidden="true"></span>{{ u.username }}</li>
+                                <li><span title="{% trans 'E-mail address' %}" class="glyphicon glyphicon-envelope profile-icon" aria-hidden="true"></span> {{ u.email|urlize }}</li>
+                                <li><b>{% trans 'Account roles' %}:</b>
+                                    <ul>
+                                        {% if u.is_active %}<li>{% trans 'Active' %}</li>{% endif %}
+                                        {% if u.is_staff %}<li>{% trans 'Staff' %}</li>{% endif %}
+                                        {% if u.is_superuser %}<li>{% trans 'Superuser' %}</li>{% endif %}
+                                        {% if not u.is_active and not u.is_staff and not u.is_superuser %}<li>{% trans 'No roles' %}</li>{% endif %}
+                                    </ul>
+                                </li>
+                                <li><b>{% trans 'Account groups' %}:</b>
+                                    <ul>
+                                        {% for group in u.groups_set %}
+                                            <li>{{ group }}</li>
+                                        {% empty %}
+                                            <li>{% trans 'No groups' %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="small-12 medium-6 columns">
+                        {% if p %}
+                            <h4>
+                                {% trans 'Customer profile' %}
+                                {% if request.user|can:"crm.edit_customer" %}
+                                    <a href="{% url 'customer_edit_person' p.pk %}" class="button float-right">{% trans 'edit' %}</a>
+                                {% endif %}
+                            </h4>
                             <ul class="profile-list">
                                 <li><span title="{% trans 'Name' %}" class="glyphicon glyphicon-user profile-icon" aria-hidden="true"></span> {{ p.name }}</li>
                                 <li><span title="{% trans 'E-mail address' %}" class="glyphicon glyphicon-envelope profile-icon" aria-hidden="true"></span> {{ p.email|urlize }}</li>
@@ -62,21 +72,22 @@
                                     </ul>
                                 </li>
                             </ul>
-                        </div>
+                        {% else %}
+                            <h4>{% trans 'Customer profile' %}</h4>
+                            <div class="callout warning">
+                                <h5>{% blocktrans with name=u.username %}{{ name }} does not have a profile (yet).{% endblocktrans %}</h5>
+                                <p>{% blocktrans with name=u.username suffix=u.username|posessive %}There is no customer profile linked to {{ name }}{{ suffix }} swipe account yet.{% endblocktrans %}</p>
+                                {% if request.user|can:"crm.link_user_to_person" %}
+                                    {% url 'user_profile_link' u.id as profile_url %}
+                                    <p>{% blocktrans with profile_url=profile_url %}Go to the <a href="{{ profile_url }}">Person Linking page</a> to link a customer to this account.{% endblocktrans %}</p>
+                                {% elif request.user.id == u.id %}
+                                    <p>{% trans 'Please ask one of the swipe administrators to link your customer to your swipe account.' %}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     </div>
-                {% endwith %}
-            {% else %}
-                <div class="callout warning">
-                    <h5>{% blocktrans with name=object.username %}{{ name }} does not have a profile (yet).{% endblocktrans %}</h5>
-                    <p>{% blocktrans with name=object.username %}There is no customer profile linked to {{ name }}'s swipe account yet.{% endblocktrans %}</p>
-                    {% if request.user.is_admin %}
-                        {% url 'user_profile_link' request.user.id as profile_url %}
-                        <p>{% blocktrans with profile_url=profile_url %}Please go to the <a href="{{ profile_url }}">Person Linking page</a> to link a customer to this account.{% endblocktrans %}</p>
-                    {% elif request.user.id == object.id %}
-                        <p>{% trans 'Please ask one of the swipe administrators to link your customer to your swipe account.' %}</p>
-                    {% endif %}
                 </div>
-            {% endif %}
+            {% endwith %}
         </div>
     </div>
 </div>

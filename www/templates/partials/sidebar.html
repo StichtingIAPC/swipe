@@ -9,12 +9,12 @@
             <a href="{% url 'home' %}" title="{% trans 'Swipe' %}"><span class="glyphicon glyphicon-home side-bar-icon" aria-hidden="true"></span> {% trans 'Swipe' %}</a>
         </li>
         {% if request.user.is_authenticated %}
-        <li class="crm">
-            <a href="{% url 'crm_index' %}" title="{% trans 'Customers' %}"><span class="glyphicon glyphicon-user side-bar-icon" aria-hidden="true"></span> {% trans 'Customers' %}</a>
-        </li>
-        <li class="suppliers">
-            <a href="{% url 'supplier_list' %}" title="{% trans 'Suppliers' %}"><span class="glyphicon glyphicon-tags side-bar-icon" aria-hidden="true"></span> {% trans 'Suppliers' %}</a>
-        </li>
+            <li class="crm">
+                <a href="{% url 'crm_index' %}" title="{% trans 'Customers' %}"><span class="glyphicon glyphicon-user side-bar-icon" aria-hidden="true"></span> {% trans 'Customers' %}</a>
+            </li>
+            <li class="suppliers">
+                <a href="{% url 'supplier_list' %}" title="{% trans 'Suppliers' %}"><span class="glyphicon glyphicon-tags side-bar-icon" aria-hidden="true"></span> {% trans 'Suppliers' %}</a>
+            </li>
         {% endif %}
     </ul>
 </div>

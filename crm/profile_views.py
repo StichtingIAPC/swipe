@@ -28,11 +28,13 @@ class PersonProfile(LoginRequiredMixin, NamedPageMixin, DetailView):
         return super(PersonProfile, self).get_object(queryset=queryset)
 
 
-class PersonProfileEdit(LoginRequiredMixin, NamedPageMixin, UpdateView):
-    template_name = 'crm/profile/edit.html'
+class PersonProfileEdit(LoginRequiredMixin, PermissionRequiredMixin, NamedPageMixin, UpdateView):
+    template_name = 'crm/profile/form.html'
     page_name = "Edit Profile"
     model = User
     fields = ["username", "email"]
+    permission_required = 'auth.change_user'
+    permission_denied_message = _("You do not have access to this page.")
 
     def get_success_url(self):
         return reverse("user_profile", kwargs={'pk': self.object.pk})
@@ -102,14 +104,21 @@ class UserProfileLinkApply(LoginRequiredMixin, PermissionRequiredMixin, View):
         except User.DoesNotExist:
             raise Http404('Invalid user')
 
-        try:
-            person = Person.objects.get(pk=kwargs['pid'])
-        except Person.DoesNotExist:
-            raise Http404("Invalid person")
+        if kwargs['pid'] == "-1":
+            # Unlink the current person rather than linking a new one.
+            if hasattr(user, "person"):
+                p = user.person
+                p.user = None
+                p.save()
+        else:
+            try:
+                person = Person.objects.get(pk=kwargs['pid'])
+            except Person.DoesNotExist:
+                raise Http404("Invalid person")
 
-        # Save user reference in person
-        person.user = user
-        person.save()
+            # Save user reference in person
+            person.user = user
+            person.save()
 
         # Go back to the user list
         return redirect('user_management')

@@ -18,7 +18,7 @@ urlpatterns = [
 
     # User management URLs
     url(r'^users/link/(?P<uid>[0-9]+)$', UserProfileLink.as_view(), name='user_profile_link'),
-    url(r'^users/link/apply/(?P<pk>[0-9]+)/(?P<pid>[0-9]+)$', UserProfileLinkApply.as_view(), name='user_profile_link_apply'),
+    url(r'^users/link/apply/(?P<pk>[0-9]+)/(?P<pid>-?[0-9]+)$', UserProfileLinkApply.as_view(), name='user_profile_link_apply'),
     url(r'^users/management', UserManagement.as_view(), name='user_management'),
 
     # Customer URLs
