@@ -11,7 +11,6 @@ from crm.models import User, Customer
 from decimal import Decimal
 from collections import defaultdict
 from order.models import OrderLine
-#from typing import List
 
 from django.db import models, transaction
 
@@ -24,7 +23,7 @@ class TransactionLine(Blame):
     transaction = models.ForeignKey("Transaction")
     # What is the id of the SellableType(0 for no SellableType)?
     num = models.IntegerField()
-    # What did the customer pay for this line?
+    # What did the customer pay per single product?
     price = PriceField()
     # How many are you selling?
     count = models.IntegerField()
@@ -123,10 +122,10 @@ class Transaction(Blame):
         :param payments: List[Payment]. A list of payments to pay for the products. Must match the prices.
         :param transaction_lines: List[TransactionLine]. A list if TransactionLines. It is important to supply at least the
         following information for each TransactionLine:
-        - All: price, count, order
-        - SalesTransactionLine: article
-        - OtherCostTransactionLine: other_cost_type
-        - OtherTransactionLine:
+        - All: price, count
+        - SalesTransactionLine: article, order
+        - OtherCostTransactionLine: other_cost_type, order
+        - OtherTransactionLine: text
         :param customer: A Customer
         :return:
         """
@@ -152,11 +151,14 @@ class Transaction(Blame):
 
         ILLEGAL_ORDER_REFERENCE = -1 # Primary key chosen in such a way that it is never chosen
 
-        # Now some stock checks
+        # Now some general checks, including stock checks
         # Build up supply
         stock_level_dict = {}
         for tr_line in transaction_lines:
+            _assert(tr_line.count > 0)
+            _assert(hasattr(tr_line, 'price') and tr_line.price)
             if type(tr_line) == SalesTransactionLine:
+                _assert(hasattr(tr_line, 'article') and tr_line.article)
                 ordr = tr_line.order
                 if ordr is None:
                     order_reference = ILLEGAL_ORDER_REFERENCE
@@ -167,6 +169,11 @@ class Transaction(Blame):
                     stock_level_dict[(order_reference, tr_line.article)] = tr_line.count
                 else:
                     stock_level_dict[(order_reference, tr_line.article)] += tr_line.count
+            elif type(tr_line) == OtherTransactionLine:
+                # Text is the essential identifier here
+                _assert(len(tr_line.text) > 0)
+            else:
+                _assert(hasattr(tr_line, 'other_cost_type') and tr_line.other_cost_type)
 
 
 
@@ -231,13 +238,20 @@ class Transaction(Blame):
                         raise PaymentMisMatchError("Expected {} for currency {} but got {}".format(should_be_paid[key],
                                                                                                    key, is_paid[key]))
 
+        # Key is Tuple[order_number, other_cost_type] and stores whether there are enough orderlines for the othercosts.
+        # This is not entirely necessary but is a decent sanity check to see if they supplier of the data knows what
+        # he is doing.
         order_other_cost_count = defaultdict(lambda: 0)
         for tr_line in transaction_lines:
             if type(tr_line) == OtherCostTransactionLine:
                 if tr_line.order is not None:
-                    OrderLine.objects.filter(wishable_id=tr_line.other_cost_type)
+                    order_other_cost_count[(tr_line.order, tr_line.other_cost_type)] += 1
 
-
+        for key in order_other_cost_count.keys():
+            ols = OrderLine.objects.filter(wishable_id=key[1], order_id=key[0])
+            if len(ols) < order_other_cost_count[key]:
+                raise NotEnoughOrderLinesError("There is are not enough orderlines to transition to sold for order {}"
+                                               "and OtherCostType {}".format(key[0], key[1]))
 
         # We assume everything succeeded, now we construct the stock changes
         change_set = []
@@ -273,7 +287,6 @@ class Transaction(Blame):
             # Don't forget the user
             transaction_lines[i].user_modified = user
 
-
         with transaction.atomic():
             # Final constructions of all related values
             trans = Transaction(salesperiod=salesperiod, customer=customer, user_modified=user)
@@ -286,6 +299,12 @@ class Transaction(Blame):
             # The post signal of the StockChangeSet should solve the problems of the OrderLines
             CASH_REGISTER_ENUM = 0
             StockChangeSet.construct(description="Transaction: {}".format(trans.pk), entries=change_set, enum=CASH_REGISTER_ENUM)
+
+            # Changing the other_costs to sold in their orderlines
+            for key in order_other_cost_count.keys():
+                ols = OrderLine.objects.filter(wishable_id=key[1], order_id=key[0])
+                for i in range(order_other_cost_count[key]):
+                    ols[i].sell(user)
 
 
 # List of all types of transaction lines
@@ -302,4 +321,8 @@ class NotEnoughStockError(Exception):
 
 
 class PaymentMisMatchError(Exception):
+    pass
+
+
+class NotEnoughOrderLinesError(Exception):
     pass

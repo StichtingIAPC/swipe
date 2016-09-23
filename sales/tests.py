@@ -3,9 +3,10 @@ from article.tests import INeedSettings
 from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup
 from register.models import SalesPeriod, InactiveError
 from decimal import Decimal
-from article.models import ArticleType
-from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError
-from stock.models import StockChange, StockSmallerThanZeroError, StockChangeSet
+from article.models import ArticleType, OtherCostType
+from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
+    OtherCostTransactionLine, OtherTransactionLine
+from stock.models import StockChange, StockChangeSet
 from register.models import PaymentType
 from crm.models import User
 from tools.util import _assert
@@ -29,6 +30,10 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
         self.copro = User()
         self.copro.save()
+        self.other_cost = OtherCostType(name="Oth1", branch=self.branch, accounting_group=self.acc_group,
+                                        fixed_price=self.price
+                                        )
+        self.other_cost.save()
 
 
     def test_not_enough_stock_error(self):
@@ -41,6 +46,56 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
             caught = True
         _assert(caught)
 
-    def test_dict_manual(self):
-        dt = {}
-        dt[(2, self.art)] = 2
+    def test_not_enough_parameters(self):
+
+        caught = 0
+
+        s1 = SalesTransactionLine(count=2, price=self.price)
+
+        s2 = SalesTransactionLine(count=2, article=self.art)
+
+        s3 = OtherCostTransactionLine(count=1, price=self.price)
+
+        s4 = OtherCostTransactionLine(count=2, other_cost_type=self.other_cost)
+
+        s5 = OtherTransactionLine(count=2, price=self.price)
+
+        s6 = OtherTransactionLine(count=1, text="Bla")
+
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+                                           transaction_lines=[s1])
+        except AssertionError:
+            caught += 1
+
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+                                           transaction_lines=[s2])
+        except AssertionError:
+            caught += 1
+
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+                                           transaction_lines=[s3])
+        except AssertionError:
+            caught += 1
+
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+                                           transaction_lines=[s4])
+        except AssertionError:
+            caught += 1
+
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+                                           transaction_lines=[s5])
+        except AssertionError:
+            caught += 1
+
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+                                           transaction_lines=[s6])
+        except AssertionError:
+            caught += 1
+
+        _assert(caught == 6)
