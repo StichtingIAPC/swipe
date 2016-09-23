@@ -11,7 +11,7 @@ from crm.models import User
 from money.models import CostField, Cost, Currency
 from order.models import OrderLine, OrderCombinationLine
 from supplier.models import Supplier, ArticleTypeSupplier
-from swipe.settings import USED_STRATEGY, USED_CURRENCY
+from swipe.settings import USED_SUPPLIERORDER_STRATEGY, USED_CURRENCY
 from tools.util import _assert
 
 
@@ -26,6 +26,7 @@ class SupplierOrder(ImmutableBlame):
         return "Supplier: {}, User: {}".format(self.supplier, self.user_created)
 
     @staticmethod
+    @transaction.atomic()
     def create_supplier_order(user_modified, supplier, articles_ordered=None, allow_different_currency=False):
         """
         Checks if supplier order information is correct and orders it at the correct supplier
@@ -53,7 +54,7 @@ class SupplierOrder(ImmutableBlame):
             raise InsufficientDemandError(err_msg)
 
         # Create supplier order and modify customer orders
-        distribution = DisbributionStrategy.get_strategy_from_string(USED_STRATEGY)\
+        distribution = DisbributionStrategy.get_strategy_from_string(USED_SUPPLIERORDER_STRATEGY)\
             .get_distribution(articles_ordered)
 
         DisbributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
