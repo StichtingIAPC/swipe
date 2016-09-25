@@ -1,4 +1,4 @@
-from money.models import MoneyField, PriceField, CostField
+from money.models import MoneyField, PriceField, CostField, AccountingGroup
 from stock.stocklabel import StockLabeledLine, OrderLabel
 from stock.models import StockChangeSet, Id10TError, Stock
 from article.models import ArticleType, OtherCostType, SellableType
@@ -39,6 +39,35 @@ class TransactionLine(Blame):
             raise Id10TError("Cannot instantiate super class TransactionLine. Use specific instead!")
         super(TransactionLine, self).save(*args, **kwargs)
 
+    def __str__(self):
+        if not hasattr(self, 'transaction') or self.transaction is None:
+            trans = "None"
+        else:
+            trans = self.transaction.pk
+        if not hasattr(self,'num') or self.num is None:
+            num = "None"
+        else:
+            num = self.num
+        if not hasattr(self, 'price') or self.price is None:
+            price = "None"
+        else:
+            price = str(self.price)
+        if not hasattr(self, 'count') or self.count is None:
+            count = "None"
+        else:
+            count = self.count
+        if not hasattr(self, 'isRefunded') or self.isRefunded is None:
+            refun = "Unset"
+        else:
+            refun = self.isRefunded
+        if not hasattr(self, 'order') or self.order is None:
+            ordr = "Unset"
+        else:
+            ordr = self.order
+        return "Transaction: {}, Item_number: {}, " \
+               "Count: {}, PricePP: {}, Refunded: {}, Order: {}, Text: {}".format(trans,num, count, price, refun,
+                                                                                  ordr, self.text)
+
 
 # noinspection PyShadowingBuiltins
 class SalesTransactionLine(TransactionLine):
@@ -50,14 +79,17 @@ class SalesTransactionLine(TransactionLine):
     # Which ArticleType are we talking about?
     article = models.ForeignKey(ArticleType)
 
-    @staticmethod
-    def handle(changes, register_id):
-        # Create stockchange
-        to_change = []
-        for change in changes:
-            chan = {"count": change.count, "article": change.article, "is_in": False, "book_value": change.cost}
-            to_change.append(chan)
-        return StockChangeSet.construct("Register {}".format(register_id), to_change, enum["cash_register"])
+    def __str__(self):
+        prep = super(SalesTransactionLine, self).__str__()
+        if not hasattr(self, 'cost') or self.cost is None:
+            cost = "None"
+        else:
+            cost = self.cost
+        if not hasattr(self, 'article') or self.article is None:
+            art = "None"
+        else:
+            art = self.article
+        return prep + ", Cost: {}, Article: {}".format(cost, art)
 
 
 class OtherCostTransactionLine(TransactionLine):
@@ -65,19 +97,29 @@ class OtherCostTransactionLine(TransactionLine):
         Transaction for a product that has no stock but is orderable.
     """
     other_cost_type = models.ForeignKey(OtherCostType)
-    @staticmethod
-    def handle(changes, register_id):
-        pass
+
+    def __str__(self):
+        prep = super(OtherCostTransactionLine, self).__str__()
+        if not hasattr(self, 'other_cost_type') or self.other_cost_type is None:
+            typ = "None"
+        else:
+            typ = self.other_cost_type
+        return prep + ", OtherCostType: {}".format(typ)
 
 
 class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
     """
+    accounting_group = models.ForeignKey(AccountingGroup)
 
-    @staticmethod
-    def handle(changes, register_id):
-        pass
+    def __str__(self):
+        prep = super(OtherTransactionLine, self).__str__()
+        if not hasattr(self, 'accounting_group') or self.accounting_group is None:
+            acc = "None"
+        else:
+            acc = self.accounting_group
+        return prep + ", AccountingGroup: {}".format(acc)
 
 
 class InactiveError(Exception):
@@ -197,7 +239,7 @@ class Transaction(Blame):
                 # Assumes unity of all stock with same label. If this is not true, break
                 _assert(arts[0].count >= stock_level_dict[key])
             else:
-                arts = Stock.objects.filter(labeltype__isnull=OrderLabel, labelkey=key[ORDER_POSITION],
+                arts = Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=key[ORDER_POSITION],
                                             article=key[ARTICLE_TYPE_POSITION])
                 length = arts.__len__()
                 if length == 0:
@@ -267,7 +309,7 @@ class Transaction(Blame):
                               'is_in': False}
                     change_set.append(change)
                 else:
-                    stock_line = Stock.objects.get(article=transaction_lines[i].article, labeltype=OrderLabel,
+                    stock_line = Stock.objects.get(article=transaction_lines[i].article, labeltype=OrderLabel._labeltype,
                                                    labelkey=transaction_lines[i].order)
                     transaction_lines[i].cost = stock_line.book_value
                     change = {'article': transaction_lines[i].article,

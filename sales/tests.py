@@ -5,8 +5,8 @@ from register.models import SalesPeriod, InactiveError
 from decimal import Decimal
 from article.models import ArticleType, OtherCostType, AssortmentArticleBranch
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
-    OtherCostTransactionLine, OtherTransactionLine
-from stock.models import StockChange, StockChangeSet
+    OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError
+from stock.models import Stock
 from register.models import PaymentType
 from crm.models import User, Person
 from tools.util import _assert
@@ -68,7 +68,9 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
 
         self.simplest = SalesTransactionLine(article=self.article_type, count=1, cost=self.cost, price=self.price, num=1)
-        self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
+        self.simple_payment_usd = Payment(amount=self.money, payment_type=self.pt)
+        self.simple_payment_eur = Payment(amount=Money(amount=Decimal(2.0), currency=Currency("EUR")),
+                                          payment_type=self.pt)
 
         self.other_cost = OtherCostType(name="Oth1", branch=self.branch, accounting_group=self.acc_group,
                                         fixed_price=self.price
@@ -83,7 +85,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         oalist.append(SalesTransactionLine(price=self.price, count=1, order=None, article=self.article_type))
         caught = False
         try:
-            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment], transaction_lines=oalist)
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd], transaction_lines=oalist)
         except NotEnoughStockError:
             caught = True
         _assert(caught)
@@ -105,37 +107,37 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         s6 = OtherTransactionLine(count=1, text="Bla")
 
         try:
-            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s1])
         except AssertionError:
             caught += 1
 
         try:
-            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s2])
         except AssertionError:
             caught += 1
 
         try:
-            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s3])
         except AssertionError:
             caught += 1
 
         try:
-            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s4])
         except AssertionError:
             caught += 1
 
         try:
-            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s5])
         except AssertionError:
             caught += 1
 
         try:
-            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment],
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s6])
         except AssertionError:
             caught += 1
@@ -155,7 +157,141 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                                 article_type_cost_combinations=[[self.article_type, AMOUNT_1],
                                                                                 [self.at2, AMOUNT_2]],
                                                 packing_document_name="Foo")
-        stl = SalesTransactionLine(price=Price(amount=self.simple_payment.amount.amount, use_system_currency=True, vat=1.23),
+        stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
                                    count=2, article=self.article_type)
-        Transaction.create_transaction(user=self.copro, payments=[self.simple_payment], transaction_lines=[stl])
+        caught = False
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_eur], transaction_lines=[stl])
+        except NotEnoughStockError:
+            caught = True
+        _assert(caught)
+
+    def test_sales_transaction_line(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = 2
+        stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                   count=count, article=self.article_type, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
+        tls = TransactionLine.objects.all()
+        _assert(len(tls) == 1)
+        obj = tls[0]
+        _assert(obj.num == 1)
+        _assert(obj.count == 2)
+        _assert(not obj.isRefunded)
+        _assert(obj.order == 1)
+        _assert(obj.text == str(self.article_type))
+
+    def test_sales_transaction_not_enough_stock(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = AMOUNT_1+1
+        stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                   count=count, article=self.article_type, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+        caught = False
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
+        except NotEnoughStockError:
+            caught = True
+        _assert(caught)
+
+    def test_sales_transaction_just_enough_stock(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = AMOUNT_1
+        stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                   count=count, article=self.article_type, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
+
+    def test_sales_transaction_too_much_payment(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = AMOUNT_1
+        stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                   count=count, article=self.article_type, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count+Decimal(0.001), currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+        caught = False
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
+        except PaymentMisMatchError:
+            caught = True
+        _assert(caught)
+
+    def test_sales_transaction_too_little_payment(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = AMOUNT_1
+        stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                   count=count, article=self.article_type, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count-Decimal(0.001), currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+        caught = False
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
+        except PaymentMisMatchError:
+            caught = True
+        _assert(caught)
+
+
+
+
+
 
