@@ -27,7 +27,7 @@ class VAT(models.Model):
         return "{}:{}".format(self.name, self.vatrate)
 
     def to_rate_string(self):
-        return "{}%".format((self.rate - 1) * 100)
+        return "{}%".format((self.vatrate - 1) * 100)
 
 
 class AccountingGroup(models.Model):
