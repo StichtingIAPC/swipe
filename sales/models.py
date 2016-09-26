@@ -213,7 +213,9 @@ class Transaction(Blame):
                     stock_level_dict[(order_reference, tr_line.article)] += tr_line.count
             elif type(tr_line) == OtherTransactionLine:
                 # Text is the essential identifier here
+                # Accounting group is also needed as to ensure correct VAT and place on turnover list
                 _assert(len(tr_line.text) > 0)
+                _assert(hasattr(tr_line, 'accounting_group') and tr_line.accounting_group is not None)
             else:
                 _assert(hasattr(tr_line, 'other_cost_type') and tr_line.other_cost_type)
 
@@ -287,12 +289,12 @@ class Transaction(Blame):
         for tr_line in transaction_lines:
             if type(tr_line) == OtherCostTransactionLine:
                 if tr_line.order is not None:
-                    order_other_cost_count[(tr_line.order, tr_line.other_cost_type)] += 1
+                    order_other_cost_count[(tr_line.order, tr_line.other_cost_type)] += tr_line.count
 
         for key in order_other_cost_count.keys():
-            ols = OrderLine.objects.filter(wishable_id=key[1], order_id=key[0])
+            ols = OrderLine.objects.filter(wishable__sellabletype=key[1], order_id=key[0])
             if len(ols) < order_other_cost_count[key]:
-                raise NotEnoughOrderLinesError("There is are not enough orderlines to transition to sold for order {}"
+                raise NotEnoughOrderLinesError("There is are not enough orderlines to transition to sold for Order {} "
                                                "and OtherCostType {}".format(key[0], key[1]))
 
         # We assume everything succeeded, now we construct the stock changes
@@ -325,7 +327,8 @@ class Transaction(Blame):
                 transaction_lines[i].num = transaction_lines[i].other_cost_type.pk
                 transaction_lines[i].text = str(transaction_lines[i].other_cost_type)
             else:
-                _assert(len(transaction_lines[i].text) > 0)
+                # Symbolic number indicating no related database object
+                transaction_lines[i].num = -1
             # Don't forget the user
             transaction_lines[i].user_modified = user
 
@@ -344,7 +347,7 @@ class Transaction(Blame):
 
             # Changing the other_costs to sold in their orderlines
             for key in order_other_cost_count.keys():
-                ols = OrderLine.objects.filter(wishable_id=key[1], order_id=key[0])
+                ols = OrderLine.objects.filter(wishable__sellabletype=key[1], order_id=key[0])
                 for i in range(order_other_cost_count[key]):
                     ols[i].sell(user)
 

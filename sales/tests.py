@@ -5,13 +5,13 @@ from register.models import SalesPeriod, InactiveError
 from decimal import Decimal
 from article.models import ArticleType, OtherCostType, AssortmentArticleBranch
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
-    OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError
+    OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError
 from stock.models import Stock
 from register.models import PaymentType
 from crm.models import User, Person
 from tools.util import _assert
 from supplier.models import Supplier, ArticleTypeSupplier
-from order.models import Order
+from order.models import Order, OrderLine
 from logistics.models import SupplierOrder
 from supplication.models import PackingDocument
 
@@ -106,6 +106,8 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
 
         s6 = OtherTransactionLine(count=1, text="Bla")
 
+        s7 = OtherTransactionLine(count=3, text="Bla", price=self.price)
+
         try:
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s1])
@@ -141,8 +143,13 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                            transaction_lines=[s6])
         except AssertionError:
             caught += 1
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
+                                           transaction_lines=[s7])
+        except AssertionError:
+            caught += 1
 
-        _assert(caught == 6)
+        _assert(caught == 7)
 
     def test_sales_transaction_line_wrong_customer_stock(self):
         AMOUNT_1 = 6
@@ -289,6 +296,125 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         except PaymentMisMatchError:
             caught = True
         _assert(caught)
+
+    def test_sales_transaction_other_cost(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price],[self.other_cost, AMOUNT_3, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = AMOUNT_3-1
+        octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                        count=count, other_cost_type=self.other_cost, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
+        tls = TransactionLine.objects.all()
+        _assert(len(tls) == 1)
+        octls = OtherCostTransactionLine.objects.all()
+        _assert(len(octls) == 1)
+        octl= octls[0]
+        _assert(not octl.isRefunded)
+        _assert(octl.count == count)
+        _assert(octl.order == 1)
+        _assert(octl.text == octl.other_cost_type.name)
+        sold_counter = 0
+        ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=1)
+        for ol in ols:
+            if ol.state == 'S':
+                sold_counter += 1
+        _assert(sold_counter == count)
+
+    def test_sales_transaction_other_cost_just_enough_orderlines(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price],[self.other_cost, AMOUNT_3, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = AMOUNT_3
+        octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                        count=count, other_cost_type=self.other_cost, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
+        tls = TransactionLine.objects.all()
+        _assert(len(tls) == 1)
+        octls = OtherCostTransactionLine.objects.all()
+        _assert(len(octls) == 1)
+        octl= octls[0]
+        _assert(not octl.isRefunded)
+        _assert(octl.count == count)
+        _assert(octl.order == 1)
+        _assert(octl.text == octl.other_cost_type.name)
+        sold_counter = 0
+        ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=1)
+        for ol in ols:
+            if ol.state == 'S':
+                sold_counter += 1
+        _assert(sold_counter == count)
+
+    def test_sales_transaction_other_cost_not_enough_orderlines(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price],[self.other_cost, AMOUNT_3, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = AMOUNT_3+1
+        octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+                                        count=count, other_cost_type=self.other_cost, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        local_payment=Payment(amount=loc_money, payment_type=self.pt)
+        caught = False
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
+        except NotEnoughOrderLinesError:
+            caught = True
+        _assert(caught)
+
+    def test_sales_transaction_other_line(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price],[self.other_cost, AMOUNT_3, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = 10
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
 
 
 
