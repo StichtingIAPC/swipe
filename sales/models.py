@@ -138,6 +138,21 @@ class Payment(models.Model):
     # Which payment type is this payment added to?
     payment_type = models.ForeignKey('register.PaymentType')
 
+    def __str__(self):
+        if not hasattr(self,'transaction') or self.transaction is None:
+            trans = "None"
+        else:
+            trans = self.transaction
+        if not hasattr(self, 'amount') or self.amount is None:
+            amt = "None"
+        else:
+            amt = str(self.amount)
+        if not hasattr(self, 'payment_type') or self.payment_type is None:
+            ptt = "None"
+        else:
+            ptt = str(self.payment_type)
+        return "Transaction: {}, Amount: {}, PaymentType: {}".format(trans, amt, ptt)
+
 
 class Transaction(Blame):
     """
@@ -344,6 +359,11 @@ class Transaction(Blame):
             # The post signal of the StockChangeSet should solve the problems of the OrderLines
             CASH_REGISTER_ENUM = 0
             StockChangeSet.construct(description="Transaction: {}".format(trans.pk), entries=change_set, enum=CASH_REGISTER_ENUM)
+
+            # Payments
+            for payment in payments:
+                payment.transaction=trans
+                payment.save()
 
             # Changing the other_costs to sold in their orderlines
             for key in order_other_cost_count.keys():

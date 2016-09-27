@@ -63,6 +63,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.copro.save()
 
         self.pt = PaymentType.objects.create(name="Bla")
+        self.pt2 = PaymentType.objects.create(name="Baz")
 
         self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
         self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
@@ -415,6 +416,99 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+        tl = TransactionLine.objects.get()
+        otl = OtherTransactionLine.objects.get()
+        _assert(otl.count == count)
+        _assert(not otl.isRefunded)
+        _assert(otl.text == "Meh")
+        _assert(otl.num == -1)
+
+    def test_sales_transaction_wrong_currency(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price],[self.other_cost, AMOUNT_3, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = 10
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("USD"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        caught = False
+        try:
+            Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+        except PaymentMisMatchError:
+            caught = True
+        _assert(caught)
+
+    def test_sales_transaction_two_payments(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price],[self.other_cost, AMOUNT_3, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count = 10
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count-Decimal(1), currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        local_payment2 = Payment(amount=Money(amount=Decimal(1), currency=Currency("EUR")), payment_type=self.pt2)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment, local_payment2], transaction_lines=[otl])
+
+    def test_sales_transaction_mixed_transaction_lines(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 5
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+                                                       [[self.article_type, AMOUNT_1, self.price],
+                                                        [self.at2, AMOUNT_2, self.price],[self.other_cost, AMOUNT_3, self.price]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo")
+        count_1 = AMOUNT_1-4
+        count_2 = AMOUNT_2-2
+        count_3 = AMOUNT_3-2
+        count_4 = 10
+        total_count=count_1+count_2+count_3+count_4
+        p = Price(amount=Decimal(1), use_system_currency=True, vat=1.23)
+        stl_1 = SalesTransactionLine(count=count_1, price=p, article=self.article_type, order=1)
+        stl_2 = SalesTransactionLine(count=count_2, price=p, article=self.at2, order=1)
+        octl = OtherCostTransactionLine(count=count_3, price=p, other_cost_type=self.other_cost)
+        otl = OtherTransactionLine(count=count_4, price=p, text="Rand", accounting_group=self.acc_group)
+        loc_money = Money(amount=Decimal(1)*total_count-Decimal(1), currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        local_payment2 = Payment(amount=Money(amount=Decimal(1), currency=Currency("EUR")), payment_type=self.pt2)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment, local_payment2], transaction_lines=[stl_1, stl_2, octl, otl])
+        tls = TransactionLine.objects.all()
+        _assert(len(tls) == 4)
+        stls = SalesTransactionLine.objects.all()
+        _assert(len(stls) == 2)
+        OtherCostTransactionLine.objects.get()
+        OtherTransactionLine.objects.get()
+        pmnts = Payment.objects.all()
+        _assert(len(pmnts) == 2)
+        Transaction.objects.get()
+
 
 
 
