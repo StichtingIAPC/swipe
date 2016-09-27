@@ -234,42 +234,39 @@ class Transaction(Blame):
             else:
                 _assert(hasattr(tr_line, 'other_cost_type') and tr_line.other_cost_type)
 
-
-
         # Checks if there is enough stock
-        ORDER_POSITION = 0
-        ARTICLE_TYPE_POSITION = 1
         for key in stock_level_dict.keys():
+            order, article = key
             # Checks for stock level, no order
-            if key[ORDER_POSITION] == ILLEGAL_ORDER_REFERENCE:
-                arts = Stock.objects.filter(labeltype__isnull=True, article=key[ARTICLE_TYPE_POSITION])
+            if key[order] == ILLEGAL_ORDER_REFERENCE:
+                arts = Stock.objects.filter(labeltype__isnull=True, article=article)
                 length = arts.__len__()
                 if length == 0:
-                    raise NotEnoughStockError("There is no stock without any label for article type {}".format(key[ARTICLE_TYPE_POSITION]))
+                    raise NotEnoughStockError("There is no stock without any label for article type {}".format(article))
                 elif length > 1:
                     raise UnimplementedError("There are more than two lines for stock of the same label. "
                                              "This shouldn't be happening.")
                 else:
                     if arts[0].count < stock_level_dict[key]:
                         raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {}".
-                                                  format(key[ARTICLE_TYPE_POSITION], arts[0].count, stock_level_dict[key]))
+                                                  format(article, arts[0].count, stock_level_dict[key]))
                 # Assumes unity of all stock with same label. If this is not true, break
                 _assert(arts[0].count >= stock_level_dict[key])
             else:
-                arts = Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=key[ORDER_POSITION],
-                                            article=key[ARTICLE_TYPE_POSITION])
+                arts = Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=order,
+                                            article=article)
                 length = arts.__len__()
                 if length == 0:
-                    raise NotEnoughStockError("There is no stock for order {} for article type {}".format(key[ORDER_POSITION],
-                                              key[ARTICLE_TYPE_POSITION]))
+                    raise NotEnoughStockError("There is no stock for order {} for article type {}".format(order,
+                                              article))
                 elif length > 1:
                     raise UnimplementedError("There are more than two lines for stock of the same label. "
                                              "This shouldn't be happening.")
                 else:
                     if arts[0].count < stock_level_dict[key]:
                         raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {} in order {}".
-                                                  format(key[ARTICLE_TYPE_POSITION], arts[0].count,
-                                                         stock_level_dict[key], key[ORDER_POSITION]))
+                                                  format(article, arts[0].count,
+                                                         stock_level_dict[key], order))
         # If the interpreter is here, it means there are no problems with the stock.
         # Test payments
         should_be_paid = defaultdict(lambda: 0)
@@ -307,10 +304,11 @@ class Transaction(Blame):
                     order_other_cost_count[(tr_line.order, tr_line.other_cost_type)] += tr_line.count
 
         for key in order_other_cost_count.keys():
-            ols = OrderLine.objects.filter(wishable__sellabletype=key[1], order_id=key[0])
+            order, article = key
+            ols = OrderLine.objects.filter(wishable__sellabletype=article, order_id=order)
             if len(ols) < order_other_cost_count[key]:
                 raise NotEnoughOrderLinesError("There is are not enough orderlines to transition to sold for Order {} "
-                                               "and OtherCostType {}".format(key[0], key[1]))
+                                               "and OtherCostType {}".format(order, article))
 
         # We assume everything succeeded, now we construct the stock changes
         change_set = []
