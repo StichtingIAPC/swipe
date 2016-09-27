@@ -12,7 +12,7 @@ from crm.models import User, Person
 from tools.util import _assert
 from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import Order, OrderLine
-from logistics.models import SupplierOrder
+from logistics.models import SupplierOrder, StockWish
 from supplication.models import PackingDocument
 
 
@@ -201,6 +201,55 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         _assert(not obj.isRefunded)
         _assert(obj.order == 1)
         _assert(obj.text == str(self.article_type))
+        st = Stock.objects.get(labeltype="Order", labelkey=1, article=self.article_type)
+        _assert(st.count == AMOUNT_1-count)
+
+    def test_sales_stock_level(self):
+        AMOUNT_STOCK_1 = 5
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[(self.article_type, AMOUNT_STOCK_1)])
+        SupplierOrder.create_supplier_order(supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_STOCK_1, self.cost]],
+                                            user_modified=self.copro)
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_STOCK_1]],
+                                                packing_document_name="Foo")
+        count = 3
+        stl = SalesTransactionLine(
+            price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+            count=count, article=self.article_type, order=None)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
+        st = Stock.objects.get(labeltype__isnull=True, article=self.article_type)
+        _assert(st.count == AMOUNT_STOCK_1-count)
+
+    def test_sales_all_stock_levels(self):
+        AMOUNT_STOCK_1 = 5
+        AMOUNT_ORDER = 4
+        Order.create_order_from_wishables_combinations(user=self.copro, customer=self.customer,
+                                                       wishable_type_number_price_combinations=[[self.article_type, AMOUNT_ORDER, self.price]])
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[(self.article_type, AMOUNT_STOCK_1)])
+        SupplierOrder.create_supplier_order(supplier=self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_STOCK_1+AMOUNT_ORDER, self.cost]],
+                                            user_modified=self.copro)
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_STOCK_1+AMOUNT_ORDER]],
+                                                packing_document_name="Foo")
+        count_stock = 3
+        count_order = 2
+        stl = SalesTransactionLine(
+            price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+            count=count_stock, article=self.article_type, order=None)
+        stl2 = SalesTransactionLine(
+            price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
+            count=count_order, article=self.article_type, order=1)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * (count_stock+count_order), currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl, stl2])
+        st = Stock.objects.get(labeltype__isnull=True, article=self.article_type)
+        _assert(st.count == AMOUNT_STOCK_1 - count_stock)
+        st2 = Stock.objects.get(labeltype="Order", labelkey=1, article=self.article_type)
+        _assert(st2.count == AMOUNT_ORDER-count_order)
 
     def test_sales_transaction_not_enough_stock(self):
         AMOUNT_1 = 6

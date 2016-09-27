@@ -313,37 +313,37 @@ class Transaction(Blame):
         # We assume everything succeeded, now we construct the stock changes
         change_set = []
         # Transaction lines
-        for i in range(0, len(transaction_lines)):
-            if type(transaction_lines[i]) == SalesTransactionLine:
-                if transaction_lines[i].order is None:
-                    stock_line = Stock.objects.get(article=transaction_lines[i].article, labeltype__isnull=True)
-                    transaction_lines[i].cost = stock_line.book_value
-                    change = {'article': transaction_lines[i].article,
+        for tr_line in transaction_lines:
+            if type(tr_line) == SalesTransactionLine:
+                if tr_line.order is None:
+                    stock_line = Stock.objects.get(article=tr_line.article, labeltype__isnull=True)
+                    tr_line.cost = stock_line.book_value
+                    change = {'article': tr_line.article,
                               'book_value': stock_line.book_value,
-                              'count': transaction_lines[i].count,
+                              'count': tr_line.count,
                               'is_in': False}
                     change_set.append(change)
                 else:
-                    stock_line = Stock.objects.get(article=transaction_lines[i].article, labeltype=OrderLabel._labeltype,
-                                                   labelkey=transaction_lines[i].order)
-                    transaction_lines[i].cost = stock_line.book_value
-                    change = {'article': transaction_lines[i].article,
+                    stock_line = Stock.objects.get(article=tr_line.article, labeltype=OrderLabel._labeltype,
+                                                   labelkey=tr_line.order)
+                    tr_line.cost = stock_line.book_value
+                    change = {'article': tr_line.article,
                               'book_value': stock_line.book_value,
-                              'count': transaction_lines[i].count,
+                              'count': tr_line.count,
                               'is_in': False,
-                              'label': OrderLabel(transaction_lines[i].order)}
+                              'label': OrderLabel(tr_line.order)}
                     change_set.append(change)
                 # Set rest of relevant properties for SalesTransactionLine
-                transaction_lines[i].num = transaction_lines[i].article.pk
-                transaction_lines[i].text = str(transaction_lines[i].article)
-            elif type(transaction_lines[i]) == OtherCostTransactionLine:
-                transaction_lines[i].num = transaction_lines[i].other_cost_type.pk
-                transaction_lines[i].text = str(transaction_lines[i].other_cost_type)
+                tr_line.num = tr_line.article.pk
+                tr_line.text = str(tr_line.article)
+            elif type(tr_line) == OtherCostTransactionLine:
+                tr_line.num = tr_line.other_cost_type.pk
+                tr_line.text = str(tr_line.other_cost_type)
             else:
                 # Symbolic number indicating no related database object
-                transaction_lines[i].num = -1
+                tr_line.num = -1
             # Don't forget the user
-            transaction_lines[i].user_modified = user
+            tr_line.user_modified = user
 
         with transaction.atomic():
             # Final constructions of all related values
