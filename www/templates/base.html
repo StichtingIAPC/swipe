@@ -9,6 +9,7 @@
     <title>Swipe - {% block page_title %}Page{% endblock %}</title>
     {% compress css %}
         <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/www/main.scss' %}" />
+        <link rel="stylesheet" type="text/x-scss-once" href="{% static 'scss/www/framework.scss' %}" />
     {% endcompress %}
     {% compress js %}
         <script type="text/javascript" src="{% static 'bower_components/domchanger/domchanger.js' %}"></script>
