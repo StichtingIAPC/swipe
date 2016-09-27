@@ -238,7 +238,7 @@ class Transaction(Blame):
         for key in stock_level_dict.keys():
             order, article = key
             # Checks for stock level, no order
-            if key[order] == ILLEGAL_ORDER_REFERENCE:
+            if order == ILLEGAL_ORDER_REFERENCE:
                 arts = Stock.objects.filter(labeltype__isnull=True, article=article)
                 length = arts.__len__()
                 if length == 0:
