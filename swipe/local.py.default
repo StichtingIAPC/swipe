@@ -127,13 +127,3 @@ DEBUG = True
 # Cache timeout for LDAP
 # AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 BASE_URL = "https://swipe.iapc.utwente.nl/"
-
-# cache only the JS compilers, for when you are working on SCSS:
-# COMPRESS_CACHEABLE_PRECOMPILERS = (
-#     'module',
-# )
-
-# cache only the SCSS compilers, for when you are working on js:
-# COMPRESS_CACHEABLE_PRECOMPILERS = (
-#     'text/x-scss',
-# )

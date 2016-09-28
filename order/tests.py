@@ -288,31 +288,101 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
 
     def test_signal_proper(self):
         pk = self.order.pk
-        for i in range(8):
+        READIED_ORDERLINES = 8
+        for i in range(READIED_ORDERLINES):
             line = OrderLine(order=self.order, state='A', wishable=self.article_type,
                              user_modified=self.copro, expected_sales_price=self.price)
             line.save()
-        ols = OrderLine.objects.all()
-        for ol in ols:
-            print(ol)
+
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
-            'count': 5,
+            'count': READIED_ORDERLINES,
             'is_in': True,
             'label': OrderLabel(pk)
         }]
+
+        SOLD_PRODUCTS = 5
         StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
-            'count': 5,
+            'count': SOLD_PRODUCTS,
             'is_in': False,
             'label': OrderLabel(pk)
         }]
 
         StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
         ols = OrderLine.objects.all()
+        correct_state = 0
         for ol in ols:
-            print(ol)
+            if ol.state == 'S':
+                correct_state += 1
+
+        _assert(correct_state == SOLD_PRODUCTS)
+
+    def test_signal_multiple_orders(self):
+
+        pk = self.order.pk
+        order_2 = Order(customer=self.customer, user_modified=self.copro)
+        order_2.save()
+        READIED_ORDERLINES_1 = 4
+        READIED_ORDERLINES_2 = 4
+        for i in range(READIED_ORDERLINES_1):
+            line = OrderLine(order=self.order, state='A', wishable=self.article_type,
+                             user_modified=self.copro, expected_sales_price=self.price)
+            line.save()
+
+        for i in range(READIED_ORDERLINES_2):
+            line = OrderLine(order=order_2, state='A', wishable=self.article_type,
+                             user_modified=self.copro, expected_sales_price=self.price)
+            line.save()
+
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': READIED_ORDERLINES_1,
+            'is_in': True,
+            'label': OrderLabel(pk)
+        },
+        {
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': READIED_ORDERLINES_2,
+            'is_in': True,
+            'label': OrderLabel(order_2.pk)
+        } ]
+
+        SOLD_PRODUCTS_1 = 4
+        SOLD_PRODUCTS_2 = 2
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': SOLD_PRODUCTS_1,
+            'is_in': False,
+            'label': OrderLabel(pk)
+        },
+            {
+                'article': self.article_type,
+                'book_value': self.cost,
+                'count': SOLD_PRODUCTS_2,
+                'is_in': False,
+                'label': OrderLabel(order_2.pk)
+            },
+        ]
+
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        ols = OrderLine.objects.all()
+        correct_state_1 = 0
+        correct_state_2 = 0
+        for ol in ols:
+            if ol.state == 'S':
+                if ol.order.pk == 1:
+                    correct_state_1 += 1
+                else:
+                    correct_state_2 += 1
+
+        _assert(correct_state_1 == SOLD_PRODUCTS_1)
+        _assert(correct_state_2 == SOLD_PRODUCTS_2)
 

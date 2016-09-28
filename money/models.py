@@ -27,7 +27,7 @@ class VAT(models.Model):
         return "{}:{}".format(self.name, self.vatrate)
 
     def to_rate_string(self):
-        return "{}%".format((self.rate - 1) * 100)
+        return "{}%".format((self.vatrate - 1) * 100)
 
 
 class AccountingGroup(models.Model):
@@ -67,6 +67,9 @@ class Currency:
 
     def __eq__(self, oth):
         return oth is not None and self.iso == oth.iso
+
+    def __hash__(self):
+        return hash(self._iso)
 
 
 def currency_field_name(name):

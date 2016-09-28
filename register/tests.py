@@ -1,10 +1,8 @@
 from django.test import TestCase
 
-from article.tests import INeedSettings
-from money.models import CurrencyData, Denomination, Price, Money
+from money.models import CurrencyData, Denomination, Price, Money, AccountingGroup, VAT, Currency
 from register.models import PaymentType, Register, RegisterMaster, \
     SalesPeriod, DenominationCount, AlreadyOpenError, ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
-from stock.exceptions import StockSmallerThanZeroError
 from tools.util import _assert
 from sales.models import Payment, OtherTransactionLine, Transaction
 from decimal import Decimal
@@ -30,6 +28,19 @@ class BasicTest(TestCase):
         self.denom3.save()
         self.copro = User()
         self.copro.save()
+
+        self.vat_group = VAT()
+        self.vat_group.name = "AccGrpFoo"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
+        self.vat_group.save()
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
+        self.currency = Currency(iso="EUR")
+
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
 
     def test_register_init(self):
         reg = Register(currency=self.eu, is_cash_register=False)
@@ -109,11 +120,11 @@ class BasicTest(TestCase):
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
         trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.eu), num=1,
-                                     text="HOI", user_modified=self.copro)
+                                     text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
         pay = Payment(amount=Money(Decimal("1.00000"), self.eu), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
                                   amount=Decimal("1.0000"))
-        Transaction.construct([pay], [trans], self.copro)
+        Transaction.create_transaction(user=self.copro, payments=[pay], transaction_lines=[trans])
 
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
         _assert(RegisterMaster.number_of_open_registers() == 0)
