@@ -63,6 +63,7 @@ INSTALLED_APPS = (
     'blame',
     'supplication',
     'barcode',
+    'sales',
 
 )
 

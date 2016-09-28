@@ -68,6 +68,9 @@ class Currency:
     def __eq__(self, oth):
         return oth is not None and self.iso == oth.iso
 
+    def __hash__(self):
+        return hash(self._iso)
+
 
 def currency_field_name(name):
     return "{}_currency".format(name)

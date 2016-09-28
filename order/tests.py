@@ -2,6 +2,8 @@ from django.test import TestCase
 
 from article.tests import INeedSettings
 from order.models import *
+from stock.stocklabel import OrderLabel
+from stock.models import StockChangeSet
 
 # Create your tests here.
 from tools.util import _assert
@@ -224,3 +226,163 @@ class OrderTest(INeedSettings, TestCase):
                 _assert(False)
         _assert(tally_art1 == 5)
         _assert(tally_art2 == 6)
+
+
+class TestStockChangeSetFiltering(TestCase, INeedSettings):
+
+    def setUp(self):
+        super().setUp()
+        self.vat_group = VAT()
+        self.vat_group.name = "Bar"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
+        self.vat_group.save()
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
+        self.currency = Currency(iso="USD")
+
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
+        self.branch = AssortmentArticleBranch.objects.create(
+            name='hoi',
+            parent_tag=None)
+
+        self.article_type = ArticleType(accounting_group=self.acc_group,
+                                        name="Foo", branch=self.branch)
+        self.article_type.save()
+        self.eur = Currency(iso="EUR")
+        self.cost = Cost(amount=Decimal(3), currency=self.eur)
+
+        self.customer = Person()
+        self.customer.save()
+
+        self.copro = User()
+        self.copro.save()
+
+        self.order = Order(user_modified=self.copro, customer=self.customer)
+        self.order.save()
+
+    def test_signal_not_enough_orderlines(self):
+        changeset=[{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': 1,
+            'is_in': True,
+            'label': OrderLabel(1)
+        }]
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': 1,
+            'is_in': False,
+            'label': OrderLabel(1)
+        }]
+        caught = False
+        try:
+            StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        except InconsistencyError:
+            caught = True
+        _assert(caught)
+
+    def test_signal_proper(self):
+        pk = self.order.pk
+        READIED_ORDERLINES = 8
+        for i in range(READIED_ORDERLINES):
+            line = OrderLine(order=self.order, state='A', wishable=self.article_type,
+                             user_modified=self.copro, expected_sales_price=self.price)
+            line.save()
+
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': READIED_ORDERLINES,
+            'is_in': True,
+            'label': OrderLabel(pk)
+        }]
+
+        SOLD_PRODUCTS = 5
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': SOLD_PRODUCTS,
+            'is_in': False,
+            'label': OrderLabel(pk)
+        }]
+
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        ols = OrderLine.objects.all()
+        correct_state = 0
+        for ol in ols:
+            if ol.state == 'S':
+                correct_state += 1
+
+        _assert(correct_state == SOLD_PRODUCTS)
+
+    def test_signal_multiple_orders(self):
+
+        pk = self.order.pk
+        order_2 = Order(customer=self.customer, user_modified=self.copro)
+        order_2.save()
+        READIED_ORDERLINES_1 = 4
+        READIED_ORDERLINES_2 = 4
+        for i in range(READIED_ORDERLINES_1):
+            line = OrderLine(order=self.order, state='A', wishable=self.article_type,
+                             user_modified=self.copro, expected_sales_price=self.price)
+            line.save()
+
+        for i in range(READIED_ORDERLINES_2):
+            line = OrderLine(order=order_2, state='A', wishable=self.article_type,
+                             user_modified=self.copro, expected_sales_price=self.price)
+            line.save()
+
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': READIED_ORDERLINES_1,
+            'is_in': True,
+            'label': OrderLabel(pk)
+        },
+        {
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': READIED_ORDERLINES_2,
+            'is_in': True,
+            'label': OrderLabel(order_2.pk)
+        } ]
+
+        SOLD_PRODUCTS_1 = 4
+        SOLD_PRODUCTS_2 = 2
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        changeset = [{
+            'article': self.article_type,
+            'book_value': self.cost,
+            'count': SOLD_PRODUCTS_1,
+            'is_in': False,
+            'label': OrderLabel(pk)
+        },
+            {
+                'article': self.article_type,
+                'book_value': self.cost,
+                'count': SOLD_PRODUCTS_2,
+                'is_in': False,
+                'label': OrderLabel(order_2.pk)
+            },
+        ]
+
+        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        ols = OrderLine.objects.all()
+        correct_state_1 = 0
+        correct_state_2 = 0
+        for ol in ols:
+            if ol.state == 'S':
+                if ol.order.pk == 1:
+                    correct_state_1 += 1
+                else:
+                    correct_state_2 += 1
+
+        _assert(correct_state_1 == SOLD_PRODUCTS_1)
+        _assert(correct_state_2 == SOLD_PRODUCTS_2)
+

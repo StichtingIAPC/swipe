@@ -1,10 +1,12 @@
 from django.test import TestCase
 
-from article.tests import INeedSettings
-from money.models import *
-from register.models import *
-from stock.exceptions import StockSmallerThanZeroError
+from money.models import CurrencyData, Denomination, Price, Money, AccountingGroup, VAT, Currency
+from register.models import PaymentType, Register, RegisterMaster, \
+    SalesPeriod, DenominationCount, AlreadyOpenError, ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
 from tools.util import _assert
+from sales.models import Payment, OtherTransactionLine, Transaction
+from decimal import Decimal
+from crm.models import User
 
 
 class BasicTest(TestCase):
@@ -24,6 +26,21 @@ class BasicTest(TestCase):
         self.denom2.save()
         self.denom3 = Denomination(currency=self.eu, amount=Decimal("0.02000"))
         self.denom3.save()
+        self.copro = User()
+        self.copro.save()
+
+        self.vat_group = VAT()
+        self.vat_group.name = "AccGrpFoo"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
+        self.vat_group.save()
+        self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
+        self.currency = Currency(iso="EUR")
+
+        self.acc_group = AccountingGroup()
+        self.acc_group.accounting_number = 2
+        self.acc_group.vat_group = self.vat_group
+        self.acc_group.save()
 
     def test_register_init(self):
         reg = Register(currency=self.eu, is_cash_register=False)
@@ -103,11 +120,11 @@ class BasicTest(TestCase):
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
         trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.eu), num=1,
-                                     text="HOI")
+                                     text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
         pay = Payment(amount=Money(Decimal("1.00000"), self.eu), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
                                   amount=Decimal("1.0000"))
-        Transaction.construct([pay], [trans])
+        Transaction.create_transaction(user=self.copro, payments=[pay], transaction_lines=[trans])
 
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
         _assert(RegisterMaster.number_of_open_registers() == 0)
@@ -193,89 +210,4 @@ class BasicTest(TestCase):
         ConsistencyChecker.full_check()
 
 
-class TestTransactionNoSalesPeriod(INeedSettings, TestCase):
-    def setUp(self):
-        super().setUp()
-        self.EUR = Currency("EUR")
-        self.cost = Cost(Decimal("1.21000"), self.EUR)
-        self.money = Money(Decimal("1.21000"), self.EUR)
-        self.pt = PaymentType.objects.create()
-        self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
-        self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
-        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
-                                              accounting_group=self.acc_group)
 
-        self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
-        self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
-
-    def do_transaction(self):
-        Transaction.construct([self.simple_payment], [self.simplest])
-
-    def test_simple(self):
-        SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
-        Payment(amount=self.money)
-        StockChangeSet.construct("HENK", [{
-            'article': self.art,
-            'book_value': self.cost,
-            'count': 1,
-            'is_in': True,
-        }], 1)
-        self.assertRaises(InactiveError, self.do_transaction)
-        self.assertEqual(1, StockChange.objects.all().__len__())
-        self.assertEqual(0, Payment.objects.all().__len__())
-
-
-class TestTransaction(INeedSettings, TestCase):
-    def setUp(self):
-        super().setUp()
-        self.EUR = Currency("EUR")
-        self.cost = Cost(Decimal("1.21000"), self.EUR)
-        self.money = Money(Decimal("1.21000"), self.EUR)
-        self.pt = PaymentType.objects.create()
-        self.vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
-        self.price = Price(Decimal("1.21000"), vat=self.vat.vatrate, currency=self.EUR)
-        self.acc_group = AccountingGroup.objects.create(vat_group=self.vat, accounting_number=1, name='hoihoi')
-        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
-                                              accounting_group=self.acc_group)
-        self.art = ArticleType.objects.create(name="P1", branch=self.branch,
-                                              accounting_group=self.acc_group)
-        self.sp = SalesPeriod.objects.create()
-        self.simplest = SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
-        self.simple_payment = Payment(amount=self.money, payment_type=self.pt)
-
-    def do_transaction(self):
-        Transaction.construct([self.simple_payment], [self.simplest])
-
-    def test_simple(self):
-        SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
-        Payment(amount=self.money)
-        StockChangeSet.construct("HENK", [{
-            'article': self.art,
-            'book_value': self.cost,
-            'count': 1,
-            'is_in': True,
-        }], 1)
-        self.do_transaction()
-        self.assertEqual(2, StockChange.objects.all().__len__())
-        self.assertEqual(1, Payment.objects.all().__len__())
-
-    def test_fail_no_stock(self):
-        SalesTransactionLine(article=self.art, count=1, cost=self.cost, price=self.price, num=1)
-        Payment(amount=self.money, payment_type=self.pt)
-        self.assertRaises(StockSmallerThanZeroError, self.do_transaction)
-        self.assertEqual(0, StockChange.objects.all().__len__())
-        self.assertEqual(0, Payment.objects.all().__len__())
-
-    def test_fail_no_consistent_pay(self):
-        self.simple_payment = Payment(amount=self.money * 2)
-        StockChangeSet.construct("HENK", [{
-            'article': self.art,
-            'book_value': self.cost,
-            'count': 1,
-            'is_in': True,
-        }], 1)
-        # A payment with different amount of Payment than products should FAIL
-        self.assertRaises(AssertionError, self.do_transaction)
-        self.assertEqual(1, StockChange.objects.all().__len__())
-        self.assertEqual(0, Payment.objects.all().__len__())
