@@ -244,7 +244,7 @@ class Transaction(Blame):
                 if length == 0:
                     raise NotEnoughStockError("There is no stock without any label for article type {}".format(article))
                 elif length > 1:
-                    raise UnimplementedError("There are more than two lines for stock of the same label. "
+                    raise StockModelError("There are more than two lines for stock of the same label. "
                                              "This shouldn't be happening.")
                 else:
                     if arts[0].count < stock_level_dict[key]:
@@ -260,7 +260,7 @@ class Transaction(Blame):
                     raise NotEnoughStockError("There is no stock for order {} for article type {}".format(order,
                                               article))
                 elif length > 1:
-                    raise UnimplementedError("There are more than two lines for stock of the same label. "
+                    raise StockModelError("There are more than two lines for stock of the same label. "
                                              "This shouldn't be happening.")
                 else:
                     if arts[0].count < stock_level_dict[key]:
@@ -388,4 +388,8 @@ class PaymentMisMatchError(Exception):
 
 
 class NotEnoughOrderLinesError(Exception):
+    pass
+
+
+class StockModelError(Exception):
     pass
