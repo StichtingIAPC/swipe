@@ -1,20 +1,20 @@
-from django.test import TestCase
-from article.tests import INeedSettings
-from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup
-from register.models import SalesPeriod, InactiveError
 from decimal import Decimal
-from article.models import ArticleType, OtherCostType, AssortmentArticleBranch
+
+from django.test import TestCase
+
+from article.models import ArticleType, OtherCostType
+from article.tests import INeedSettings
+from crm.models import User, Person
+from logistics.models import SupplierOrder, StockWish
+from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup
+from order.models import Order, OrderLine
+from register.models import PaymentType
+from register.models import SalesPeriod
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError
 from stock.models import Stock
-from register.models import PaymentType
-from crm.models import User, Person
-from tools.util import _assert
-from supplier.models import Supplier, ArticleTypeSupplier
-from order.models import Order, OrderLine
-from logistics.models import SupplierOrder, StockWish
 from supplication.models import PackingDocument
-
+from supplier.models import Supplier, ArticleTypeSupplier
 
 
 class TestTransactionCreationFunction(INeedSettings, TestCase):
@@ -80,16 +80,11 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
 
         self.sp = SalesPeriod.objects.create()
 
-
     def test_not_enough_stock_error(self):
         oalist = []
         oalist.append(SalesTransactionLine(price=self.price, count=1, order=None, article=self.article_type))
-        caught = False
-        try:
+        with self.assertRaises(NotEnoughStockError):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd], transaction_lines=oalist)
-        except NotEnoughStockError:
-            caught = True
-        _assert(caught)
 
     def test_not_enough_parameters(self):
 
@@ -150,7 +145,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         except AssertionError:
             caught += 1
 
-        _assert(caught == 7)
+        self.assertEquals(caught, 7)
 
     def test_sales_transaction_line_wrong_customer_stock(self):
         AMOUNT_1 = 6
@@ -167,12 +162,8 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                                 packing_document_name="Foo")
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
                                    count=2, article=self.article_type)
-        caught = False
-        try:
+        with self.assertRaises(NotEnoughStockError):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_eur], transaction_lines=[stl])
-        except NotEnoughStockError:
-            caught = True
-        _assert(caught)
 
     def test_sales_transaction_line(self):
         AMOUNT_1 = 6
@@ -194,15 +185,15 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
         tls = TransactionLine.objects.all()
-        _assert(len(tls) == 1)
+        self.assertEquals(len(tls), 1)
         obj = tls[0]
-        _assert(obj.num == 1)
-        _assert(obj.count == 2)
-        _assert(not obj.isRefunded)
-        _assert(obj.order == 1)
-        _assert(obj.text == str(self.article_type))
+        self.assertEquals(obj.num, 1)
+        self.assertEquals(obj.count, 2)
+        self.assertFalse(obj.isRefunded)
+        self.assertEquals(obj.order, 1)
+        self.assertEquals(obj.text, str(self.article_type))
         st = Stock.objects.get(labeltype="Order", labelkey=1, article=self.article_type)
-        _assert(st.count == AMOUNT_1-count)
+        self.assertEquals(st.count, AMOUNT_1-count)
 
     def test_sales_stock_level(self):
         AMOUNT_STOCK_1 = 5
@@ -221,7 +212,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
         st = Stock.objects.get(labeltype__isnull=True, article=self.article_type)
-        _assert(st.count == AMOUNT_STOCK_1-count)
+        self.assertEquals(st.count, AMOUNT_STOCK_1-count)
 
     def test_sales_all_stock_levels(self):
         AMOUNT_STOCK_1 = 5
@@ -247,9 +238,9 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl, stl2])
         st = Stock.objects.get(labeltype__isnull=True, article=self.article_type)
-        _assert(st.count == AMOUNT_STOCK_1 - count_stock)
+        self.assertEquals(st.count, AMOUNT_STOCK_1 - count_stock)
         st2 = Stock.objects.get(labeltype="Order", labelkey=1, article=self.article_type)
-        _assert(st2.count == AMOUNT_ORDER-count_order)
+        self.assertEquals(st2.count, AMOUNT_ORDER-count_order)
 
     def test_sales_transaction_not_enough_stock(self):
         AMOUNT_1 = 6
@@ -269,12 +260,8 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                    count=count, article=self.article_type, order=1)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
-        caught = False
-        try:
+        with self.assertRaises(NotEnoughStockError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
-        except NotEnoughStockError:
-            caught = True
-        _assert(caught)
 
     def test_sales_transaction_just_enough_stock(self):
         AMOUNT_1 = 6
@@ -315,12 +302,9 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                    count=count, article=self.article_type, order=1)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount*count+Decimal(0.001), currency=Currency("EUR"))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
-        caught = False
-        try:
+
+        with self.assertRaises(PaymentMisMatchError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
-        except PaymentMisMatchError:
-            caught = True
-        _assert(caught)
 
     def test_sales_transaction_too_little_payment(self):
         AMOUNT_1 = 6
@@ -340,12 +324,8 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                    count=count, article=self.article_type, order=1)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount*count-Decimal(0.001), currency=Currency("EUR"))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
-        caught = False
-        try:
+        with self.assertRaises(PaymentMisMatchError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
-        except PaymentMisMatchError:
-            caught = True
-        _assert(caught)
 
     def test_sales_transaction_other_cost(self):
         AMOUNT_1 = 6
@@ -368,20 +348,20 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
         tls = TransactionLine.objects.all()
-        _assert(len(tls) == 1)
+        self.assertEquals(len(tls), 1)
         octls = OtherCostTransactionLine.objects.all()
-        _assert(len(octls) == 1)
+        self.assertEquals(len(octls), 1)
         octl= octls[0]
-        _assert(not octl.isRefunded)
-        _assert(octl.count == count)
-        _assert(octl.order == 1)
-        _assert(octl.text == octl.other_cost_type.name)
+        self.assertFalse(octl.isRefunded)
+        self.assertEquals(octl.count, count)
+        self.assertEquals(octl.order, 1)
+        self.assertEquals(octl.text, octl.other_cost_type.name)
         sold_counter = 0
         ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=1)
         for ol in ols:
             if ol.state == 'S':
                 sold_counter += 1
-        _assert(sold_counter == count)
+        self.assertEquals(sold_counter, count)
 
     def test_sales_transaction_other_cost_just_enough_orderlines(self):
         AMOUNT_1 = 6
@@ -404,20 +384,20 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
         tls = TransactionLine.objects.all()
-        _assert(len(tls) == 1)
+        self.assertEquals(len(tls), 1)
         octls = OtherCostTransactionLine.objects.all()
-        _assert(len(octls) == 1)
+        self.assertEquals(len(octls), 1)
         octl= octls[0]
-        _assert(not octl.isRefunded)
-        _assert(octl.count == count)
-        _assert(octl.order == 1)
-        _assert(octl.text == octl.other_cost_type.name)
+        self.assertFalse(octl.isRefunded)
+        self.assertEquals(octl.count, count)
+        self.assertEquals(octl.order, 1)
+        self.assertEquals(octl.text, octl.other_cost_type.name)
         sold_counter = 0
         ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=1)
         for ol in ols:
             if ol.state == 'S':
                 sold_counter += 1
-        _assert(sold_counter == count)
+        self.assertEquals(sold_counter, count)
 
     def test_sales_transaction_other_cost_not_enough_orderlines(self):
         AMOUNT_1 = 6
@@ -438,12 +418,8 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                         count=count, other_cost_type=self.other_cost, order=1)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
-        caught = False
-        try:
+        with self.assertRaises(NotEnoughOrderLinesError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
-        except NotEnoughOrderLinesError:
-            caught = True
-        _assert(caught)
 
     def test_sales_transaction_other_line(self):
         AMOUNT_1 = 6
@@ -467,10 +443,10 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
         tl = TransactionLine.objects.get()
         otl = OtherTransactionLine.objects.get()
-        _assert(otl.count == count)
-        _assert(not otl.isRefunded)
-        _assert(otl.text == "Meh")
-        _assert(otl.num == -1)
+        self.assertEquals(otl.count, count)
+        self.assertFalse(otl.isRefunded)
+        self.assertEquals(otl.text, "Meh")
+        self.assertEquals(otl.num, -1)
 
     def test_sales_transaction_wrong_currency(self):
         AMOUNT_1 = 6
@@ -491,12 +467,8 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("USD"))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
-        caught = False
-        try:
+        with self.assertRaises(PaymentMisMatchError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
-        except PaymentMisMatchError:
-            caught = True
-        _assert(caught)
 
     def test_sales_transaction_two_payments(self):
         AMOUNT_1 = 6
@@ -549,13 +521,13 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment2 = Payment(amount=Money(amount=Decimal(1), currency=Currency("EUR")), payment_type=self.pt2)
         Transaction.create_transaction(user=self.copro, payments=[local_payment, local_payment2], transaction_lines=[stl_1, stl_2, octl, otl])
         tls = TransactionLine.objects.all()
-        _assert(len(tls) == 4)
+        self.assertEquals(len(tls), 4)
         stls = SalesTransactionLine.objects.all()
-        _assert(len(stls) == 2)
+        self.assertEquals(len(stls), 2)
         OtherCostTransactionLine.objects.get()
         OtherTransactionLine.objects.get()
         pmnts = Payment.objects.all()
-        _assert(len(pmnts) == 2)
+        self.assertEquals(len(pmnts), 2)
         Transaction.objects.get()
 
 

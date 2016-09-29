@@ -4,15 +4,14 @@ from django.utils import timezone
 
 from article.models import ArticleType
 from money.models import Money, Decimal, Denomination, CurrencyData, Currency, MoneyField
-from stock.stocklabel import StockLabeledLine
 from sales.models import TransactionLine, Transaction
+from stock.stocklabel import StockLabeledLine
 
 # Stop PyCharm from seeing tools as a package.
 # noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.models import StockChange, StockChangeSet
 from swipe.settings import CASH_PAYMENT_TYPE_NAME
-from tools.util import _assert
 
 
 class PaymentType(models.Model):

@@ -1,13 +1,12 @@
+from decimal import Decimal
+
 from django.test import TestCase
 
+from crm.models import User
 from money.models import CurrencyData, Denomination, Price, Money, AccountingGroup, VAT, Currency
 from register.models import PaymentType, Register, RegisterMaster, \
     SalesPeriod, DenominationCount, AlreadyOpenError, ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
-from tools.util import _assert
 from sales.models import Payment, OtherTransactionLine, Transaction
-from decimal import Decimal
-from crm.models import User
-from stock.exceptions import StockSmallerThanZeroError
 
 
 class BasicTest(TestCase):
