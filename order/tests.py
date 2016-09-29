@@ -1,10 +1,18 @@
+from decimal import Decimal
+
+from django.contrib.auth.models import User
 from django.test import TestCase
 
-import order.models
+from article.models import ArticleType, OtherCostType
 from article.tests import INeedSettings
-from order.models import
-from stock.stocklabel import OrderLabel
+from assortment.models import AssortmentArticleBranch
+from crm.models import Person
+from money.models import VAT, Price, Currency, AccountingGroup, Money, Cost
+from order import models
+from order.models import Order, OrderLine, OrderLineState, OrderCombinationLine
+from register.models import ConsistencyChecker
 from stock.models import StockChangeSet
+from stock.stocklabel import OrderLabel
 
 # Create your tests here.
 
@@ -74,18 +82,18 @@ class OrderTest(INeedSettings, TestCase):
         self.assertEquals(len(orderlinestates), 1)  # Exactly one state
 
         ol3 = OrderLine(user_modified=self.copro,)
-        with self.assertRaises(order.models.IncorrectDataError):
+        with self.assertRaises(models.IncorrectDataError):
             ol3.save()
 
     def test_illegal_state(self):
         # State must be valid
-        with self.assertRaises(order.models.IncorrectOrderLineStateError):
+        with self.assertRaises(models.IncorrectOrderLineStateError):
             ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type, state='G', expected_sales_price=self.price)
             ol.save()
 
     def test_transitions(self):
         # Assert transitions for a single orderline
-        ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, expected_sales_price=self.price)
+        ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
         self.assertEquals(ol.state, 'O')
@@ -115,7 +123,7 @@ class OrderTest(INeedSettings, TestCase):
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
         self.assertEquals(ol.state, 'O')
         self.assertEquals(len(orderlinestates), 1)
-        with self.assertRaises(IncorrectTransitionError):
+        with self.assertRaises(models.IncorrectTransitionError):
             ol.sell(self.copro)
 
     def test_order_storage(self):
@@ -264,7 +272,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'is_in': False,
             'label': OrderLabel(1)
         }]
-        with self.assertRaises(InconsistencyError):
+        with self.assertRaises(models.InconsistencyError):
             StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
 
     def test_signal_proper(self):

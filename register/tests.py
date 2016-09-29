@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from crm.models import User
 from money.models import CurrencyData, Denomination, Price, Money, AccountingGroup, VAT, Currency
+from register import models
 from register.models import PaymentType, Register, RegisterMaster, \
     SalesPeriod, DenominationCount, AlreadyOpenError, ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
 from sales.models import Payment, OtherTransactionLine, Transaction
@@ -179,7 +180,7 @@ class BasicTest(TestCase):
         a.save()
         b = Register(currency=self.eu, is_cash_register=True, payment_type=self.pin)
 
-        with self.assertRaises(RegisterError):
+        with self.assertRaises(models.CurrencyTypeMismatchError):
             b.save()
 
     def test_payment_types(self):

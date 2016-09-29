@@ -12,6 +12,7 @@ from stock.stocklabel import StockLabeledLine
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.models import StockChange, StockChangeSet
 from swipe.settings import CASH_PAYMENT_TYPE_NAME
+from tools.util import raiseif
 
 
 class PaymentType(models.Model):
@@ -144,7 +145,7 @@ class Register(models.Model):
                         denomination.register_count = reg_count
 
                     raiseif(counted_amount != Decimal("0.00000"),
-                            RegisterError, "denominations amounts did not add up.")
+                            RegisterCountError, "denominations amounts did not add up.")
                     for denomination in denominations:
                         denomination.save()
 
@@ -196,7 +197,7 @@ class Register(models.Model):
 
     def save(self, **kwargs):
         if self.is_cash_register:
-            raiseif(self.payment_type.name != CASH_PAYMENT_TYPE_NAME, RegisterError,
+            raiseif(self.payment_type.name != CASH_PAYMENT_TYPE_NAME, CurrencyTypeMismatchError,
                     "Payment type name did not match the provided preset. Use {} instead".format(
                         CASH_PAYMENT_TYPE_NAME))
         super(Register, self).save()
@@ -509,7 +510,7 @@ class RegisterCount(models.Model):
                 raise InvalidDenominationList("Denominations invalid: GOT {}, EXPECTED {}".format(denominations,
                                                                                                   denoms_for_register))
         else:
-            raiseif(denominations, InvalidArgumentError)
+            raiseif(denominations, RegisterInconsistencyError, "non-cash registers should not have denominations")
         super().save()
 
     @classmethod
@@ -536,7 +537,7 @@ class RegisterCount(models.Model):
             counts = RegisterCount.objects.filter(register_period=last_register_period)
             if len(counts) == 1:
                 return counts[0]
-            raiseif(len(counts) != 2, InvalidRegisterAmountError)
+            raiseif(len(counts) != 2, RegisterInconsistencyError)
             for count in counts:
                 if not count.is_opening_count:
                     return count
@@ -613,22 +614,6 @@ class SalesPeriodDifference(models.Model):
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
 
 
-class InactiveError(Exception):
-    pass
-
-
-class AlreadyOpenError(Exception):
-    pass
-
-
-class AlreadyClosedError(Exception):
-    pass
-
-
-class InvalidOperationError(Exception):
-    pass
-
-
 class OpeningCountDifference(models.Model):
     # Difference that can occur when a register is opened. This indicated that money (dis)appeared between closing and
     # opening of the register.
@@ -646,5 +631,41 @@ class ClosingCountDifference(models.Model):
     sales_period = models.ForeignKey("SalesPeriod")
 
 
+class InactiveError(Exception):
+    pass
+
+
+class AlreadyOpenError(Exception):
+    pass
+
+
+class AlreadyClosedError(Exception):
+    pass
+
+
+class InvalidOperationError(Exception):
+    pass
+
+
 class InvalidDenominationList(Exception):
+    pass
+
+
+class InvalidRegisterError(Exception):
+    pass
+
+
+class CurrencyTypeMismatchError(Exception):
+    pass
+
+
+class NegativeCountError(Exception):
+    pass
+
+
+class RegisterCountError(Exception):
+    pass
+
+
+class RegisterInconsistencyError(Exception):
     pass

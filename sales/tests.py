@@ -10,6 +10,7 @@ from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup
 from order.models import Order, OrderLine
 from register.models import PaymentType
 from register.models import SalesPeriod
+from sales import models
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError
 from stock.models import Stock
@@ -104,48 +105,27 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
 
         s7 = OtherTransactionLine(count=3, text="Bla", price=self.price)
 
-        try:
+        with self.assertRaises(models.InvalidDataException):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s1])
-        except AssertionError:
-            caught += 1
-
-        try:
+        with self.assertRaises(models.IncorrectDataException):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s2])
-        except AssertionError:
-            caught += 1
-
-        try:
+        with self.assertRaises(models.InvalidDataException):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s3])
-        except AssertionError:
-            caught += 1
-
-        try:
+        with self.assertRaises(models.IncorrectDataException):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s4])
-        except AssertionError:
-            caught += 1
-
-        try:
+        with self.assertRaises(models.IncorrectDataException):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s5])
-        except AssertionError:
-            caught += 1
-
-        try:
+        with self.assertRaises(models.IncorrectDataException):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s6])
-        except AssertionError:
-            caught += 1
-        try:
+        with self.assertRaises(models.InvalidDataException):
             Transaction.create_transaction(user=self.copro, payments=[self.simple_payment_usd],
                                            transaction_lines=[s7])
-        except AssertionError:
-            caught += 1
-
-        self.assertEquals(caught, 7)
 
     def test_sales_transaction_line_wrong_customer_stock(self):
         AMOUNT_1 = 6
