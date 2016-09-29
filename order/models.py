@@ -10,8 +10,8 @@ from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from collections import defaultdict
 
+
 # Create your models here.
-from tools.util import _assert
 
 
 class Order(Blame):
@@ -29,12 +29,15 @@ class Order(Blame):
         that contain all the neccesary implements in creating orderLines
         :return:
         """
-        _assert(isinstance(user, User))
-        _assert(isinstance(customer, Customer))
+        raiseif(not isinstance(user, User), InvalidDataError, "user must be a User")
+        raiseif(not isinstance(customer, Customer), InvalidDataError, "customer must be a Customer")
         for wishable, number, price in wishable_type_number_price_combinations:
-            _assert(isinstance(wishable, WishableType))
-            _assert(isinstance(number, int) and number > 0)
-            _assert(isinstance(price, Price))
+            raiseif(not isinstance(wishable, WishableType), InvalidDataError,
+                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price]")
+            raiseif(not isinstance(number, int) and number > 0, InvalidDataError,
+                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price]")
+            raiseif(not isinstance(price, Price), InvalidDataError,
+                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price]")
 
         order = Order(user_created=user, customer=customer)
         orderlines = []
@@ -45,18 +48,18 @@ class Order(Blame):
 
     @staticmethod
     @transaction.atomic()
-    def make_order(order, orderlines,user):
+    def make_order(order, orderlines, user):
         """
         Creates a new order with the specified orderlines. Order must be unsaved.
         The orderlines need to be valid unsaved orderlines.
         :param order: The order that needs to be saved
         :param orderlines: The orderlines that need to be connected to the order and saved
         """
-        _assert(type(order) == Order)
+        raiseif(not type(order) == Order, InvalidDataError, "order must be an Order")
         for ol in orderlines:
             ol.user_modified = user
-            _assert(type(ol) == OrderLine)
-        order.user_modified=user
+            raiseif(not type(ol) == OrderLine, InvalidDataError)
+        order.user_modified = user
         order.save()
         for ol in orderlines:
             ol.order = order
@@ -76,7 +79,7 @@ class Order(Blame):
             total_othercosts[othercost] += number
         for key in total_othercosts.keys():
             othercost_lines = OrderLine.objects.filter(order_id=order_id, wishable_id=key.pk)
-            _assert(len(othercost_lines) >= total_othercosts[key], "Not enough orderlines for order {}, othercost {}".format(order_id, key))
+            raiseif(len(othercost_lines) < total_othercosts[key], IncorrectDataError, "Not enough orderlines for order {}, othercost {}".format(order_id, key))
             for i in range(total_othercosts[key]):
                 othercost_lines[i].sell(user)
 
@@ -93,11 +96,22 @@ class Order(Blame):
 
 class OrderLineState(ImmutableBlame):
     # A representation of the state of a orderline. Can be used as a logging tool for any OrderLine
-    OL_STATE_CHOICES = ('O', 'L', 'A', 'C', 'S', 'I')
-    OL_STATE_MEANING = {'O': 'Ordered by Customer', 'L': 'Ordered at Supplier',
-                        'A': 'Arrived at Store', 'C': 'Cancelled', 'S': 'Sold', 'I': 'Used for Internal Purposes'}
+    STATE_CHOICES = ('O', 'L', 'A', 'C', 'S', 'I')
+    STATE_MEANING = {
+        'O': 'Ordered by Customer',
+        'L': 'Ordered at Supplier',
+        'A': 'Arrived at Store',
+        'C': 'Cancelled',
+        'S': 'Sold',
+        'I': 'Used for Internal Purposes'
+    }
+    VALID_NEXT_STATES = {
+        'O': ('C', 'L'),
+        'L': ('A', 'O', 'C'),
+        'A': ('S', 'I')
+    }
     # Mirrors the transition of the state of an OrderLine
-    state = models.CharField(max_length=3)
+    state = models.CharField(max_length=3, choices=STATE_MEANING.items())
     # When did the transition happen?
     timestamp = models.DateTimeField(auto_now_add=True)
     # The OrderLine that is transitioning
@@ -107,7 +121,7 @@ class OrderLineState(ImmutableBlame):
         return "Orderline_id: {}, State: {}, Timestamp: {}".format(self.orderline.pk, self.state, self.timestamp)
 
     def save(self):
-        _assert(self.state in OrderLineState.OL_STATE_CHOICES)
+        raiseif(self.state not in OrderLineState.STATE_CHOICES, IncorrectDataError, "State not a valid state")
         super(OrderLineState, self).save()
 
 
@@ -118,7 +132,7 @@ class OrderLine(Blame):
     # Anything the customer desires and we can supply
     wishable = models.ForeignKey(WishableType)
     # Indicates where in the process this OrderLine is. Every state allows for different actions
-    state = models.CharField(max_length=3)
+    state = models.CharField(max_length=3, choices=OrderLineState.STATE_MEANING.items())
     # The price the customer sees at the moment the Order(Line) is created
     expected_sales_price = PriceField()
     # Final sales price. Set when products arrive at the store
@@ -131,17 +145,17 @@ class OrderLine(Blame):
         Function intended to create orderlines. Evades high demands of Price-class. Sets up the basics needed. The rest
         is handled by the save function of orderlines.
         """
-        _assert(wishable is not None)
+        raiseif(wishable is None, InvalidDataError, "wishable may not be None")
         ol = OrderLine(order=order, wishable=wishable, state=state, expected_sales_price=expected_sales_price, user_modified=user)
 
         return ol
 
     def save(self):
-        _assert(hasattr(self, 'order'))  # Order must exist
-        _assert(hasattr(self, 'wishable'))  # Type must exist
-        _assert(hasattr(self.wishable, 'sellabletype'))  # Temporary measure until complexities get worked out
-        _assert(hasattr(self, 'expected_sales_price'))
-        _assert(isinstance(self.expected_sales_price, Price))  # Temporary measure until complexities get worked out
+        raiseif(not hasattr(self, 'order'), IncorrectDataError, "OrderLine must have an order")  # Order must exist
+        raiseif(not hasattr(self, 'wishable'), IncorrectDataError, "How?")  # Type must exist
+        raiseif(not hasattr(self.wishable, 'sellabletype'), IncorrectDataError, "How?")  # Temporary measure until complexities get worked out
+        raiseif(not hasattr(self, 'expected_sales_price'), IncorrectDataError, "How?")
+        raiseif(not isinstance(self.expected_sales_price, Price), IncorrectDataError, "How?")  # Temporary measure until complexities get worked out
 
         if self.pk is None:
 
@@ -155,16 +169,16 @@ class OrderLine(Blame):
             else:
                 ol_state = OrderLineState(state=self.state, user_created=self.user_modified)
 
-            _assert(self.state in OrderLineState.OL_STATE_CHOICES)
             curr = Currency(iso=USED_CURRENCY)
 
             self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
 
+            raiseif(self.state not in OrderLineState.STATE_CHOICES, IncorrectOrderLineStateError, "Invalid state")
             super(OrderLine, self).save()
             ol_state.orderline = self
             ol_state.save()
         else:
-            _assert(self.state in OrderLineState.OL_STATE_CHOICES)
+            raiseif(self.state not in OrderLineState.STATE_CHOICES, IncorrectOrderLineStateError, "Invalid state")
             super(OrderLine, self).save()
 
     @transaction.atomic
@@ -175,19 +189,13 @@ class OrderLine(Blame):
         """
         if not self.pk or self.state is None:
             raise OrderLineNotSavedError
-        elif self.state not in OrderLineState.OL_STATE_CHOICES:
+        elif self.state not in OrderLineState.STATE_CHOICES:
             raise IncorrectOrderLineStateError("State of orderline is not valid. Database is corrupted at Orderline",
                                                self.pk, " with state ", self.state)
-        elif new_state not in OrderLineState.OL_STATE_CHOICES:
-            raise IncorrectTransitionError("New state is not a valid state")
         else:
-            nextstates = {
-                'O': ('C', 'L'),
-                'L': ('A', 'O', 'C'),
-                'A': ('S', 'I')}
-            if new_state in nextstates[self.state]:
+            if new_state in OrderLineState.VALID_NEXT_STATES[self.state]:
                 self.state = new_state
-                ols = OrderLineState(state=new_state, orderline=self,user_created=user_created)
+                ols = OrderLineState(state=new_state, orderline=self, user_created=user_created)
                 ols.save()
                 self.save()
             else:
@@ -231,8 +239,8 @@ class OrderLine(Blame):
         :param number: number of orderlines to add
         :param price: Value as a Price
         """
-        _assert(type(number) == int)
-        _assert(number >= 1)
+        raiseif(type(number) is not int, IncorrectDataError, "number must be an integer")
+        raiseif(number < 1, InvalidDataError, "At least 1 of wishable_type must be ordered to add it to an order")
         for i in range(1, number + 1):
 
             ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)
@@ -263,7 +271,7 @@ class OrderCombinationLine:
     def __str__(self):
         dec = self.price.amount.quantize(Decimal('0.01'))
         stri = "{:<7}{:14}{:10}{:12}".format(self.number, self.wishable.name, self.price.currency.iso + str(dec),
-                                             OrderLineState.OL_STATE_MEANING[self.state])
+                                             OrderLineState.STATE_MEANING[self.state])
         return stri
 
     @staticmethod
@@ -323,7 +331,7 @@ class ConsistencyChecker:
     @consistency_check
     def non_crashing_full_check():
         errors = []
-        ols = OrderLine.objects.all().exclude(state__in=OrderLineState.OL_STATE_CHOICES)
+        ols = OrderLine.objects.all().exclude(state__in=OrderLineState.STATE_CHOICES)
         if len(ols) > 0:
             errors.append({
                 "text": "There are OrderLines in an impossible state",
@@ -343,6 +351,10 @@ class IncorrectOrderLineStateError(Exception):
 
 
 class IncorrectTransitionError(Exception):
+    pass
+
+
+class IncorrectDataError(Exception):
     pass
 
 

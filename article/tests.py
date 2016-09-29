@@ -4,7 +4,6 @@ from article.models import *
 from money.models import VAT
 
 # Base class, so all test-classes can use a base set of test-data.
-from tools.util import _assert
 
 
 class INeedSettings:
@@ -60,7 +59,7 @@ class ArticleBasicTests(INeedSettings, TestCase):
             article_type.save()
         except AbstractClassInitializationError:
             blocked = True
-        _assert(not blocked)
+        self.assertFalse(blocked)
 
         and_product_type = AndProductType(branch=self.branch)
         blocked = False
@@ -68,43 +67,43 @@ class ArticleBasicTests(INeedSettings, TestCase):
             and_product_type.save()
         except AbstractClassInitializationError:
             blocked = True
-        _assert(not blocked)
+        self.assertFalse(blocked)
 
     def test_inheritance(self):
-            article_type = ArticleType(branch=self.branch)
-            article_type.name = "Foo"
-            article_type.accounting_group = self.acc_group
-            article_type.save()
+        article_type = ArticleType(branch=self.branch)
+        article_type.name = "Foo"
+        article_type.accounting_group = self.acc_group
+        article_type.save()
 
-            _assert(article_type.name == "Foo")
+        self.assertEqual(article_type.name, "Foo")
 
-            results = WishableType.objects.select_related().all()
-            for result in results:
-                _assert(result.sellabletype.articletype.name == "Foo")
-                if hasattr(result,"sellabletype"):
-                    if hasattr(result.sellabletype,"articletype"):
-                        _assert(result.sellabletype.articletype.accounting_group.accounting_number == 2)
-                else:
-                    raise Exception("Typing error: Abstract class is given while implementing type expected")
+        results = WishableType.objects.select_related().all()
+        for result in results:
+            self.assertEqual(result.sellabletype.articletype.name, "Foo")
+            if hasattr(result,"sellabletype"):
+                if hasattr(result.sellabletype,"articletype"):
+                    self.assertEqual(result.sellabletype.articletype.accounting_group.accounting_number, 2)
+            else:
+                raise Exception("Typing error: Abstract class is given while implementing type expected")
 
     def test_subclassing(self):
-            andproduct_type = AndProductType(branch=self.branch)
-            andproduct_type.name="Test"
-            andproduct_type.save()
-            orproduct_type = OrProductType(branch=self.branch)
-            orproduct_type.name="Bar"
-            orproduct_type.save()
-            article_type = ArticleType(branch=self.branch)
-            article_type.name = "Foo"
-            article_type.accounting_group = self.acc_group
-            article_type.save()
-            results = WishableType.objects.select_related('sellabletype','orproducttype','sellabletype__articletype').all()
-            _assert(results.count() == 3)
-            results2 = AndProductType.objects.all()
-            _assert(results2.count() == 1)
-            results3 = OrProductType.objects.all()
-            _assert(results3.count() == 1)
-            results4 = ArticleType.objects.all()
-            _assert(results4.count() == 1)
+        andproduct_type = AndProductType(branch=self.branch)
+        andproduct_type.name="Test"
+        andproduct_type.save()
+        orproduct_type = OrProductType(branch=self.branch)
+        orproduct_type.name="Bar"
+        orproduct_type.save()
+        article_type = ArticleType(branch=self.branch)
+        article_type.name = "Foo"
+        article_type.accounting_group = self.acc_group
+        article_type.save()
+        results = WishableType.objects.select_related('sellabletype','orproducttype','sellabletype__articletype').all()
+        self.assertEqual(results.count(), 3)
+        results2 = AndProductType.objects.all()
+        self.assertEqual(results2.count(), 1)
+        results3 = OrProductType.objects.all()
+        self.assertEqual(results3.count(), 1)
+        results4 = ArticleType.objects.all()
+        self.assertEqual(results4.count(), 1)
 
 

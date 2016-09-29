@@ -3,7 +3,6 @@ from django.utils.translation import ugettext as _
 
 from article.models import ArticleType
 from money.models import CostField
-from tools.util import _assert
 
 
 class Supplier(models.Model):
@@ -60,7 +59,7 @@ class ArticleTypeSupplier(models.Model):
 
     supplier_string = models.CharField(primary_key=True, max_length=255)
 
-    availability = models.CharField(max_length=255)
+    availability = models.CharField(max_length=255, choices=AVAILABILITY_OPTIONS_MEANINGS.items())
 
     class Meta:
         unique_together = ['supplier', 'article_type']
@@ -70,7 +69,6 @@ class ArticleTypeSupplier(models.Model):
         return len(gps) > 0
 
     def save(self):
-        _assert(self.availability in ArticleTypeSupplier.AVAILABILITY_OPTIONS)
         super(ArticleTypeSupplier, self).save()
 
 

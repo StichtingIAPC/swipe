@@ -144,7 +144,8 @@ class Register(models.Model):
                         counted_amount -= denomination.amount * denomination.denomination.amount
                         denomination.register_count = reg_count
 
-                    _assert(counted_amount == Decimal("0.00000"))
+                    raiseif(counted_amount != Decimal("0.00000"),
+                            RegisterError, "denominations amounts did not add up.")
                     for denomination in denominations:
                         denomination.save()
 
@@ -196,7 +197,9 @@ class Register(models.Model):
 
     def save(self, **kwargs):
         if self.is_cash_register:
-            _assert(self.payment_type.name == CASH_PAYMENT_TYPE_NAME)
+            raiseif(self.payment_type.name != CASH_PAYMENT_TYPE_NAME, RegisterError,
+                    "Payment type name did not match the provided preset. Use {} instead".format(
+                        CASH_PAYMENT_TYPE_NAME))
         super(Register, self).save()
 
     def __str__(self):
@@ -363,7 +366,7 @@ class SalesPeriod(models.Model):
                     if registercount.register_period == reg_per:
                         found = True
                         if reg_per.register.is_cash_register:
-                            _assert(registercount.amount >= 0)
+                            raiseif(registercount.amount < 0, NegativeCountError)
                             for denom in denominationcounts:
                                 if denom.register_count == registercount:
                                     if not reg_per.register.is_cash_register:
@@ -507,7 +510,7 @@ class RegisterCount(models.Model):
                 raise InvalidDenominationList("Denominations invalid: GOT {}, EXPECTED {}".format(denominations,
                                                                                                   denoms_for_register))
         else:
-            _assert(not denominations)
+            raiseif(denominations, InvalidArgumentError)
         super().save()
 
     @classmethod
@@ -534,7 +537,7 @@ class RegisterCount(models.Model):
             counts = RegisterCount.objects.filter(register_period=last_register_period)
             if len(counts) == 1:
                 return counts[0]
-            _assert(len(counts) == 2)
+            raiseif(len(counts) != 2, InvalidRegisterAmountError)
             for count in counts:
                 if not count.is_opening_count:
                     return count
