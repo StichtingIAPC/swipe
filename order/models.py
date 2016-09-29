@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db import transaction
 from django.db.models import Count
 from django.db.models.fields.reverse_related import ForeignObjectRel
@@ -8,7 +10,6 @@ from crm.models import *
 from money.models import *
 from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
-from collections import defaultdict
 
 
 # Create your models here.
@@ -111,7 +112,7 @@ class OrderLineState(ImmutableBlame):
         'A': ('S', 'I')
     }
     # Mirrors the transition of the state of an OrderLine
-    state = models.CharField(max_length=3, choices=STATE_MEANING.items())
+    state = models.CharField(max_length=3, choices=sorted(STATE_MEANING.items()))
     # When did the transition happen?
     timestamp = models.DateTimeField(auto_now_add=True)
     # The OrderLine that is transitioning
@@ -132,7 +133,7 @@ class OrderLine(Blame):
     # Anything the customer desires and we can supply
     wishable = models.ForeignKey(WishableType)
     # Indicates where in the process this OrderLine is. Every state allows for different actions
-    state = models.CharField(max_length=3, choices=OrderLineState.STATE_MEANING.items())
+    state = models.CharField(max_length=3, choices=sorted(OrderLineState.STATE_MEANING.items()))
     # The price the customer sees at the moment the Order(Line) is created
     expected_sales_price = PriceField()
     # Final sales price. Set when products arrive at the store

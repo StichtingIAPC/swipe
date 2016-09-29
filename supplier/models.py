@@ -59,7 +59,7 @@ class ArticleTypeSupplier(models.Model):
 
     supplier_string = models.CharField(primary_key=True, max_length=255)
 
-    availability = models.CharField(max_length=255, choices=AVAILABILITY_OPTIONS_MEANINGS.items())
+    availability = models.CharField(max_length=255, choices=sorted(AVAILABILITY_OPTIONS_MEANINGS.items()))
 
     class Meta:
         unique_together = ['supplier', 'article_type']
