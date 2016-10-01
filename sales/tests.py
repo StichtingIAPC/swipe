@@ -5,7 +5,7 @@ from decimal import Decimal
 from article.models import ArticleType, OtherCostType
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError, \
-    PaymentTypeError
+    PaymentTypeError, RefundTransactionLine, RefundError
 from stock.models import Stock
 from register.models import PaymentType, Register
 from crm.models import User, Person
@@ -574,6 +574,98 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment = Payment(amount=loc_money, payment_type=self.pt3)
         with self.assertRaises(PaymentTypeError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+
+    def test_refund_line(self):
+        count = 5
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+        count_refund = -2
+        trl = TransactionLine.objects.get()
+        rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency("EUR"))
+        nega_payment=Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl])
+        trls = TransactionLine.objects.all()
+        _assert(len(trls) == 2)
+        _assert(trls[1].order is None)
+        _assert(trls[1].num == -1)
+        _assert(trls[1].count == count_refund)
+        _assert(trls[1].text == trls[0].text)
+
+    def test_refund_line_too_many_refunded(self):
+        count = 5
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+        count_refund = -6
+        trl = TransactionLine.objects.get()
+        rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency("EUR"))
+        nega_payment=Payment(amount=loc_money, payment_type=self.pt)
+        with self.assertRaises(RefundError):
+            Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl])
+
+    def test_refund_line_just_enough_refunded(self):
+        count = 5
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+        count_refund = -5
+        trl = TransactionLine.objects.get()
+        rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency("EUR"))
+        nega_payment=Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl])
+
+    def test_refund_line_too_many_refunded_two_new_refunds(self):
+        count = 5
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+        count_refund_1 = -3
+        count_refund_2 = -3
+        count_refund_total = count_refund_1 + count_refund_2
+        trl = TransactionLine.objects.get()
+        rfl = RefundTransactionLine(count=count_refund_1, price=p, sold_transaction_line=trl)
+        rfl2 = RefundTransactionLine(count=count_refund_2, price=p, sold_transaction_line=trl)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund_total, currency=Currency("EUR"))
+        nega_payment=Payment(amount=loc_money, payment_type=self.pt)
+        with self.assertRaises(RefundError):
+            Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl, rfl2])
+
+    def test_refund_line_too_many_old_new_refunded(self):
+        count = 5
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
+
+        trl = TransactionLine.objects.get()
+        count_refund = -2
+        count_refund2 = -2
+        count_refund_new = -2
+        rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
+        rfl2 = RefundTransactionLine(count=count_refund2, price=p, sold_transaction_line=trl)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * (count_refund + count_refund2), currency=Currency("EUR"))
+        nega_payment=Payment(amount=loc_money, payment_type=self.pt)
+        Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl, rfl2])
+        rfl3 = RefundTransactionLine(count=count_refund_new, price=p, sold_transaction_line=trl)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund_new,
+                          currency=Currency("EUR"))
+        last_payment = Payment(amount=loc_money, payment_type=self.pt)
+        with self.assertRaises(RefundError):
+            Transaction.create_transaction(user=self.copro, payments=[last_payment], transaction_lines=[rfl3])
+
 
 
 

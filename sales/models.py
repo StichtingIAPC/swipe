@@ -122,6 +122,19 @@ class OtherTransactionLine(TransactionLine):
         return prep + ", AccountingGroup: {}".format(acc)
 
 
+class RefundTransactionLine(TransactionLine):
+
+    sold_transaction_line = models.ForeignKey(TransactionLine, related_name="sold_line")
+
+    def __str__(self):
+        prep = super(RefundTransactionLine, self).__str__()
+        if not hasattr(self, 'transaction_line') or self.transaction_line is None:
+            tr = "None"
+        else:
+            tr = self.transaction_line.pk
+        return prep + ", Transaction_number: {}".format(tr)
+
+
 class InactiveError(Exception):
     pass
 
@@ -191,10 +204,11 @@ class Transaction(Blame):
         _assert(customer is None or isinstance(customer, Customer))
         for payment in payments:
             _assert(isinstance(payment, Payment))
+        types_supported = [SalesTransactionLine, OtherCostTransactionLine, OtherTransactionLine,
+                           RefundTransactionLine]
         for tr_line in transaction_lines:
             tp = type(tr_line)
-            if not (tp == SalesTransactionLine or tp == OtherCostTransactionLine or
-                    tp == OtherTransactionLine):
+            if tp not in types_supported:
                 raise UnimplementedError("Only SalesTransactionLine, OtherCostTransactionLine"
                                          " and OtherTransactionLine are implemented")
 
@@ -218,10 +232,11 @@ class Transaction(Blame):
         # Build up supply
         stock_level_dict = {}
         for tr_line in transaction_lines:
-            _assert(tr_line.count > 0)
             _assert(hasattr(tr_line, 'price') and tr_line.price)
-            if type(tr_line) == SalesTransactionLine:
+            typ = type(tr_line)
+            if typ == SalesTransactionLine:
                 _assert(hasattr(tr_line, 'article') and tr_line.article)
+                _assert(tr_line.count > 0)
                 ordr = tr_line.order
                 if ordr is None:
                     order_reference = ILLEGAL_ORDER_REFERENCE
@@ -232,13 +247,18 @@ class Transaction(Blame):
                     stock_level_dict[(order_reference, tr_line.article)] = tr_line.count
                 else:
                     stock_level_dict[(order_reference, tr_line.article)] += tr_line.count
-            elif type(tr_line) == OtherTransactionLine:
+            elif typ == OtherTransactionLine:
                 # Text is the essential identifier here
                 # Accounting group is also needed as to ensure correct VAT and place on turnover list
                 _assert(len(tr_line.text) > 0)
+                _assert(tr_line.count > 0)
                 _assert(hasattr(tr_line, 'accounting_group') and tr_line.accounting_group is not None)
-            else:
+            elif typ == OtherCostTransactionLine:
+                _assert(tr_line.count > 0)
                 _assert(hasattr(tr_line, 'other_cost_type') and tr_line.other_cost_type)
+            else:
+                _assert(tr_line.count < 0)
+                _assert(tr_line.sold_transaction_line.pk)
 
         # Checks if there is enough stock
         for key in stock_level_dict.keys():
@@ -315,6 +335,26 @@ class Transaction(Blame):
             if len(ols) < order_other_cost_count[key]:
                 raise NotEnoughOrderLinesError("There is are not enough orderlines to transition to sold for Order {} "
                                                "and OtherCostType {}".format(order, article))
+        # Now we check if you can truly refund the products you are trying to refund. This means that
+        # you do not refund too much when you consider all refunds for a transaction line.
+        refund_amount_per_transaction = defaultdict(lambda: 0)
+        for tr_line in transaction_lines:
+            if type(tr_line) == RefundTransactionLine:
+                refund_amount_per_transaction[tr_line.sold_transaction_line] -= tr_line.count
+
+        for key in refund_amount_per_transaction.keys():
+            refund_lines = RefundTransactionLine.objects.filter(sold_transaction_line=key)
+            accounted_old = 0
+            for previous_refunds_on_line in refund_lines:
+                accounted_old -= previous_refunds_on_line.count
+            accounted_new = refund_amount_per_transaction[key]
+            accounted = accounted_new + accounted_old
+            amount_sold_in_pointed_transaction = key.count
+            if accounted > amount_sold_in_pointed_transaction:
+                raise RefundError("Tried to refund {} in addition to previous refunds {} for transactionline {}"
+                                  "while only {} were sold for the relevant line.".
+                                  format(accounted_new, accounted_old, str(key), amount_sold_in_pointed_transaction))
+
 
         # We assume everything succeeded, now we construct the stock changes
         change_set = []
@@ -345,8 +385,11 @@ class Transaction(Blame):
             elif type(tr_line) == OtherCostTransactionLine:
                 tr_line.num = tr_line.other_cost_type.pk
                 tr_line.text = str(tr_line.other_cost_type)
-            else:
+            elif type(tr_line) == OtherTransactionLine:
                 # Symbolic number indicating no related database object
+                tr_line.num = -1
+            elif type(tr_line) == RefundTransactionLine:
+                tr_line.text = tr_line.sold_transaction_line.text
                 tr_line.num = -1
             # Don't forget the user
             tr_line.user_modified = user
@@ -398,6 +441,10 @@ class PaymentTypeError(Exception):
 
 
 class NotEnoughOrderLinesError(Exception):
+    pass
+
+
+class RefundError(Exception):
     pass
 
 
