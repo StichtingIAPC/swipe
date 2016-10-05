@@ -1,20 +1,19 @@
 from django.test import TestCase
 from article.tests import INeedSettings
-from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup
-from register.models import SalesPeriod, InactiveError
+from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup, CurrencyData
 from decimal import Decimal
-from article.models import ArticleType, OtherCostType, AssortmentArticleBranch
+from article.models import ArticleType, OtherCostType
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
-    OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError
+    OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError, \
+    PaymentTypeError
 from stock.models import Stock
-from register.models import PaymentType
+from register.models import PaymentType, Register
 from crm.models import User, Person
 from tools.util import _assert
 from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import Order, OrderLine
 from logistics.models import SupplierOrder, StockWish
 from supplication.models import PackingDocument
-
 
 
 class TestTransactionCreationFunction(INeedSettings, TestCase):
@@ -64,6 +63,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
 
         self.pt = PaymentType.objects.create(name="Bla")
         self.pt2 = PaymentType.objects.create(name="Baz")
+        self.pt3 = PaymentType.objects.create(name="Quux")
 
         self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
         self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
@@ -77,9 +77,17 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
                                         fixed_price=self.price
                                         )
         self.other_cost.save()
+        self.currency_data_eur = CurrencyData(iso="EUR", name="Euro", symbol="€", digits=2)
+        self.currency_data_eur.save()
 
-        self.sp = SalesPeriod.objects.create()
-
+        self.register = Register(currency=self.currency_data_eur, name="Foo", is_cash_register=False, is_active=True,
+                                 payment_type=self.pt)
+        self.register.save()
+        self.register2 = Register(currency=self.currency_data_eur, name="Bar", is_cash_register=False, is_active=True,
+                                 payment_type=self.pt2)
+        self.register2.save()
+        self.register.open(counted_amount=Decimal(0))
+        self.register2.open(counted_amount=Decimal(0))
 
     def test_not_enough_stock_error(self):
         oalist = []
@@ -557,6 +565,15 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         pmnts = Payment.objects.all()
         _assert(len(pmnts) == 2)
         Transaction.objects.get()
+
+    def test_transaction_payment_not_in_opened_register(self):
+        count = 2
+        p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
+        otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        local_payment = Payment(amount=loc_money, payment_type=self.pt3)
+        with self.assertRaises(PaymentTypeError):
+            Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
 
 
 

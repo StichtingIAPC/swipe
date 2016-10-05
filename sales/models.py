@@ -206,6 +206,12 @@ class Transaction(Blame):
 
         salesperiod = RegisterMaster.get_open_sales_period()
 
+        possible_payment_types = RegisterMaster.get_payment_types_for_open_registers()
+        for payment in payments:
+            if payment.payment_type not in possible_payment_types:
+                raise PaymentTypeError("Paymenttype: {}, is not in the possible list of payments for the open registers".
+                                       format(payment.payment_type))
+
         ILLEGAL_ORDER_REFERENCE = -1 # Primary key chosen in such a way that it is never chosen
 
         # Now some general checks, including stock checks
@@ -384,6 +390,10 @@ class NotEnoughStockError(Exception):
 
 
 class PaymentMisMatchError(Exception):
+    pass
+
+
+class PaymentTypeError(Exception):
     pass
 
 
