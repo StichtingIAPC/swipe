@@ -3,7 +3,6 @@ from django.test import TestCase
 
 from assortment.config.labels import *
 from assortment.models import *
-from tools.util import _assert
 
 
 class BasicTest(TestCase):
@@ -64,11 +63,12 @@ class BasicTest(TestCase):
         self.cpu_fifteen_khz = self.countableLabelType.label(15000)
 
     def test_create_unit_type(self):
-        _assert(self.stringType and
-                self.countableIntTypeHertz and
-                self.numberTypeMeter and
-                self.booleanType and
-                self.normalInt)
+        self.assertTrue(
+            self.stringType and
+            self.countableIntTypeHertz and
+            self.numberTypeMeter and
+            self.booleanType and
+            self.normalInt)
         with transaction.atomic():
             self.assertRaises(IntegrityError, AssortmentUnitType.objects.create,
                               type_short='',
@@ -89,25 +89,25 @@ class BasicTest(TestCase):
         decimal = '1.2'
         boolean = 'true'
 
-        _assert(isinstance(self.stringType.parse(string), str))
-        _assert(isinstance(self.stringType.parse(integer), str))
-        _assert(isinstance(self.stringType.parse(decimal), str))
-        _assert(isinstance(self.stringType.parse(boolean), str))
+        self.assertIsInstance(self.stringType.parse(string), str)
+        self.assertIsInstance(self.stringType.parse(integer), str)
+        self.assertIsInstance(self.stringType.parse(decimal), str)
+        self.assertIsInstance(self.stringType.parse(boolean), str)
 
         self.assertRaises(AssertionError, self.countableIntTypeHertz.parse, string)
-        _assert(isinstance(self.countableIntTypeHertz.parse(integer), int))
+        self.assertIsInstance(self.countableIntTypeHertz.parse(integer), int)
         self.assertRaises(AssertionError, self.countableIntTypeHertz.parse, decimal)
         self.assertRaises(AssertionError, self.countableIntTypeHertz.parse, boolean)
 
         self.assertRaises(AssertionError, self.numberTypeMeter.parse, string)
-        _assert( isinstance(self.numberTypeMeter.parse(integer), Decimal))
-        _assert( isinstance(self.numberTypeMeter.parse(decimal), Decimal))
+        self.assertIsInstance(self.numberTypeMeter.parse(integer), Decimal)
+        self.assertIsInstance(self.numberTypeMeter.parse(decimal), Decimal)
         self.assertRaises(AssertionError, self.numberTypeMeter.parse, boolean)
 
         self.assertRaises(AssertionError, self.booleanType.parse, string)
         self.assertRaises(AssertionError, self.booleanType.parse, integer)
         self.assertRaises(AssertionError, self.booleanType.parse, decimal)
-        _assert( isinstance(self.booleanType.parse(boolean), bool))
+        self.assertIsInstance(self.booleanType.parse(boolean), bool)
 
     def test_clean_unit_type(self):
         test = AssortmentUnitType(type_short='', type_long='', value_type='b')
@@ -115,13 +115,14 @@ class BasicTest(TestCase):
         self.assertRaises(ValidationError, test.clean)
 
     def test_label_type_creation(self):
-        _assert(self.labelType and self.countableLabelType)
+        self.assertTrue(self.labelType and self.countableLabelType)
 
     def test_label_creation(self):
-        _assert(self.cable_five_meters and
-                self.cable_four_meters and
-                self.cpu_five_khz and
-                self.cpu_fifteen_khz)
+        self.assertTrue(
+            self.cable_five_meters and
+            self.cable_four_meters and
+            self.cpu_five_khz and
+            self.cpu_fifteen_khz)
         self.assertEqual(self.cable_five_meters, self.labelType.label('5'))
         self.assertRaises(AssertionError, AssortmentLabel.get, value=6, label_type=self.labelType)
         self.assertRaises(IntegrityError, self.make_label, value='5', label_type=self.labelType)
