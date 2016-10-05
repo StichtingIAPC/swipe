@@ -4,19 +4,18 @@ from django.test import TestCase
 
 from article.models import ArticleType, OtherCostType
 from article.tests import INeedSettings
+from crm.models import User, Person
+from logistics.models import SupplierOrder, StockWish
 from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup, CurrencyData
-from decimal import Decimal
-from article.models import ArticleType, OtherCostType
+from order.models import Order, OrderLine
+from register.models import PaymentType, Register
+from sales import models
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError, \
     PaymentTypeError, RefundTransactionLine, RefundError
 from stock.models import Stock
-from register.models import PaymentType, Register
-from crm.models import User, Person
-from supplier.models import Supplier, ArticleTypeSupplier
-from order.models import Order, OrderLine
-from logistics.models import SupplierOrder, StockWish
 from supplication.models import PackingDocument
+from supplier.models import Supplier, ArticleTypeSupplier
 
 
 class TestTransactionCreationFunction(INeedSettings, TestCase):
@@ -317,9 +316,6 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(PaymentMisMatchError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
-        except PaymentMisMatchError:
-            caught = True
-        _assert(caught)
 
     def test_sales_transaction_other_cost(self):
         AMOUNT_1 = 6
@@ -623,11 +619,3 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         last_payment = Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(RefundError):
             Transaction.create_transaction(user=self.copro, payments=[last_payment], transaction_lines=[rfl3])
-
-
-
-
-
-
-
-
