@@ -1,132 +1,105 @@
 from django.db import models, transaction
 from crm.models import Customer
 from blame.models import Blame, ImmutableBlame
+from money.models import MoneyField
+from sales.models import Transaction, RefundTransactionLine, TransactionLine, SalesTransactionLine
 
 
-class RMA(Blame):
+class RMACause(Blame):
+    pass
 
-    # The customer. Null for ourselves as customer
-    customer = models.ForeignKey(Customer, null=True)
 
-    # Here, we need a reference to a refundline in order to handle RMAs fully internally. Null inficates no refund or
-    # no refund yet given
-    # refund_line = models.ForeignKey(RefundLine, null=True)
+class StockRMA(RMACause):
 
-    def is_active(self):
-        return self.is_internally_active() and self.is_customer_active()
+    value = MoneyField()
 
-    def is_internally_active(self):
-        ira = InternalRMA.objects.get(general_rma=self)
-        return ira.is_active()
 
-    def is_customer_active(self):
-        cra = CustomerRMA.objects.get(general_rma=self)
-        return cra.is_active()
+class CustomerRMATask(models.Model):
+
+    customer = models.ForeignKey(Customer)
+
+    description = models.TextField()
+
+    state = models.CharField(max_length=3)
+
+    receipt = models.ForeignKey(Transaction)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if self.state not in CustomerRMATaskState.STATES:
+            raise StateError("While saving CustomerRMATask encountered illegal state {}".format(self.state))
+        super(CustomerRMATask, self).save()
+
+
+class TestRMA(RMACause):
+
+    customer_rma_task = models.ForeignKey(CustomerRMATask)
+
+    transaction_line = models.ForeignKey(TransactionLine)
+
+    def save(self, **kwargs):
+        if isinstance(self.transaction_line, SalesTransactionLine):
+            # You cannot
+            count = 0
+            internal_rmas = InternalRMA.objects.filter(rma_cause__transaction_line=self.transaction_line)
+            for in_rma in internal_rmas:
+                if in_rma.state in InternalRMAState.OPEN_STATES:
+                    count += 1
+            if count >= self.transaction_line.count:
+                raise RMACountError("You tried to open more active RMAs than there are counts for transaction {}".
+                                    format(self.transaction_line))
+
+        # Everything checks out, lets save
+        # Consider that we must make an internal RMA for a physical product
+        with transaction.atomic():
+            if isinstance(self.transaction_line, SalesTransactionLine):
+                internal_rma = InternalRMA(rma_cause=self, state='B')
+                internal_rma.save()
+            super(TestRMA, self).save()
+
+
+class DirectRefundRMA(RMACause):
+
+    refund_line = models.ForeignKey(RefundTransactionLine)
+
+
+class CustomerRMATaskState(ImmutableBlame):
+    STATES = ('U', 'N', 'W', 'R', 'F', 'A', 'O')
+    STATE_MEANINGS = {'U': 'Untested', 'N': 'Not broken', 'W': 'Waiting for handling', 'R': 'Returned new product',
+                      'F': 'Refunded', 'A': 'Customer Abuse', 'O': 'Returned original product(s) to customer'}
+    OPEN_STATES = ('U', 'N', 'W', 'A')
+    CLOSED_STATES = ('R', 'F', 'O')
+
+    customer_rma_task = models.ForeignKey(CustomerRMATask)
 
 
 class InternalRMA(Blame):
 
-    general_rma = models.ForeignKey(RMA)
+    rma_cause = models.ForeignKey(RMACause)
 
     state = models.CharField(max_length=3)
-    # An optional serial number to uniquely identify the product
-    serial_number = models.CharField(max_length=60, null=True)
-    # The RMA-number. Null for nothing(yet)
-    rma_number = models.CharField(max_length=60, null=True)
 
     def save(self, **kwargs):
-        if self.pk is None:
-            if not self.state:
-                self.state = InternalRMAState.STARTING_STATE
-        if self.state not in InternalRMAState.RMA_STATES:
-            raise StateError("State {} is not in list of allowed states".format(self.state))
-        super(InternalRMA, self).save(**kwargs)
-
-    def is_active(self):
-        return self.state in InternalRMAState.OPEN_STATES
-
-    @transaction.atomic
-    def transition(self, new_state):
-        if new_state not in InternalRMAState.RMA_STATES:
-            raise StateError("New state \"{}\" not in list of states".format(new_state))
-        self.state = new_state
-        state_log = InternalRMAState(state=new_state, internal_rma=self)
-        state_log.save()
-        self.save()
-
-    def indicate_not_broken(self):
-        self.transition('N')
-
-    def ask_for_number(self):
-        self.transition('W')
-
-    def recieve_number(self, number):
-        self.rma_number=number
-        self.transition('R')
-
-    def send(self):
-        self.transition('S')
-
-
-class CustomerRMA(Blame):
-
-    general_rma = models.ForeignKey(RMA)
-
-    state = models.CharField(max_length=3)
-    # Original customer that caused the refund. Null for anonymous or self
-    original_customer = models.ForeignKey(Customer, null=True)
-
-    @transaction.atomic()
-    def save(self, **kwargs):
-        if self.pk is None:
-            if not self.state:
-                self.state = CustomerRMAState.STARTING_STATE
-        if self.state not in CustomerRMAState.RMA_STATES:
-            raise StateError("State {} is not in list of allowed states".format(self.state))
-        if self.pk is None:
-            state_log = CustomerRMAState(state=self.state, customer_rma=self)
-            state_log.save()
-        super(CustomerRMA, self).save(**kwargs)
-
-    def is_active(self):
-        return self.state in CustomerRMAState.OPEN_STATES
-
-    @transaction.atomic
-    def transition(self, new_state):
-        if new_state not in CustomerRMAState.RMA_STATES:
-            raise StateError("New state \"{}\" not in list of states".format(new_state))
-        self.state = new_state
-        state_log = CustomerRMAState(state=new_state, customer_rma=self)
-        state_log.save()
-        self.save()
+        if self.state not in InternalRMAState.STATES:
+            raise StateError("While saving InternalRMA encountered illegal state {}".format(self.state))
 
 
 class InternalRMAState(ImmutableBlame):
+    STATES = ('B', 'W', 'R', 'S', 'P', 'A', 'F', 'O')
+    STATE_MEANINGS = {'B': 'Broken', 'W': 'Waiting for Number', 'R': 'Received number', 'S': 'Sent',
+                      'P': 'Received replacement or refurbishment',
+                      'A': 'Customer Abuse', 'F': 'Refunded', 'T': 'Returned product to customer', 'O': 'Written Off'}
+    OPEN_STATES = ('B', 'W', 'R', 'S', 'P', 'A')
+    CLOSED_STATES = ('F', 'T', 'O')
 
-    RMA_STATES = ('U', 'N', 'W', 'R', 'S', 'P', 'F', 'A', 'I')
-    STARTING_STATE = 'U'
-    OPEN_STATES = ('U', 'W', 'R', 'S')
-    CLOSED_STATES = ('N', 'P', 'F', 'A')
-    RMA_STATE_EXPLANATIONS = {'U': 'Untested', 'N': 'Not broken', 'W': 'Waiting for Number', 'R': 'Received Number',
-                              'S': 'Sent', 'P': 'Replaced', 'F': 'Refunded by External',
-                              'A': 'Abused by Customer', 'I': 'Written Off'}
-
-    state = models.CharField(max_length=3)
     internal_rma = models.ForeignKey(InternalRMA)
 
 
-class CustomerRMAState(ImmutableBlame):
-    RMA_STATES = ('O', 'L', 'E', 'D')
-    STARTING_STATE = 'E'
-    OPEN_STATES = ('E')
-    CLOSED_STATES = ('O', 'L', 'D')
-    RMA_STATE_EXPLANATIONS = {'E': 'Unresolved', 'D': 'Refunded', 'L': 'Replacement product', 'O': 'Returned old product'}
-
-    state = models.CharField(max_length=3)
-    customer_rma = models.ForeignKey(CustomerRMA)
-
-
 class StateError(Exception):
+    pass
+
+
+class RMACountError(Exception):
     pass
 
 
