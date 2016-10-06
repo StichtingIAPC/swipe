@@ -21,4 +21,4 @@ class TableView(View):
             ),
             dataprovider=qs,
             classes=('someclass', 'someotherclass'))
-        return render(request, self.template_name, {'table': table })
+        return render(request, self.template_name, {'table': table})
