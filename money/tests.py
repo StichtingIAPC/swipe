@@ -13,7 +13,6 @@ from money.models import TestCostType
 from money.models import TestMoneyType
 from money.models import TestPriceType
 from swipe.settings import USED_CURRENCY
-from tools.util import _assert
 
 
 class MoneyTest(TestCase):
@@ -59,6 +58,7 @@ class CostTest(TestCase):
         m = Cost(Decimal("5.21"), None,use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
+
 class PriceTest(TestCase):
     def setUp(self):
         c = Currency('EUR')
@@ -80,6 +80,7 @@ class PriceTest(TestCase):
     def testCreatePriceWithoutCurrency(self):
         m = Price(amount=Decimal("5.21"), vat=Decimal("1.21"), currency=None, use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
+
 
 class SalesPriceTest(TestCase):
     def setUp(self):
@@ -104,6 +105,7 @@ class SalesPriceTest(TestCase):
         m = SalesPrice(amount=Decimal("5.21"), vat=Decimal("1.93"), currency=None, cost=Decimal("4"), use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
+
 class MoneyMathTest(TestCase):
     def setUp(self):
         eur = Currency("EUR")
@@ -115,44 +117,24 @@ class MoneyMathTest(TestCase):
 
     def testMoneyAdd(self):
         self.assertEquals((self.m1 + self.m2).amount.__str__(), "1.50000")
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 + self.m3
-        except TypeError:
-            t = True
-        self.assertTrue(t)
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 + self.num
-        except TypeError:
-            t = True
-        self.assertTrue(t)
 
     def testMoneyMult(self):
         # Multiplying money times integer is valid
         self.assertEquals((self.m1 * self.num).amount.__str__(), "4.00000")
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 * self.m3
-        # Multiplying money times money is wrong
-        except TypeError:
-            t = True
-        self.assertTrue(t)
+            # Multiplying money times money is wrong
 
     def testMoneySub(self):
         self.assertEquals((self.m1 - self.m2).amount.__str__(), "0.50000")
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 - self.m3
-        except TypeError:
-            t = True
-        self.assertTrue(t)
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 - self.num
-        except TypeError:
-            t = True
-        self.assertTrue(t)
 
 
 # Copy of MoneyMathTest; they are not exactly the same
@@ -168,44 +150,23 @@ class CostMathTest(TestCase):
     def testMoneyAdd(self):
         self.assertEquals((self.m1 + self.m2).amount.__str__(), "1.50000")
         self.assertEquals(type(self.m1 + self.m2), Cost)
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 + self.m3
-        except TypeError:
-            t = True
-        self.assertTrue(t)
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 + self.num
-        except TypeError:
-            t = True
-        self.assertTrue(t)
 
     def testMoneyMult(self):
         # Multiplying money times integer is valid
         self.assertEquals((self.m1 * self.num).amount.__str__(), "4.00000")
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 * self.m3
-        # Multiplying money times money is wrong
-        except TypeError:
-            t = True
-        self.assertTrue(t)
 
     def testMoneySub(self):
         self.assertEquals((self.m1 - self.m2).amount.__str__(), "0.50000")
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 - self.m3
-        except TypeError:
-            t = True
-        self.assertTrue(t)
-        t = False
-        try:
+        with self.assertRaises(TypeError):
             self.m2 - self.num
-        except TypeError:
-            t = True
-        self.assertTrue(t)
 
 
 # Copy of MoneyMathTest; they are not exactly the same
@@ -228,12 +189,8 @@ class SalesPriceMathTest(TestCase):
         self.assertEquals(ans.cost.__str__(), "3.00000")
         self.wrong = [self.m3, self.m4, self.num]
         for w in self.wrong:
-            i = 0
-            try:
+            with self.assertRaises(TypeError, msg="{} can't be added to SalesPrice".format(w)):
                 self.m1 + w
-            except TypeError:
-                i = 1
-            self.assertEqual(i, 1, "{} can't be added to SalesPrice".format(w))
 
     def testMoneySub(self):
         ans = self.m1 - self.m2
@@ -242,12 +199,8 @@ class SalesPriceMathTest(TestCase):
         self.assertEquals(ans.cost.__str__(), "1.00000")
         self.wrong = [self.m3, self.m4, self.num]
         for w in self.wrong:
-            i = 0
-            try:
+            with self.assertRaises(TypeError, msg="{} can't be subtracted from SalesPrice".format(w)):
                 self.m1 - w
-            except TypeError:
-                i = 1
-            self.assertEqual(i, 1, "{} can't be subtracted from SalesPrice".format(w))
 
     def testMoneyMult(self):
         ans = self.m1 * self.num
@@ -256,12 +209,8 @@ class SalesPriceMathTest(TestCase):
         self.assertEquals(ans.cost.__str__(), "8.00000")
         self.wrong = [self.m2, self.m3, self.m4]
         for w in self.wrong:
-            i = 0
-            try:
+            with self.assertRaises(TypeError, msg="{} can't be multiplied with SalesPrice".format(w)):
                 self.m1 * w
-            except TypeError:
-                i = 1
-            self.assertEqual(i, 1, "{} can't be multiplied with SalesPrice".format(w))
 
     def testSalesPriceMargin(self):
         t = SalesPrice(amount=Decimal("4.00000"), vat=Decimal("2"), currency=Currency("EUR"),cost=Decimal("0.5"))
@@ -276,28 +225,14 @@ class CurrencyDenomTest(TestCase):
         self.dollar = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
 
     def test_currency_iso(self):
-        try:
-            bar = False
+        with self.assertRaises(ValidationError):
             foo = CurrencyData(iso="EADD", name="Estonian Drak", digits=4, symbol="D&")
             foo.full_clean()
-            foo.save()
-        except AssertionError:
-            bar = True
-        except ValidationError:
-            bar = True
-        _assert(bar)
 
     def test_currency_symbol(self):
-        try:
-            bar = False
+        with self.assertRaises(ValidationError):
             foo = CurrencyData(iso="EDD", name="Estonian Drak", digits=4, symbol="D&aaaa")
             foo.full_clean()
-            foo.save()
-        except AssertionError:
-            bar = True
-        except ValidationError:
-            bar = True
-        _assert(bar)
 
     def test_currency_equals(self):
         self.assertNotEquals(self.euro, self.dollar)
@@ -307,15 +242,15 @@ class CurrencyDenomTest(TestCase):
     def test_denomination_currency(self):
         self.denom1 = Denomination(currency=self.euro, amount=2.2)
         self.denom2 = Denomination(currency=self.euro, amount=2.2)
-        _assert(self.denom1.has_same_currency(self.denom2))
+        self.assertTrue(self.denom1.has_same_currency(self.denom2))
 
     def test_denomination_equals(self):
         self.denom1 = Denomination(currency=self.euro, amount=2.2)
         self.denom2 = Denomination(currency=self.euro, amount=2.2)
         self.denom3 = Denomination(currency=self.dollar, amount=2.2)
-        _assert(self.denom1 == self.denom2)
-        _assert(self.denom1 != self.denom3)
+        self.assertEquals(self.denom1, self.denom2)
+        self.assertNotEqual(self.denom1, self.denom3)
 
     def test_denom_srt(self):
         denom1 = Denomination(currency=self.euro, amount=2.2)
-        _assert(str(denom1) == "EUR 2.2")
+        self.assertEquals(str(denom1), "EUR 2.2")

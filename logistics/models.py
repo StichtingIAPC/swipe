@@ -1,9 +1,9 @@
 from collections import defaultdict
 from decimal import Decimal
+
 from django.db import models, transaction
 from django.db.models import Count
 from django.db.models.fields.reverse_related import ForeignObjectRel
-
 
 from article.models import ArticleType, OrProductType
 from blame.models import ImmutableBlame, Blame
@@ -12,7 +12,7 @@ from money.models import CostField, Cost, Currency
 from order.models import OrderLine, OrderCombinationLine
 from supplier.models import Supplier, ArticleTypeSupplier
 from swipe.settings import USED_SUPPLIERORDER_STRATEGY, USED_CURRENCY
-from tools.util import _assert
+from tools.util import raiseif
 
 
 class SupplierOrder(ImmutableBlame):
@@ -66,7 +66,8 @@ class SupplierOrder(ImmutableBlame):
         :type articles_ordered: Dict[ArticleType, int]
         :return: List[Tuple[ArticleType, int]]
         """
-        _assert(articles_ordered)
+        raiseif(articles_ordered is None,
+                IncorrectDataError, "I must get articles that are ordered, I cannot check without")
 
         errors = []
 
@@ -101,25 +102,28 @@ class SupplierOrder(ImmutableBlame):
         :param articles_ordered:
         :type articles_ordered: List[List[ArticleType, int]]
         """
-        _assert(user and articles_ordered)
-        _assert(isinstance(user, User))
-        _assert(articles_ordered)
-        # is same as assert len(articles_ordered, but
+        raiseif(not user, IncorrectDataError, "You must supply me with a user which does this action")
+        raiseif(not articles_ordered, IncorrectDataError, "You must supply me with articles that are being ordered")
+        raiseif(not isinstance(user, User), IncorrectDataError, "user must be a User")
 
         # Ensure that the number of articles ordered is not less than 0
 
         ordered_dict = defaultdict(lambda: 0)
 
         for article, number, cost in articles_ordered:
-            _assert(isinstance(article, ArticleType))
-            _assert(isinstance(number, int))
-            _assert(isinstance(cost, Cost))
+            raiseif(not isinstance(article, ArticleType),
+                    IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
+            raiseif(not isinstance(number, int), IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
+            raiseif(not isinstance(cost, Cost), IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
+
             if not allow_different_currency:
-                _assert(cost.currency.iso == USED_CURRENCY)
-            _assert(number > 0)
+                raiseif(cost.currency.iso != USED_CURRENCY,
+                        IncorrectDataError,
+                        "You can only use currency {} with the current settings".format(USED_CURRENCY))
+            raiseif(number <= 0, IncorrectDataError, "You cannot order negative amounts of products")
             ordered_dict[article] += number
-            _assert(ArticleTypeSupplier.objects.get(article_type=article,
-                                                    supplier=supplier))  # Article exists at supplier
+            raiseif(not ArticleTypeSupplier.objects.get(article_type=article, supplier=supplier),
+                    IncorrectDataError, "Article does not (yet) exist at supplier")
         return ordered_dict
 
 
@@ -176,11 +180,14 @@ class SupplierOrderLine(Blame):
     def save(self, *args, **kwargs):
         if self.order_line is not None:
             if isinstance(self.order_line.wishable, OrProductType):
-                _assert(ArticleType.objects.filter(
-                    orproducttype__id=self.order_line.id,
-                    id=self.article_type.id).exists())
+                raiseif(
+                    not ArticleType.objects.filter(
+                        orproducttype__id=self.order_line.id,
+                        id=self.article_type.id).exists(),
+                    InvalidDataError, "Ordered article is not known to ordered OrProduct")
             else:
-                _assert(self.order_line.wishable.sellabletype.articletype == self.article_type)  # Customer article matches ordered article
+                raiseif(not self.order_line.wishable.sellabletype.articletype == self.article_type,
+                        InvalidDataError, "The order's article type is not this line's ArticleType")  # Customer article matches ordered article
             # +1 query for customer ordered lines
         checked_ats = False
         if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
@@ -190,20 +197,23 @@ class SupplierOrderLine(Blame):
             # shouldn't get triggered, but +1 query
             checked_ats = True
 
-            _assert(len(sup_art_types) == 1)
+            raiseif(len(sup_art_types) != 1, InvalidDataError, "There can only be one SupplierArticleType")
             self.supplier_article_type == sup_art_types[0]
 
         if not checked_ats:  #should happen all the time
-            _assert(self.supplier_article_type.supplier == self.supplier_order.supplier)  # Article can be ordered at supplier
+            raiseif(self.supplier_article_type.supplier != self.supplier_order.supplier,
+                    InvalidDataError, "The supplier_order's supplier must be the supplier of the "
+                                      "supplier_article_type")  # Article can be ordered at supplier
             # +2 query to get the supplier from the supplier_article_type and supplier_order
-            _assert(self.supplier_article_type == ArticleTypeSupplier.objects.get(
-                article_type=self.article_type,
-                supplier=self.supplier_order.supplier))  # optional +1 for article type
+            raiseif(self.supplier_article_type != ArticleTypeSupplier.objects
+                    .get(article_type=self.article_type,
+                         supplier=self.supplier_order.supplier),
+                    InvalidDataError, "The supplier_article_type must be ")  # optional +1 for article type
 
         # Set the relevant state is not implemented
         if self.pk is None:
             self.state = 'O'
-        _assert(self.state in SupplierOrderState.STATE_CHOICES)
+        raiseif(self.state not in SupplierOrderState.STATE_CHOICES, InvalidDataError)
         # Assert that everything is ok here
         if self.pk is None:
             if self.order_line is not None:
@@ -312,21 +322,24 @@ class StockWish(ImmutableBlame):
         :type articles_ordered:
         :return:
         """
-
-        _assert(user_modified is not None and len(articles_ordered) > 0)
-        _assert(isinstance(user_modified, User))
+        raiseif(user_modified is None, IncorrectDataError, "You must provide me with a user_modified")
+        raiseif(len(articles_ordered) == 0, IncorrectDataError, "You must order at least 1 article to save")
+        raiseif(not isinstance(user_modified, User), IncorrectDataError, "The user_modified argument must be a User")
 
         for article, number in articles_ordered:
-            _assert(isinstance(article, ArticleType))
-            _assert(isinstance(number, int))
-            _assert(number != 0)
+            raiseif(not isinstance(article, ArticleType),
+                    IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int]")
+            raiseif(not isinstance(number, int),
+                    IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int]")
+            raiseif(number == 0, IncorrectDataError, "You may not order zero articles")
 
         stock_wish = StockWish(user_modified=user_modified)
         stock_wish.save()
 
         for article, number in articles_ordered:
             if number < 0:
-                StockWishTable.remove_products_from_table(user_modified,
+                StockWishTable.remove_products_from_table(
+                    user_modified,
                     article,
                     -number,
                     indirect=True,
@@ -356,10 +369,11 @@ class StockWishTableLine(Blame):
     number = models.IntegerField(default=0)
 
     def save(self, indirect=False, *args, **kwargs):
-        if not indirect:
-            raise IndirectionError("StockWishTableLine must be called indirectly from StockWishTable")
-        else:
-            super(StockWishTableLine, self).save(*args, **kwargs)
+        raiseif(not indirect,
+                IndirectionError,
+                "StockWishTableLine must be called indirectly from StockWishTable")
+
+        super(StockWishTableLine, self).save(*args, **kwargs)
 
 
 class StockWishTable:
@@ -370,7 +384,8 @@ class StockWishTable:
     @staticmethod
     def add_products_to_table(user_modified, article_type, number, indirect=False,
                               stock_wish=None, supplier_order=None):
-        _assert(number > 0)
+        raiseif(number <= 0, IncorrectDataError, "Number of products to add to table must be bigger than 0")
+
         if not indirect:
             raise IndirectionError("add_products_to_table must be called indirectly")
         article_type_status = StockWishTableLine.objects.filter(article_type=article_type)
@@ -396,7 +411,7 @@ class StockWishTable:
     @staticmethod
     def remove_products_from_table(user_modified,article_type, number, indirect=False,
                                    stock_wish=None, supplier_order=None):
-        _assert(number > 0)
+        raiseif(number <= 0, IncorrectDataError, "number of products to remove from table must be bigger than 0")
         if not indirect:
             raise IndirectionError("remove_products_from_table must be called indirectly")
         article_type_statuses = StockWishTableLine.objects.filter(article_type=article_type)
@@ -434,11 +449,14 @@ class StockWishTableLog(ImmutableBlame):
     stock_wish = models.ForeignKey(StockWish, null=True)
 
     def save(self, indirect=False):
-        if not indirect:
-            raise IndirectionError("Saving must be done indirectly")
-        _assert((self.supplier_order or self.stock_wish) and not(self.supplier_order and self.stock_wish))
+        raiseif(not indirect, IndirectionError, "Saving must be done indirectly")
+
+        raiseif(self.supplier_order and self.stock_wish,
+                TooManyReasonsError, "With two reasons to order this product, "
+                                     "I cannot make sense of that. Please explain...")
+        raiseif(not (self.supplier_order or self.stock_wish),
+                NotEnoughReasonError, "Why am I here? There is no reason for my existence...")
         # ^ reason is either supplier order or stock wish modification
-        _assert(self.pk is None)  # No edits after creation
         super(StockWishTableLog, self).save()
 
     def __str__(self):
@@ -451,6 +469,7 @@ class StockWishTableLog(ImmutableBlame):
         else:
             stw = self.stock_wish.pk
         return "{} x {}, SupplierOrder: {}, StockWish: {}".format(self.article_type, self.number, sup_ord, stw)
+
 
 class SupplierOrderCombinationLine:
 
@@ -543,20 +562,28 @@ class DisbributionStrategy:
         :param distribution: A list of SupplierOrderLines
         :param indirect: Indirection flag. Function must be called indirectly.
         """
-        _assert(isinstance(user, User))
-        _assert(isinstance(supplier, Supplier))
-        if not indirect:
-            raise IndirectionError("Distribute must be called indirectly")
-        _assert(distribution)
+        raiseif(not isinstance(user, User), IncorrectDataError, "argument user is not instance of User")
+        raiseif(not isinstance(supplier, Supplier), IncorrectDataError, "argument supplier is not instance of Supplier")
+        raiseif(not indirect, IndirectionError, "Distribute must be called indirectly")
+        raiseif(not distribution, IncorrectDataError, "distribution is not supplied")
+
         supplier_order = SupplierOrder(user_modified=user, supplier=supplier)
         for supplier_order_line in distribution:
-            _assert(isinstance(supplier_order_line, SupplierOrderLine))
-            _assert(supplier_order_line.order_line is None or isinstance(supplier_order_line.order_line, OrderLine))
+            raiseif(
+                not isinstance(supplier_order_line, SupplierOrderLine),
+                IncorrectDataError, "argument distribution does not only contain SupplierOrderLine")
+            raiseif(not (supplier_order_line.order_line is None or
+                         isinstance(supplier_order_line.order_line, OrderLine)),
+                    IncorrectDataError, "supplier order line's order line link is not instance of OrderLine")
+
             supplier_order_line.supplier_article_type = ArticleTypeSupplier.objects.get(article_type=supplier_order_line.article_type,
                                                                                         supplier=supplier)
             if supplier_order_line.order_line is not None:
                 # Discount the possibility of OrProducts for now
-                _assert(supplier_order_line.article_type == supplier_order_line.order_line.wishable.sellabletype.articletype)
+                raiseif(supplier_order_line.article_type !=
+                        supplier_order_line.order_line.wishable.sellabletype.articletype,
+                        IncorrectDataError, "SupplierOrderLine's article type is not the same type as it's linked"
+                                            "OrderLine")
 
         # We've checked everyting, now we start saving
         supplier_order.save()
@@ -598,7 +625,10 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
                     articletype_dict_supply[orderline.wishable.sellabletype.articletype] -= 1
         stock_wishes = StockWishTableLine.objects.filter(article_type__in=articletypes)
         for wish in stock_wishes:
-            _assert(wish.number >= articletype_dict_supply[wish.article_type])  # Assert not more supply than demand
+            # Assert not more supply than demand
+            raiseif(wish.number < articletype_dict_supply[wish.article_type],
+                    InsufficientDemandError, "there is not enough demand to order this many articles")
+
             if articletype_dict_supply[wish.article_type] > 0:
                 for i in range(0, articletype_dict_supply[wish.article_type]):
                     sup_ord_line = SupplierOrderLine(article_type=wish.article_type, line_cost=None)
@@ -650,3 +680,20 @@ class IncorrectStateError(Exception):
 
 class IncorrectTransitionError(Exception):
     pass
+
+
+class IncorrectDataError(Exception):
+    pass
+
+
+class TooManyReasonsError(Exception):
+    pass
+
+
+class NotEnoughReasonError(Exception):
+    pass
+
+
+class InvalidDataError(Exception):
+    pass
+

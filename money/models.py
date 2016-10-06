@@ -12,7 +12,7 @@ from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
 
 
 # VAT : Pay the government, alas, we have to do this.
-from tools.util import _assert
+from tools.util import raiseif
 
 
 class VAT(models.Model):
@@ -55,7 +55,7 @@ class VATLevelField(models.DecimalField):
 # Currency describes the currency of a monetary value. It's also used to describe the currency used in a till
 class Currency:
     def __init__(self, iso: str):
-        _assert(len(iso) == 3), "Valid ISO currency codes are exactly three characters long, given {}".format(iso)
+        raiseif(len(iso) != 3, InvalidISOError, "Your ISO is not an ISO: {} is not 3 chars long".format(iso))
         self._iso = iso
 
     @property
@@ -636,7 +636,7 @@ class Denomination(models.Model):
             return cls(*args, **kwargs)
 
     def save(self, **kwargs):
-        _assert(self.currency and self.amount)
+        raiseif(not (self.currency and self.amount), InvalidDataError, "Currency and ")
         super(Denomination, self).save()
 
     def __str__(self):
@@ -680,3 +680,9 @@ class TestPriceType(models.Model):
 
 # Define monetary types here
 money_types = {"cost": Cost, "money": Money}
+
+class InvalidISOError(Exception):
+    pass
+
+class InvalidDataError(Exception):
+    pass
