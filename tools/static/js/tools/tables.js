@@ -1,8 +1,7 @@
 /**
  * @callback lookup
  * @param {Row} row
- * @returns {T}
- * @template T
+ * @returns {*}
  */
 
 /**
