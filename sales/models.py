@@ -14,7 +14,8 @@ from tools.util import raiseif
 
 class TransactionLine(Blame):
     """
-    Superclass of transaction line. Contains all the shared information of all transaction line types.
+    Superclass of transaction line. Contains all the shared information of all transaction line types. Creation in the database
+    should only be done via the transaction creation function as the checks are done there.
     """
     # A transaction has one or more transaction lines
     transaction = models.ForeignKey("Transaction")
@@ -69,7 +70,7 @@ class TransactionLine(Blame):
 # noinspection PyShadowingBuiltins
 class SalesTransactionLine(TransactionLine):
     """
-        Equivalent to one stock-modifying line on a Receipt
+        A Transactionline that modifies the stock and uses articles.
     """
     # How much did the ArticleType cost?
     cost = CostField()
@@ -93,6 +94,7 @@ class OtherCostTransactionLine(TransactionLine):
     """
         Transaction for a product that has no stock but is orderable.
     """
+    # The otherCostType used
     other_cost_type = models.ForeignKey(OtherCostType)
 
     def __str__(self):
@@ -108,6 +110,7 @@ class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
     """
+    # The accounting group to indicate where the money flow should be booked.
     accounting_group = models.ForeignKey(AccountingGroup)
 
     def __str__(self):
@@ -120,7 +123,11 @@ class OtherTransactionLine(TransactionLine):
 
 
 class RefundTransactionLine(TransactionLine):
-
+    """
+    This a refund of a sold TransactionLine. The sold transaction line that is pointed to, must not be a RefundTransactionLine
+    itself. Furthermore, transactionlines cannot be refunded more than they are stored.
+    """
+    # The transaction line that is already sold.
     sold_transaction_line = models.ForeignKey(TransactionLine, related_name="sold_line")
 
     def __str__(self):
@@ -130,10 +137,6 @@ class RefundTransactionLine(TransactionLine):
         else:
             tr = self.transaction_line.pk
         return prep + ", Transaction_number: {}".format(tr)
-
-
-class InactiveError(Exception):
-    pass
 
 
 class Payment(models.Model):
@@ -421,36 +424,54 @@ class Transaction(Blame):
                     ols[i].sell(user)
 
 
-# List of all types of transaction lines
-transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
-                          "other": OtherTransactionLine}
-
-
 class UnimplementedError(Exception):
+    """
+    A general error for sales that occurs when the system tries to do something that is not yet
+    supported here.
+    """
     pass
 
 
 class NotEnoughStockError(Exception):
+    """
+    Raised when the system tries to sell more articles than there are on the stock.
+    """
     pass
 
 
 class PaymentMisMatchError(Exception):
+    """
+    Either too much, too little or the wrong currency was used for paying.
+    """
     pass
 
 
 class PaymentTypeError(Exception):
+    """
+    Error that indicates a PaymentType was used, that was not connected to any opened register.
+    """
     pass
 
 
 class NotEnoughOrderLinesError(Exception):
+    """
+    Checks if there are no more othercosts sold from orders, than there are ordered
+    """
     pass
 
 
 class RefundError(Exception):
+    """
+    Error that indicates an illegal action was done with a RefundTransactionLine
+    """
     pass
 
 
 class StockModelError(Exception):
+    """
+    Indicates that there are more lines for a stock query than expected. When this happens,
+    either the model has changed or something is terribly wrong.
+    """
     pass
 
 
