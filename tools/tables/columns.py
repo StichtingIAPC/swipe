@@ -6,6 +6,7 @@ class Column:
     Generic column class.
     Uses basic templates for its column header and cell values.
     If you want different templates, or other behaviour, feel free to subclass.
+    Example usages in money.columns and in article.columns
 
     API:
     header_template: Instance of django.template.Template. Context contains 'name'
@@ -18,6 +19,8 @@ class Column:
     name: name does default to the 'name' property specified by a subclass, or (if
     not available) the stringified name of the class.
 
+    get_context: Get the context for the cell renderer. Default returns only
+    {value: value}, but may be extended.
 
     """
     header_template = Template("""<td>{{ name }}</td>""")
@@ -49,13 +52,20 @@ class Column:
 
     def render(self, context):
         """
-        :param context:
-        :type context: dict
-        :return: the value of this cell
-        :rtype: Any
+        :param context: the context given in the include tag. Only
+        :type context: Context
+        :return: the rendered template of this column cell
+        :rtype: str
         """
-        context.update({"value": self.key(context['row'])})
-        return self.cell_template.render(Context(context))
+        return self.cell_template.render(self.get_context(context['row']))
+
+    def get_context(self, row):
+        """
+        :param row:
+        :type row: Any
+        :return:
+        """
+        return Context({"value": self.key(row)})
 
     def jsonify_data(self, row):
         """
