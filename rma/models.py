@@ -15,12 +15,16 @@ class StockRMA(RMACause):
 
 
 class CustomerRMATask(models.Model):
-
+    """
+    A task where a customer has a problem with products he bought. This can be result in a number of products that are
+    broken and need to be handled. Connects to a receipt.
+    """
+    # The customer
     customer = models.ForeignKey(Customer)
 
     description = models.TextField()
 
-    state = models.CharField(max_length=3)
+    handled = models.BooleanField(default=False)
 
     receipt = models.ForeignKey(Transaction)
 
@@ -32,10 +36,15 @@ class CustomerRMATask(models.Model):
 
 
 class TestRMA(RMACause):
+    """
+    An issue for an individual product,
+    """
 
     customer_rma_task = models.ForeignKey(CustomerRMATask)
 
     transaction_line = models.ForeignKey(TransactionLine)
+
+    state = models.CharField(max_length=3)
 
     def save(self, **kwargs):
         if isinstance(self.transaction_line, SalesTransactionLine):
@@ -59,6 +68,9 @@ class TestRMA(RMACause):
 
 
 class DirectRefundRMA(RMACause):
+    """
+
+    """
 
     refund_line = models.ForeignKey(RefundTransactionLine)
 
@@ -74,6 +86,9 @@ class CustomerRMATaskState(ImmutableBlame):
 
 
 class InternalRMA(Blame):
+    """
+
+    """
 
     rma_cause = models.ForeignKey(RMACause)
 
