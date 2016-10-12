@@ -17,9 +17,9 @@ from tools.util import raiseif
 
 
 class PackingDocument(ImmutableBlame):
-
+    # The supplier that supplies the ArticleTypes
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
-
+    # The identifier for the document. This is not neccesarily unique, but it should match real packing documents.
     supplier_identifier = models.CharField(max_length=30)
 
     @staticmethod
@@ -115,13 +115,23 @@ class PackingDocument(ImmutableBlame):
 
 
 class Invoice(ImmutableBlame):
-
+    """
+    An invoice for products delivered. Supplied after a packing document and not essential to the process. Can technically
+    used to correct errors made by the person ordering the products and setting the prices.
+    """
+    # The supplier name for the invoice
     supplier_identifier = models.CharField(max_length=30)
-
+    # The supplier of the packing document and products of this invoice
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
 
 class PackingDocumentLine(Blame):
+    """
+    An important part of the logistical process. This document line indicates that products have arrived from the supplier.
+    When these are saved, the stock is modified based on the SupplierOrderLines that are connected to the packingdocumentlines.
+    The step of saving shifts the orders of customers as a result of the connection a SupplierOrderLine. Semi-final prices
+    are assumed for the products that enter stock.
+    """
     # The packing document to which this line belongs
     packing_document = models.ForeignKey(PackingDocument, on_delete=models.PROTECT)
     # The line which will match this line
@@ -222,6 +232,10 @@ class PackingDocumentLine(Blame):
 
 
 class DistributionStrategy:
+    """
+    The interface for strategies for distributing the arrived products. DistributionStrategy allows for a standardised way
+    of asking for a way of distribution and there is also a function to handle the actual act of distribution.
+    """
 
     @staticmethod
     @transaction.atomic
@@ -366,6 +380,9 @@ class DistributionStrategy:
 
 
 class FirstSupplierOrderStrategy(DistributionStrategy):
+    """
+    A simple distribution strategy that uses the implied strategy used when prioritizing the SupplierOrders.
+    """
 
     @staticmethod
     def get_distribution(article_type_number_combos, supplier):
@@ -421,6 +438,10 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
 
 
 class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
+    """
+    Prioritizes the customers first by checking the supplier orders by date time. After that, the stock is supplied
+    by datetime.
+    """
 
     @staticmethod
     def get_distribution(article_type_number_combos, supplier):

@@ -54,10 +54,10 @@ class SupplierOrder(ImmutableBlame):
             raise InsufficientDemandError(err_msg)
 
         # Create supplier order and modify customer orders
-        distribution = DisbributionStrategy.get_strategy_from_string(USED_SUPPLIERORDER_STRATEGY)\
+        distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLIERORDER_STRATEGY)\
             .get_distribution(articles_ordered)
 
-        DisbributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
+        DistributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
 
     @staticmethod
     def verify_article_demand(articles_ordered=None):
@@ -129,18 +129,20 @@ class SupplierOrder(ImmutableBlame):
 
 class SupplierOrderLine(Blame):
     """
-    Single ArticleType ordered at supplier and contained in a SupplierOrder
+    Single ArticleType ordered at supplier and contained in a SupplierOrder. Can be linked to a Customers OrderLines or
+    be left empty for stock.
     """
+    # The document containing all these supplierOrderLines
     supplier_order = models.ForeignKey(SupplierOrder)
-
+    # An articleType. Must match the supplierArticleType
     article_type = models.ForeignKey(ArticleType)
-
+    # The articleType as the supplier knows it. Must match our own articleType
     supplier_article_type = models.ForeignKey(ArticleTypeSupplier)
-
+    # And orderLine to fulfill the wish of a customer for a product.
     order_line = models.ForeignKey(OrderLine, null=True)
-
+    # The amount of money we are going to pay for this product excluding all taxes
     line_cost = CostField()
-
+    # A state indicating if the customer order is completed yet.
     state = models.CharField(max_length=5)
 
     def __str__(self):
@@ -217,8 +219,9 @@ class SupplierOrderLine(Blame):
         # Assert that everything is ok here
         if self.pk is None:
             if self.order_line is not None:
-                self.order_line.order_at_supplier(self.supplier_order.user_created)  # If this doesn't happen at exactly the same time
-                                                     # as the save of the SupOrdLn, you are screwed
+                self.order_line.order_at_supplier(self.supplier_order.user_created)
+                # ^ If this doesn't happen at exactly the same time
+                # as the save of the SupOrdLn, you are screwed
             # +1 query for the user_created from supplier_order
             else:
                 StockWishTable.remove_products_from_table(self.user_modified, article_type=self.article_type, number=1,
@@ -289,6 +292,10 @@ class SupplierOrderLine(Blame):
 
 
 class SupplierOrderState(ImmutableBlame):
+    """
+    A state log of a supplierOrderLine. The static lists indicate which states are available and
+    what they mean. This also indicates which states are in transit and which are closed.
+    """
 
     STATE_CHOICES = ('O', 'B', 'C', 'A')
     STATE_CHOICES_MEANING = {'O': 'Ordered at supplier', 'B': 'Backorder', 'C': 'Cancelled',
@@ -307,7 +314,6 @@ class StockWish(ImmutableBlame):
     """
     Combination of wishes for ArticleTypes to be ordered at supplier.
     """
-
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -419,7 +425,8 @@ class StockWishTable:
             return
         article_type_status = article_type_statuses[0]
         if article_type_status.number - number < 0:
-            raise CannotRemoveFromWishTableError("Less ArticleTypes present than removal number")
+            raise CannotRemoveFromWishTableError("For articleType, tried to remove {} from WishTable,"
+                                                 "but only {} is present".format(number, article_type_status.number))
         else:
             if article_type_status.number - number == 0:
                 article_type_status.delete()
@@ -453,9 +460,9 @@ class StockWishTableLog(ImmutableBlame):
 
         raiseif(self.supplier_order and self.stock_wish,
                 TooManyReasonsError, "With two reasons to order this product, "
-                                     "I cannot make sense of that. Please explain...")
+                                     "Choose either a supplier order or a stock wish")
         raiseif(not (self.supplier_order or self.stock_wish),
-                NotEnoughReasonError, "Why am I here? There is no reason for my existence...")
+                NotEnoughReasonError, "Supply a reason for this modification")
         # ^ reason is either supplier order or stock wish modification
         super(StockWishTableLog, self).save()
 
@@ -472,6 +479,10 @@ class StockWishTableLog(ImmutableBlame):
 
 
 class SupplierOrderCombinationLine:
+    """
+    A helper class to group SupplierOrderLines together based on shared properties. This allows for quick summaries where
+    summation of all lines was a bad alternative.
+    """
 
     number = 0
 
@@ -543,7 +554,12 @@ class SupplierOrderCombinationLine:
         return result
 
 
-class DisbributionStrategy:
+class DistributionStrategy:
+    """
+    An interface for a consistent way of deciding the distribution of the products ordered at our suppliers. Also contains
+    a distributionfunction that actually handles the actual distribution of the articles for users who prefer a manual way
+    of operation.
+    """
 
     @staticmethod
     def get_strategy_from_string(strategy):
@@ -602,7 +618,10 @@ class DisbributionStrategy:
         raise UnimplementedError("Super distribution class has no implementation")
 
 
-class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
+class IndiscriminateCustomerStockStrategy(DistributionStrategy):
+    """
+    Prioritises the customers first by primary key of orderline, and then the stock.
+    """
 
     @staticmethod
     def get_distribution(article_type_number_combos):
@@ -635,7 +654,7 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
                     distribution.append(sup_ord_line)
                 articletype_dict_supply[wish.article_type] = 0
 
-        # Now connect the cost. I do not think this can be done more efficiently.
+        # Now connect the cost.
         # Unfortunately, its n^2. This can be done more efficiently using maps, this should be worked out
         # sat a later date.
         cost_counter = article_type_number_combos.copy()
@@ -655,45 +674,78 @@ class IndiscriminateCustomerStockStrategy(DisbributionStrategy):
 
 
 class UnimplementedError(Exception):
+    """
+    Used for still unimplemented features in the logistics scope.
+    """
     pass
 
 
 class CannotRemoveFromWishTableError(Exception):
+    """
+    The system tries to remove more from the WishTable than there is present. This is not consistent.
+    """
     pass
 
 
 class IndirectionError(Exception):
+    """
+    Thrown when a function is abusively used in an indirect manner(indirect-flag).
+    """
     pass
 
 
 class InsufficientDemandError(Exception):
+    """
+    There is more supply than demand.
+    """
     pass
 
 
 class ObjectNotSavedError(Exception):
+    """
+    A transition is attempted on an unsaved object.
+    """
     pass
 
 
 class IncorrectStateError(Exception):
+    """
+    An incorrect state is supplied.
+    """
     pass
 
 
 class IncorrectTransitionError(Exception):
+    """
+    An illegal transition is attempted.
+    """
     pass
 
 
 class IncorrectDataError(Exception):
+    """
+    Data is supplied in an incorrect manner or type.
+    """
     pass
 
 
 class TooManyReasonsError(Exception):
+    """
+    Two reasons were supplied for modifying the wishTable.
+    """
     pass
 
 
 class NotEnoughReasonError(Exception):
+    """
+    No reason was supplied for modifying the wishTable.
+    """
     pass
 
 
 class InvalidDataError(Exception):
+    """
+    Data is supplied that, after further inspection, does not meet the specified criteria.
+    """
     pass
 

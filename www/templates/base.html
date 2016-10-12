@@ -23,7 +23,7 @@
              */
         window.swipe = {
         {% if swipe_local_vars %}local: {{ swipe_local_vars }},{% endif %}
-            global: {{ SWIPE_JS_GLOBAL_VARS }}
+        {% if SWIPE_JS_GLOBAL_VARS %}global: {{ SWIPE_JS_GLOBAL_VARS }},{% endif %}
         };
         </script>
         <script type="module" src="{% static 'js/main.js' %}"></script>
