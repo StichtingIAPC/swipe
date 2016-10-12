@@ -11,6 +11,6 @@
     <form action="" method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" value="{% trans 'Create supplier' %}" />
+        <input type="submit" value="{% if request.path == add %}{% trans 'Create supplier' %}{% else %}{% trans 'Save Changes' %}{% endif %}" />
     </form>
 {% endblock %}
