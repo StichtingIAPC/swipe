@@ -25,10 +25,8 @@
     min-height: 100%;
     overflow: hidden;
     display: inline;
-    -webkit-transition: width 0.5s;
-    transition: width 0.5s;
-    -webkit-transition-timing-function: ease;
-    transition-timing-function: ease;
+    transition: width 0.25s ease;
+    will-change: width;
 
     position: absolute;
     top: 0;
