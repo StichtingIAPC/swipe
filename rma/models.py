@@ -4,13 +4,19 @@ from blame.models import Blame, ImmutableBlame
 from money.models import MoneyField
 from sales.models import Transaction, RefundTransactionLine, TransactionLine, SalesTransactionLine
 from article.models import ArticleType
+from stock.models import Stock, StockChangeSet
+from stock.enumeration import enum
 
 
 class RMACause(Blame):
     """
     The reason why an RMA has entered the system for us. The type effects how it is handled in the system.
     """
-    pass
+    def save(self, *args, **kwargs):
+        if type(self) == RMACause:
+            raise AbstractionError("Cannot store superclass RMACause")
+        
+        super(RMACause, self).save(*args, **kwargs)
 
 
 class StockRMA(RMACause):
@@ -20,6 +26,22 @@ class StockRMA(RMACause):
     article_type = models.ForeignKey(ArticleType)
 
     value = MoneyField()
+
+    @transaction.atomic()
+    def save(self, *args, **kwargs):
+        articles = Stock.objects.filter(article=self.article_type, labeltype__isnull=True)
+        if len(articles) == 0:
+            raise StockError("No stock exists to create RMA from.")
+        description = "RMA from stock with article {}".format(self.article_type.name)
+        # Removes the item from the stock. From here on, it is tracked by the internal RMA
+        entry = [{'article': self.article_type,
+                  'book_value': articles[0].book_value,
+                  'count': 1,
+                  'is_in': False}]
+        StockChangeSet.construct(description=description, entries=entry, enum=enum['rma'])
+        ima = InternalRMA(rma_cause=self, user_created=self.user_created, customer=None)
+        ima.save()
+        super(StockRMA, self).save()
 
 
 class CustomerRMATask(models.Model):
@@ -33,12 +55,6 @@ class CustomerRMATask(models.Model):
     handled = models.BooleanField(default=False)
 
     receipt = models.ForeignKey(Transaction)
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        if self.state not in CustomerRMATaskState.STATES:
-            raise StateError("While saving CustomerRMATask encountered illegal state {}".format(self.state))
-        super(CustomerRMATask, self).save()
 
 
 class CustomerTaskDescription(Blame):
@@ -64,34 +80,32 @@ class TestRMA(RMACause):
 
     def save(self, **kwargs):
         if isinstance(self.transaction_line, SalesTransactionLine):
-            # You cannot
-            count = 0
-            internal_rmas = InternalRMA.objects.filter(rma_cause__transaction_line=self.transaction_line)
-            for in_rma in internal_rmas:
-                if in_rma.state in InternalRMAState.OPEN_STATES:
-                    count += 1
-            if count >= self.transaction_line.count:
-                raise RMACountError("You tried to open more active RMAs than there are counts for transaction {}".
-                                    format(self.transaction_line))
+            if self.state not in TestRMAState.STATES:
+                raise StateError("State {} not is list of valid states for this TestRMA".format(self.state))
+            if self.pk is None:
+                # You cannot have more active RMAs than there are products sold
+                count = 0
+                internal_rmas = InternalRMA.objects.filter(rma_cause__transaction_line=self.transaction_line)
+                for in_rma in internal_rmas:
+                    if in_rma.state in InternalRMAState.OPEN_STATES:
+                        count += 1
+                # if count >= translinecount then you cannot add a new one
+                if count >= self.transaction_line.count:
+                    raise RMACountError("You tried to open more active RMAs than there are counts for transaction {}".
+                                        format(self.transaction_line))
 
         # Everything checks out, lets save
         # Consider that we must make an internal RMA for a physical product
         with transaction.atomic():
             if isinstance(self.transaction_line, SalesTransactionLine):
-                internal_rma = InternalRMA(rma_cause=self, state='B')
-                internal_rma.save()
+                if self.pk is None:
+                    internal_rma = InternalRMA(rma_cause=self, customer=self.customer_rma_task.customer,
+                                               state=self.state)
+                    internal_rma.save()
             super(TestRMA, self).save()
 
 
-class DirectRefundRMA(RMACause):
-    """
-    A cause for an RMA that happens when a customer is instantly refunded when he returns a (broken) product.
-    """
-
-    refund_line = models.ForeignKey(RefundTransactionLine)
-
-
-class CustomerRMATaskState(ImmutableBlame):
+class TestRMAState(ImmutableBlame):
     """
     The state log for the handling of an RMA for the customer.
     """
@@ -105,6 +119,27 @@ class CustomerRMATaskState(ImmutableBlame):
 
     state = models.CharField(max_length=3)
 
+    def save(self, **kwargs):
+        if self.state not in TestRMAState.STATES:
+            raise StateError("State {} not valid for TestRMAState".format(self.state))
+
+
+class DirectRefundRMA(RMACause):
+    """
+    A cause for an RMA that happens when a customer is instantly refunded when he returns a (broken) product.
+    """
+
+    refund_line = models.ForeignKey(RefundTransactionLine)
+
+    @transaction.atomic()
+    def save(self, *args, **kwargs):
+        if not hasattr(self, 'refund_line') or self.refund_line is None:
+            raise AttributeError("DirectRefundRMA is missing refund_line")
+        if self.pk is None:
+            irma = InternalRMA(rma_cause=self, customer=None, user_created=self.user_created)
+            irma.save()
+        super(DirectRefundRMA, self).save()
+
 
 class InternalRMA(Blame):
     """
@@ -115,11 +150,23 @@ class InternalRMA(Blame):
 
     rma_cause = models.ForeignKey(RMACause)
 
+    customer = models.ForeignKey(Customer, null=True)
+
     state = models.CharField(max_length=3)
 
+    @transaction.atomic()
     def save(self, **kwargs):
+        if self.pk is None:
+            if self.state is None:
+                if self.state is None:
+                    self.state = InternalRMAState.STARTING_STATE
+
+            irs = InternalRMAState(internal_rma=self, state=self.state, user_modified=self.user_created)
+            irs.save()
+
         if self.state not in InternalRMAState.STATES:
             raise StateError("While saving InternalRMA encountered illegal state {}".format(self.state))
+        super(InternalRMA, self).save()
 
 
 class InternalRMAState(ImmutableBlame):
@@ -132,10 +179,16 @@ class InternalRMAState(ImmutableBlame):
                       'A': 'Customer Abuse', 'F': 'Refunded', 'T': 'Returned product to customer', 'O': 'Written Off'}
     OPEN_STATES = ('B', 'W', 'R', 'S', 'P', 'A')
     CLOSED_STATES = ('F', 'T', 'O')
+    STARTING_STATE = 'B'
 
     internal_rma = models.ForeignKey(InternalRMA)
 
     state = models.CharField(max_length=3)
+
+    def save(self, **kwargs):
+        if self.state not in InternalRMAState.STATES:
+            raise StateError("While saving InternalRMA encountered illegal state {}".format(self.state))
+        super(InternalRMAState, self).save()
 
 
 class StateError(Exception):
@@ -146,6 +199,19 @@ class RMACountError(Exception):
     pass
 
 
+class AbstractionError(Exception):
+    pass
+
+
+class StockError(Exception):
+    pass
+
+
 class MatchingException(Exception):
     pass
+
+
+class AttributeError(Exception):
+    pass
+
 
