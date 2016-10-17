@@ -3,13 +3,21 @@ from crm.models import Customer
 from blame.models import Blame, ImmutableBlame
 from money.models import MoneyField
 from sales.models import Transaction, RefundTransactionLine, TransactionLine, SalesTransactionLine
+from article.models import ArticleType
 
 
 class RMACause(Blame):
+    """
+    The reason why an RMA has entered the system for us. The type effects how it is handled in the system.
+    """
     pass
 
 
 class StockRMA(RMACause):
+    """
+    A broken product in the stock. Just for stock and not for a customer.
+    """
+    article_type = models.ForeignKey(ArticleType)
 
     value = MoneyField()
 
@@ -22,8 +30,6 @@ class CustomerRMATask(models.Model):
     # The customer
     customer = models.ForeignKey(Customer)
 
-    description = models.TextField()
-
     handled = models.BooleanField(default=False)
 
     receipt = models.ForeignKey(Transaction)
@@ -33,6 +39,16 @@ class CustomerRMATask(models.Model):
         if self.state not in CustomerRMATaskState.STATES:
             raise StateError("While saving CustomerRMATask encountered illegal state {}".format(self.state))
         super(CustomerRMATask, self).save()
+
+
+class CustomerTaskDescription(Blame):
+    """
+    A description of the situation of the customer-RMA. Intended as a human readable/writable log.
+    """
+
+    customer_rma_task = models.ForeignKey(CustomerRMATask)
+
+    text = models.TextField()
 
 
 class TestRMA(RMACause):
@@ -69,13 +85,16 @@ class TestRMA(RMACause):
 
 class DirectRefundRMA(RMACause):
     """
-
+    A cause for an RMA that happens when a customer is instantly refunded when he returns a (broken) product.
     """
 
     refund_line = models.ForeignKey(RefundTransactionLine)
 
 
 class CustomerRMATaskState(ImmutableBlame):
+    """
+    The state log for the handling of an RMA for the customer.
+    """
     STATES = ('U', 'N', 'W', 'R', 'F', 'A', 'O')
     STATE_MEANINGS = {'U': 'Untested', 'N': 'Not broken', 'W': 'Waiting for handling', 'R': 'Returned new product',
                       'F': 'Refunded', 'A': 'Customer Abuse', 'O': 'Returned original product(s) to customer'}
@@ -84,10 +103,14 @@ class CustomerRMATaskState(ImmutableBlame):
 
     customer_rma_task = models.ForeignKey(CustomerRMATask)
 
+    state = models.CharField(max_length=3)
+
 
 class InternalRMA(Blame):
     """
-
+    The handling of a broken product on 'our' side. This tracks whether we are credited for a product or it is replaced.
+    Not neccesarily a concern for the customer although this means in practice that the customer has to wait for our
+    handling of the problem.
     """
 
     rma_cause = models.ForeignKey(RMACause)
@@ -100,6 +123,9 @@ class InternalRMA(Blame):
 
 
 class InternalRMAState(ImmutableBlame):
+    """
+    A logger for all internal RMAs
+    """
     STATES = ('B', 'W', 'R', 'S', 'P', 'A', 'F', 'O')
     STATE_MEANINGS = {'B': 'Broken', 'W': 'Waiting for Number', 'R': 'Received number', 'S': 'Sent',
                       'P': 'Received replacement or refurbishment',
@@ -108,6 +134,8 @@ class InternalRMAState(ImmutableBlame):
     CLOSED_STATES = ('F', 'T', 'O')
 
     internal_rma = models.ForeignKey(InternalRMA)
+
+    state = models.CharField(max_length=3)
 
 
 class StateError(Exception):
