@@ -1,4 +1,4 @@
-from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData
+from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money
 from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
 from register.models import PaymentType, Register
 from decimal import Decimal
@@ -7,6 +7,8 @@ from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import Order
 from logistics.models import SupplierOrder
 from supplication.models import PackingDocument
+from sales.models import Transaction, SalesTransactionLine, Payment
+from django.test import TestCase
 
 
 class TestData:
@@ -42,8 +44,10 @@ class TestData:
 
         self.register_1 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash)
         self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash)
+        self.register_3 = Register(currency=self.currency_data_eur, is_cash_register=False, payment_type=self.paymenttype_maestro)
         self.register_1.save()
         self.register_2.save()
+        self.register_3.save()
 
         self.denomination_eur_20 = Denomination(currency=self.currency_data_eur, amount=20)
         self.denomination_eur_20.save()
@@ -112,4 +116,29 @@ class TestData:
         self.PACKING_ARTICLE_2 = article_2
         PackingDocument.create_packing_document(supplier=self.supplier_1, packing_document_name="Packing document name 1", user=self.user_1,
                                                 article_type_cost_combinations=[[self.articletype_1, self.PACKING_ARTICLE_1], [self.articletype_2, self.PACKING_ARTICLE_2]])
+
+    def create_transactions_article_type(self, article_1=2, article_2=3):
+        self.SOLD_ARTICLE_1 = article_1
+        self.SOLD_ARTICLE_2 = article_2
+        self.register_3.open(counted_amount=Decimal(0))
+        tl_1 = SalesTransactionLine(price=self.price_eur_1, count=self.SOLD_ARTICLE_1, order=1, article=self.articletype_1)
+        money_1 = Money(amount=self.price_eur_1.amount*self.SOLD_ARTICLE_1, currency=self.price_eur_1.currency)
+        pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+        tl_2 = SalesTransactionLine(price=self.price_eur_2, count=self.SOLD_ARTICLE_2, order=1,
+                                    article=self.articletype_2)
+        money_2 = Money(amount=self.price_eur_2.amount * self.SOLD_ARTICLE_2, currency=self.price_eur_2.currency)
+        pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_maestro)
+        Transaction.create_transaction(user=self.user_2, transaction_lines=[tl_2], payments=[pymnt_2], customer=self.customer_person_1)
+
+
+class TestMixins(TestCase, TestData):
+
+    def test_all_in_sequence(self):
+        self.setup_base_data()
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type()
+
 
