@@ -29,18 +29,19 @@ class StockRMA(RMACause):
 
     @transaction.atomic()
     def save(self, *args, **kwargs):
-        articles = Stock.objects.filter(article=self.article_type, labeltype__isnull=True)
-        if len(articles) == 0:
-            raise StockError("No stock exists to create RMA from.")
-        description = "RMA from stock with article {}".format(self.article_type.name)
-        # Removes the item from the stock. From here on, it is tracked by the internal RMA
-        entry = [{'article': self.article_type,
-                  'book_value': articles[0].book_value,
-                  'count': 1,
-                  'is_in': False}]
-        StockChangeSet.construct(description=description, entries=entry, enum=enum['rma'])
-        ima = InternalRMA(rma_cause=self, user_created=self.user_created, customer=None)
-        ima.save()
+        if self.pk is None:
+            articles = Stock.objects.filter(article=self.article_type, labeltype__isnull=True)
+            if len(articles) == 0:
+                raise StockError("No stock exists to create RMA from.")
+            description = "RMA from stock with article {}".format(self.article_type.name)
+            # Removes the item from the stock. From here on, it is tracked by the internal RMA
+            entry = [{'article': self.article_type,
+                      'book_value': articles[0].book_value,
+                      'count': 1,
+                      'is_in': False}]
+            StockChangeSet.construct(description=description, entries=entry, enum=enum['rma'])
+            ima = InternalRMA(rma_cause=self, user_created=self.user_created, customer=None)
+            ima.save()
         super(StockRMA, self).save()
 
 
@@ -99,9 +100,11 @@ class TestRMA(RMACause):
         with transaction.atomic():
             if isinstance(self.transaction_line, SalesTransactionLine):
                 if self.pk is None:
-                    internal_rma = InternalRMA(rma_cause=self, customer=self.customer_rma_task.customer,
+                    sold_line = self.refund_line.sold_transaction_line
+                    if hasattr(sold_line, 'salestransactionline') and sold_line.salestransactionline is not None:
+                        internal_rma = InternalRMA(rma_cause=self, customer=self.customer_rma_task.customer,
                                                state=self.state)
-                    internal_rma.save()
+                        internal_rma.save()
             super(TestRMA, self).save()
 
 
@@ -136,8 +139,10 @@ class DirectRefundRMA(RMACause):
         if not hasattr(self, 'refund_line') or self.refund_line is None:
             raise AttributeError("DirectRefundRMA is missing refund_line")
         if self.pk is None:
-            irma = InternalRMA(rma_cause=self, customer=None, user_created=self.user_created)
-            irma.save()
+            sold_line = self.refund_line.sold_transaction_line
+            if hasattr(sold_line, 'salestransactionline') and sold_line.salestransactionline is not None:
+                irma = InternalRMA(rma_cause=self, customer=None, user_created=self.user_created)
+                irma.save()
         super(DirectRefundRMA, self).save()
 
 
