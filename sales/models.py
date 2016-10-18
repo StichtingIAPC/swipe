@@ -1,23 +1,21 @@
-from money.models import MoneyField, PriceField, CostField, AccountingGroup
-from stock.stocklabel import StockLabeledLine, OrderLabel
-from stock.models import StockChangeSet, Id10TError, Stock
-from article.models import ArticleType, OtherCostType, SellableType
-from stock.enumeration import enum
-from tools.util import _assert
-from swipe.settings import USED_CURRENCY
-from blame.models import Blame, ImmutableBlame
-from money.models import Price
-from crm.models import User, Customer
-from decimal import Decimal
 from collections import defaultdict
-from order.models import OrderLine
 
 from django.db import models, transaction
+
+from article.models import ArticleType, OtherCostType, SellableType
+from blame.models import Blame, ImmutableBlame
+from crm.models import User, Customer
+from money.models import MoneyField, PriceField, CostField, AccountingGroup
+from order.models import OrderLine
+from stock.models import StockChangeSet, Id10TError, Stock
+from stock.stocklabel import StockLabeledLine, OrderLabel
+from tools.util import raiseif
 
 
 class TransactionLine(Blame):
     """
-    Superclass of transaction line. Contains all the shared information of all transaction line types.
+    Superclass of transaction line. Contains all the shared information of all transaction line types. Creation in the database
+    should only be done via the transaction creation function as the checks are done there.
     """
     # A transaction has one or more transaction lines
     transaction = models.ForeignKey("Transaction")
@@ -72,7 +70,7 @@ class TransactionLine(Blame):
 # noinspection PyShadowingBuiltins
 class SalesTransactionLine(TransactionLine):
     """
-        Equivalent to one stock-modifying line on a Receipt
+        A Transactionline that modifies the stock and uses articles.
     """
     # How much did the ArticleType cost?
     cost = CostField()
@@ -96,6 +94,7 @@ class OtherCostTransactionLine(TransactionLine):
     """
         Transaction for a product that has no stock but is orderable.
     """
+    # The otherCostType used
     other_cost_type = models.ForeignKey(OtherCostType)
 
     def __str__(self):
@@ -111,6 +110,7 @@ class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
     """
+    # The accounting group to indicate where the money flow should be booked.
     accounting_group = models.ForeignKey(AccountingGroup)
 
     def __str__(self):
@@ -123,7 +123,11 @@ class OtherTransactionLine(TransactionLine):
 
 
 class RefundTransactionLine(TransactionLine):
-
+    """
+    This a refund of a sold TransactionLine. The sold transaction line that is pointed to, must not be a RefundTransactionLine
+    itself. Furthermore, transactionlines cannot be refunded more than they are stored.
+    """
+    # The transaction line that is already sold.
     sold_transaction_line = models.ForeignKey(TransactionLine, related_name="sold_line")
 
     def __str__(self):
@@ -133,10 +137,6 @@ class RefundTransactionLine(TransactionLine):
         else:
             tr = self.transaction_line.pk
         return prep + ", Transaction_number: {}".format(tr)
-
-
-class InactiveError(Exception):
-    pass
 
 
 class Payment(models.Model):
@@ -200,10 +200,11 @@ class Transaction(Blame):
         :return:
         """
         # Basic assertions
-        _assert(isinstance(user, User))
-        _assert(customer is None or isinstance(customer, Customer))
+        raiseif(not isinstance(user, User), InvalidDataException, "user is not a User")
+        raiseif(customer is not None and not isinstance(customer, Customer),
+                InvalidDataException, "customer is not a Customer")
         for payment in payments:
-            _assert(isinstance(payment, Payment))
+            raiseif(not isinstance(payment, Payment), "payment is not a Payment")
         types_supported = [SalesTransactionLine, OtherCostTransactionLine, OtherTransactionLine,
                            RefundTransactionLine]
         for tr_line in transaction_lines:
@@ -232,11 +233,11 @@ class Transaction(Blame):
         # Build up supply
         stock_level_dict = {}
         for tr_line in transaction_lines:
-            _assert(hasattr(tr_line, 'price') and tr_line.price)
+            raiseif(not hasattr(tr_line, 'price') or not tr_line.price, IncorrectDataException, "line.price must exist")
             typ = type(tr_line)
             if typ == SalesTransactionLine:
-                _assert(hasattr(tr_line, 'article') and tr_line.article)
-                _assert(tr_line.count > 0)
+                raiseif(not hasattr(tr_line, 'article') or not tr_line.article, InvalidDataException, "line.article must exist")
+                raiseif(tr_line.count <= 0, InvalidDataException, "There should be more than 1 articles per line")
                 ordr = tr_line.order
                 if ordr is None:
                     order_reference = ILLEGAL_ORDER_REFERENCE
@@ -250,15 +251,18 @@ class Transaction(Blame):
             elif typ == OtherTransactionLine:
                 # Text is the essential identifier here
                 # Accounting group is also needed as to ensure correct VAT and place on turnover list
-                _assert(len(tr_line.text) > 0)
-                _assert(tr_line.count > 0)
-                _assert(hasattr(tr_line, 'accounting_group') and tr_line.accounting_group is not None)
+                raiseif(len(tr_line.text) <= 0, IncorrectDataException, "line.text must be bigger than 0")
+                raiseif(tr_line.count <= 0, IncorrectDataException, "tr_line.count should be more than 0")
+                raiseif(not hasattr(tr_line, 'accounting_group') or tr_line.accounting_group is None,
+                        InvalidDataException, "OtherTransactionLine should have an accounting group attached")
             elif typ == OtherCostTransactionLine:
-                _assert(tr_line.count > 0)
-                _assert(hasattr(tr_line, 'other_cost_type') and tr_line.other_cost_type)
-            else:
-                _assert(tr_line.count < 0)
-                _assert(tr_line.sold_transaction_line.pk)
+                raiseif(tr_line.count <= 0, IncorrectDataException, "line count should be more than 0")
+                raiseif(not hasattr(tr_line, 'other_cost_type') or not tr_line.other_cost_type,
+                        InvalidDataException, "OtherCostTransactionLine must have other_cost_type linked")
+            elif typ == RefundTransactionLine:
+                raiseif(tr_line.count >= 0, IncorrectDataException, "line count should be less than 0 for refundlines")
+                raiseif(not tr_line.sold_transaction_line.pk,
+                        IncorrectDataException, "OtherCostTransactionLine must have a sold_transaction_line attached")
 
         # Checks if there is enough stock
         for key in stock_level_dict.keys():
@@ -277,7 +281,8 @@ class Transaction(Blame):
                         raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {}".
                                                   format(article, arts[0].count, stock_level_dict[key]))
                 # Assumes unity of all stock with same label. If this is not true, break
-                _assert(arts[0].count >= stock_level_dict[key])
+                raiseif(arts[0].count < stock_level_dict[key],
+                        NotEnoughStockError, "You are trying to sell too much.")
             else:
                 arts = Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=order,
                                             article=article)
@@ -419,34 +424,66 @@ class Transaction(Blame):
                     ols[i].sell(user)
 
 
-# List of all types of transaction lines
-transaction_line_types = {"sales": SalesTransactionLine, "other_cost": OtherCostTransactionLine,
-                          "other": OtherTransactionLine}
-
-
 class UnimplementedError(Exception):
+    """
+    A general error for sales that occurs when the system tries to do something that is not yet
+    supported here.
+    """
     pass
 
 
 class NotEnoughStockError(Exception):
+    """
+    Raised when the system tries to sell more articles than there are on the stock.
+    """
     pass
 
 
 class PaymentMisMatchError(Exception):
+    """
+    Either too much, too little or the wrong currency was used for paying.
+    """
     pass
 
 
 class PaymentTypeError(Exception):
+    """
+    Error that indicates a PaymentType was used, that was not connected to any opened register.
+    """
     pass
 
 
 class NotEnoughOrderLinesError(Exception):
+    """
+    Checks if there are no more othercosts sold from orders, than there are ordered
+    """
     pass
 
 
 class RefundError(Exception):
+    """
+    Error that indicates an illegal action was done with a RefundTransactionLine
+    """
     pass
 
 
 class StockModelError(Exception):
+    """
+    Indicates that there are more lines for a stock query than expected. When this happens,
+    either the model has changed or something is terribly wrong.
+    """
+    pass
+
+
+class InvalidDataException(Exception):
+    """
+    The data provided was faulty, not the correct types/not enough data
+    """
+    pass
+
+
+class IncorrectDataException(Exception):
+    """
+    The data provided did not match the requirements, was not within bounds.
+    """
     pass

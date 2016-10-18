@@ -1,24 +1,25 @@
+from collections import defaultdict
+
 from django.db import models, transaction
-from crm.models import User
-from stock.enumeration import enum
-from supplier.models import Supplier, ArticleTypeSupplier
-from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, \
-    InsufficientDemandError, IndirectionError, UnimplementedError, SupplierOrderState
-from money.models import CostField, Cost, Currency
-from stock.models import StockChangeSet
-from stock.stocklabel import OrderLabel
+
 from article.models import ArticleType
 from blame.models import ImmutableBlame, Blame
-from collections import defaultdict
+from crm.models import User
+from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, \
+    InsufficientDemandError, IndirectionError, UnimplementedError, SupplierOrderState
+from money.models import CostField, Cost
+from stock.enumeration import enum
+from stock.models import StockChangeSet
+from stock.stocklabel import OrderLabel
+from supplier.models import Supplier, ArticleTypeSupplier
 from swipe.settings import USED_SUPPLICATION_STRATEGY
-from tools.util import _assert
-from decimal import Decimal
+from tools.util import raiseif
 
 
 class PackingDocument(ImmutableBlame):
-
+    # The supplier that supplies the ArticleTypes
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
-
+    # The identifier for the document. This is not neccesarily unique, but it should match real packing documents.
     supplier_identifier = models.CharField(max_length=30)
 
     @staticmethod
@@ -30,7 +31,7 @@ class PackingDocument(ImmutableBlame):
         :param user: Blamed user
         :param supplier: Supplier for this packing document
         :param packing_document_name: Name of the packing document. Obligatory
-        :param article_type_cost_combinations: List[List[ArticleType number [Cost]]]. A list containing lists containing
+        :param article_type_cost_combinations: List[Tuple[ArticleType, number, [Cost]]]. A list containing lists containing
         A combination of an ArticleType, a number of those ArticleTypes, and potentially a cost if provided by an invoice.
         :param invoice_name: Name of an invoice. If None, no invoice is to be expected
         :return:
@@ -38,22 +39,23 @@ class PackingDocument(ImmutableBlame):
         use_invoice = False
         if invoice_name is not None:
             use_invoice = True
-            _assert(isinstance(invoice_name, str))
-        _assert(isinstance(user, User))
-        _assert(isinstance(supplier, Supplier) )
-        _assert(isinstance(packing_document_name, str))
-        _assert(isinstance(article_type_cost_combinations, list))
+            raiseif(not isinstance(invoice_name, str), InvalidDataError, "Invoice name must be string")
+        raiseif(not isinstance(user, User), InvalidDataError, "user must be a User")
+        raiseif(not isinstance(supplier, Supplier), InvalidDataError, "supplier must be a Supplier")
+        raiseif(not isinstance(packing_document_name, str), InvalidDataError, "packing document name must be a string")
+        raiseif(not isinstance(article_type_cost_combinations, list), InvalidDataError, "a28s must be a list")
 
         ARTICLETYPE_LOCATION = 0
         NUMBER_LOCATION = 1
         COST_LOCATION = 2
         for atcc in article_type_cost_combinations:
-            _assert(isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType))
-            _assert(isinstance(atcc[NUMBER_LOCATION], int))
+            raiseif(not isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType), InvalidDataError, "a28s[n] is not an ArticleType")
+            raiseif(not isinstance(atcc[NUMBER_LOCATION], int), InvalidDataError, "a28s[n] is not a number")
             if use_invoice:
-                _assert(len(atcc) == 2 or atcc[COST_LOCATION] is None or isinstance(atcc[COST_LOCATION], Cost))
+                raiseif(len(atcc) != 2 and atcc[COST_LOCATION] is not None and
+                        not isinstance(atcc[COST_LOCATION], Cost), InvalidDataError, "a28s[n] is not a Cost")
             else:
-                _assert(len(atcc) == 2 or atcc[COST_LOCATION] is None)
+                raiseif(len(atcc) != 2 and atcc[COST_LOCATION] is not None, InvalidDataError, "a28s[n] is not None")
 
         errors = PackingDocument.verify_article_demand(supplier, article_type_cost_combinations, use_invoice)
         if len(errors) > 0:
@@ -85,7 +87,8 @@ class PackingDocument(ImmutableBlame):
 
     @staticmethod
     def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
-        _assert(article_type_cost_combinations and isinstance(article_type_cost_combinations, list))
+        raiseif(not article_type_cost_combinations and not isinstance(article_type_cost_combinations, list),
+                InvalidDataError, )
 
         supplier_ordered_articles = defaultdict(lambda: 0)
         socls = SupplierOrderCombinationLine.get_sol_combinations(state='O', supplier=supplier)
@@ -93,30 +96,42 @@ class PackingDocument(ImmutableBlame):
             supplier_ordered_articles[socl.article_type] += socl.number
         supplied_articles = defaultdict(lambda: 0)
         for atcc in article_type_cost_combinations:
-            _assert(isinstance(atcc[0], ArticleType))
-            _assert(isinstance(atcc[1], int))
+            raiseif(not isinstance(atcc[0], ArticleType),
+                    InvalidDataError, "attc[n] must be Tuple[ArticleType, integer]")
+            raiseif(not isinstance(atcc[1], int),
+                    InvalidDataError, "attc[n] must be Tuple[ArticleType, integer]")
             if not use_invoice:
-                _assert(len(atcc) == 2)
+                raiseif(len(atcc) != 2, InvalidDataError, "attc[n] must be a Tuple[ArticleType, integer]")
             else:
-                _assert(len(atcc) == 2 or atcc[2] is None or isinstance(atcc[2], Cost))
+                raiseif(len(atcc) != 2 and atcc[2] is not None and not isinstance(atcc[2], Cost),
+                        InvalidDataError, "attc[n] must be a Tuple[ArticleType, integer]")
             supplied_articles[atcc[0]] += atcc[1]
 
         errors = []
         for article in supplied_articles:
             if supplied_articles[article] > supplier_ordered_articles[article]:
                 errors.append((article, supplied_articles[article] - supplier_ordered_articles[article]))
-
         return errors
 
 
 class Invoice(ImmutableBlame):
-
+    """
+    An invoice for products delivered. Supplied after a packing document and not essential to the process. Can technically
+    used to correct errors made by the person ordering the products and setting the prices.
+    """
+    # The supplier name for the invoice
     supplier_identifier = models.CharField(max_length=30)
-
+    # The supplier of the packing document and products of this invoice
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
 
 class PackingDocumentLine(Blame):
+    """
+    An important part of the logistical process. This document line indicates that products have arrived from the supplier.
+    When these are saved, the stock is modified based on the SupplierOrderLines that are connected to the packingdocumentlines.
+    The step of saving shifts the orders of customers as a result of the connection a SupplierOrderLine. Semi-final prices
+    are assumed for the products that enter stock.
+    """
     # The packing document to which this line belongs
     packing_document = models.ForeignKey(PackingDocument, on_delete=models.PROTECT)
     # The line which will match this line
@@ -139,27 +154,33 @@ class PackingDocumentLine(Blame):
         this has to be done manually
         :return:
         """
-        _assert(self.packing_document)
-        _assert(isinstance(self.packing_document, PackingDocument))
-        _assert(self.supplier_order_line)
-        _assert(isinstance(self.supplier_order_line, SupplierOrderLine))
+        raiseif(not self.packing_document, InvalidDataError, "You must have an packing document")
+        raiseif(not isinstance(self.packing_document, PackingDocument),
+                InvalidDataError, "packing document must be a PackingDocument")
+        raiseif(not self.supplier_order_line, InvalidDataError, "You must specify supplier_order_line")
+        raiseif(not isinstance(self.supplier_order_line, SupplierOrderLine),
+                InvalidDataError, "supplier_order_line must be a SupplierOrderLine")
         if self.line_cost is not None:
-            _assert(isinstance(self.line_cost, Cost))
+            raiseif(not isinstance(self.line_cost, Cost), InvalidDataError, "line_cost must be a Cost")
 
         # All assertions done, now we check the cost
         # Line_cost_after_invoice should be connected to an invoice. Therefore, we cannot have an invoice
         # without the other
         if hasattr(self, 'invoice') and self.invoice is not None:
-            _assert(self.line_cost_after_invoice is not None)
+            raiseif(self.line_cost_after_invoice is None,
+                    InvalidDataError, "line_cost_after_invoice must be present if invoice is present")
 
         # Retrieve Cost from SupplierOrderLine
         self.line_cost = self.supplier_order_line.line_cost
 
-        _assert(self.article_type)
-        _assert(isinstance(self.article_type, ArticleType))
-        _assert(self.article_type == self.supplier_order_line.article_type)
+        raiseif(not self.article_type, InvalidDataError, "must specify article_type")
+        raiseif(not isinstance(self.article_type, ArticleType), InvalidDataError, "article_type is not an ArticleType")
+        raiseif(self.article_type != self.supplier_order_line.article_type,
+                IncorrectDataError, "article should be the same for this and supplier_order_line ")
 
-        _assert(ArticleTypeSupplier.objects.get(supplier=self.packing_document.supplier, article_type=self.article_type))
+        raiseif(not ArticleTypeSupplier.objects.get(supplier=self.packing_document.supplier,
+                                                    article_type=self.article_type),
+                NoValidSupplierError, "This product is not available in the given supplier's assortment")
 
         # All checks are done, now we save everyting
         # Mod supplierOrderLine and order if connected and packingdoc is new
@@ -211,6 +232,10 @@ class PackingDocumentLine(Blame):
 
 
 class DistributionStrategy:
+    """
+    The interface for strategies for distributing the arrived products. DistributionStrategy allows for a standardised way
+    of asking for a way of distribution and there is also a function to handle the actual act of distribution.
+    """
 
     @staticmethod
     @transaction.atomic
@@ -230,30 +255,33 @@ class DistributionStrategy:
         """
         if not indirect:
             raise IndirectionError("Distribute must be called indirectly")
-        _assert(user and isinstance(user, User))
-        _assert(supplier and isinstance(supplier, Supplier))
-        _assert(distribution and isinstance(distribution, list))
-        _assert(document_identifier and isinstance(document_identifier, str))
+        raiseif(not (user and isinstance(user, User)), IncorrectDataError, "user is not of type User")
+        raiseif(not (supplier and isinstance(supplier, Supplier)), IncorrectDataError, "")
+        raiseif(not (distribution and isinstance(distribution, list)), IncorrectDataError)
+        raiseif(not (document_identifier and isinstance(document_identifier, str)), IncorrectDataError)
         # Indicates that we are using an invoice in the process
         if invoice_identifier:
-            _assert(isinstance(invoice_identifier, str))
+            raiseif(not isinstance(invoice_identifier, str), IncorrectDataError)
 
         found_final_cost = False
         for pac_doc_line in distribution:
-            _assert(pac_doc_line and isinstance(pac_doc_line, PackingDocumentLine))
+            raiseif(not pac_doc_line and not isinstance(pac_doc_line, PackingDocumentLine),
+                    InvalidDataError, )
             # Asserts correct article type and supplier consistency
-            _assert(pac_doc_line.supplier_order_line)
-            _assert(pac_doc_line.article_type == pac_doc_line.supplier_order_line.article_type)
-            _assert(supplier == pac_doc_line.supplier_order_line.supplier_order.supplier)
+            raiseif(not pac_doc_line.supplier_order_line,
+                    InvalidDataError, "pac_doc_line must have an supplier_order_line")
+            raiseif(pac_doc_line.article_type != pac_doc_line.supplier_order_line.article_type, IncorrectDataError, "Article types are not matching")
+            raiseif(supplier != pac_doc_line.supplier_order_line.supplier_order.supplier, IncorrectDataError, "suppliers are not matching")
             # There cannot be a final cost without an invoice
             if not invoice_identifier:
-                _assert(not hasattr(pac_doc_line, 'line_cost_after_invoice') or not pac_doc_line.line_cost_after_invoice)
+                raiseif(hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice,
+                        InvalidDataError, "You must not have a line_cost_after_invoice if you ")
             if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice is not None:
                 found_final_cost = True
 
         if invoice_identifier:
             # Checks if there is an actual final_line_cost for a pac_doc_line to create an invoice for
-            _assert(found_final_cost)
+            raiseif(not found_final_cost, IncorrectDataError, "The invoice specified does not have this one's cost")
             invoice = Invoice(supplier=supplier, supplier_identifier=invoice_identifier, user_modified=user)
 
         # Below here are the actual saves
@@ -297,9 +325,10 @@ class DistributionStrategy:
         ready for saving
         :return: A StockChangeSet with the necessary storages
         """
-        _assert(distribution and isinstance(distribution, list))
+        raiseif(not distribution or not isinstance(distribution, list), InvalidDataError, "distribution is not a list")
         for pac_doc_line in distribution:
-            _assert(isinstance(pac_doc_line, PackingDocumentLine))
+            raiseif(not isinstance(pac_doc_line, PackingDocumentLine),
+                    InvalidDataError, "distribution does contain non-PackingDocumentLine s")
         # Creates a dictionary of dictionaries. The first layer comprises the Order pk's with 0 articles for stock.
         # The second layer is an articleType with a multiplicity and cost
 
@@ -351,12 +380,15 @@ class DistributionStrategy:
 
 
 class FirstSupplierOrderStrategy(DistributionStrategy):
+    """
+    A simple distribution strategy that uses the implied strategy used when prioritizing the SupplierOrders.
+    """
 
     @staticmethod
     def get_distribution(article_type_number_combos, supplier):
         distribution = []
         # Viability assertions
-        _assert(isinstance(supplier, Supplier))
+        raiseif(not isinstance(supplier, Supplier), InvalidDataError, "supplier is not a Supplier")
         articletype_dict = defaultdict(lambda: 0)
         use_cost = False # Indicates that invoice, provided costs are used
         ARTICLE_TYPE_LOCATION=0
@@ -379,7 +411,8 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
 
         # If you have supply without demand, there is an inconsistency
         for typ in articletypes:
-            _assert(not articletype_dict[typ] > article_demand[typ])
+            raiseif(articletype_dict[typ] > article_demand[typ],
+                    IncorrectDataError, "Amount ordered may not be more than there is demand")
         # Create the packing_document_lines
         for sol in relevant_supplier_orderline:
             if article_supply[sol.article_type] > 0:
@@ -405,12 +438,16 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
 
 
 class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
+    """
+    Prioritizes the customers first by checking the supplier orders by date time. After that, the stock is supplied
+    by datetime.
+    """
 
     @staticmethod
     def get_distribution(article_type_number_combos, supplier):
         distribution = []
         # Viability assertions
-        _assert(isinstance(supplier, Supplier))
+        raiseif(not isinstance(supplier, Supplier), InvalidDataError, "supplier is not a Supplier")
         articletype_dict = defaultdict(lambda: 0)
         use_cost = False  # Indicates that invoice, provided costs are used
         ARTICLE_TYPE_LOCATION = 0
@@ -434,7 +471,8 @@ class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
 
         # If you have supply without demand, there is an inconsistency
         for typ in articletypes:
-            _assert(not articletype_dict[typ] > article_demand[typ])
+            raiseif(articletype_dict[typ] > article_demand[typ],
+                    IncorrectDataError, "You cannot order more than there is demand")
 
         relevant_supplier_orderline_orders_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
                                                                        article_type__in=articletypes,
@@ -476,3 +514,24 @@ class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
                         break
 
         return distribution
+
+
+class InvalidDataError(Exception):
+    """
+    If the data given is not of a valid type
+    """
+    pass
+
+
+class IncorrectDataError(Exception):
+    """
+    If the data given does not have a valid value
+    """
+    pass
+
+
+class NoValidSupplierError(Exception):
+    """
+    If the supplier is invalid
+    """
+    pass

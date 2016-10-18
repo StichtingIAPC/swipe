@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 
-from tools.util import _assert
+from tools.util import raiseif
 
 
 class BasicBlame(models.Model):
@@ -28,14 +28,16 @@ class Blame(BasicBlame):
     user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by")
 
     def save(self, **kwargs):
-
-
         if not self.user_created_id:
             self.user_created = self.user_modified
         super(Blame, self).save(kwargs)
         typ = self._meta
         to_string=self.__str__()
-        BlameLog.objects.create(type=typ,user_modified=self.user_modified,obj_pk=self.pk,to_string=to_string)
+        BlameLog.objects.create(
+            type=typ,
+            user_modified=self.user_modified,
+            obj_pk=self.pk,
+            to_string=to_string)
 
 
 class ImmutableBlame(BasicBlame):
@@ -53,16 +55,25 @@ class ImmutableBlame(BasicBlame):
         kwargs.pop("user_modified", None)
         super(ImmutableBlame, self).__init__(*args, **kwargs)
 
+    @transaction.atomic
     def save(self, **kwargs):
         if not hasattr(self,"user_created") and hasattr(self, "user_modified"):
             self.user_created = self.user_modified
             delattr(self,"user_modified")
 
-        _assert(self.pk is None)
+        raiseif(self.pk is not None,
+                ImmutableBlameEditException,
+                "you are trying to edit an immutable blame. That is not "
+                "something you can do, so don't do that")
+
         super(ImmutableBlame, self).save(kwargs)
         typ = self._meta
         to_string = self.__str__()
-        BlameLog.objects.create(type=typ, user_modified=self.user_created, obj_pk=self.pk, to_string=to_string)
+        BlameLog.objects.create(
+            type=typ,
+            user_modified=self.user_created,
+            obj_pk=self.pk,
+            to_string=to_string)
 
 
 class BlameLog(models.Model):
@@ -74,6 +85,7 @@ class BlameLog(models.Model):
     user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by")
     obj_pk = models.IntegerField()
     to_string = models.CharField(max_length=128)
+
     def __str__(self):
         return "{} {} @ {} > {} :{}".format(self.date_modified,self.user_modified.__str__().ljust(8)[:8],self.type.ljust(18)[:18], self.obj_pk.__str__().rjust(7," "), self.to_string)
 
@@ -83,6 +95,7 @@ class BlameTest(Blame):
         Mock model for unit tests
     """
     data = models.IntegerField()
+
     def __str__(self):
         return self.data.__str__()
 
@@ -92,3 +105,10 @@ class ImmutableBlameTest(ImmutableBlame):
         Mock model for unit tests
     """
     data = models.IntegerField()
+
+
+class ImmutableBlameEditException(Exception):
+    """
+    An exception thrown when you are trying to edit an immutable blame.
+    """
+    pass

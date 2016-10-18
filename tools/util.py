@@ -1,5 +1,11 @@
-
-
-def _assert(truthvalue, errorstring=None):
-    if not truthvalue:
-        raise AssertionError(errorstring)
+def raiseif(truthvalue, exception, *args):
+    """
+    :param truthvalue: Do I raise?
+    :type truthvalue: bool
+    :param exception: The exception to throw when the truthvalue is true
+    :type exception: Type[Exception]
+    :param args: arguments to give to the exception
+    :return:
+    """
+    if truthvalue:
+        raise exception(*args)

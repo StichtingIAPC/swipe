@@ -1,12 +1,20 @@
+from decimal import Decimal
+
+from django.contrib.auth.models import User
 from django.test import TestCase
 
+from article.models import ArticleType, OtherCostType
 from article.tests import INeedSettings
-from order.models import *
-from stock.stocklabel import OrderLabel
+from assortment.models import AssortmentArticleBranch
+from crm.models import Person
+from money.models import VAT, Price, Currency, AccountingGroup, Money, Cost
+from order import models
+from order.models import Order, OrderLine, OrderLineState, OrderCombinationLine
+from register.models import ConsistencyChecker
 from stock.models import StockChangeSet
+from stock.stocklabel import OrderLabel
 
 # Create your tests here.
-from tools.util import _assert
 
 
 class OrderTest(INeedSettings, TestCase):
@@ -64,71 +72,59 @@ class OrderTest(INeedSettings, TestCase):
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
 
-        _assert(orderlinestates[0].state == 'O')  # States must match
-        _assert(len(orderlinestates) == 1)  # Orderlinestate must be automatically added
+        self.assertEquals(orderlinestates[0].state , 'O')  # States must match
+        self.assertEquals(len(orderlinestates), 1)  # Orderlinestate must be automatically added
 
         ol2 = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, state='L', expected_sales_price=self.price)
         ol2.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol2)
-        _assert(orderlinestates[0].state == 'L')  # Self applied state
-        _assert(len(orderlinestates) == 1)  # Exactly one state
+        self.assertEquals(orderlinestates[0].state, 'L')  # Self applied state
+        self.assertEquals(len(orderlinestates), 1)  # Exactly one state
 
         ol3 = OrderLine(user_modified=self.copro,)
-        caught = False
-        try:
+        with self.assertRaises(models.IncorrectDataError):
             ol3.save()
-        except AssertionError:
-            caught = True
-        _assert(caught)
 
     def test_illegal_state(self):
         # State must be valid
-        try:
-            excepted = False
-            ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, state='G', expected_sales_price=self.price)
+        with self.assertRaises(models.IncorrectOrderLineStateError):
+            ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type, state='G', expected_sales_price=self.price)
             ol.save()
-        except AssertionError:
-            excepted = True
-        _assert(excepted)
 
     def test_transitions(self):
         # Assert transitions for a single orderline
-        ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, expected_sales_price=self.price)
+        ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        _assert(ol.state == 'O')
-        _assert(len(orderlinestates) == 1)
+        self.assertEquals(ol.state, 'O')
+        self.assertEquals(len(orderlinestates), 1)
         ol.order_at_supplier(user_created=self.copro)
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        _assert(ol.state == 'L')
-        _assert(len(orderlinestates) == 2)
+        self.assertEquals(ol.state, 'L')
+        self.assertEquals(len(orderlinestates), 2)
         ol.arrive_at_store(user_created=self.copro)
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        _assert(ol.state == 'A')
-        _assert(len(orderlinestates) == 3)
+        self.assertEquals(ol.state, 'A')
+        self.assertEquals(len(orderlinestates), 3)
         ol.sell(user_created=self.copro)
         orderlinestates = OrderLineState.objects.filter(orderline=ol,)
-        _assert(ol.state == 'S')
-        _assert(len(orderlinestates) == 4)
+        self.assertEquals(ol.state, 'S')
+        self.assertEquals(len(orderlinestates), 4)
 
     def test_othercost(self):
         ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.oc, expected_sales_price=self.price)
         ol.save()
-        _assert(ol.state == 'A')
-        _assert(len(OrderLineState.objects.all()) == 1)
+        self.assertEquals(ol.state, 'A')
+        self.assertEquals(len(OrderLineState.objects.all()), 1)
 
     def test_illegal_transition(self):
         ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, expected_sales_price=self.price)
         ol.save()
         orderlinestates = OrderLineState.objects.filter(orderline=ol)
-        _assert(ol.state == 'O')
-        _assert(len(orderlinestates) == 1)
-        caught = False
-        try:
+        self.assertEquals(ol.state, 'O')
+        self.assertEquals(len(orderlinestates), 1)
+        with self.assertRaises(models.IncorrectTransitionError):
             ol.sell(self.copro)
-        except IncorrectTransitionError:
-            caught = True
-        _assert(caught)
 
     def test_order_storage(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -138,17 +134,17 @@ class OrderTest(INeedSettings, TestCase):
         orderlines.append(OrderLine(user_modified=self.copro,wishable=self.article_type, expected_sales_price=self.price))
         Order.make_order(order, orderlines,self.copro)
         ols = OrderLine.objects.filter(order=order)
-        _assert(len(ols) == 3)
-        _assert(ols[0].state == 'O')
+        self.assertEquals(len(ols), 3)
+        self.assertEquals(ols[0].state, 'O')
         errors = ConsistencyChecker.non_crashing_full_check()
-        _assert(len(errors) == 0)
+        self.assertEquals(len(errors), 0)
 
     def test_add_group_of_wishables(self):
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 50, self.price,self.copro)
-        _assert(len(orderlines) == 50)
+        self.assertEquals(len(orderlines), 50)
         OrderLine.add_orderlines_to_list(orderlines, self.at2, 10, self.price,self.copro)
-        _assert(len(orderlines) == 60)
+        self.assertEquals(len(orderlines), 60)
         order = Order(customer=self.customer,user_modified=self.copro)
         Order.make_order(order, orderlines, self.copro)
 
@@ -166,7 +162,7 @@ class OrderTest(INeedSettings, TestCase):
 
         ol.save()
         ol2 = OrderLine.objects.get()
-        _assert(ol2.expected_sales_price_currency == "USD")
+        self.assertEquals(ol2.expected_sales_price_currency, "USD")
 
     def test_olc(self):
         ol = OrderLine(user_modified=self.copro,order=self.order, wishable=self.article_type, expected_sales_price=self.price)
@@ -188,9 +184,9 @@ class OrderTest(INeedSettings, TestCase):
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, 5, local_second_price,self.copro)
         Order.make_order(order, orderlines,self.copro)
         olcl=OrderCombinationLine.get_ol_combinations(order=order)
-        _assert(len(olcl) == 2)
+        self.assertEquals(len(olcl), 2)
         olcl2=OrderCombinationLine.get_ol_combinations(order=order, include_price_field=False)
-        _assert(len(olcl2) == 1)
+        self.assertEquals(len(olcl2), 1)
 
     def test_create_order_function(self):
         self.order.delete()
@@ -199,10 +195,10 @@ class OrderTest(INeedSettings, TestCase):
         a = Order.objects.get()
         b = OrderLine.objects.filter(order=a)
         c = OrderLine.objects.all()
-        _assert(len(b) == len(c))
-        _assert(len(b) == 5)
+        self.assertEquals(len(b), len(c))
+        self.assertEquals(len(b), 5)
         for i in range(0, len(b)):
-            _assert(b[i].pk is c[i].pk)
+            self.assertEquals(b[i].pk, c[i].pk)
 
     def test_create_order_function_more_sets(self):
         self.order.delete()
@@ -213,19 +209,16 @@ class OrderTest(INeedSettings, TestCase):
         b = OrderLine.objects.filter(order=a)
         c = OrderLine.objects.all()
 
-        _assert(len(b) == len(c))
-        _assert(len(b) == 5+6)
+        self.assertEquals(len(b), len(c))
+        self.assertEquals(len(b), 5+6)
         tally_art1, tally_art2 = 0, 0
         for ol in b:
             if ol.wishable.sellabletype.articletype == self.article_type:
                 tally_art1 += 1
             elif ol.wishable.sellabletype.articletype == self.at2:
                 tally_art2 += 1
-            else:
-                # How did that happen?
-                _assert(False)
-        _assert(tally_art1 == 5)
-        _assert(tally_art2 == 6)
+        self.assertEquals(tally_art1, 5)
+        self.assertEquals(tally_art2, 6)
 
 
 class TestStockChangeSetFiltering(TestCase, INeedSettings):
@@ -279,12 +272,8 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'is_in': False,
             'label': OrderLabel(1)
         }]
-        caught = False
-        try:
+        with self.assertRaises(models.InconsistencyError):
             StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
-        except InconsistencyError:
-            caught = True
-        _assert(caught)
 
     def test_signal_proper(self):
         pk = self.order.pk
@@ -319,7 +308,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             if ol.state == 'S':
                 correct_state += 1
 
-        _assert(correct_state == SOLD_PRODUCTS)
+        self.assertEquals(correct_state, SOLD_PRODUCTS)
 
     def test_signal_multiple_orders(self):
 
@@ -383,6 +372,6 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
                 else:
                     correct_state_2 += 1
 
-        _assert(correct_state_1 == SOLD_PRODUCTS_1)
-        _assert(correct_state_2 == SOLD_PRODUCTS_2)
+        self.assertEquals(correct_state_1, SOLD_PRODUCTS_1)
+        self.assertEquals(correct_state_2, SOLD_PRODUCTS_2)
 
