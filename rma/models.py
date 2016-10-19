@@ -67,6 +67,9 @@ class CustomerTaskDescription(Blame):
 
     text = models.TextField()
 
+    def __str__(self):
+        return self.text
+
 
 class TestRMA(RMACause):
     """
