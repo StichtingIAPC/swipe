@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block module_content %}
+<div class="small-6 columns">
+    <div class="card">
+        <div class="header">
+            <h3>{% blocktrans with order_id = order.id %}Order {{ order_id }}{% endblocktrans %}</h3>
+        </div>
+        <div class="content">
+            <dl>
+                <dt>{% trans 'Order placed' %}</dt>
+                <dd>{{ order.date_created }}</dd>
+                {% if order.date_created != order.date_modified %}
+                <dt>{% trans 'Order last edited' %}</dt>
+                <dd>{{ order.date_edited }}</dd>
+                {% endif %}
+                <dt>{% trans 'Notes' %}</dt>
+                <dd>{{ order.notes }}</dd>
+            </dl>
+            {% include order_table %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -13,12 +13,14 @@ from tools.management.commands.consistencycheck import consistency_check, CRITIC
 
 
 # Create your models here.
+from public_info.models import Shared
 
 
-class Order(Blame):
+class Order(Blame, Shared):
     # A collection of orders of a customer ordered together
     # Customer that originates the order
     customer = models.ForeignKey(Customer)
+    notes = models.TextField(default="")
 
     @staticmethod
     def create_order_from_wishables_combinations(user, customer, wishable_type_number_price_combinations):
@@ -246,6 +248,12 @@ class OrderLine(Blame):
 
             ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)
             orderlinelist.append(ol)
+
+    class Meta:
+        ordering = [
+            'state',
+            'wishable',
+        ]
 
 
 class OrderCombinationLine:
