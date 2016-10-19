@@ -15,8 +15,8 @@ def stock_change_handler(sender, **kwargs):
                 orders_to_complete = stock_change.count
                 order_number = stock_change.labelkey
                 art_type = stock_change.article
-                lines = OrderLine.objects.filter(order_id=order_number, state='A',
-                                                 wishable__sellabletype__articletype=art_type)
+                lines = list(OrderLine.objects.filter(order_id=order_number, state='A',
+                                                 wishable__sellabletype__articletype=art_type))
                 if len(lines) < orders_to_complete:
                     raise InconsistencyError("Something happened and there are not enough OrderLines to transition"
                                              "to 'sold' for order {}. I cannot fix this :( Have fun fixing it in the"

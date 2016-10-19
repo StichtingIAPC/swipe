@@ -185,6 +185,11 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.assertEquals(obj.text, str(self.article_type))
         st = Stock.objects.get(labeltype="Order", labelkey=1, article=self.article_type)
         self.assertEquals(st.count, AMOUNT_1-count)
+        ols_1 = OrderLine.objects.filter(wishable__sellabletype=self.article_type, state='S')
+        ols_2 = OrderLine.objects.filter(wishable__sellabletype=self.article_type, state='A')
+        ols = OrderLine.objects.filter(wishable__sellabletype=self.article_type)
+        self.assertEquals(len(ols_1), count)
+        self.assertEquals(len(ols_2), AMOUNT_1-count)
 
     def test_sales_stock_level(self):
         AMOUNT_STOCK_1 = 5
