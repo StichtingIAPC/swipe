@@ -6,11 +6,10 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import RegexValidator
 from django.db import models
-
-# Create your models here.
 from django.urls import reverse
+from django.views import View
 
-from public_info import views
+
 
 VALID_CHARS = string.ascii_letters + string.digits + '+-'
 
@@ -59,9 +58,34 @@ class Shared(models.Model):
         )
 
     def get_shared_view(self):
-        views.get_public_view(type(self))
+        return get_public_view(type(self))
 
     class Meta:
         abstract = True
 
 
+PUBLIC_VIEWS = {}
+
+
+def get_public_view(cls_type):
+    if PUBLIC_VIEWS[cls_type]:
+        return PUBLIC_VIEWS[cls_type]
+    raise SharedViewNotFoundException
+
+
+def public_view(cls_type=None):
+    """
+    Decorator to say 'this class rou
+    :param cls_type:
+    :return:
+    """
+    def decorate(view):
+        if issubclass(view, View):
+            view = view.as_view()
+        PUBLIC_VIEWS[cls_type] = view
+        return view
+    return decorate
+
+
+class SharedViewNotFoundException(Exception):
+    pass

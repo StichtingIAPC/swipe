@@ -2,9 +2,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 
 from money.columns import MoneyColumn
-from order.models import Order, OrderCombinationLine, OrderLineState
+from order.models import Order, OrderCombinationLine
+from public_info.models import public_view
 from tools.tables import Table, Column
-from public_info.views import public_view
 
 
 class OrderView(TemplateView):
