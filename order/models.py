@@ -8,12 +8,9 @@ from article.models import *
 from blame.models import Blame, ImmutableBlame
 from crm.models import *
 from money.models import *
+from public_info.models import Shared
 from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
-
-
-# Create your models here.
-from public_info.models import Shared
 
 
 class Order(Blame, Shared):
