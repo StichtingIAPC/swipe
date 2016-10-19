@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.test import TestCase
+from tools.testing import TestData
 
 from article.models import ArticleType, OtherCostType
 from article.tests import INeedSettings
@@ -619,3 +620,30 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         last_payment = Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(RefundError):
             Transaction.create_transaction(user=self.copro, payments=[last_payment], transaction_lines=[rfl3])
+
+
+class TestSalesFeaturesWithMixin(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_other_cost(self):
+        oth_count = 8
+        self.create_custorders(othercost_1=oth_count)
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.register_3.open(Decimal(0))
+        octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=oth_count,
+                                          other_cost_type=self.othercosttype_1, order=1)
+        money_3 = Money(amount=self.price_eur_1.amount * oth_count, currency=self.price_eur_1.currency)
+        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+        Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                       customer=self.customer_person_2)
+        octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=1,
+                                          other_cost_type=self.othercosttype_1, order=1)
+        money_3 = Money(amount=self.price_eur_1.amount * 1, currency=self.price_eur_1.currency)
+        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+        with self.assertRaises(NotEnoughOrderLinesError):
+            Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                       customer=self.customer_person_2)
+

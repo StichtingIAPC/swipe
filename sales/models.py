@@ -336,7 +336,7 @@ class Transaction(Blame):
 
         for key in order_other_cost_count.keys():
             order, article = key
-            ols = OrderLine.objects.filter(wishable__sellabletype=article, order_id=order)
+            ols = OrderLine.objects.filter(wishable__sellabletype=article, order_id=order, state='A')
             if len(ols) < order_other_cost_count[key]:
                 raise NotEnoughOrderLinesError("There is are not enough orderlines to transition to sold for Order {} "
                                                "and OtherCostType {}".format(order, article))
@@ -419,8 +419,9 @@ class Transaction(Blame):
 
             # Changing the other_costs to sold in their orderlines
             for key in order_other_cost_count.keys():
-                ols = OrderLine.objects.filter(wishable__sellabletype=key[1], order_id=key[0])
-                for i in range(order_other_cost_count[key]):
+                ols = list(OrderLine.objects.filter(wishable__sellabletype=key[1], order_id=key[0], state='A'))
+                to_sell = order_other_cost_count[key]
+                for i in range(to_sell):
                     ols[i].sell(user)
 
 
