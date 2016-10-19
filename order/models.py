@@ -174,7 +174,7 @@ class OrderLine(Blame):
 
             curr = Currency(iso=USED_CURRENCY)
 
-            self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
+            self.expected_sales_price = Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
 
             raiseif(self.state not in OrderLineState.STATE_CHOICES, IncorrectOrderLineStateError, "Invalid state")
             super(OrderLine, self).save()
@@ -196,7 +196,7 @@ class OrderLine(Blame):
             raise IncorrectOrderLineStateError("State of orderline is not valid. Database is corrupted at Orderline",
                                                self.pk, " with state ", self.state)
         else:
-            if new_state in OrderLineState.VALID_NEXT_STATES[self.state]:
+            if new_state in OrderLineState.VALID_NEXT_STATES.get(self.state, []):
                 self.state = new_state
                 ols = OrderLineState(state=new_state, orderline=self, user_created=user_created)
                 ols.save()

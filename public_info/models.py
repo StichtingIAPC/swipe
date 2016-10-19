@@ -35,7 +35,11 @@ class Sharing(models.Model):
 
 
 class Shared(models.Model):
-    sharing_object = GenericRelation(Sharing)
+    sharing_object = GenericRelation(
+        Sharing,
+        content_type_field='sharing_type',
+        object_id_field='sharing_id'
+    )
 
     def get_shared_url(self):
         ctype = ContentType.objects.get_for_model(type(self))
