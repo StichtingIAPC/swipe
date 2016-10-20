@@ -40,9 +40,12 @@ class StockRMA(RMACause):
                       'count': 1,
                       'is_in': False}]
             StockChangeSet.construct(description=description, entries=entry, enum=enum['rma'])
-            ima = InternalRMA(rma_cause=self, user_created=self.user_created, customer=None)
+            super(StockRMA, self).save()
+            ima = InternalRMA(rma_cause=self, user_modified=self.user_created, customer=None)
             ima.save()
-        super(StockRMA, self).save()
+        else:
+            super(StockRMA, self).save()
+
 
 
 class CustomerRMATask(models.Model):
@@ -165,16 +168,17 @@ class InternalRMA(Blame):
     @transaction.atomic()
     def save(self, **kwargs):
         if self.pk is None:
-            if self.state is None:
-                if self.state is None:
-                    self.state = InternalRMAState.STARTING_STATE
-
-            irs = InternalRMAState(internal_rma=self, state=self.state, user_modified=self.user_created)
-            irs.save()
-
+            if not self.state:
+                self.state = InternalRMAState.STARTING_STATE
         if self.state not in InternalRMAState.STATES:
             raise StateError("While saving InternalRMA encountered illegal state {}".format(self.state))
-        super(InternalRMA, self).save()
+        if self.pk is None:
+            super(InternalRMA, self).save()
+            irs = InternalRMAState(internal_rma=self, state=self.state, user_modified=self.user_created)
+            irs.save()
+        else:
+            super(InternalRMA, self).save()
+
 
 
 class InternalRMAState(ImmutableBlame):
