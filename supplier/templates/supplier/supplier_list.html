@@ -15,6 +15,12 @@
                 <a class="tiny button float-right" href="{% url 'supplier_edit' supplier.pk %}">{% trans 'Edit' %}</a>
             </div>
         </li>
+    {% empty %}
+        <li class="row">
+            <div class="small-12">
+                {% trans 'No suppliers' %}
+            </div>
+        </li>
     {% endfor %}
     </ul>
 {% endblock %}
