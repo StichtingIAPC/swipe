@@ -10,7 +10,19 @@
 
     <form action="" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="{% trans 'Create supplier' %}" />
+        {% for field in form %}
+        <div class="row">
+            <div class="small-3">
+                {{ field.errors }}
+                <label for="{{ field.id_for_label }}">{{ field.label_tag }}</label>
+            </div>
+            <div class="small-9">{{ field }}</div>
+        </div>
+        {% endfor %}
+        <div class="row">
+            <div class="small-12">
+                <input type="submit" class="button success pull-right" value="{% if request.path == add %}{% trans 'Create supplier' %}{% else %}{% trans 'Edit supplier' %}{% endif %}" />
+            </div>
+        </div>
     </form>
 {% endblock %}

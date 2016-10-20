@@ -4,7 +4,11 @@
 {% block module_content %}
     <div class="small-6 columns">
         <div class="card">
-            {% breadcrumbs %}
+            <div class="row">
+                <div class="small-12">
+                    {% breadcrumbs %}
+                </div>
+            </div>
             {% block content %}
             {% endblock content %}
         </div>
