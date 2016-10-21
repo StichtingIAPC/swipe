@@ -1,0 +1,22 @@
+{% extends 'money/money_base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Denomination list' %}{% endblock %}
+
+{% block content %}
+    {% url "denomination_add" pk=currency.pk as add_denomination %}
+    <h2>
+        {% trans 'List of denominations' %}
+        <a class="small button success pull-right" href="{{ add_denomination }}">{% trans 'add' %}</a>
+    </h2>
+    <ul>
+    {% for denomination in object_list %}
+        <li class="row">
+            <div class="small-12">
+                <a href="{% url 'denomination_detail' pk=denomination.currency.iso denom=denomination.pk %}">{{ denomination }}</a>
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}

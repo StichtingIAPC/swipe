@@ -1,8 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'money/money_base.html' %}
 
 {% load i18n %}
 
 {% block content %}
     <p><b>{% trans 'Currency' %}</b>: {{ object.currency.iso }}</p>
-    <p><b>{% trans 'Amount' %}</b>: {{ object.amount}}</p>
+    <p><b>{% trans 'Amount' %}</b>: {{ object.amount }}</p>
 {% endblock %}

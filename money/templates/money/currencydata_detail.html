@@ -1,12 +1,53 @@
-{% extends 'www/base.html' %}
+{% extends 'money/money_base.html' %}
 
 {% load i18n %}
 
 {% block page_title%}{% blocktrans with name=object.name %}{{ name }}{% endblocktrans %}{% endblock %}`s
 
 {% block content %}
-    <p><b>{% trans 'ISO value' %}</b>: {{ object.iso }}</p>
-    <p><b>{% trans 'Name' %}</b>: {{ object.name}}</p>
-    <p><b>{% trans 'Digits after comma' %}</b>: {{ object.digits }}</p>
-    <p><b>{% trans 'Symbol' %}</b>: {{ object.symbol }}</p>
+    <h2>
+        {% blocktrans with name=object.name %}{{ name }}{% endblocktrans %}
+    <a class="button pull-right" href="{% url 'currencydata_edit' pk=object.iso %}">{% trans 'Edit' %}</a>
+    </h2>
+    <div class="row">
+        <div class="small-3"><b>{% trans "ISO" %}</b></div>
+        <div class="small-9">{{ object.iso }}</div>
+    </div>
+    <div class="row">
+        <div class="small-3"><b>{% trans "Name" %}</b></div>
+        <div class="small-9">{{ object.name }}</div>
+    </div>
+    <div class="row">
+        <div class="small-3"><b>{% trans "Digits" %}</b></div>
+        <div class="small-9">{{ object.digits }}</div>
+    </div>
+    <div class="row">
+        <div class="small-3"><b>{% trans "Symbol" %}</b></div>
+        <div class="small-9">{{ object.symbol }}</div>
+    </div>
+    <div class="row">
+        <div class="small-3"><b>{% trans "Denominations" %}</b></div>
+        <div class="small-9">
+            <ul>
+                {% for denomination in object.denomination_set.all %}
+                <li>{{ denomination }}</li>
+                {% endfor %}
+                <li class="row">
+                    <div class="small-12">
+                        <a class="small button success" href="{% url 'denomination_add' pk=object.iso %}">{% trans 'Add denomination' %}</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="small-3"><b>{% trans "Registers using this currency" %}</b></div>
+        <div class="small-9">
+            <ul>
+                {% for register in object.register_set.all %}
+                    <li><a href="{% url 'register_detail' pk=register.pk %}">{{ register.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 {% endblock %}

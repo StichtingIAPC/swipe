@@ -13,17 +13,20 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
-from django.contrib import admin
+from django.conf.urls import url
 
-import money
 from money.views import *
 
 urlpatterns = [
     # Standard page
-    url(r'^$', money.views.index, name="money_index"),
+    url(r'^$', index, name="money_index"),
     # Django internal documentation
     url(r'^list/$', CurrencyDataList.as_view(), name="currencydata_list"),
-    url(r'^add$', CurrencyDataCreate.as_view(), name='currencydata_add'),
-    url(r'^(?P<pk>[A-Z]+.)$', CurrencyDataDetail.as_view(), name='currencydata_detail'),
+    url(r'^add/$', CurrencyDataCreate.as_view(), name='currencydata_add'),
+    url(r'^(?P<pk>[A-Z]+)/$', CurrencyDataDetail.as_view(), name='currencydata_detail'),
+    url(r'^(?P<pk>[A-Z]+)/edit/$', CurrencyDataEdit.as_view(), name='currencydata_edit'),
+
+    url(r'^(?P<pk>[A-Z]+)/denominations/$', DenominationList.as_view(), name='denomination_list'),
+    url(r'^(?P<pk>[A-Z]+)/denominations/add/$', DenominationCreate.as_view(), name='denomination_add'),
+    url(r'^(?P<pk>[A-Z]+)/denominations/(?P<denom>[0-9]+)/$', DenominationDetail.as_view(), name='denomination_detail')
 ]

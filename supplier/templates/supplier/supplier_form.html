@@ -10,13 +10,16 @@
 
     <form action="" method="post">
         {% csrf_token %}
+        {{ form.non_field_errors }}
         {% for field in form %}
         <div class="row">
             <div class="small-3">
-                {{ field.errors }}
                 <label for="{{ field.id_for_label }}">{{ field.label_tag }}</label>
             </div>
-            <div class="small-9">{{ field }}</div>
+            <div class="small-9">
+                {{ field.errors }}
+                {{ field }}
+            </div>
         </div>
         {% endfor %}
         <div class="row">
