@@ -1,6 +1,6 @@
 from django.test import TestCase
 from tools.testing import TestData
-from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA
+from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA
 from sales.models import Transaction
 from stock.models import Stock
 from stock.stocklabel import OrderLabel
@@ -34,3 +34,8 @@ class BasicTests(TestCase, TestData):
         value = Stock.objects.get(article=self.articletype_1).book_value
         srma = StockRMA(article_type=self.articletype_1, user_modified=self.user_1, value= value)
         srma.save()
+        irs = InternalRMA.objects.all()
+        self.assertEqual(len(irs), 1)
+        self.assertEqual(irs[0].rma_cause.stockrma, srma)
+        self.assertEqual(irs[0].customer, None)
+        self.assertEqual(irs[0].state, 'B')

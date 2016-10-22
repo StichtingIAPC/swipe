@@ -6,6 +6,8 @@ from sales.models import Transaction, RefundTransactionLine, TransactionLine, Sa
 from article.models import ArticleType
 from stock.models import Stock, StockChangeSet
 from stock.enumeration import enum
+from tools.util import raiseif
+from crm.models import User
 
 
 class RMACause(Blame):
@@ -47,7 +49,6 @@ class StockRMA(RMACause):
             super(StockRMA, self).save()
 
 
-
 class CustomerRMATask(models.Model):
     """
     A task where a customer has a problem with products he bought. This can be result in a number of products that are
@@ -59,6 +60,12 @@ class CustomerRMATask(models.Model):
     handled = models.BooleanField(default=False)
 
     receipt = models.ForeignKey(Transaction)
+
+    def has_open_rmas_for_customer(self):
+        return len(self.get_open_customer_rmas()) > 0
+
+    def get_open_customer_rmas(self):
+        return TestRMA.objects.filter(customer_rma_task=self, state__in=TestRMAState.OPEN_STATES)
 
 
 class CustomerTaskDescription(Blame):
@@ -113,6 +120,17 @@ class TestRMA(RMACause):
                         internal_rma.save()
             super(TestRMA, self).save()
 
+    @transaction.atomic()
+    def transition(self, new_state: str, user: User):
+        if new_state not in TestRMAState.STATES:
+            raise StateError("Incorrect state '{}' to transition TestRMA to".format(new_state))
+        raiseif(not isinstance(user, User), DataError, "Incorrect type")
+        self.state = new_state
+        self.user_modified = user
+        self.save()
+        trs = TestRMAState(state=self.state, customer_rma_task=self, user_modified=user)
+        trs.save()
+
 
 class TestRMAState(ImmutableBlame):
     """
@@ -131,7 +149,6 @@ class TestRMAState(ImmutableBlame):
     def save(self, **kwargs):
         if self.state not in TestRMAState.STATES:
             raise StateError("State {} not valid for TestRMAState".format(self.state))
-
 
 class DirectRefundRMA(RMACause):
     """
@@ -179,6 +196,16 @@ class InternalRMA(Blame):
         else:
             super(InternalRMA, self).save()
 
+    @transaction.atomic()
+    def transition(self, new_state: str, user: User):
+        if new_state not in InternalRMAState.STATES:
+            raise StateError("Incorrect state '{}' to transition InternalRMA to".format(new_state))
+        raiseif(not isinstance(user, User), DataError, "Incorrect type")
+        self.state = new_state
+        self.user_modified = user
+        self.save()
+        irs = InternalRMAState(state=self.state, internal_rma=self, user_modified=user)
+        irs.save()
 
 
 class InternalRMAState(ImmutableBlame):
@@ -203,6 +230,17 @@ class InternalRMAState(ImmutableBlame):
         super(InternalRMAState, self).save()
 
 
+class RMAMaster:
+
+    @staticmethod
+    def get_all_open_internal_rmas():
+        return InternalRMA.objects.filter(state__in=InternalRMAState.OPEN_STATES)
+
+    @staticmethod
+    def get_all_open_test_rmas():
+        return TestRMA.objects.filter(state__in=TestRMAState.OPEN_STATES)
+
+
 class StateError(Exception):
     pass
 
@@ -220,6 +258,9 @@ class StockError(Exception):
 
 
 class MatchingException(Exception):
+    pass
+
+class DataError(Exception):
     pass
 
 
