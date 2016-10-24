@@ -1,7 +1,7 @@
 from django.test import TestCase
 from tools.testing import TestData
-from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA
-from sales.models import Transaction
+from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA, InternalRMAState, DirectRefundRMA
+from sales.models import Transaction, TransactionLine, SalesTransactionLine
 from stock.models import Stock
 from stock.stocklabel import OrderLabel
 from logistics.models import StockWish
@@ -39,3 +39,12 @@ class BasicTests(TestCase, TestData):
         self.assertEqual(irs[0].rma_cause.stockrma, srma)
         self.assertEqual(irs[0].customer, None)
         self.assertEqual(irs[0].state, 'B')
+        irls = InternalRMAState.objects.get()
+        self.assertEqual(irls.state, 'B')
+        self.assertEqual(irls.internal_rma, irs[0])
+
+    def test_direct_refund_rma(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type()

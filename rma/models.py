@@ -150,6 +150,7 @@ class TestRMAState(ImmutableBlame):
         if self.state not in TestRMAState.STATES:
             raise StateError("State {} not valid for TestRMAState".format(self.state))
 
+
 class DirectRefundRMA(RMACause):
     """
     A cause for an RMA that happens when a customer is instantly refunded when he returns a (broken) product.
@@ -181,6 +182,8 @@ class InternalRMA(Blame):
     customer = models.ForeignKey(Customer, null=True)
 
     state = models.CharField(max_length=3)
+
+    description = models.TextField()
 
     @transaction.atomic()
     def save(self, **kwargs):
