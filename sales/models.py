@@ -150,7 +150,7 @@ class RefundTransactionLine(TransactionLine):
                 raiseif(self.test_rma.pk is None, IncorrectDataException, "Non saved RMA Task")
                 self.sold_transaction_line = self.test_rma.transaction_line
                 raiseif(self.creates_rma, InvalidDataException, "Cannot be linked to RMA Task and create an RMA")
-                self.test_rma.state = 'F'
+                self.test_rma.transition('F', self.user_modified)
             if self.creates_rma:
                 # If you are here, test_rma is None so there is no danger of collision
                 drm = DirectRefundRMA(refund_line=self, user_modified=self.user_modified)
@@ -161,7 +161,6 @@ class RefundTransactionLine(TransactionLine):
                 ira.save()
             super(RefundTransactionLine, self).save()
         super(RefundTransactionLine, self).save()
-
 
 
 class Payment(models.Model):

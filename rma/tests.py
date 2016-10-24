@@ -1,7 +1,8 @@
 from django.test import TestCase
 from tools.testing import TestData
-from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA, InternalRMAState, DirectRefundRMA
-from sales.models import Transaction, TransactionLine, SalesTransactionLine
+from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA, \
+    InternalRMAState, DirectRefundRMA, TestRMA
+from sales.models import Transaction, TransactionLine, SalesTransactionLine, RefundTransactionLine, InvalidDataException
 from stock.models import Stock
 from stock.stocklabel import OrderLabel
 from logistics.models import StockWish
@@ -42,6 +43,21 @@ class BasicTests(TestCase, TestData):
         irls = InternalRMAState.objects.get()
         self.assertEqual(irls.state, 'B')
         self.assertEqual(irls.internal_rma, irs[0])
+
+    def test_refund_illegal_options(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type()
+        stl = SalesTransactionLine.objects.first()
+        rcpt = Transaction.objects.first()
+        crt = CustomerRMATask(customer=self.customer_person_1, receipt=rcpt)
+        crt.save()
+        tra = TestRMA(user_modified=self.user_1, transaction_line=stl, state='U', customer_rma_task=crt)
+        tra.save()
+        rfl = RefundTransactionLine(user_modified=self.user_1, count=-1, test_rma=tra, creates_rma=True)
+        with self.assertRaises(InvalidDataException):
+            rfl.save()
 
     def test_direct_refund_rma(self):
         self.create_custorders()

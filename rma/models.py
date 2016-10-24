@@ -99,7 +99,7 @@ class TestRMA(RMACause):
             if self.pk is None:
                 # You cannot have more active RMAs than there are products sold
                 count = 0
-                internal_rmas = InternalRMA.objects.filter(rma_cause__transaction_line=self.transaction_line)
+                internal_rmas = InternalRMA.objects.filter(rma_cause__testrma__transaction_line=self.transaction_line)
                 for in_rma in internal_rmas:
                     if in_rma.state in InternalRMAState.OPEN_STATES:
                         count += 1
@@ -109,15 +109,7 @@ class TestRMA(RMACause):
                                         format(self.transaction_line))
 
         # Everything checks out, lets save
-        # Consider that we must make an internal RMA for a physical product
         with transaction.atomic():
-            if isinstance(self.transaction_line, SalesTransactionLine):
-                if self.pk is None:
-                    sold_line = self.refund_line.sold_transaction_line
-                    if hasattr(sold_line, 'salestransactionline') and sold_line.salestransactionline is not None:
-                        internal_rma = InternalRMA(rma_cause=self, customer=self.customer_rma_task.customer,
-                                               state=self.state)
-                        internal_rma.save()
             super(TestRMA, self).save()
 
     @transaction.atomic()
