@@ -93,24 +93,30 @@ class TestRMA(RMACause):
     state = models.CharField(max_length=3)
 
     def save(self, **kwargs):
+        internal_rma = None
         if isinstance(self.transaction_line, SalesTransactionLine):
-            if self.state not in TestRMAState.STATES:
-                raise StateError("State {} not is list of valid states for this TestRMA".format(self.state))
             if self.pk is None:
                 # You cannot have more active RMAs than there are products sold
-                count = 0
-                internal_rmas = InternalRMA.objects.filter(rma_cause__testrma__transaction_line=self.transaction_line)
-                for in_rma in internal_rmas:
-                    if in_rma.state in InternalRMAState.OPEN_STATES:
-                        count += 1
+                if not self.state:
+                    self.state = TestRMAState.STARTING_STATE
+                internal_rmas = InternalRMA.objects.filter(rma_cause__testrma__transaction_line=self.transaction_line,
+                                                           state__in=InternalRMAState.OPEN_STATES,
+                                                           customer__isnull=False)
+                count = internal_rmas.count()
                 # if count >= translinecount then you cannot add a new one
                 if count >= self.transaction_line.count:
                     raise RMACountError("You tried to open more active RMAs than there are counts for transaction {}".
                                         format(self.transaction_line))
+                internal_rma = InternalRMA(customer=self.customer_rma_task.customer, user_modified=self.user_modified)
 
+        if self.state not in TestRMAState.STATES:
+            raise StateError("State {} not is list of valid states for this TestRMA".format(self.state))
         # Everything checks out, lets save
         with transaction.atomic():
             super(TestRMA, self).save()
+            if internal_rma:
+                internal_rma.rma_cause = self
+                internal_rma.save()
 
     @transaction.atomic()
     def transition(self, new_state: str, user: User):
@@ -120,7 +126,12 @@ class TestRMA(RMACause):
         self.state = new_state
         self.user_modified = user
         self.save()
-        trs = TestRMAState(state=self.state, customer_rma_task=self, user_modified=user)
+        if self.state in TestRMAState.CLOSED_STATES:
+            ira = InternalRMA.objects.filter(rma_cause__testrma=self, state__in=InternalRMAState.OPEN_STATES,
+                                             customer__isnull=False).first()
+            ira.customer = None
+            ira.save()
+        trs = TestRMAState(state=self.state, test_rma=self, user_modified=user)
         trs.save()
 
 
@@ -133,8 +144,9 @@ class TestRMAState(ImmutableBlame):
                       'F': 'Refunded', 'A': 'Customer Abuse', 'O': 'Returned original product(s) to customer'}
     OPEN_STATES = ('U', 'N', 'W', 'A')
     CLOSED_STATES = ('R', 'F', 'O')
+    STARTING_STATE = 'U'
 
-    customer_rma_task = models.ForeignKey(CustomerRMATask)
+    test_rma = models.ForeignKey(TestRMA)
 
     state = models.CharField(max_length=3)
 

@@ -1,7 +1,7 @@
 from django.test import TestCase
 from tools.testing import TestData
 from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA, \
-    InternalRMAState, DirectRefundRMA, TestRMA
+    InternalRMAState, DirectRefundRMA, TestRMA, CustomerTaskDescription, RMACountError
 from sales.models import Transaction, TransactionLine, SalesTransactionLine, \
     RefundTransactionLine, InvalidDataException, Payment
 from stock.models import Stock
@@ -81,6 +81,74 @@ class BasicTests(TestCase, TestData):
         self.assertEqual(irma.rma_cause.directrefundrma, drm)
         self.assertEqual(irma.state, 'B')
         self.assertEqual(irma.description, '')
+
+    def test_customer_rma_task_comments(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type()
+        trans = Transaction.objects.first()
+        crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
+        crt.save()
+        c1 = CustomerTaskDescription(customer_rma_task=crt, text="Something broke I think.", user_modified=self.user_1)
+        c1.save()
+        c2 = CustomerTaskDescription(customer_rma_task=crt, text="It did break.", user_modified= self.user_2)
+        c2.save()
+        comments = CustomerTaskDescription.objects.filter(customer_rma_task=crt)
+        self.assertEqual(len(comments), 2)
+
+    def test_testrma_in_customer_rma_task(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type()
+        trans = Transaction.objects.first()
+        stl = SalesTransactionLine.objects.filter(transaction=trans).first()
+        crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
+        crt.save()
+        tra = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra.save()
+        self.assertEqual(tra.state, 'U')
+        ira = InternalRMA.objects.get()
+        self.assertEqual(ira.rma_cause.testrma, tra)
+        self.assertEqual(ira.customer.id, self.customer_person_1.id)
+        self.assertEqual(ira.state, 'B')
+
+    def test_testrma_overloading_number_of_testrmas(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type(article_1=2)
+        trans = Transaction.objects.first()
+        stl = SalesTransactionLine.objects.filter(transaction=trans, article=self.articletype_1).first()
+        crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
+        crt.save()
+        tra1 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra1.save()
+        tra2 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra2.save()
+        with self.assertRaises(RMACountError):
+            tra3 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+            tra3.save()
+
+    def test_testrma_correct_closing_states(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type(article_1=2)
+        trans = Transaction.objects.first()
+        stl = SalesTransactionLine.objects.filter(transaction=trans, article=self.articletype_1).first()
+        crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
+        crt.save()
+        tra1 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra1.save()
+        tra2 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra2.save()
+        tra2.transition('F', self.user_1)
+        tra3 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra3.save()
+
+
 
 
 
