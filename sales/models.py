@@ -153,13 +153,11 @@ class RefundTransactionLine(TransactionLine):
                 self.test_rma.transition('F', self.user_modified)
             if self.creates_rma:
                 # If you are here, test_rma is None so there is no danger of collision
+                super(RefundTransactionLine, self).save()
                 drm = DirectRefundRMA(refund_line=self, user_modified=self.user_modified)
                 drm.save()
-                ira = InternalRMA(rma_cause=drm, customer=None,
-                                  description="Refund with RMACause {} and RefundTransactionLine {}".format(str(drm),
-                                                                                                            str(self)))
-                ira.save()
-            super(RefundTransactionLine, self).save()
+            else:
+                super(RefundTransactionLine, self).save()
         super(RefundTransactionLine, self).save()
 
 

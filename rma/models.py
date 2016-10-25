@@ -157,9 +157,13 @@ class DirectRefundRMA(RMACause):
         if self.pk is None:
             sold_line = self.refund_line.sold_transaction_line
             if hasattr(sold_line, 'salestransactionline') and sold_line.salestransactionline is not None:
-                irma = InternalRMA(rma_cause=self, customer=None, user_created=self.user_created)
+                super(DirectRefundRMA, self).save()
+                irma = InternalRMA(rma_cause=self, customer=None, user_modified=self.user_modified)
                 irma.save()
-        super(DirectRefundRMA, self).save()
+            else:
+                super(DirectRefundRMA, self).save()
+        else:
+            super(DirectRefundRMA, self).save()
 
 
 class InternalRMA(Blame):
@@ -186,7 +190,7 @@ class InternalRMA(Blame):
             raise StateError("While saving InternalRMA encountered illegal state {}".format(self.state))
         if self.pk is None:
             super(InternalRMA, self).save()
-            irs = InternalRMAState(internal_rma=self, state=self.state, user_modified=self.user_created)
+            irs = InternalRMAState(internal_rma=self, state=self.state, user_modified=self.user_modified)
             irs.save()
         else:
             super(InternalRMA, self).save()

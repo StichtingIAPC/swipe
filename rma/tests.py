@@ -2,10 +2,12 @@ from django.test import TestCase
 from tools.testing import TestData
 from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA, \
     InternalRMAState, DirectRefundRMA, TestRMA
-from sales.models import Transaction, TransactionLine, SalesTransactionLine, RefundTransactionLine, InvalidDataException
+from sales.models import Transaction, TransactionLine, SalesTransactionLine, \
+    RefundTransactionLine, InvalidDataException, Payment
 from stock.models import Stock
 from stock.stocklabel import OrderLabel
 from logistics.models import StockWish
+from money.models import Price, Money
 
 
 class BasicTests(TestCase, TestData):
@@ -60,7 +62,26 @@ class BasicTests(TestCase, TestData):
             rfl.save()
 
     def test_direct_refund_rma(self):
+        # Test creation of RMA. No customer RMA was generated
         self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         self.create_transactions_article_type()
+        stl = SalesTransactionLine.objects.first()
+        price = stl.price # type: Price
+        rfl = RefundTransactionLine(user_modified=self.user_1, count=-1, sold_transaction_line= stl,
+                                    creates_rma=True, price=price)
+        money = Money(amount=price.amount*-1, currency=self.currency_eur)
+        pymnt = Payment(amount=money, payment_type=self.paymenttype_maestro)
+        Transaction.create_transaction(user=self.user_1, payments=[pymnt], transaction_lines=[rfl])
+        drm = DirectRefundRMA.objects.get()
+        irma = InternalRMA.objects.get()
+        self.assertEqual(drm.refund_line, rfl)
+        self.assertEqual(irma.customer, None)
+        self.assertEqual(irma.rma_cause.directrefundrma, drm)
+        self.assertEqual(irma.state, 'B')
+        self.assertEqual(irma.description, '')
+
+
+
+
