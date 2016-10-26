@@ -42,9 +42,9 @@ class TestData:
         self.paymenttype_maestro = PaymentType(name="Maestro")
         self.paymenttype_maestro.save()
 
-        self.register_1 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash)
-        self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash)
-        self.register_3 = Register(currency=self.currency_data_eur, is_cash_register=False, payment_type=self.paymenttype_maestro)
+        self.register_1 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash, name="Register 1")
+        self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash, name="Register 2")
+        self.register_3 = Register(currency=self.currency_data_eur, is_cash_register=False, payment_type=self.paymenttype_maestro, name="Register 3")
         self.register_1.save()
         self.register_2.save()
         self.register_3.save()

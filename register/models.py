@@ -37,7 +37,7 @@ class Register(models.Model):
             ("close_register", "Can close a register"),
         )
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     # Currency used for this register. Unchangeable
     currency = models.ForeignKey(CurrencyData)
     # Indicates if register accepts cash or otherwise is a digital register
