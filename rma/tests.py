@@ -148,8 +148,27 @@ class BasicTests(TestCase, TestData):
         tra3 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
         tra3.save()
 
-
-
-
-
-
+    def test_counted_customer_rmas(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        self.create_transactions_article_type()
+        trans = Transaction.objects.first()
+        crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
+        crt.save()
+        self.assertEquals(crt.has_open_rmas_for_customer(), False)
+        stl = SalesTransactionLine.objects.filter(transaction=trans, article=self.articletype_1).first()
+        tra1 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra1.save()
+        self.assertEquals(crt.has_open_rmas_for_customer(), True)
+        self.assertEquals(len(crt.get_open_customer_rmas()), 1)
+        tra2 = TestRMA(user_modified=self.user_1, transaction_line=stl, customer_rma_task=crt)
+        tra2.save()
+        self.assertEquals(crt.has_open_rmas_for_customer(), True)
+        self.assertEquals(len(crt.get_open_customer_rmas()), 2)
+        tra2.transition('F', self.user_1)
+        self.assertEquals(crt.has_open_rmas_for_customer(), True)
+        self.assertEquals(len(crt.get_open_customer_rmas()), 1)
+        tra1.transition('F', self.user_2)
+        self.assertEquals(crt.has_open_rmas_for_customer(), False)
+        self.assertEquals(len(crt.get_open_customer_rmas()), 0)
