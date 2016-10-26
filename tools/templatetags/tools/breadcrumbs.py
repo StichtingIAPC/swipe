@@ -35,7 +35,13 @@ def breadcrumbs(context):
     crumbs = []
     reverse_result = ''
 
+    cycle_detect_list = []
+
     while KNOWN_CRUMBS[view] is not None:
+        if view in cycle_detect_list:
+            raise RecursionError('view {} points to itself'.format(view.__name__))
+        cycle_detect_list.append(view)
+
         text, parent, parent_kwargs = KNOWN_CRUMBS[view]
 
         crumbs.append({
