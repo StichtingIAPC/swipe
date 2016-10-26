@@ -29,4 +29,6 @@ urlpatterns = [
     url(r'^barcode/', include('barcode.urls')),
 
     url(r'^tools/', include('tools.urls')),
+
+    url(r'^public/', include('public_info.urls'))
 ]

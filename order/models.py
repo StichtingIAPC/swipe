@@ -8,17 +8,16 @@ from article.models import *
 from blame.models import Blame, ImmutableBlame
 from crm.models import *
 from money.models import *
+from public_info.models import Shared
 from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 
 
-# Create your models here.
-
-
-class Order(Blame):
+class Order(Blame, Shared):
     # A collection of orders of a customer ordered together
     # Customer that originates the order
     customer = models.ForeignKey(Customer)
+    notes = models.TextField(default="")
 
     @staticmethod
     def create_order_from_wishables_combinations(user, customer, wishable_type_number_price_combinations):
@@ -172,7 +171,7 @@ class OrderLine(Blame):
 
             curr = Currency(iso=USED_CURRENCY)
 
-            self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
+            self.expected_sales_price = Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
 
             raiseif(self.state not in OrderLineState.STATE_CHOICES, IncorrectOrderLineStateError, "Invalid state")
             super(OrderLine, self).save()
@@ -194,7 +193,7 @@ class OrderLine(Blame):
             raise IncorrectOrderLineStateError("State of orderline is not valid. Database is corrupted at Orderline",
                                                self.pk, " with state ", self.state)
         else:
-            if new_state in OrderLineState.VALID_NEXT_STATES[self.state]:
+            if new_state in OrderLineState.VALID_NEXT_STATES.get(self.state, []):
                 self.state = new_state
                 ols = OrderLineState(state=new_state, orderline=self, user_created=user_created)
                 ols.save()
@@ -246,6 +245,12 @@ class OrderLine(Blame):
 
             ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)
             orderlinelist.append(ol)
+
+    class Meta:
+        ordering = [
+            'state',
+            'wishable',
+        ]
 
 
 class OrderCombinationLine:

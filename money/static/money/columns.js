@@ -1,6 +1,4 @@
-/**
- * Created by Matthias on 11/10/2016.
- */
+import { Column } from "js/tools/tables"
 
 class MoneyColumn extends Column {
   constructor(key, name, currency) {
