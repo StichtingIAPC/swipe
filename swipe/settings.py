@@ -64,7 +64,7 @@ INSTALLED_APPS = (
     'supplication',
     'barcode',
     'sales',
-
+    'rma',
 )
 
 MIDDLEWARE_CLASSES = [

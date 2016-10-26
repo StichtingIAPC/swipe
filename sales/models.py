@@ -12,6 +12,7 @@ from stock.stocklabel import StockLabeledLine, OrderLabel
 from tools.util import raiseif
 
 
+
 class TransactionLine(Blame):
     """
     Superclass of transaction line. Contains all the shared information of all transaction line types. Creation in the database
@@ -129,6 +130,10 @@ class RefundTransactionLine(TransactionLine):
     """
     # The transaction line that is already sold.
     sold_transaction_line = models.ForeignKey(TransactionLine, related_name="sold_line")
+    # RMA Task from customer to refund. If null, not a refund for an existing test RMA(but could be an RMA)
+    test_rma = models.ForeignKey('rma.TestRMA', null=True, default=None)
+    # This flag, when True, creates an internal RMA for the product
+    creates_rma = models.BooleanField(default=False)
 
     def __str__(self):
         prep = super(RefundTransactionLine, self).__str__()
@@ -137,6 +142,23 @@ class RefundTransactionLine(TransactionLine):
         else:
             tr = self.transaction_line.pk
         return prep + ", Transaction_number: {}".format(tr)
+
+    def save(self, *args, **kwargs):
+        from rma.models import InternalRMA, DirectRefundRMA
+        if self.pk is None:
+            if hasattr(self, 'test_rma') and self.test_rma is not None:
+                raiseif(self.test_rma.pk is None, IncorrectDataException, "Non saved RMA Task")
+                self.sold_transaction_line = self.test_rma.transaction_line
+                raiseif(self.creates_rma, InvalidDataException, "Cannot be linked to RMA Task and create an RMA")
+                self.test_rma.transition('F', self.user_modified)
+            if self.creates_rma:
+                # If you are here, test_rma is None so there is no danger of collision
+                super(RefundTransactionLine, self).save()
+                drm = DirectRefundRMA(refund_line=self, user_modified=self.user_modified)
+                drm.save()
+            else:
+                super(RefundTransactionLine, self).save()
+        super(RefundTransactionLine, self).save()
 
 
 class Payment(models.Model):
