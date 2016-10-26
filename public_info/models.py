@@ -1,28 +1,14 @@
-import random
-import re
-import string
+import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
 from django.views import View
 
 
-
-VALID_CHARS = string.ascii_letters + string.digits + '+-'
-
-
 class Sharing(models.Model):
-    random_str = models.CharField(
-        max_length=16,
-        editable=False,
-        unique=True,
-        validators=[
-            RegexValidator(regex=re.compile(r'[' + VALID_CHARS + ']'))
-        ],
-        db_index=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     public = models.BooleanField(default=True)
 
     sharing_type = models.ForeignKey(ContentType)
@@ -42,18 +28,11 @@ class Shared(models.Model):
 
     def get_shared_url(self):
         ctype = ContentType.objects.get_for_model(type(self))
-        rnd = random.SystemRandom()
-        random_str = ''.join([rnd.choice(VALID_CHARS) for i in range(20)])
-        return reverse(
-            'urlshare:shared',
-            kwargs={
-                'random_str': Sharing.objects.get_or_create(
+        return reverse('urlshare:shared', kwargs={
+                'uuid_str': Sharing.objects.get_or_create(
                     sharing_type=ctype,
                     sharing_id=self.id,
-                    defaults={
-                        'random_str': random_str  # Will be the value if it did not exist already
-                    }
-                )[0].random_str
+                )[0].uuid.hex
             }
         )
 
@@ -73,16 +52,16 @@ def get_public_view(cls_type):
     raise SharedViewNotFoundException
 
 
-def public_view(cls_type=None):
+def public_view(model=None):
     """
-    Decorator to say 'this class rou
-    :param cls_type:
+    Decorator to say 'this view has the view logic for this model type'
+    :param model: the model it makes visible
     :return:
     """
     def decorate(view):
         if issubclass(view, View):
             view = view.as_view()
-        PUBLIC_VIEWS[cls_type] = view
+        PUBLIC_VIEWS[model] = view
         return view
     return decorate
 
