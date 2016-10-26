@@ -59,9 +59,10 @@ def public_view(model=None):
     :return:
     """
     def decorate(view):
+        view_func = view
         if issubclass(view, View):
-            view = view.as_view()
-        PUBLIC_VIEWS[model] = view
+            view_func = view.as_view()
+        PUBLIC_VIEWS[model] = view_func
         return view
     return decorate
 
