@@ -86,7 +86,7 @@ class InternaliseDocument(Blame):
         doc.save()
         for line in internal_lines:
             line.internalise_document = doc
-            line.save(indirect=True, mod_stock=False)
+            line.save()
 
         StockChangeSet.construct(description="Internalisation with document {}".format(doc.pk),
                                  entries=stock_mod_entries,
@@ -111,17 +111,6 @@ class InternaliseLine(ImmutableBlame):
     label_type = models.CharField(max_length=255, null=True)
     # If a labelType is used, this should be used(not Null, >0) to identify the StockLine. Null for stock.
     identifier = models.IntegerField(null=True)
-
-    def save(self, indirect=False, mod_stock=True, **kwargs ):
-        raiseif(not indirect, IndirectionError, "Internaliseline "
-                                                "should only be called "
-                                                "indirectly(through function in InternaliseDocument)")
-        if not self.pk:
-            if mod_stock:
-                pass
-            super(InternaliseLine, self).save()
-        else:
-            super(InternaliseLine, self).save()
 
 
 class DataTypeError(Exception):
