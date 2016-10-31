@@ -1,9 +1,10 @@
 from django.test import TestCase
 from tools.testing import TestData
 from logistics.models import StockWish
-from internalise.models import InternaliseDocument, InternaliseLine
+from internalise.models import InternaliseDocument, InternaliseLine, DataValidityError
 from stock.models import Stock
 from stock.stocklabel import OrderLabel
+
 
 class InternaliseTests(TestCase, TestData):
 
@@ -112,3 +113,84 @@ class InternaliseTests(TestCase, TestData):
         self.assertFalse(il_1.identifier)
         self.assertEqual(il_2.label_type, "Order")
         self.assertEqual(il_2.identifier, 1)
+
+    def test_just_enough_articles(self):
+        IN_STOCK_ART_1 = 6
+        self.create_stockwish(article_1=IN_STOCK_ART_1, article_2=0)
+        self.create_suporders(article_1=IN_STOCK_ART_1, article_2=0)
+        self.create_packingdocuments(article_1=IN_STOCK_ART_1, article_2=0)
+        st = Stock.objects.get()
+        self.assertEqual(st.count, IN_STOCK_ART_1)
+        InternaliseDocument.create_internal_products_document(user=self.user_1,
+                                                              articles_with_information=[[self.articletype_1, IN_STOCK_ART_1, None, None]],
+                                                              memo="Foo3")
+        stock = Stock.objects.all()
+        self.assertEqual(len(stock), 0)
+
+    def test_just_enough_articles_labeled(self):
+        CUST_ORDERED_ART_1 = 6
+        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
+        st = Stock.objects.get()
+        self.assertEqual(st.count, CUST_ORDERED_ART_1)
+        InternaliseDocument.create_internal_products_document(user=self.user_1,
+                                                              articles_with_information=[
+                                                                  [self.articletype_1, CUST_ORDERED_ART_1, OrderLabel, 1]],
+                                                              memo="Foo3")
+        stock = Stock.objects.all()
+        self.assertEqual(len(stock), 0)
+
+    def test_too_many_articles_labeled(self):
+        CUST_ORDERED_ART_1 = 6
+        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
+        st = Stock.objects.get()
+        self.assertEqual(st.count, CUST_ORDERED_ART_1)
+        with self.assertRaises(DataValidityError):
+            InternaliseDocument.create_internal_products_document(user=self.user_1,
+                                                              articles_with_information=[
+                                                                  [self.articletype_1, CUST_ORDERED_ART_1+1, OrderLabel, 1]],
+                                                              memo="Foo3")
+
+    def test_too_many_articles_labeled_loose(self):
+        CUST_ORDERED_ART_1 = 6
+        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
+        st = Stock.objects.get()
+        self.assertEqual(st.count, CUST_ORDERED_ART_1)
+        with self.assertRaises(DataValidityError):
+            InternaliseDocument.create_internal_products_document(user=self.user_1,
+                                                                  articles_with_information=[
+                                                                   [self.articletype_1, CUST_ORDERED_ART_1-2, OrderLabel, 1],
+                                                                   [self.articletype_1, 3, OrderLabel, 1]],
+                                                                  memo="Foo3")
+
+    def test_too_many_articles_stock(self):
+        CUST_ORDERED_ART_1 = 6
+        self.create_stockwish(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
+        st = Stock.objects.get()
+        self.assertEqual(st.count, CUST_ORDERED_ART_1)
+        with self.assertRaises(DataValidityError):
+            InternaliseDocument.create_internal_products_document(user=self.user_1,
+                                                                  articles_with_information=[
+                                                                   [self.articletype_1, CUST_ORDERED_ART_1+1, None, None]],
+                                                                  memo="Foo3")
+
+    def test_too_many_articles_stock_loose(self):
+        CUST_ORDERED_ART_1 = 6
+        self.create_stockwish(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
+        st = Stock.objects.get()
+        self.assertEqual(st.count, CUST_ORDERED_ART_1)
+        with self.assertRaises(DataValidityError):
+            InternaliseDocument.create_internal_products_document(user=self.user_1,
+                                                                  articles_with_information=[
+                                                                   [self.articletype_1, CUST_ORDERED_ART_1-2, None, None],
+                                                                   [self.articletype_1, 3, None, None]],
+                                                                  memo="Foo3")
