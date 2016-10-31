@@ -5,7 +5,7 @@ from decimal import Decimal
 from crm.models import User, Person
 from supplier.models import Supplier, ArticleTypeSupplier
 from order.models import Order
-from logistics.models import SupplierOrder
+from logistics.models import SupplierOrder, StockWish
 from supplication.models import PackingDocument
 from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
 from django.test import TestCase
@@ -97,46 +97,78 @@ class TestData:
         self.CUSTORDERED_ARTICLE_2 = article_2
         self.CUSTORDERED_OTHERCOST_1 = othercost_1
         self.CUSTORDERED_OTHERCOST_2 = othercost_2
-        Order.create_order_from_wishables_combinations(user=self.user_1, customer=self.customer_person_1,
-                                                       wishable_type_number_price_combinations=[
-                                                           [self.articletype_1, self.CUSTORDERED_ARTICLE_1, self.price_eur_1],
-                                                           [self.articletype_2, self.CUSTORDERED_ARTICLE_2, self.price_eur_2],
-                                                       [self.othercosttype_1, self.CUSTORDERED_OTHERCOST_1, self.price_eur_1],
-                                                       [self.othercosttype_2, self.CUSTORDERED_OTHERCOST_2, self.price_eur_2]])
+        if article_1 + article_2 + othercost_1 + othercost_2 > 0:
+            wish_combs = []
+            if article_1 > 0:
+                wish_combs.append([self.articletype_1, self.CUSTORDERED_ARTICLE_1, self.price_eur_1])
+            if article_2 > 0:
+                wish_combs.append([self.articletype_2, self.CUSTORDERED_ARTICLE_2, self.price_eur_2])
+            if othercost_1 > 0:
+                wish_combs.append([self.othercosttype_1, self.CUSTORDERED_OTHERCOST_1, self.price_eur_1])
+            if othercost_2 > 0:
+                wish_combs.append([self.othercosttype_2, self.CUSTORDERED_OTHERCOST_2, self.price_eur_2])
+            Order.create_order_from_wishables_combinations(user=self.user_1, customer=self.customer_person_1,
+                                                           wishable_type_number_price_combinations=wish_combs)
+
+    def create_stockwish(self, article_1=6, article_2=7):
+        self.STOCKWISHED_ARTICLE_1 = article_1
+        self.STOCKWISHED_ARTICLE_2 = article_2
+        if article_1 + article_2 > 0:
+            art_wishes = []
+            if article_1 > 0:
+                art_wishes.append([self.articletype_1, self.STOCKWISHED_ARTICLE_1])
+            if article_2 > 0:
+                art_wishes.append([self.articletype_2, self.STOCKWISHED_ARTICLE_2])
+            StockWish.create_stock_wish(user_modified=self.user_1, articles_ordered=art_wishes)
+
 
     def create_suporders(self, article_1=4, article_2=5):
         self.SUPPLIERORDERED_ARTICLE_1 = article_1
         self.SUPPLIERORDERED_ARTICLE_2 = article_2
-        SupplierOrder.create_supplier_order(user_modified=self.user_1, supplier=self.supplier_1,
-                                            articles_ordered=[[self.articletype_1, self.SUPPLIERORDERED_ARTICLE_1, self.cost_eur_1],
-                                                              [self.articletype_2, self.SUPPLIERORDERED_ARTICLE_2, self.cost_eur_2]])
+        if article_1 + article_2 > 0:
+            arts_ordered = []
+            if article_1 > 0:
+                arts_ordered.append([self.articletype_1, self.SUPPLIERORDERED_ARTICLE_1, self.cost_eur_1])
+            if article_2 > 0:
+                arts_ordered.append([self.articletype_2, self.SUPPLIERORDERED_ARTICLE_2, self.cost_eur_2])
+
+            SupplierOrder.create_supplier_order(user_modified=self.user_1, supplier=self.supplier_1,
+                                                articles_ordered=arts_ordered)
 
     def create_packingdocuments(self, article_1=3, article_2=4):
         self.PACKING_ARTICLE_1 = article_1
         self.PACKING_ARTICLE_2 = article_2
+        if article_1 + article_2 > 0:
+            atccs = []
+            if article_1 > 0:
+                atccs.append([self.articletype_1, self.PACKING_ARTICLE_1])
+            if article_2 > 0:
+                atccs.append([self.articletype_2, self.PACKING_ARTICLE_2])
         PackingDocument.create_packing_document(supplier=self.supplier_1, packing_document_name="Packing document name 1", user=self.user_1,
-                                                article_type_cost_combinations=[[self.articletype_1, self.PACKING_ARTICLE_1], [self.articletype_2, self.PACKING_ARTICLE_2]])
+                                                article_type_cost_combinations=atccs)
 
     def create_transactions_article_type(self, article_1=2, article_2=3, othercost_1=4):
         self.SOLD_ARTICLE_1 = article_1
         self.SOLD_ARTICLE_2 = article_2
         self.SOLD_OTHERCOST_1 = othercost_1
-        self.register_3.open(counted_amount=Decimal(0))
-        tl_1 = SalesTransactionLine(price=self.price_eur_1, count=self.SOLD_ARTICLE_1, order=1, article=self.articletype_1)
-        money_1 = Money(amount=self.price_eur_1.amount*self.SOLD_ARTICLE_1, currency=self.price_eur_1.currency)
-        pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
-
-        tl_2 = SalesTransactionLine(price=self.price_eur_2, count=self.SOLD_ARTICLE_2, order=1,
-                                    article=self.articletype_2)
-        money_2 = Money(amount=self.price_eur_2.amount * self.SOLD_ARTICLE_2, currency=self.price_eur_2.currency)
-        pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_maestro)
-        Transaction.create_transaction(user=self.user_2, transaction_lines=[tl_2], payments=[pymnt_2], customer=self.customer_person_1)
-
-        octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=self.SOLD_OTHERCOST_1, other_cost_type=self.othercosttype_1, order=1)
-        money_3 = Money(amount=self.price_eur_1.amount*self.SOLD_OTHERCOST_1, currency=self.price_eur_1.currency)
-        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
-        Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1], customer=self.customer_person_2)
+        if article_1 + article_2 + othercost_1 > 0:
+            self.register_3.open(counted_amount=Decimal(0))
+            if article_1 > 0:
+                tl_1 = SalesTransactionLine(price=self.price_eur_1, count=self.SOLD_ARTICLE_1, order=1, article=self.articletype_1)
+                money_1 = Money(amount=self.price_eur_1.amount*self.SOLD_ARTICLE_1, currency=self.price_eur_1.currency)
+                pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
+                Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+            if article_2 > 0:
+                tl_2 = SalesTransactionLine(price=self.price_eur_2, count=self.SOLD_ARTICLE_2, order=1,
+                                            article=self.articletype_2)
+                money_2 = Money(amount=self.price_eur_2.amount * self.SOLD_ARTICLE_2, currency=self.price_eur_2.currency)
+                pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_maestro)
+                Transaction.create_transaction(user=self.user_2, transaction_lines=[tl_2], payments=[pymnt_2], customer=self.customer_person_1)
+            if othercost_1 > 0:
+                octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=self.SOLD_OTHERCOST_1, other_cost_type=self.othercosttype_1, order=1)
+                money_3 = Money(amount=self.price_eur_1.amount*self.SOLD_OTHERCOST_1, currency=self.price_eur_1.currency)
+                pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+                Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1], customer=self.customer_person_2)
 
 
 class TestMixins(TestCase, TestData):
@@ -145,6 +177,7 @@ class TestMixins(TestCase, TestData):
         self.setup_base_data()
         self.create_custorders()
         self.create_suporders()
+        self.create_stockwish()
         self.create_packingdocuments()
         self.create_transactions_article_type()
 
