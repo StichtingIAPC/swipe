@@ -108,7 +108,7 @@ class OrderLineState(ImmutableBlame):
     VALID_NEXT_STATES = {
         'O': ('C', 'L'),
         'L': ('A', 'O', 'C'),
-        'A': ('S', 'I')
+        'A': ('S', 'I', 'O')
     }
     # Mirrors the transition of the state of an OrderLine
     state = models.CharField(max_length=3, choices=sorted(STATE_MEANING.items()))

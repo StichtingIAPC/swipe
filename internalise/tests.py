@@ -4,6 +4,7 @@ from logistics.models import StockWish
 from internalise.models import InternaliseDocument, InternaliseLine, DataValidityError
 from stock.models import Stock
 from stock.stocklabel import OrderLabel
+from order.models import OrderLine
 
 
 class InternaliseTests(TestCase, TestData):
@@ -89,6 +90,8 @@ class InternaliseTests(TestCase, TestData):
 
         INTERN_ART_1 = 3
         INTERN_ART_2 = 4
+        ols = OrderLine.objects.filter(state='A', wishable__sellabletype__articletype=self.articletype_1)
+        self.assertEqual(len(ols), CUST_ORDER_1)
 
         InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                               articles_with_information=[
@@ -114,6 +117,9 @@ class InternaliseTests(TestCase, TestData):
         self.assertEqual(il_2.label_type, "Order")
         self.assertEqual(il_2.identifier, 1)
 
+        ols = OrderLine.objects.filter(state='A', wishable__sellabletype__articletype=self.articletype_1)
+        self.assertEqual(len(ols), CUST_ORDER_1-INTERN_ART_2)
+
     def test_just_enough_articles(self):
         IN_STOCK_ART_1 = 6
         self.create_stockwish(article_1=IN_STOCK_ART_1, article_2=0)
@@ -129,17 +135,21 @@ class InternaliseTests(TestCase, TestData):
 
     def test_just_enough_articles_labeled(self):
         CUST_ORDERED_ART_1 = 6
-        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0, othercost_1=0, othercost_2=0)
         self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
         self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
         st = Stock.objects.get()
         self.assertEqual(st.count, CUST_ORDERED_ART_1)
+        ols = OrderLine.objects.filter(state='A')
+        self.assertEqual(len(ols), CUST_ORDERED_ART_1)
         InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                               articles_with_information=[
                                                                   [self.articletype_1, CUST_ORDERED_ART_1, OrderLabel, 1]],
                                                               memo="Foo3")
         stock = Stock.objects.all()
         self.assertEqual(len(stock), 0)
+        ols = OrderLine.objects.filter(state='O')
+        self.assertEqual(len(ols), CUST_ORDERED_ART_1)
 
     def test_too_many_articles_labeled(self):
         CUST_ORDERED_ART_1 = 6
