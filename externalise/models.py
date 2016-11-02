@@ -9,13 +9,14 @@ from stock.enumeration import enum
 from collections import defaultdict
 from tools.util import raiseif
 
+
 class ExternaliseDocument(Blame):
     """
     A document that represents getting products from a non-standard source. Can be used to take in stock anything that is
     an articleType. Should not be used in place of supplier related processes as this method contains almost no information
     in describing the process. This is however quite useful for adding "random" products to stock.
     """
-
+    # A memo that desribes why the externalisation process has taken place
     memo = models.TextField()
 
     @staticmethod
@@ -26,6 +27,7 @@ class ExternaliseDocument(Blame):
         :param user: The user that created the document
         :param article_information_list: List(Tuple(article, count, cost)). A list of articles with multiplicity and cost.
         This is enough info to create the stock.
+        :param memo: A memo to explain the reason for adding the articles
         """
         raiseif(not isinstance(user, User), IncorrectClassError())
         raiseif(not isinstance(memo, str), IncorrectClassError())
@@ -62,13 +64,13 @@ class ExternaliseLine(ImmutableBlame):
     """
     The line that contains the history information. The products itself will enter stock.
     """
-
+    # The document to bundle line together
     externalise_document = models.ForeignKey(ExternaliseDocument)
-
+    # The article type to store in stock
     article_type = models.ForeignKey(ArticleType)
-
+    # The number of articles to store in stock
     count = models.IntegerField()
-
+    # How much money each individual product costs
     cost = CostField()
 
     def save(self, mod_stock=True, **kwargs):
