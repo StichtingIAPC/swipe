@@ -201,6 +201,9 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 BASE_URL = "https://swipe.iapc.utwente.nl/"
 
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'tmp', 'mail')
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
