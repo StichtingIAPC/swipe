@@ -11,7 +11,8 @@ from order.models import OrderLine, Order
 from stock.models import Stock, StockChange
 from supplication import models
 from supplication.models import PackingDocument, PackingDocumentLine, SupplierOrderLine, Invoice, OrderLabel, \
-    DistributionStrategy, FirstSupplierOrderStrategy, FirstCustomersDateTimeThenStockDateTime
+    DistributionStrategy, FirstSupplierOrderStrategy, \
+    FirstCustomersDateTimeThenStockDateTime, SerialNumber, IncorrectDataError
 from supplier.models import Supplier, ArticleTypeSupplier
 
 
@@ -1004,6 +1005,48 @@ class PackingDocumentCreationTests(TestCase):
         self.assertEquals(len(st), 4)
         inv = Invoice.objects.all()
         self.assertEquals(len(inv), 1)
+
+    def test_serial_numbers_success(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        StockWish.create_stock_wish(user_modified=self.copro,
+                                    articles_ordered=[[self.article_type, AMOUNT_1], [self.at2, AMOUNT_2]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        sers = {self.article_type: ["ASD","FD","FDd","FD","GF","Ga"], self.at2: ["Baz"]}
+        PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo", serial_numbers=sers)
+        sns = SerialNumber.objects.all()
+        pac_doc = sns[0].packing_document
+        counted_art_1 =0
+        counted_art_2 = 0
+        for sn in sns:
+            if sn.article_type == self.article_type and sn.packing_document == pac_doc:
+                counted_art_1 += 1
+            elif sn.article_type == self.at2 and sn.packing_document == pac_doc:
+                counted_art_2 += 1
+        self.assertEquals(counted_art_1, 6)
+        self.assertEquals(counted_art_2, 1)
+
+    def test_serial_numbers_fail(self):
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        StockWish.create_stock_wish(user_modified=self.copro,
+                                    articles_ordered=[[self.article_type, AMOUNT_1], [self.at2, AMOUNT_2]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost]])
+        sers = {self.article_type: ["ASD","FD","FDd","FD","GF","Ga", "d"], self.at2: ["Baz"]}
+        with self.assertRaises(IncorrectDataError):
+            PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                [self.at2, AMOUNT_2]],
+                                                packing_document_name="Foo", serial_numbers=sers)
+
+
 
 
 
