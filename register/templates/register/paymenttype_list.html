@@ -1,0 +1,23 @@
+{% extends 'register/register_base.html' %}
+{% load i18n %}
+
+{% block page_title%}{% trans 'Payment type list' %}{% endblock %}
+
+{% block content %}
+    <h2>{% trans 'List of payment types' %} <a class="button success pull-right" href="{% url 'paymenttype_create' %}">{% trans 'add' %}</a></h2>
+    <ul>
+    {% for paymenttype in object_list %}
+        <li class="row">
+            <div class="small-12">
+                <a href="{% url 'paymenttype_detail' pk=paymenttype.pk %}">{{ paymenttype }}</a>
+            </div>
+        </li>
+    {% empty %}
+        <li class="row">
+            <div class="small-12">
+                {% trans 'No payment types' %}
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}

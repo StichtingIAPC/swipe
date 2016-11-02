@@ -15,23 +15,25 @@ Including another URLconf
 """
 from django.conf.urls import url
 
-from register.views import index, RegisterList, OpenFormView, CloseFormView, IsOpenStateView, DenominationList,\
-                           DenominationCreate, RegisterCreate, DenominationDetail
+from register.views import index, RegisterList, OpenFormView, CloseFormView, IsOpenStateView, RegisterCreate, \
+    RegisterDetail, PaymentTypeList, PaymentTypeCreate, PaymentTypeDetail, RegisterEdit
+
+
 
 urlpatterns = [
     # Standard page
     url(r'^$', index, name="register_index"),
-    # Django internal documentation
-    url(r'^list/', RegisterList.as_view(template_name="register_list.html"), name="register_list"),
-    url(r'^open/', OpenFormView.as_view(template_name="open_count.html"), name="register_open"),
-    url(r'^close/', CloseFormView.as_view(template_name="close_count.html"), name="register_close"),
-    url(r'^state/', IsOpenStateView.as_view(template_name="is_open_view.html"), name="register_state"),
 
-    url(r'^list_register/', RegisterList.as_view(template_name="register_list.html"), name="register_list_register"),
-    url(r'^list_denomination', DenominationList.as_view(template_name="denomination_list.html"), name="register_list_denomination"),
-    url(r'^add_denomination', DenominationCreate.as_view(template_name="denomination_form.html"), name="register_add_denomination"),
-    url(r'^add_register', RegisterCreate.as_view(template_name="denomination_form.html"), name="register_add_register"),
-    url(r'^(?P<pk>[0-9]+)$', DenominationDetail.as_view(), name="denomination_detail"),
+    url(r'^state/$', IsOpenStateView.as_view(), name="register_state"),
+    url(r'^state/open/$', OpenFormView.as_view(), name="register_open"),
+    url(r'^state/close/$', CloseFormView.as_view(), name="register_close"),
 
+    url(r'^list/$', RegisterList.as_view(), name="register_list"),
+    url(r'^add/$', RegisterCreate.as_view(), name="register_create"),
+    url(r'^(?P<pk>[0-9]+)/$', RegisterDetail.as_view(), name="register_detail"),
+    url(r'^(?P<pk>[0-9]+)/edit/', RegisterEdit.as_view(), name="register_edit"),
 
+    url(r'^paymenttypes/$', PaymentTypeList.as_view(), name='paymenttype_list'),
+    url(r'^paymenttypes/add/$', PaymentTypeCreate.as_view(), name='paymenttype_create'),
+    url(r'^paymenttypes/(?P<pk>[0-9]+)/$', PaymentTypeDetail.as_view(), name='paymenttype_detail'),
 ]

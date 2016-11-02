@@ -1,9 +1,9 @@
-{% extends 'www/base.html' %}
+{% extends 'money/money_base.html' %}
 
 {% load i18n %}
 
-{% block page_title%}{% trans 'Register '%}{% endblock %}`s
+{% block page_title%}{% trans 'Money'%}{% endblock %}`s
 
 {% block content %}
-    <p><a href="list">List of currencies</a></p>
+    <p><a href="{% url 'currencydata_list' %}">List of currencies</a></p>
 {% endblock %}

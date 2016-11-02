@@ -1,0 +1,31 @@
+{% extends 'money/money_base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% url 'denomination_add' pk=currency.iso as add %}{% if request.path == add %}{% trans 'Add Denomination' %}{% else %}{% blocktrans with name=object.name %}Edit {{ name }}{% endblocktrans %}{% endif %}{% endblock %}
+
+{% block content %}
+    {% url 'denomination_add' pk=currency.iso as add %}
+    <h2>{% if request.path == add %}{% trans 'Add Denomination' %}{% endif %}</h2>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+        <div class="row">
+            <div class="small-3">
+                <label for="{{ field.id_for_label }}">{{ field.label_tag }}</label>
+            </div>
+            <div class="small-9">
+                {{ field.errors }}
+                {{ field }}
+            </div>
+        </div>
+        {% endfor %}
+        <div class="row">
+            <div class="small-12">
+                <input class="button success pull-right" type="submit" value="{% if request.path == add %}{% trans 'Create Denomination' %}{% endif %}" />
+            </div>
+        </div>
+    </form>
+{% endblock %}
