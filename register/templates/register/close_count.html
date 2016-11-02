@@ -1,9 +1,16 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load tools.breadcrumbs %}
 
 {% block page_title %}{% trans 'Register list' %}{% endblock %}
+
 {% block module_content %}
+    <div class="small-12">
+        <div class="card">
+            {% breadcrumbs %}
+        </div>
+    </div>
     <form method="POST">
         <style>
             tr.spaceUnder > td {

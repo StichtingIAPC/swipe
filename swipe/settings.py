@@ -67,6 +67,7 @@ INSTALLED_APPS = (
     'public_info',
     'rma',
     'internalise',
+    'externalise',
 )
 
 MIDDLEWARE_CLASSES = [

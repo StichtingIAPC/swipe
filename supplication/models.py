@@ -24,7 +24,8 @@ class PackingDocument(ImmutableBlame):
 
     @staticmethod
     @transaction.atomic
-    def create_packing_document(user, supplier, packing_document_name, article_type_cost_combinations, invoice_name=None):
+    def create_packing_document(user, supplier, packing_document_name,
+                                article_type_cost_combinations, invoice_name=None, serial_numbers=None):
         """
         Creates a packing document from the supplied information. This registers that the products have arrived at the store.
         It is linked to a single supplier, since that is the way you process packing documents.
@@ -34,6 +35,7 @@ class PackingDocument(ImmutableBlame):
         :param article_type_cost_combinations: List[Tuple[ArticleType, number, [Cost]]]. A list containing lists containing
         A combination of an ArticleType, a number of those ArticleTypes, and potentially a cost if provided by an invoice.
         :param invoice_name: Name of an invoice. If None, no invoice is to be expected
+        :param serial_numbers: Dict(articleType,list[SerialNumberStrings]). A list of serial number strings packed together by article
         :return:
         """
         use_invoice = False
@@ -69,15 +71,18 @@ class PackingDocument(ImmutableBlame):
                 err_msg += "\n"
             raise InsufficientDemandError(err_msg)
 
+        if serial_numbers:
+            PackingDocument.verify_serial_numbers(article_type_cost_combinations, serial_numbers)
+
         distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY).get_distribution(supplier=supplier, article_type_number_combos=article_type_cost_combinations)
         changeset = DistributionStrategy.build_changeset(distribution)
-
 
         DistributionStrategy.distribute(user=user, supplier=supplier,
                                         distribution=distribution,
                                         document_identifier=packing_document_name,
                                         invoice_identifier=invoice_name,
                                         mod_stock=False,
+                                        serial_numbers=serial_numbers,
                                         indirect=True
                                         )
         pd = PackingDocument.objects.last()
@@ -113,6 +118,42 @@ class PackingDocument(ImmutableBlame):
                 errors.append((article, supplied_articles[article] - supplier_ordered_articles[article]))
         return errors
 
+    @staticmethod
+    def verify_serial_numbers(article_type_cost_combinations, serial_numbers):
+        ARTICLETYPE_LOCATION = 0
+        NUMBER_LOCATION = 1
+        article_type_counter = defaultdict(lambda: 0)
+        for atcc in article_type_cost_combinations:
+            article_type_counter[atcc[ARTICLETYPE_LOCATION]] += atcc[NUMBER_LOCATION]
+        for article in serial_numbers:
+            if len(serial_numbers[article]) > article_type_counter.get(article, 0):
+                raise IncorrectDataError("More serial number for articleType {} "
+                                         "than there are articles in the packing document".format(article.name))
+
+
+class SerialNumber(models.Model):
+    """
+    Since individual products are not registered, when they enter the system they do so as a group of products and then
+    they move to stock. In order to still facilitate serial numbers, they are registered in the only place logical to
+    the system, that is the packing document.
+    """
+    # The serial number itself
+    identifier = models.CharField(max_length=255)
+    # The articleType to which the serial number is connected
+    article_type = models.ForeignKey(ArticleType)
+    # The packing document where the serial number is registered
+    packing_document = models.ForeignKey(PackingDocument)
+
+    def __str__(self):
+        if not hasattr(self, 'article_type') or self.article_type is None:
+            at = "None"
+        else:
+            at = self.article_type
+        if not hasattr(self, 'packing_document') or self.packing_document is None:
+            pd = "None"
+        else:
+            pd = self.packing_document.id
+        return "Identifier: {}, ArticleType: {}, Packing Document: {}".format(self.identifier, at, pd)
 
 class Invoice(ImmutableBlame):
     """
@@ -239,7 +280,7 @@ class DistributionStrategy:
 
     @staticmethod
     @transaction.atomic
-    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False,
+    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False, serial_numbers=None,
                    indirect=False, mod_stock=True):
         """
         Distributes the actual packing document. A line_cost_after invoice should never be used if there is not direct invoice
@@ -284,12 +325,22 @@ class DistributionStrategy:
             raiseif(not found_final_cost, IncorrectDataError, "The invoice specified does not have this one's cost")
             invoice = Invoice(supplier=supplier, supplier_identifier=invoice_identifier, user_modified=user)
 
+        if serial_numbers:
+            serial_number_list = []
+            for article_type in serial_numbers:
+                for ser in serial_numbers[article_type]:
+                    serial_number_list.append(SerialNumber(identifier=ser, article_type=article_type))
+
         # Below here are the actual saves
         # First, saves of related documents
         packing_document = PackingDocument(supplier=supplier, supplier_identifier=document_identifier, user_modified=user)
         packing_document.save()
         if invoice_identifier:
             invoice.save()
+        if serial_numbers:
+            for sn in serial_number_list:
+                sn.packing_document = packing_document
+                sn.save()
         # Saves and final parameter settings of packing document lines
         for pac_doc_line in distribution:
             pac_doc_line.packing_document = packing_document

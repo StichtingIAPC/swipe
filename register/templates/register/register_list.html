@@ -1,0 +1,26 @@
+{% extends 'register/register_base.html' %}
+
+{% load i18n %}
+
+{% block page_title%}{% trans 'Register list' %}{% endblock %}
+
+{% block content %}
+    <h2>{% trans 'List of registers' %} <a class="button success pull-right" href="{% url 'register_create' %}">{% trans 'add' %}</a></h2>
+    <ul>
+    {% for register in object_list %}
+        <li class="row">
+            <div class="small-12">
+                <a href="{% url 'register_detail' register.pk %}">{{ register }}</a>
+                {% if register.is_active %} (active){% endif %}
+                <a class="tiny button float-right" href="{% url 'register_edit' pk=register.pk %}">{% trans 'edit' %}</a>
+            </div>
+        </li>
+    {% empty %}
+        <li class="row">
+            <div class="small-12">
+                {% trans 'No registers' %}
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}
