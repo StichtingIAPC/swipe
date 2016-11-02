@@ -27,15 +27,15 @@ class ExternaliseDocument(Blame):
         :param article_information_list: List(Tuple(article, count, cost)). A list of articles with multiplicity and cost.
         This is enough info to create the stock.
         """
-        raiseif(not isinstance(user, User), IncorrectClassError)
-        raiseif(not isinstance(memo, str), IncorrectClassError)
+        raiseif(not isinstance(user, User), IncorrectClassError())
+        raiseif(not isinstance(memo, str), IncorrectClassError())
         counter = defaultdict(lambda: 0)
         for article, count, cost in article_information_list:
-            raiseif(not isinstance(article, ArticleType), IncorrectClassError)
-            raiseif(not isinstance(count, int), IncorrectClassError)
-            raiseif(not isinstance(cost, Cost), IncorrectClassError)
-            raiseif(count <= 0, IncorrectCountError("Count is less than or equal to 0. This is not possible"))
-            raiseif(cost._amount < Decimal(0), IncorrectPriceError("Products cost negative amount of money. This cannot happen."))
+            raiseif(not isinstance(article, ArticleType), IncorrectClassError,"")
+            raiseif(not isinstance(count, int), IncorrectClassError,"")
+            raiseif(not isinstance(cost, Cost), IncorrectClassError,"")
+            raiseif(count <= 0, IncorrectCountError,"Count is less than or equal to 0. This is not possible")
+            raiseif(cost._amount < Decimal(0), IncorrectPriceError,"Products cost negative amount of money. This cannot happen.")
             counter[(article, cost)] += count
 
         stock_entries = []
@@ -48,7 +48,6 @@ class ExternaliseDocument(Blame):
             ext_lines.append(ExternaliseLine(article_type=article, count=counter[(article, cost)], cost=cost))
 
         # We constructed what we needed, now the saves
-
         doc = ExternaliseDocument(memo=memo, user_modified=user)
         doc.save()
         StockChangeSet.construct(description="Externalisation by document {}".format(doc.pk), entries=stock_entries,
@@ -56,7 +55,7 @@ class ExternaliseDocument(Blame):
         for line in ext_lines:
             line.externalise_document = doc
             line.user_modified = user
-            line.save()
+            line.save(mod_stock=False)
 
 
 class ExternaliseLine(ImmutableBlame):
