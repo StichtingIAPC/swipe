@@ -1,9 +1,14 @@
 'use strict';
 
+// System dependencies
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRedirect, IndexRoute, browserHistory } from 'react-router';
 
+// Styles
+import StylesMain from './styles/main.scss';
+
+// Pages
 import Dashboard from './components/Dashboard.js';
 
 class Application extends React.Component {
