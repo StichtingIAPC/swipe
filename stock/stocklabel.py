@@ -104,6 +104,9 @@ class StockLabel:
     def __str__(self):
         return "[{} : {}]".format(self.labeltype, self.key)
 
+    def __hash__(self):
+        return hash(self.labeltype)
+
 
 class StockLabeledLine(models.Model):
     labeltype = models.CharField(max_length=255, null=True, blank=True, validators=[
