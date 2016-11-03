@@ -148,7 +148,7 @@ class InternaliseTests(TestCase, TestData):
                                                               memo="Foo3")
         stock = Stock.objects.all()
         self.assertEqual(len(stock), 0)
-        ols = OrderLine.objects.filter(state='O')
+        ols = OrderLine.objects.filter(state='I')
         self.assertEqual(len(ols), CUST_ORDERED_ART_1)
 
     def test_too_many_articles_labeled(self):

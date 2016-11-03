@@ -42,5 +42,5 @@ def stock_change_handler(sender, **kwargs):
             else:
                 for i in range(orders_to_complete):
                     # We do need a hack for the user. But things work for the rest.
-                    lines[i].return_back_to_ordered_by_customer(lines[i].user_modified)
+                    lines[i].use_for_internal_purposes(lines[i].user_modified)
     # Add new handlers here

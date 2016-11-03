@@ -108,7 +108,7 @@ class OrderLineState(ImmutableBlame):
     VALID_NEXT_STATES = {
         'O': ('C', 'L'),
         'L': ('A', 'O', 'C'),
-        'A': ('S', 'I', 'O')
+        'A': ('S', 'I', 'O', 'C')
     }
     # Mirrors the transition of the state of an OrderLine
     state = models.CharField(max_length=3, choices=sorted(STATE_MEANING.items()))
@@ -215,6 +215,9 @@ class OrderLine(Blame):
 
     def return_back_to_ordered_by_customer(self, user_created):
         self.transition('O', user_created)
+
+    def use_for_internal_purposes(self, user_created):
+        self.transition('I', user_created)
 
     def __str__(self):
         if not hasattr(self, 'order'):
