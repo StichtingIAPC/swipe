@@ -2,11 +2,21 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Router, Route, IndexRedirect, IndexRoute, browserHistory } from 'react-router';
+
+import Dashboard from './components/Dashboard.js';
 
 class Application extends React.Component {
 	render() {
-		return <span>Hello world</span>;
+		return <div className="swipe">{this.props.children}</div>;
 	}
 }
 
-ReactDOM.render(<Application />, document.getElementById('app'));
+ReactDOM.render(
+	<Router history={browserHistory}>
+		<Route path="/" component={Application}>
+			<IndexRedirect to="/dashboard" />
+			<Route path="dashboard" component={Dashboard} />
+		</Route>
+	</Router>
+, document.getElementById('app'));
