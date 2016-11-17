@@ -7,12 +7,15 @@
   $sidebar-open-width: 240px !default;
   $sidebar-icon-size: 40px !default;
   $sidebar-icon-font-size: 24px !default;
+  $sidebar-sub-icon-font-size: 16px !default;
 
   // Color Variables
   $sidebar-primary-background-color: $black !default;
   $sidebar-primary-foreground-color: $white !default;
   $sidebar-secondary-foreground-color: $white !default;
   $sidebar-secondary-background-color: map-get($foundation-palette, dark_gray) !default;
+  $sidebar-tertiary-foreground-color: map-get($foundation-palette, light_blue) !default;
+  $sidebar-tertiary-background-color: map-get($foundation-palette, dark_gray) !default;
   $sidebar-home-item-bg-color: #2199e8 !default;
 
   .side-bar {
@@ -64,8 +67,10 @@
   }
 
   .side-bar-nav li {
+    display: block;
     width: $sidebar-open-width;
     background-color: $sidebar-primary-background-color;
+    color: $sidebar-primary-foreground-color;
     list-style-type: none;
     font-size: 15px;
     margin-left: -20px;
@@ -84,9 +89,46 @@
       opacity: 1;
     }
 
-    .side-bar-icon {
-      height: $sidebar-icon-size;
+    a.active {
+      color: $sidebar-tertiary-foreground-color;
+    }
+
+    a {
+      box-sizing: border-box;
+      width: $sidebar-open-width;
+
+      &.with-sub {
+        width: $sidebar-open-width - $sidebar-closed-width;
+      }
+    }
+
+    .side-bar-toggle {
+      box-sizing: border-box;
+      height: (20px + $sidebar-icon-font-size);
       font-size: $sidebar-icon-font-size;
+      width: $sidebar-closed-width;
+      float: right;
+      padding: 10px;
+      margin-top: -(21px + $sidebar-icon-font-size);
+      opacity: 0.75;
+
+      &:hover, &:active {
+        background-color: $sidebar-secondary-background-color;
+        color: $sidebar-secondary-foreground-color;
+        opacity: 1;
+      }
+    }
+
+    .side-bar-icon {
+      font-size: $sidebar-icon-font-size;
+      width: auto;
+      float: left;
+      opacity: 1;
+      padding-right: 15px;
+    }
+
+    .side-bar-sub-icon {
+      font-size: $sidebar-sub-icon-font-size;
       width: auto;
       float: left;
       opacity: 1;
