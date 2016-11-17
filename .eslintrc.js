@@ -94,11 +94,6 @@ module.exports = {
 		'no-mixed-spaces-and-tabs': [ 2, 'smart-tabs' ],
 		'space-infix-ops': 2,
 
-
-        'linebreak-style':      [ 2, 'unix' ],
-        'quotes':               [ 2, 'single' ],
-        'semi':                 [ 2, 'always' ],
-        'no-extra-semi':        0,
 		'no-unused-vars':       1,
 
 		// ES6+ features
