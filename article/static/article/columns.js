@@ -6,25 +6,17 @@ import { Column } from 'js/tools/tables'
 
 
 
-class ProductLabelsColumn extends Column {
-  CellRenderer() {
-    let self = this;
+export class ProductLabelsColumn extends Column {
+  constructor() {
+    super();
 
-    /**
-     * @returns {*[]}
-     */
-    function render(labels) {
-      return [
-        'td', {
-        },
-        labels.map((label) => [[
-          'span', {},
-          label
-        ], ' '])
-      ];
+    this.CellRenderer = class extends React.Component {
+      render() {
+        const labels = this.props['labels'].map((label) =>
+          <span key={label}>{label}</span>
+        );
+        return <td>{ labels }</td>
+      }
     }
-    return {
-      render: render
-    };
   }
 }
