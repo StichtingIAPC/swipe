@@ -45,7 +45,7 @@ class Application extends React.Component {
 
 	render() {
 		return (
-			<div className={'wrapper fixed' + (this.state.sidebar_collapsed ? ' sidebar-collapse sidebar-mini' : '')}>
+			<div className={'wrapper fixed' + (this.state.sidebarCollapsed ? ' sidebar-collapse sidebar-mini' : '')}>
 				<Topbar name={this.props.name} user={auth.getUser()} sidebarToggle={this.sidebarToggle.bind(this)} />
 				<Sidebar>
 					<SBLink to="/logistics/" text="Logistics" icon="barcode" />
