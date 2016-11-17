@@ -7,7 +7,7 @@ export default class Topbar extends React.Component {
 		return (
 			<header className="main-header">
 				<a className="logo">
-					<span className="logo-mini">Sw</span>
+					<span className="logo-mini">👆ミ</span>
 					<span className="logo-lg">Swipe</span>
 				</a>
 				<nav className="navbar navbar-static-top" role="navigation">
