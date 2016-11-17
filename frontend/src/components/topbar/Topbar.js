@@ -11,7 +11,7 @@ export default class Topbar extends React.Component {
 					<span className="logo-lg">Swipe</span>
 				</a>
 				<nav className="navbar navbar-static-top" role="navigation">
-					<a className="sidebar-toggle" onClick={this.props.sidebar_toggle} />
+					<a className="sidebar-toggle" onClick={this.props.sidebarToggle} />
 					<div className="navbar-custom-menu pull-left">
 						<ul className="nav navbar-nav">
 							<li>
