@@ -8,6 +8,7 @@ from crm.models import User, Customer
 from money.models import MoneyField, PriceField, CostField, AccountingGroup
 from order.models import OrderLine
 from stock.models import StockChangeSet, Id10TError, Stock
+from stock.enumeration import enum
 from stock.stocklabel import StockLabeledLine, OrderLabel
 from tools.util import raiseif
 
@@ -157,6 +158,21 @@ class RefundTransactionLine(TransactionLine):
                 drm = DirectRefundRMA(refund_line=self, user_modified=self.user_modified)
                 drm.save()
             else:
+                if isinstance(self.sold_transaction_line, SalesTransactionLine):
+                    stock_change = [{"article": self.sold_transaction_line.article,
+                                    'book_value': self.sold_transaction_line.cost,
+                                    'count': self.count*-1,  # Refunds have a negative count, therefore it should be negated
+                                    'is_in': True}]
+                    StockChangeSet.construct(description="Refund of transactionline {}".format(self.sold_transaction_line.id), entries=stock_change, enum=enum["cash_register"])
+                elif hasattr(self.sold_transaction_line, 'salestransactionline'):
+                    stock_change = [{"article": self.sold_transaction_line.salestransactionline.article,
+                                    'book_value': self.sold_transaction_line.salestransactionline.cost,
+                                    'count': self.count * -1,
+                                    # Refunds have a negative count, therefore it should be negated
+                                    'is_in': True}]
+                    StockChangeSet.construct(
+                                                description="Refund of transactionline {}".format(self.sold_transaction_line.id),
+                                                entries=stock_change, enum=enum["cash_register"])
                 super(RefundTransactionLine, self).save()
         super(RefundTransactionLine, self).save()
 
