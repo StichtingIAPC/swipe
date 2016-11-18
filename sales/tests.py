@@ -656,7 +656,7 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
         self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments(article_1=3)
-        self.create_transactions_article_type(article_1=2)
+        self.create_transactions_article_type_for_order(article_1=2)
         stl = SalesTransactionLine.objects.get(article=self.articletype_1)
         rfl_1 = RefundTransactionLine(price=self.price_eur_1, count=-1, sold_transaction_line=stl)
         money_1 = Money(amount=self.price_eur_1.amount * -1, currency=self.price_eur_1.currency)

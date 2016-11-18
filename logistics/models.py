@@ -138,7 +138,7 @@ class SupplierOrderLine(Blame):
     article_type = models.ForeignKey(ArticleType)
     # The articleType as the supplier knows it. Must match our own articleType
     supplier_article_type = models.ForeignKey(ArticleTypeSupplier)
-    # And orderLine to fulfill the wish of a customer for a product.
+    # An orderLine to fulfill the wish of a customer for a product. Null for stockwish(anonymously)
     order_line = models.ForeignKey(OrderLine, null=True)
     # The amount of money we are going to pay for this product excluding all taxes
     line_cost = CostField()
