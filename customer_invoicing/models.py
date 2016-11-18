@@ -1,9 +1,10 @@
 from django.db import models
 from blame.models import Blame
-from money.models import MoneyField, Money
+from money.models import MoneyField, Money, Price
 from sales.models import Transaction, PriceField
 from tools.util import raiseif
 from decimal import Decimal
+from crm.models import User
 
 
 class CustInvoice(Blame):
@@ -39,14 +40,25 @@ class CustInvoice(Blame):
             self.paid = self.paid + amount
             if self.to_be_payed == self.paid:
                 self.handled = True
+            self.save()
         else:
             raise IncorrectStateError("You cannot pay an invoice which is not yet saved")
 
     def determine_address_data(self):
         # There is not determined way to extract the needed information about a person from its context. Using a
         # placeholder will suffice for now
-        self.invoice_name = "Placeholder_name"
-        self.invoice_email_address = "placeholder@inner-mongolia.com"
+        if not self.invoice_name:
+            self.invoice_name = "Placeholder_name"
+        if not self.invoice_address:
+            self.invoice_address = "Brinkstraat 1"
+        if not self.invoice_zip_code:
+            self.invoice_zip_code = "1234AB"
+        if not self.invoice_city:
+            self.invoice_city = "Enschede"
+        if not self.invoice_country:
+            self.invoice_country = "Taiwan"
+        if not self.invoice_email_address:
+            self.invoice_email_address = "placeholder@inner-mongolia.com"
         
     def save(self, **kwargs):
         if not self.pk:
@@ -71,10 +83,33 @@ class ReceiptCustInvoice(CustInvoice):
 
 
 class CustomCustInvoice(CustInvoice):
-    pass
+
+    @staticmethod
+    def create_custom_invoice(invoice_name: str, invoice_address: str, invoice_zip_code: str,
+                              invoice_city: str, invoice_country: str, invoice_email_address: str,
+                              text_price_combinations: list, user: User):
+        cust = CustomCustInvoice(user_modified=user,
+                                 invoice_name=invoice_name, invoice_address=invoice_address,
+                                 invoice_zip_code=invoice_zip_code, invoice_city=invoice_city,
+                                 invoice_country=invoice_country, invoice_email_address=invoice_email_address)
+        lines = []  # Type: list[CustomInvoiceLine]
+        for text, price in text_price_combinations:
+            raiseif(not isinstance(text, str), IncorrectClassError, "text should be a string")
+            raiseif(not isinstance(price, Price), IncorrectClassError, "price should be a Price")
+            line = CustomInvoiceLine(text=text, price=price)
+            lines.append(line)
+
+        # Now, everything is ok and we can save
+
+        cust.save()
+        for line in lines:
+            line.custom_invoice = cust
+            line.save()
 
 
 class CustomInvoiceLine(Blame):
+
+    custom_invoice = models.ForeignKey(CustomCustInvoice)
 
     text = models.CharField(max_length=255)
 
