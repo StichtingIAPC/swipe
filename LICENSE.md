@@ -37,3 +37,4 @@ List of contributors
 - Matthias van de Meent
 - Erik Gaal
 - Wilfried van Asten
+- Rick Lubbers
