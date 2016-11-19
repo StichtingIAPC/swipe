@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import FontAwesome from 'tools/components/FontAwesome.js';
 
-export default class SBLink extends React.Component {
+export default class SidebarLink extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -22,13 +22,13 @@ export default class SBLink extends React.Component {
 			<ul className={'treeview-menu' + (this.state.open ? ' menu-open' : '')}>
 				{this.props.children}
 			</ul>
-    ) : null;
+		) : null;
 
 		const openswitch = this.props.children ? (
 			<span className="pull-right-container" onClick={this.toggle.bind(this)}>
 				<FontAwesome icon={(this.state.open ? 'angle-down' : 'angle-left') + ' pull-right'} />
 			</span>
-    ) : null;
+		) : null;
 
 		return (
 			<li className={this.state.open ? 'treeview active' : 'treeview'}>
