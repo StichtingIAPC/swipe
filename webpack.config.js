@@ -19,18 +19,21 @@ const apps = [
 ];
 
 module.exports = {
-	entry: path.join(APP_DIR, 'app.js'),
+	entry: [
+		'babel-polyfill',
+		path.join(APP_DIR, 'app.js'),
+	],
 	output: {
 		path: BUILD_DIR,
 		publicPath: '/dist/',
 		filename: 'bundle.js',
 	},
-	module : {
-		loaders : [
+	module: {
+		loaders: [
 			{
-				test : /\.jsx?/,
+				test: /\.jsx?/,
 				exclude: /node_modules/,
-				loaders: [ 'react-hot', 'babel' ]
+				loaders: [ 'react-hot', 'babel' ],
 			}, {
 				test: /\.scss$/,
 				loaders: [ 'style', 'css', 'sass' ],
@@ -39,14 +42,14 @@ module.exports = {
 				loaders: [ 'style', 'css' ],
 			}, {
 				test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-				loader: "url-loader?limit=10000&mimetype=application/font-woff"
+				loader: "url-loader?limit=10000&mimetype=application/font-woff",
 			}, {
 				test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-				loader: "file-loader"
+				loader: "file-loader",
 			},
 			{
 				test: /\.(jpg|jpeg|png|gif|svg)$/,
-				loader: "file-loader"
+				loader: "file-loader",
 			},
 		],
 	},
@@ -60,7 +63,7 @@ module.exports = {
 	sassLoader: {
 		includePaths: apps.map(
 			app => path.join(__dirname, app, 'static')
-		)
+		).concat([path.join(APP_DIR)]),
 	},
 	devtool: 'cheap-module-source-map',
 };
