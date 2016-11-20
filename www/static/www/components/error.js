@@ -10,7 +10,7 @@ export class Error404 extends React.Component {
 
 		return (
 			<div className="row">
-				<div className="col-sm-10 col-sm-offset-1 col-md-8 col-sm-offset-2 col-md-6 col-sm-offset-3">
+				<div className="col-sm-10 col-sm-offset-1 col-md-8 col-sm-offset-2 col-md-6 col-md-offset-3">
 					<div className="box box-danger">
 						<div className="box-header with-border">
 							<h3>Error 404</h3>
