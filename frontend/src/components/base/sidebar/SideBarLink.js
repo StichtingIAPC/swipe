@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
-import FontAwesome from 'tools/components/FontAwesome.js';
+import FontAwesome from '../../../../../tools/static/tools/components/FontAwesome.js';
 
-export default class SBLink extends React.Component {
+export class SBLink extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -32,8 +32,8 @@ export default class SBLink extends React.Component {
 
 		return (
 			<li className={this.state.open ? 'treeview active' : 'treeview'}>
-				<Link to={this.props.to} activeClassName={this.props.activeClassName || 'active'}>
-					<FontAwesome icon={this.props.icon ? this.props.icon : 'circle-o'} />
+				<Link to={this.props.to} activeClassName={this.props.activeClassName}>
+					<FontAwesome icon={this.props.icon} />
 					<span>{this.props.text}</span>
 					{openswitch}
 				</Link>
@@ -42,3 +42,17 @@ export default class SBLink extends React.Component {
 		);
 	}
 }
+
+SBLink.propTypes = {
+	to: PropTypes.string.isRequired,
+	icon: PropTypes.string,
+	children: PropTypes.node,
+	activeClassName: PropTypes.string,
+};
+
+SBLink.defaultProps = {
+	icon: 'circle-o',
+	activeClassName: 'active',
+};
+
+export default SBLink;

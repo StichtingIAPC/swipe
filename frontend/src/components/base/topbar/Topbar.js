@@ -1,8 +1,8 @@
-import React from 'react';
-import auth from 'www/auth';
+import React, { PropTypes } from 'react';
+import auth from '../../../core/auth';
 import UserBlock from './UserBlock.js';
 
-export default class Topbar extends React.Component {
+export class Topbar extends React.Component {
 	render() {
 		return (
 			<header className="main-header">
@@ -15,7 +15,7 @@ export default class Topbar extends React.Component {
 					<div className="navbar-custom-menu pull-left">
 						<ul className="nav navbar-nav">
 							<li>
-								<a>{this.props.name || 'page'}</a>
+								<a>{this.props.name}</a>
 							</li>
 						</ul>
 					</div>
@@ -29,3 +29,14 @@ export default class Topbar extends React.Component {
 		);
 	}
 }
+
+Topbar.propTypes = {
+	sidebarToggle: PropTypes.func.isRequired,
+	name: PropTypes.string,
+};
+
+Topbar.defaultProps = {
+	name: 'page',
+};
+
+export default Topbar;

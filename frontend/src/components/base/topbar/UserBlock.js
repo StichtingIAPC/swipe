@@ -1,14 +1,16 @@
-import React from 'react';
+import React  from 'react';
 import { Link } from 'react-router';
-import auth from 'www/auth';
-import Glyphicon from 'tools/components/Glyphicon';
+import autoBind from 'react-autobind';
+import auth from '../../../core/auth';
+import Glyphicon from '../../../../../tools/static/tools/components/Glyphicon';
 
-export default class UserBlock extends React.Component {
+export class UserBlock extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			open: false,
 		};
+		autoBind(this);
 	}
 
 	toggleDropdown(evt) {
@@ -16,8 +18,12 @@ export default class UserBlock extends React.Component {
 		evt.preventDefault();
 	}
 
+	login() {
+		auth.startAuthentication();
+	}
+
 	render() {
-		if (auth.isLoggedIn()) {
+		if (auth.isAuthenticated()) {
 			const user = auth.getUser();
 
 			return (
@@ -31,7 +37,7 @@ export default class UserBlock extends React.Component {
 							<img class="img-circle" src={user.gravatar_url} />
 							<p>
 								{user.username}
-								<small>{user.desciprion}</small>
+								<small>{user.description}</small>
 							</p>
 						</li>
 						<li className="user-footer">
@@ -48,7 +54,7 @@ export default class UserBlock extends React.Component {
 		} else {
 			return (
 				<li className="dropdown user user-menu">
-					<Link to="/login" className="user-link login">
+					<Link to="/" onClick={this.login.bind(this)} className="user-link login">
 						<Glyphicon glyph="log-in" x-class="top-bar-icon" />
 						<span>Login</span>
 					</Link>
@@ -57,3 +63,7 @@ export default class UserBlock extends React.Component {
 		}
 	}
 }
+
+UserBlock.propTypes = {};
+
+export default UserBlock;
