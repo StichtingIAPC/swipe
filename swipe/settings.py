@@ -43,9 +43,9 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
 
     # utilities
-    'compressor',
-    'compressor_toolkit',
     'django_gravatar',
+    'rest_framework',
+    'rest_framework.authtoken',
 
     # our apps
     'core',
@@ -68,6 +68,7 @@ INSTALLED_APPS = (
     'rma',
     'internalise',
     'externalise',
+    'authorization',
 )
 
 MIDDLEWARE_CLASSES = [
@@ -298,6 +299,10 @@ USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
 SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')
+}
+
+
+REST_FRAMEWORK = {
 }
 
 ##

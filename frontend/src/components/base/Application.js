@@ -23,7 +23,7 @@ export class Application extends React.Component {
 	sidebarToggle() {
 		this.setState({ sidebarCollapsed: !this.state.sidebarCollapsed });
 	}
-	
+
 	render() {
 		return (
 			<div className={'wrapper fixed' + (this.state.sidebarCollapsed ? ' sidebar-collapse sidebar-mini' : ' sidebar-open')}>

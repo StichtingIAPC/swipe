@@ -57,7 +57,7 @@ const auth = new (class Auth {
 	 * @param {string} url
 	 * @param {Object} options
 	 */
-	authenticatedRequest(url, options) {
+	fetch(url, options) {
 		const retry = (err) => {
 			if (err instanceof TypeError) {
 				return Promise.reject(err); // reject network problems
@@ -161,7 +161,7 @@ const auth = new (class Auth {
 
 		// and send it to /auth/ on the server origin (origin = protocol + hostname + port)
 		return fetch(`${BASE_URL}/auth/`, {
-			method: 'PUT',
+			method: 'POST',
 			body: fData,
 		}).then((response) => {
 			// check if the response was successful

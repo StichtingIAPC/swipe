@@ -13,4 +13,5 @@ django-compressor-toolkit==0.5.0
 
 ## django-gravatar for Gravatar support
 django-gravatar2==1.4.0
+djangorestframework>=3.5
 reportlab>=3.3.0
