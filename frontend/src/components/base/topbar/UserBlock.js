@@ -1,10 +1,12 @@
-import React  from 'react';
+import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 import autoBind from 'react-autobind';
-import auth from '../../../core/auth';
-import Glyphicon from '../../../../../tools/static/tools/components/Glyphicon';
+import { connect } from 'react-redux'
 
-export class UserBlock extends React.Component {
+import auth from '../../../core/auth';
+import Glyphicon from '../../tools/Glyphicon';
+
+let UserBlock = class extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -23,21 +25,19 @@ export class UserBlock extends React.Component {
 	}
 
 	render() {
-		if (auth.isAuthenticated()) {
-			const user = auth.getUser();
-
+		if (this.props.isAuthenticated) {
 			return (
 				<li className={'dropdown user user-menu' + (this.state.open ? ' open' : '')}>
 					<a className="dropdown-toggle" onClick={this.toggleDropdown.bind(this)}>
-						<img className="user-image" title={user.username} src={user.gravatar_url} />
-						<span className="hidden-xs">{user.username}</span>
+						<img className="user-image" title={this.props.user.username} src={this.props.user.gravatarUrl} />
+						<span className="hidden-xs">{this.props.user.username}</span>
 					</a>
 					<ul className="dropdown-menu">
 						<li className="user-header">
-							<img class="img-circle" src={user.gravatar_url} />
+							<img className="img-circle" src={this.props.user.gravatarUrl} />
 							<p>
-								{user.username}
-								<small>{user.description}</small>
+								{this.props.user.username}
+								<small>{this.props.user.description}</small>
 							</p>
 						</li>
 						<li className="user-footer">
@@ -62,8 +62,27 @@ export class UserBlock extends React.Component {
 			);
 		}
 	}
+};
+
+UserBlock.propTypes = {
+	'user': PropTypes.object,
+	'isAuthenticated': PropTypes.bool.isRequired,
+};
+
+UserBlock = connect(
+	(state, ownProps) => ({
+		...ownProps,
+		user: state.auth.user,
+		isAuthenticated: (state.auth.user !== null),
+	}),
+	(dispatch, ownProps) => ({
+		...ownProps,
+	})
+)(UserBlock);
+
+export {
+	UserBlock,
 }
 
-UserBlock.propTypes = {};
 
 export default UserBlock;

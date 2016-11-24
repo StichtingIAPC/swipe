@@ -2,7 +2,7 @@ import React from 'react';
 import {Link} from 'react-router';
 import { connect } from 'react-redux';
 
-import FA from 'tools/components/FontAwesome';
+import FA from '../tools/FontAwesome';
 
 /**
  * Created by Matthias on 17/11/2016.
@@ -77,7 +77,6 @@ SupplierList.defaultProps = {
 
 SupplierList = connect(
 	(state, ownProps) => {
-		console.log(state);
 		return {
 			...ownProps,
 			suppliers: state.suppliers.objects,

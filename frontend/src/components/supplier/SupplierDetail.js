@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react'
 import { Link, browserHistory } from 'react-router'
 import { connect } from 'react-redux';
 
-import FA from 'tools/components/FontAwesome'
+import FA from '../tools/FontAwesome'
 /**
  * Created by Matthias on 17/11/2016.
  */

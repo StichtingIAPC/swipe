@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 
-import FA from 'tools/components/FontAwesome';
+import FA from '../tools/FontAwesome';
 
 /**
  * Created by Matthias on 18/11/2016.
@@ -33,7 +33,6 @@ export class Form extends React.Component {
 	}
 
 	componentWillReceiveProps(nextProps) {
-		console.log(nextProps, nextProps.original);
 		if (this.state.local != nextProps.original) {
 			this.setState({
 				local: nextProps.original,

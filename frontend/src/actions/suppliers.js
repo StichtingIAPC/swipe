@@ -1,4 +1,4 @@
-import request from '../core/request';
+import auth from '../core/auth';
 
 /**
  * Created by Matthias on 18/11/2016.
@@ -71,7 +71,7 @@ export function receiveSuppliers(suppliers) {
 export function populateSuppliers() {
 	return function(dispatch) {
 		dispatch(fetchSuppliers());
-		return request.get('/supplier/all/')
+		return auth.fetch('/supplier/all/', {method: 'GET'})
 			.then(response => response.json())
 			.then(json => dispatch(receiveSuppliers(json)))
 			.catch(error => dispatch(invalidateSuppliers(error)))

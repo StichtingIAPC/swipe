@@ -7,7 +7,7 @@ import { addSupplier } from '../../actions/suppliers';
 import Form from '../forms/Form';
 import { StringField, BoolField } from '../forms/fields';
 
-import FA from 'tools/components/FontAwesome';
+import FA from '../tools/FontAwesome';
 
 /**
  * Created by Matthias on 17/11/2016.

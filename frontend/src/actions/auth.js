@@ -2,11 +2,14 @@
  * Created by Matthias on 18/11/2016.
  */
 export const LOGIN = 'LOGIN';
-export function login(username, password) {
+export function login(user) {
 	return {
 		type: LOGIN,
-		username,
-		password,
+		user: {
+			username: user.username,
+			gravatarUrl: user.gravatarUrl,
+			permissions: user.permissions,
+		},
 	};
 }
 

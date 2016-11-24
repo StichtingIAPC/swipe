@@ -21,7 +21,7 @@ export class Topbar extends React.Component {
 					</div>
 					<div className="navbar-custom-menu">
 						<ul className="nav navbar-nav">
-							<UserBlock user={auth.getUser()} />
+							<UserBlock />
 						</ul>
 					</div>
 				</nav>

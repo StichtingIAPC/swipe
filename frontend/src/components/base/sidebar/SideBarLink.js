@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
-import FontAwesome from '../../../../../tools/static/tools/components/FontAwesome.js';
+import FontAwesome from '../../tools/FontAwesome.js';
 
 export class SBLink extends React.Component {
 	constructor(props) {

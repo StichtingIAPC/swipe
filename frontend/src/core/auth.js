@@ -1,5 +1,6 @@
 import React from 'react'
 import autoBind from 'react-autobind'
+import { browserHistory } from 'react-router';
 
 import fetch from 'isomorphic-fetch';
 
@@ -17,7 +18,7 @@ import { LoginModal } from '../components/base/auth/LoginModal';
  * Created by Matthias on 06/11/2016.
  */
 
-const BASE_URL = window.location.host + ':8000'; // default django port;
+const BASE_URL = `//${window.location.hostname}:8000`; // default django port;
 
 const TOKEN = Symbol('auth token');
 const loginRequest = Symbol('loginRequest');
@@ -36,6 +37,9 @@ const getCredentials = Symbol('getCredentials');
 const auth = new (class Auth {
 	constructor() {
 		this[TOKEN] = null;
+		this[getCredentials] = null;
+		// Field in which the callback for the {username, password} gets stored.
+		// Called by the login screen.
 		autoBind(this);
 	}
 
@@ -72,7 +76,7 @@ const auth = new (class Auth {
 		return auth[APIRequest](url, {...options}, auth[TOKEN])
 			.catch(retry)
 			.catch(retry)
-			.catch(retry); // Let 3 people try to do the request before the request fails.
+			.catch(retry); // Let 3 people try to authenticate the request before the whole request fails.
 	}
 
 	/**
@@ -100,12 +104,13 @@ const auth = new (class Auth {
 	startAuthentication() {
 		auth.store.dispatch(startAuthentication());
 		auth[authenticate]()
-			.then((response) => {
-				const json = response.json();
-				const user = {
-					username: json.username,
-					gravitarUrl: json.gravitarUrl,
-					permissions: [...json.permissions],
+			.then((response) => response.json())
+			.then((json) => {
+				let user = {};
+				user = {
+					username: json.user.username,
+					gravatarUrl: json.user.gravatarUrl,
+					permissions: [...json.user.permissions],
 				};
 				auth[TOKEN] = json.token;
 				auth.store.dispatch(login(user));
@@ -133,11 +138,10 @@ const auth = new (class Auth {
 	 * @returns {Promise<Response>}
 	 */
 	[loginAttempt](err) {
-		// if there is an error, handle it
 		if (err !== undefined) {
 			auth.store.dispatch(failAuthentication(err));
 			if (err instanceof TypeError) {
-				return Promise.reject(new TypeError(err)); // reject transmission errors
+				return Promise.reject(err); // reject transmission errors
 			}
 		}
 		return new Promise((accept) => {
@@ -158,9 +162,8 @@ const auth = new (class Auth {
 		const fData = new FormData();
 		fData.append('username', username);
 		fData.append('password', password);
-
 		// and send it to /auth/ on the server origin (origin = protocol + hostname + port)
-		return fetch(`${BASE_URL}/auth/`, {
+		return fetch(`${BASE_URL}/auth/login/`, {
 			method: 'POST',
 			body: fData,
 		}).then((response) => {

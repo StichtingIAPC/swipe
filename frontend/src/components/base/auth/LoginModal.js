@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import auth from '../../../core/auth';
 import { failAuthentication } from '../../../actions/auth';
 import { AUTHENTICATING } from '../../../reducers/auth';
-import Glyph from 'tools/components/Glyphicon';
+import Glyph from '../../tools/Glyphicon';
 
 /**
  * Created by Matthias on 18/11/2016.

@@ -24,6 +24,7 @@ export function authReducer(state = {
 			user: {
 				username: action.user.username,
 				gravatarUrl: action.user.gravatarUrl,
+				permissions: [...action.user.permissions],
 			},
 			status: 'AUTHENTICATED',
 			fails: 0,
@@ -43,7 +44,7 @@ export function authReducer(state = {
 	case STOP_AUTHENTICATION:
 		return {
 			...state,
-			status: state.user == null ? 'AUTHENTICATED' : 'UNAUTHENTICATED',
+			status: state.user !== null ? 'AUTHENTICATED' : 'UNAUTHENTICATED',
 		};
 	case FAIL_AUTHENTICATION:
 		return {
