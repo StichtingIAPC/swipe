@@ -39,3 +39,4 @@ List of contributors
 - Wilfried van Asten
 - Rick Lubbers
 - Simon Struck
+- Mauk Muller
