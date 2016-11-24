@@ -38,3 +38,4 @@ List of contributors
 - Erik Gaal
 - Wilfried van Asten
 - Rick Lubbers
+- Mauk Muller
