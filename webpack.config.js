@@ -66,4 +66,7 @@ module.exports = {
 		).concat([path.join(APP_DIR)]),
 	},
 	devtool: 'cheap-module-source-map',
+	devServer: {
+		headers: { "Access-Control-Allow-Origin": "*" },
+	},
 };
