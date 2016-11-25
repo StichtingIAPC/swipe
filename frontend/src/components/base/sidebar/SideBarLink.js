@@ -1,8 +1,8 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
-import FontAwesome from '../../tools/FontAwesome.js';
+import FA from '../../tools/FontAwesome.js';
 
-export class SBLink extends React.Component {
+export default class SidebarLink extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -22,18 +22,18 @@ export class SBLink extends React.Component {
 			<ul className={'treeview-menu' + (this.state.open ? ' menu-open' : '')}>
 				{this.props.children}
 			</ul>
-    ) : null;
+		) : null;
 
 		const openswitch = this.props.children ? (
 			<span className="pull-right-container" onClick={this.toggle.bind(this)}>
-				<FontAwesome icon={(this.state.open ? 'angle-down' : 'angle-left') + ' pull-right'} />
+				<FA icon={(this.state.open ? 'angle-down' : 'angle-left') + ' pull-right'} />
 			</span>
-    ) : null;
+		) : null;
 
 		return (
 			<li className={this.state.open ? 'treeview active' : 'treeview'}>
-				<Link to={this.props.to} activeClassName={this.props.activeClassName}>
-					<FontAwesome icon={this.props.icon} />
+				<Link to={this.props.to} activeClassName={this.props.activeClassName || 'active'}>
+					<FA icon={this.props.icon ? this.props.icon : 'circle-o'} />
 					<span>{this.props.text}</span>
 					{openswitch}
 				</Link>
@@ -54,5 +54,3 @@ SBLink.defaultProps = {
 	icon: 'circle-o',
 	activeClassName: 'active',
 };
-
-export default SBLink;
