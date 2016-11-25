@@ -12,10 +12,34 @@ import { StringField, BoolField } from '../forms/fields';
  */
 
 let SupplierEdit = class extends React.Component {
-	update(obj) {
+	constructor(props) {
+		super(props);
+		this.state = {
+			supplier: this.props.supplier,
+			workingCopy: {...this.props.supplier},
+		}
+	}
+
+	update(evt) {
+		evt.preventDefault();
+		const obj = this.state.workingCopy;
 		obj.lastModified = new Date();
 		this.props.updateSupplier(obj);
 		browserHistory.push(`/supplier/${obj.id}/`);
+	}
+
+	reset(evt) {
+		evt.preventDefault();
+		this.setState({workingCopy: {...this.state.supplier}});
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if (this.state.supplier != nextProps.supplier) {
+			this.setState({
+				supplier: nextProps.supplier,
+				workingCopy: {...nextProps.supplier},
+			})
+		}
 	}
 
 	render() {
@@ -24,20 +48,22 @@ let SupplierEdit = class extends React.Component {
 			return null;
 		}
 
+		const updateValue = (key) =>
+			(evt) => this.setState({workingCopy: {
+				...this.state.workingCopy,
+				[key]: evt.target.value,
+			}});
+
 		const supplier = this.props.supplier;
 		return (
 			<Form
-				original={supplier}
+				title={`Edit ${supplier.name}`}
 				onSubmit={this.update.bind(this)}
-				returnLink={`/supplier/${supplier.id}/`}
-				fields={{
-					name: StringField,
-					notes: StringField,
-					deleted: BoolField,
-					searchUrl: StringField,
-				}}>
-
-				<h3 className="box-title">Edit Supplier {supplier.name}</h3>
+				onReset={this.reset.bind(this)}
+				returnLink={`/supplier/${supplier.id}/`}>
+				<StringField onChange={updateValue('name')} name="Name"/>
+				<StringField onChange={updateValue('notes')} name="Notes" />
+				<StringField onChange={updateValue('searchUrl')} name="Search url"/>
 			</Form>
 		)
 	}
@@ -47,6 +73,11 @@ SupplierEdit.propTypes = {
 	params: PropTypes.shape({
 		supplierID: PropTypes.string.isRequired,
 	}).isRequired,
+	supplier: PropTypes.shape({
+		name: PropTypes.string.isRequired,
+		notes: PropTypes.string,
+		searchUrl: PropTypes.string,
+	}),
 };
 
 SupplierEdit = connect(

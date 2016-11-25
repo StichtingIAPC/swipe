@@ -14,26 +14,52 @@ import FA from '../tools/FontAwesome';
  */
 
 let SupplierCreate = class extends React.Component {
-	async create(obj) {
+	constructor(props) {
+		super(props);
+		this.state = {
+			workingCopy: {
+				name: '',
+				notes: '',
+				searchUrl: '',
+			},
+		}
+	}
+
+	reset(evt) {
+		evt.preventDefault();
+		this.state = {
+			workingCopy: {
+				name: '',
+				notes: '',
+				searchUrl: '',
+			},
+		}
+	}
+
+	async create(evt) {
+		evt.preventDefault();
+		const obj = this.state.workingCopy;
 		obj.lastModified = new Date();
 		await this.props.addSupplier(obj);
 		browserHistory.push(`/supplier/${obj.id}/`);
 	}
 
 	render() {
+		const updateValue = (key) =>
+			(evt) => this.setState({workingCopy: {
+				...this.state.workingCopy,
+				[key]: evt.target.value,
+			}});
+
 		return (
 			<Form
-				original={{}}
+				title="Create supplier"
 				onSubmit={this.create.bind(this)}
-				returnLink={`/supplier/`}
-				fields={{
-					name: StringField,
-					notes: StringField,
-					deleted: BoolField,
-					searchUrl: StringField,
-				}}>
-
-				<h3 className="box-title">Create supplier</h3>
+				onReset={this.reset.bind(this)}
+				returnLink={`/supplier/`}>
+				<StringField onChange={updateValue('name')} name="Name" />
+				<StringField onChange={updateValue('notes')} name="Notes" />
+				<StringField onChange={updateValue('searchUrl')} name="Search Url" />
 			</Form>
 		)
 	}
