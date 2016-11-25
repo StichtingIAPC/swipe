@@ -2,7 +2,7 @@ import React from 'react';
 import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
 
-import { addSupplier } from '../../actions/suppliers';
+import { createSupplier } from '../../actions/suppliers';
 
 import Form from '../forms/Form';
 import { StringField, BoolField } from '../forms/fields';
@@ -50,7 +50,7 @@ SupplierCreate = connect(
 	(dispatch, ownProps) => {
 		return {
 			...ownProps,
-			addSupplier: async (arg) => dispatch(addSupplier(arg)),
+			addSupplier: async (arg) => dispatch(createSupplier(arg)),
 		};
 	}
 )(SupplierCreate);

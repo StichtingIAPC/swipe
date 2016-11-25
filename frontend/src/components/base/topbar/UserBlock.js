@@ -54,7 +54,7 @@ let UserBlock = class extends React.Component {
 		} else {
 			return (
 				<li className="dropdown user user-menu">
-					<Link to="/" onClick={this.login.bind(this)} className="user-link login">
+					<Link to="#" onClick={this.login.bind(this)} className="user-link login">
 						<Glyphicon glyph="log-in" x-class="top-bar-icon" />
 						<span>Login</span>
 					</Link>

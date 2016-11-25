@@ -1,9 +1,8 @@
 import {
 	ADD_SUPPLIER,
-	FETCH_SUPPLIER,
+	MARK_SUPPLIER_AS_UPDATING,
 	FETCH_SUPPLIERS,
 	INVALIDATE_SUPPLIERS,
-	PUT_SUPPLIER,
 	RECEIVE_SUPPLIERS,
 	REMOVE_SUPPLIER,
 	UPDATE_SUPPLIER,
@@ -27,8 +26,7 @@ function handleSupplier({objects, ...rest}, action) {
 				[action.supplier.id]: action.supplier,
 			},
 		};
-	case FETCH_SUPPLIER:
-	case PUT_SUPPLIER:
+	case MARK_SUPPLIER_AS_UPDATING:
 		return {
 			...rest,
 			objects: {
@@ -72,8 +70,12 @@ function handleSuppliers(state, action) {
 			error: (action.error ? action.error : state.error),
 		};
 	case RECEIVE_SUPPLIERS:
+		const objects = [];
+		for (const supplier of action.suppliers) {
+			objects[supplier.id] = supplier;
+		}
 		return {
-			objects: action.suppliers,
+			objects: objects,
 			fetching: false,
 			invalid: false,
 			lastModified: action.date,
@@ -92,8 +94,7 @@ export function suppliers(state = {
 	let objs;
 	switch (action.type) {
 	case ADD_SUPPLIER:
-	case FETCH_SUPPLIER:
-	case PUT_SUPPLIER:
+	case MARK_SUPPLIER_AS_UPDATING:
 	case REMOVE_SUPPLIER:
 	case UPDATE_SUPPLIER:
 		return handleSupplier(state, action);

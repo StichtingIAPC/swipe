@@ -20,24 +20,16 @@ export function removeSupplier(id) {
 	}
 }
 
-export const FETCH_SUPPLIER = 'FETCH_SUPPLIER';
+export const MARK_SUPPLIER_AS_UPDATING = 'MARK_SUPPLIER_AS_UPDATING';
 export function fetchSupplier(id) {
 	return {
-		type: FETCH_SUPPLIER,
+		type: MARK_SUPPLIER_AS_UPDATING,
 		id,
 	}
 }
 
-export const PUT_SUPPLIER = 'PUT_SUPPLIER';
-export function putSupplier(supplier) {
-	return {
-		typs: PUT_SUPPLIER,
-		supplier,
-	}
-}
-
 export const UPDATE_SUPPLIER = 'UPDATE_SUPPLIER';
-export function updateSupplier(supplier) {
+export function changeSupplier(supplier) {
 	return {
 		type: UPDATE_SUPPLIER,
 		supplier,
@@ -71,9 +63,42 @@ export function receiveSuppliers(suppliers) {
 export function populateSuppliers() {
 	return function(dispatch) {
 		dispatch(fetchSuppliers());
-		return auth.fetch('/supplier/all/', {method: 'GET'})
+		return auth.fetch('/supplier/', {method: 'GET'})
 			.then(response => response.json())
 			.then(json => dispatch(receiveSuppliers(json)))
 			.catch(error => dispatch(invalidateSuppliers(error)))
+	}
+}
+
+export function createSupplier(supplier) {
+	return function(dispatch) {
+		supplier = {...supplier, search_url: supplier.searchUrl}; delete supplier.searchUrl;
+		dispatch(invalidateSuppliers());
+		auth.fetch('/supplier/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(supplier),
+		})
+			.then((request) => request.json())
+			.then((json) => dispatch(addSupplier(json)))
+			.catch((error) => populateSuppliers())
+	}
+}
+
+export function updateSupplier(supplier) {
+	return function(dispatch) {
+		supplier = {...supplier, search_url: supplier.searchUrl}; delete supplier.searchUrl;
+		dispatch(fetchSupplier(supplier.id));
+		auth.fetch(`/supplier/${supplier.id}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(supplier),
+		})
+			.then((request) => request.json())
+			.then((json) => dispatch(changeSupplier({...json, searchUrl: json.search_url })))
 	}
 }

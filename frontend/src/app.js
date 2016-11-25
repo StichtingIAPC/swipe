@@ -28,6 +28,7 @@ import auth from './core/auth';
 
 // Routes
 import SupplierRoute from './routing/SupplierRoutes';
+import { populateSuppliers } from './actions/suppliers';
 
 const store = createStore(
 	rootReducer,
@@ -39,6 +40,7 @@ const store = createStore(
 auth.initialize(store);
 
 console.log(store);
+store.dispatch(populateSuppliers());
 
 ReactDOM.render(
 	<Provider store={store}>
