@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 import autoBind from 'react-autobind';
-import { connect } from 'react-redux'
+import { connect } from 'react-redux';
 
 import auth from '../../../core/auth';
 import Glyphicon from '../../tools/Glyphicon';
@@ -20,8 +20,10 @@ let UserBlock = class extends React.Component {
 		evt.preventDefault();
 	}
 
-	login() {
-		auth.startAuthentication();
+	componentWillReceiveProps(newProps) {
+		if (!newProps.isAuthenticated && this.state.open) {
+			this.setState({open: false});
+		}
 	}
 
 	render() {
@@ -45,7 +47,7 @@ let UserBlock = class extends React.Component {
 								<Link to="/profile" className="btn btn-default btn-flat">Profile</Link>
 							</div>
 							<div className="pull-right">
-								<Link to="/logout" className="btn btn-default btn-flat">Logout</Link>
+								<Link onClick={auth.startLogout} className="btn btn-default btn-flat">Logout</Link>
 							</div>
 						</li>
 					</ul>
@@ -54,7 +56,7 @@ let UserBlock = class extends React.Component {
 		} else {
 			return (
 				<li className="dropdown user user-menu">
-					<Link to="#" onClick={this.login.bind(this)} className="user-link login">
+					<Link onClick={auth.startAuthentication} className="user-link login">
 						<Glyphicon glyph="log-in" x-class="top-bar-icon" />
 						<span>Login</span>
 					</Link>

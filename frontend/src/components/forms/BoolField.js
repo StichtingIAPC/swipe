@@ -15,7 +15,8 @@ export default class BoolField extends React.Component {
 						className="checkbox"
 						type="checkbox"
 						value={this.props.value}
-						onChange={this.props.onChange} />
+						onChange={this.props.onChange}
+						{...rest} />
 				</div>
 			</div>
 		)

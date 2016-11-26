@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { updateSupplier } from '../../actions/suppliers';
 
 import Form from '../forms/Form';
-import { StringField, BoolField } from '../forms/fields';
+import { StringField } from '../forms/fields';
 
 /**
  * Created by Matthias on 17/11/2016.
@@ -37,7 +37,12 @@ let SupplierEdit = class extends React.Component {
 		if (this.state.supplier != nextProps.supplier) {
 			this.setState({
 				supplier: nextProps.supplier,
-				workingCopy: {...nextProps.supplier},
+				workingCopy: {
+					name: "",
+					notes: "",
+					searchUrl: "",
+					...nextProps.supplier,
+				},
 			})
 		}
 	}
@@ -54,16 +59,16 @@ let SupplierEdit = class extends React.Component {
 				[key]: evt.target.value,
 			}});
 
-		const supplier = this.props.supplier;
+		const supplier = this.state.workingCopy;
 		return (
 			<Form
 				title={`Edit ${supplier.name}`}
 				onSubmit={this.update.bind(this)}
 				onReset={this.reset.bind(this)}
 				returnLink={`/supplier/${supplier.id}/`}>
-				<StringField onChange={updateValue('name')} name="Name"/>
-				<StringField onChange={updateValue('notes')} name="Notes" />
-				<StringField onChange={updateValue('searchUrl')} name="Search url"/>
+				<StringField onChange={updateValue('name')} name="Name" value={supplier.name} />
+				<StringField onChange={updateValue('notes')} name="Notes" value={supplier.notes} />
+				<StringField onChange={updateValue('searchUrl')} name="Search url" value={supplier.searchUrl} />
 			</Form>
 		)
 	}

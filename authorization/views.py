@@ -34,7 +34,7 @@ class Login(ObtainAuthToken):
             'token': token.key,
             'user': {
                 'username': user.username,
-                'permissions': user.user_permissions.all(),
+                'permissions': user.get_all_permissions(),
                 'gravatarUrl': '//failurl',
             },
         })

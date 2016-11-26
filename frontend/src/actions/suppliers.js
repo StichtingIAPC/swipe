@@ -70,9 +70,9 @@ export function populateSuppliers() {
 	}
 }
 
-export function createSupplier(supplier) {
+export function createSupplier(suppl) {
 	return function(dispatch) {
-		supplier = {...supplier, search_url: supplier.searchUrl}; delete supplier.searchUrl;
+		const supplier = {...suppl, search_url: suppl.searchUrl}; delete supplier.searchUrl;
 		dispatch(invalidateSuppliers());
 		auth.fetch('/supplier/', {
 			method: 'POST',
@@ -83,13 +83,13 @@ export function createSupplier(supplier) {
 		})
 			.then((request) => request.json())
 			.then((json) => dispatch(addSupplier(json)))
-			.catch((error) => populateSuppliers())
+			.catch(() => populateSuppliers())
 	}
 }
 
-export function updateSupplier(supplier) {
+export function updateSupplier(suppl) {
 	return function(dispatch) {
-		supplier = {...supplier, search_url: supplier.searchUrl}; delete supplier.searchUrl;
+		const supplier = {...suppl, search_url: suppl.searchUrl}; delete supplier.searchUrl;
 		dispatch(fetchSupplier(supplier.id));
 		auth.fetch(`/supplier/${supplier.id}/`, {
 			method: 'POST',

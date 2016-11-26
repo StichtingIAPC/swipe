@@ -1,18 +1,14 @@
-import React from 'react'
 import autoBind from 'react-autobind'
-import { browserHistory } from 'react-router';
 
 import fetch from 'isomorphic-fetch';
 
-import { AUTHENTICATING } from '../reducers/auth';
 import {
 	startAuthentication,
 	stopAuthentication,
 	failAuthentication,
 	login,
+	logout,
 } from '../actions/auth';
-
-import { LoginModal } from '../components/base/auth/LoginModal';
 
 /**
  * Created by Matthias on 06/11/2016.
@@ -28,7 +24,6 @@ const APIRequest = Symbol('APIRequest');
 const loginAttempt = Symbol('loginAttempt');
 
 const authenticate = Symbol('authenticate');
-const authenticateForRequest = Symbol('authenticateForRequest');
 
 class AuthenticationError extends Error {}
 
@@ -47,8 +42,14 @@ const auth = new (class Auth {
 		auth.store = store;
 	}
 
-	startLogout() {
-		auth[logoutRequest]();
+	startLogout(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+		auth[logoutRequest]()
+			.then(() => {
+				auth.store.dispatch(logout())
+			});
 	}
 
 	/**
@@ -93,7 +94,7 @@ const auth = new (class Auth {
 	/**
 	 * Cancel the current login attempt streak.
 	 */
-	cancel(err) {
+	cancel() {
 		auth[getCredentials] = null;
 		auth.store.dispatch(stopAuthentication());
 	}
@@ -101,7 +102,10 @@ const auth = new (class Auth {
 	/**
 	 * Method to use when you want to let someone log in, but don't really care about what happens afterwards.
 	 */
-	startAuthentication() {
+	startAuthentication(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
 		auth.store.dispatch(startAuthentication());
 		auth[authenticate]()
 			.then((response) => response.json())
@@ -225,7 +229,7 @@ const auth = new (class Auth {
 	 * @returns {boolean}
 	 */
 	isAuthenticated() {
-		return auth.store.getState().auth.isAuthenticated;
+		return auth.store.getState().auth.user !== null;
 	}
 })();
 

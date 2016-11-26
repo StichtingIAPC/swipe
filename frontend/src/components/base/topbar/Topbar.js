@@ -1,6 +1,5 @@
 import React, { PropTypes } from 'react';
-import auth from '../../../core/auth';
-import UserBlock from './UserBlock.js';
+import UserBlock from './UserBlock';
 
 export class Topbar extends React.Component {
 	render() {

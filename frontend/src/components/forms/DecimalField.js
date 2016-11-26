@@ -17,7 +17,8 @@ export default class DecimalField extends React.Component {
 						min="0"
 						step="0.00001"
 						value={this.props.value}
-						onChange={this.props.onChange} />
+						onChange={this.props.onChange}
+						{...rest} />
 				</div>
 			</div>
 		)

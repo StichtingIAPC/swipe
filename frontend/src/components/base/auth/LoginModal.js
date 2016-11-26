@@ -2,7 +2,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import { connect } from 'react-redux';
 import auth from '../../../core/auth';
-import { failAuthentication } from '../../../actions/auth';
 import { AUTHENTICATING } from '../../../reducers/auth';
 import Glyph from '../../tools/Glyphicon';
 

@@ -72,7 +72,7 @@ function handleSuppliers(state, action) {
 	case RECEIVE_SUPPLIERS:
 		const objects = [];
 		for (const supplier of action.suppliers) {
-			objects[supplier.id] = supplier;
+			objects[supplier.id] = {...supplier, searchUrl: supplier.search_url};
 		}
 		return {
 			objects: objects,
@@ -91,7 +91,6 @@ export function suppliers(state = {
 	fetching: false,
 	invalid: false,
 }, action) {
-	let objs;
 	switch (action.type) {
 	case ADD_SUPPLIER:
 	case MARK_SUPPLIER_AS_UPDATING:

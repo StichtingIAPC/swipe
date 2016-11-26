@@ -5,9 +5,7 @@ import { connect } from 'react-redux';
 import { createSupplier } from '../../actions/suppliers';
 
 import Form from '../forms/Form';
-import { StringField, BoolField } from '../forms/fields';
-
-import FA from '../tools/FontAwesome';
+import { StringField } from '../forms/fields';
 
 /**
  * Created by Matthias on 17/11/2016.

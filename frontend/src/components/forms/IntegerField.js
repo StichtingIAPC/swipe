@@ -17,7 +17,8 @@ export default class IntegerField extends React.Component {
 						min="0"
 						step="1"
 						value={this.props.value}
-						onChange={this.props.onChange} />
+						onChange={this.props.onChange}
+						{...rest} />
 				</div>
 			</div>
 		)

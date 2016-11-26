@@ -1,7 +1,7 @@
 'use strict';
 
 // System dependencies
-import React, { PropTypes } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRedirect, browserHistory } from 'react-router';
 import { createStore, applyMiddleware } from 'redux';
