@@ -8,6 +8,9 @@ from crm.models import User
 
 
 class CustInvoice(Blame):
+    """
+    An invoice for a customer. Can either be generated from a receipt, or made from scratch
+    """
 
     invoice_name = models.CharField(max_length=255)
 
@@ -71,6 +74,9 @@ class CustInvoice(Blame):
 
 
 class CustPayment(Blame):
+    """
+    A payment for an invoice. Can be only a part of the total amount to be paid
+    """
 
     cust_invoice = models.ForeignKey(CustInvoice)
 
@@ -78,11 +84,23 @@ class CustPayment(Blame):
 
 
 class ReceiptCustInvoice(CustInvoice):
+    """
+    An invoice that is made when a transaction is done with a paymenttype that invoices.
+    """
 
     receipt = models.ForeignKey(Transaction)
 
+    @staticmethod
+    def create_all_new_receipt_invoices():
+        un_invoiced_transactions = Transaction.objects.filter()
+
+        return un_invoiced_transactions
+
 
 class CustomCustInvoice(CustInvoice):
+    """
+    A self made invoice containing a number of lines with prices.
+    """
 
     @staticmethod
     def create_custom_invoice(invoice_name: str, invoice_address: str, invoice_zip_code: str,
@@ -108,11 +126,14 @@ class CustomCustInvoice(CustInvoice):
 
 
 class CustomInvoiceLine(Blame):
-
+    """
+    A single line on a custom invoice. Contains a description of the cost and includes a price(including VAT)
+    """
+    # That invoice document
     custom_invoice = models.ForeignKey(CustomCustInvoice)
-
+    # Description of the sold item
     text = models.CharField(max_length=255)
-
+    # A price
     price = PriceField()
 
 
