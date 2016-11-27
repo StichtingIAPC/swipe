@@ -11,7 +11,7 @@ from stock.models import StockChangeSet, Id10TError, Stock
 from stock.enumeration import enum
 from stock.stocklabel import StockLabeledLine, OrderLabel
 from tools.util import raiseif
-
+import customer_invoicing.models
 
 
 class TransactionLine(Blame):
@@ -260,10 +260,16 @@ class Transaction(Blame):
         salesperiod = RegisterMaster.get_open_sales_period()
 
         possible_payment_types = RegisterMaster.get_payment_types_for_open_registers()
+        # This boolean checks if a customer invoice needs to be made. If yes, it will pass the needed vars
+        # to a function in the customer invoicing module
+        transaction_has_invoiced_payment = False
+
         for payment in payments:
             if payment.payment_type not in possible_payment_types:
                 raise PaymentTypeError("Paymenttype: {}, is not in the possible list of payments for the open registers".
                                        format(payment.payment_type))
+            if payment.payment_type.is_invoicing:
+                transaction_has_invoiced_payment = True
 
         ILLEGAL_ORDER_REFERENCE = -1 # Primary key chosen in such a way that it is never chosen
 
@@ -461,6 +467,10 @@ class Transaction(Blame):
                 to_sell = order_other_cost_count[key]
                 for i in range(to_sell):
                     ols[i].sell(user)
+
+            # Create invoice as it has an invoicing payment type. Handled by customer invoicing module.
+            if transaction_has_invoiced_payment:
+                customer_invoicing.models.ReceiptCustInvoiceHelper.create_customer_invoice_from_transaction(user, trans, payments)
 
 
 class UnimplementedError(Exception):

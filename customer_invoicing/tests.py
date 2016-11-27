@@ -2,11 +2,11 @@ from django.test import TestCase
 from tools.testing import TestData
 from sales.models import Transaction, SalesTransactionLine, Payment
 from money.models import Money
-from customer_invoicing.models import ReceiptCustInvoice
+from customer_invoicing.models import ReceiptCustInvoice, CustInvoice
 from decimal import Decimal
 
 
-class RandomTests(TestCase, TestData):
+class CustInvoiceTests(TestCase, TestData):
 
     def setUp(self):
         self.setup_base_data()
@@ -22,6 +22,8 @@ class RandomTests(TestCase, TestData):
         money_1 = Money(amount=self.price_eur_1.amount * SOLD, currency=self.price_eur_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
         Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
-        print(ReceiptCustInvoice.create_all_new_receipt_invoices())
+        self.assertEqual(len(CustInvoice.objects.all()), 1)
+        receipt_cust_invoice = ReceiptCustInvoice.objects.get()
+
 
 

@@ -1,7 +1,7 @@
 from django.db import models
 from blame.models import Blame
 from money.models import MoneyField, Money, Price
-from sales.models import Transaction, PriceField
+from sales.models import PriceField
 from tools.util import raiseif
 from decimal import Decimal
 from crm.models import User
@@ -24,7 +24,7 @@ class CustInvoice(Blame):
 
     invoice_email_address = models.CharField(max_length=255)
 
-    to_be_payed = MoneyField()
+    to_be_paid = MoneyField()
 
     paid = MoneyField()
 
@@ -33,7 +33,7 @@ class CustInvoice(Blame):
     def pay(self, amount: Money):
         if self.pk:
             raiseif(not isinstance(amount, Money), IncorrectClassError, "amount should be a Money")
-            used_currency = self.to_be_payed.currency()
+            used_currency = self.to_be_paid.currency()
             if amount.currency() != used_currency:
                 raise CurrencyError("Expected currency {} but received")
             if self.handled:
@@ -41,7 +41,7 @@ class CustInvoice(Blame):
             payment = CustPayment(cust_invoice=self, payment=amount)
             payment.save()
             self.paid = self.paid + amount
-            if self.to_be_payed == self.paid:
+            if self.to_be_paid == self.paid:
                 self.handled = True
             self.save()
         else:
@@ -65,10 +65,11 @@ class CustInvoice(Blame):
         
     def save(self, **kwargs):
         if not self.pk:
-            raiseif(not self.to_be_payed, SaveError, "You cannot save if there is no payment yet")
+            raiseif(not self.to_be_paid, SaveError, "You cannot save if there is nothing to be paid")
             self.determine_address_data()
             if not self.paid:
-                self.paid = Money(amount=Decimal("0"), currency=self.to_be_payed.currency())
+                self.paid = Money(amount=Decimal("0"), currency=self.to_be_paid.currency())
+            super(CustInvoice, self).save()
         else:
             super(CustInvoice, self).save()
 
@@ -88,13 +89,31 @@ class ReceiptCustInvoice(CustInvoice):
     An invoice that is made when a transaction is done with a paymenttype that invoices.
     """
 
-    receipt = models.ForeignKey(Transaction)
+    receipt = models.ForeignKey("sales.Transaction")
+
+
+class ReceiptCustInvoiceHelper:
+    """
+    Workaround for circular dependency issue.
+    """
 
     @staticmethod
-    def create_all_new_receipt_invoices():
-        un_invoiced_transactions = Transaction.objects.filter()
+    def create_customer_invoice_from_transaction(user: User, transaction, payments):
+        from sales.models import Transaction
+        raiseif(not isinstance(transaction, Transaction), "transaction should be a transaction")
 
-        return un_invoiced_transactions
+        to_be_paid = Money(amount=Decimal(0), currency=payments[0].amount.currency)
+        paid = Money(amount=Decimal(0), currency=payments[0].amount.currency)
+
+        for payment in payments:
+            if payment.payment_type.is_invoicing:
+                to_be_paid += payment.amount
+            else:
+                paid += payment.amount
+
+        receipt_cust_invoice = ReceiptCustInvoice(receipt=transaction, paid=paid, to_be_paid=to_be_paid,
+                                                  user_modified=user)
+        receipt_cust_invoice.save()
 
 
 class CustomCustInvoice(CustInvoice):
