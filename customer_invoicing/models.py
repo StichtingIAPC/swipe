@@ -30,19 +30,21 @@ class CustInvoice(Blame):
 
     handled = models.BooleanField(default=False)
 
-    def pay(self, amount: Money):
+    def pay(self, amount: Money, user: User):
         if self.pk:
             raiseif(not isinstance(amount, Money), IncorrectClassError, "amount should be a Money")
-            used_currency = self.to_be_paid.currency()
-            if amount.currency() != used_currency:
+            used_currency = self.to_be_paid.currency
+            if amount.currency != used_currency:
                 raise CurrencyError("Expected currency {} but received")
             if self.handled:
                 raise IncorrectStateError("You cannot pay an invoice that is already handled")
-            payment = CustPayment(cust_invoice=self, payment=amount)
+            payment = CustPayment(cust_invoice=self, payment=amount, user_modified=user)
             payment.save()
             self.paid = self.paid + amount
             if self.to_be_paid == self.paid:
                 self.handled = True
+            else:
+                self.handled = False
             self.save()
         else:
             raise IncorrectStateError("You cannot pay an invoice which is not yet saved")
@@ -65,13 +67,22 @@ class CustInvoice(Blame):
         
     def save(self, **kwargs):
         if not self.pk:
-            raiseif(not self.to_be_paid, SaveError, "You cannot save if there is nothing to be paid")
             self.determine_address_data()
             if not self.paid:
-                self.paid = Money(amount=Decimal("0"), currency=self.to_be_paid.currency())
+                self.paid = Money(amount=Decimal("0"), currency=self.to_be_paid.currency)
+            if self.paid == self.to_be_paid:
+                self.handled = True
+            else:
+                self.handled = False
             super(CustInvoice, self).save()
         else:
             super(CustInvoice, self).save()
+
+    def __str__(self):
+        return "Name: {}, Address: {}, Zip code: {}, City: {}, Country: {}, E-mail address: {}\n" \
+               "To be paid: {}, Paid: {}".format(self.invoice_name, self.invoice_address, self.invoice_zip_code,
+                                                 self.invoice_city, self.invoice_country, self.invoice_email_address,
+                                                 self.to_be_paid, self.paid)
 
 
 class CustPayment(Blame):
@@ -91,6 +102,9 @@ class ReceiptCustInvoice(CustInvoice):
 
     receipt = models.ForeignKey("sales.Transaction")
 
+    def __str__(self):
+        return super(ReceiptCustInvoice, self).__str__() + ", Receipt ID: {}".format(self.receipt_id)
+
 
 class ReceiptCustInvoiceHelper:
     """
@@ -106,10 +120,10 @@ class ReceiptCustInvoiceHelper:
         paid = Money(amount=Decimal(0), currency=payments[0].amount.currency)
 
         for payment in payments:
-            if payment.payment_type.is_invoicing:
-                to_be_paid += payment.amount
-            else:
+            if not payment.payment_type.is_invoicing:
                 paid += payment.amount
+
+            to_be_paid += payment.amount
 
         receipt_cust_invoice = ReceiptCustInvoice(receipt=transaction, paid=paid, to_be_paid=to_be_paid,
                                                   user_modified=user)
@@ -129,18 +143,21 @@ class CustomCustInvoice(CustInvoice):
                                  invoice_name=invoice_name, invoice_address=invoice_address,
                                  invoice_zip_code=invoice_zip_code, invoice_city=invoice_city,
                                  invoice_country=invoice_country, invoice_email_address=invoice_email_address)
-        lines = []  # Type: list[CustomInvoiceLine]
+        lines = []  # Type: List[CustomInvoiceLine]
+        to_be_paid = Money(amount = Decimal(0), currency=text_price_combinations[0][1].currency)
         for text, price in text_price_combinations:
             raiseif(not isinstance(text, str), IncorrectClassError, "text should be a string")
             raiseif(not isinstance(price, Price), IncorrectClassError, "price should be a Price")
+            to_be_paid += Money(amount=price.amount, currency=price.currency)
             line = CustomInvoiceLine(text=text, price=price)
             lines.append(line)
 
         # Now, everything is ok and we can save
-
+        cust.to_be_paid = to_be_paid
         cust.save()
         for line in lines:
             line.custom_invoice = cust
+            line.user_modified = user
             line.save()
 
 
