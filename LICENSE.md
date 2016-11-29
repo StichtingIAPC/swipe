@@ -1,9 +1,3 @@
-Aan iedereen: graag je naam verwijderen bij de oude licensie en toevoegen bij de nieuwe.
-
-Aan nieuwe ontwikkelaars: graag je naam toevoegen aan de nieuwe licensie.
-
-
-
 Swipe-license: BSD License
 -----------
 Copyright (c) 2016, See below for contributors
