@@ -52,6 +52,7 @@ class CustInvoice(Blame):
     def determine_address_data(self):
         # There is not determined way to extract the needed information about a person from its context. Using a
         # placeholder will suffice for now
+        # TODO: Get correct invoicing customer data for invoices
         if not self.invoice_name:
             self.invoice_name = "Placeholder_name"
         if not self.invoice_address:
