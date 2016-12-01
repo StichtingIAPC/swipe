@@ -68,6 +68,7 @@ INSTALLED_APPS = (
     'rma',
     'internalise',
     'externalise',
+    'customer_invoicing',
 )
 
 MIDDLEWARE_CLASSES = [

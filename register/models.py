@@ -16,8 +16,10 @@ from tools.util import raiseif
 
 
 class PaymentType(models.Model):
-    # Name of the payment type. "Cash" is always used when using cash registers
+    # Name of the payment type. "Cash" is always used when using cash registers. Should not be changed.
     name = models.CharField(max_length=255, unique=True)
+    # Is used for invoicing. If enabled, the cost is to be used at a later date. Should not be changed.
+    is_invoicing = models.BooleanField(default=False)
 
     def __str__(self):
         return "{}".format(self.name)
