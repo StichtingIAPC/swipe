@@ -1,6 +1,6 @@
 from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money
 from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
-from register.models import PaymentType, Register
+from register.models import PaymentType, Register, RegisterMaster
 from decimal import Decimal
 from crm.models import User, Person
 from supplier.models import Supplier, ArticleTypeSupplier
@@ -41,13 +41,17 @@ class TestData:
         self.paymenttype_cash.save()
         self.paymenttype_maestro = PaymentType(name="Maestro")
         self.paymenttype_maestro.save()
+        self.paymenttype_invoice = PaymentType(name="Invoice", is_invoicing=True)
+        self.paymenttype_invoice.save()
 
         self.register_1 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash, name="Register 1")
         self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash, name="Register 2")
         self.register_3 = Register(currency=self.currency_data_eur, is_cash_register=False, payment_type=self.paymenttype_maestro, name="Register 3")
+        self.register_4 = Register(currency=self.currency_data_eur, is_cash_register=False, payment_type=self.paymenttype_invoice, name="Register 4")
         self.register_1.save()
         self.register_2.save()
         self.register_3.save()
+        self.register_4.save()
 
         self.denomination_eur_20 = Denomination(currency=self.currency_data_eur, amount=20)
         self.denomination_eur_20.save()
@@ -138,21 +142,23 @@ class TestData:
     def create_packingdocuments(self, article_1=3, article_2=4):
         self.PACKING_ARTICLE_1 = article_1
         self.PACKING_ARTICLE_2 = article_2
+        atccs = []
         if article_1 + article_2 > 0:
-            atccs = []
             if article_1 > 0:
                 atccs.append([self.articletype_1, self.PACKING_ARTICLE_1])
             if article_2 > 0:
                 atccs.append([self.articletype_2, self.PACKING_ARTICLE_2])
-        PackingDocument.create_packing_document(supplier=self.supplier_1, packing_document_name="Packing document name 1", user=self.user_1,
+        if atccs:
+            PackingDocument.create_packing_document(supplier=self.supplier_1, packing_document_name="Packing document name 1", user=self.user_1,
                                                 article_type_cost_combinations=atccs)
 
-    def create_transactions_article_type(self, article_1=2, article_2=3, othercost_1=4):
+    def create_transactions_article_type_for_order(self, article_1=2, article_2=3, othercost_1=4):
         self.SOLD_ARTICLE_1 = article_1
         self.SOLD_ARTICLE_2 = article_2
         self.SOLD_OTHERCOST_1 = othercost_1
         if article_1 + article_2 + othercost_1 > 0:
-            self.register_3.open(counted_amount=Decimal(0))
+            if not self.register_3.is_open():
+                self.register_3.open(counted_amount=Decimal(0))
             if article_1 > 0:
                 tl_1 = SalesTransactionLine(price=self.price_eur_1, count=self.SOLD_ARTICLE_1, order=1, article=self.articletype_1)
                 money_1 = Money(amount=self.price_eur_1.amount*self.SOLD_ARTICLE_1, currency=self.price_eur_1.currency)
@@ -179,6 +185,6 @@ class TestMixins(TestCase, TestData):
         self.create_suporders()
         self.create_stockwish()
         self.create_packingdocuments()
-        self.create_transactions_article_type()
+        self.create_transactions_article_type_for_order()
 
 
