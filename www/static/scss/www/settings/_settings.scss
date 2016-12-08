@@ -40,7 +40,7 @@
 //  35. Tooltip
 //  36. Top Bar
 
-@import '../../../../../static/bower_components/foundation-sites/scss/util/_util';
+@import 'node_modules/foundation-sites/scss/util/_util';
 
 // 1. Global
 // ---------
@@ -55,6 +55,7 @@ $foundation-palette: (
   warning: #ffae00,
   alert: #ec5840,
   dark_gray: #303030,
+  light_blue: #90CCF4,
 );
 $light-gray: #e6e6e6;
 $medium-gray: #cacaca;

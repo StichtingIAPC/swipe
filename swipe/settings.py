@@ -43,9 +43,10 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
 
     # utilities
-    'compressor',
-    'compressor_toolkit',
     'django_gravatar',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',  # to enable the frontend to be hosted on another machine than the API.
 
     # our apps
     'core',
@@ -68,12 +69,14 @@ INSTALLED_APPS = (
     'rma',
     'internalise',
     'externalise',
+    'authorization',
     'customer_invoicing',
 )
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -81,6 +84,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_WHITELIST = []
 
 ROOT_URLCONF = 'swipe.urls'
 
@@ -299,6 +304,10 @@ USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
 SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')
+}
+
+
+REST_FRAMEWORK = {
 }
 
 ##

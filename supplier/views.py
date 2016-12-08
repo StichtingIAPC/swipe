@@ -1,24 +1,43 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
-from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import DetailView, CreateView, UpdateView, DeleteView
+from rest_framework import mixins, generics
 
 from supplier.models import Supplier
-from tools.templatetags.tools.breadcrumbs import crumb
+from supplier.serializers import SupplierSerializer
 
 
-@crumb(_('Supplier List'))
-class SupplierList(LoginRequiredMixin, ListView):
-    model = Supplier
+class SupplierListView(mixins.ListModelMixin,
+                       mixins.CreateModelMixin,
+                       generics.GenericAPIView):
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
 
-@crumb(_('Detail'), 'supplier_list')
+class SupplierView(mixins.UpdateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   generics.GenericAPIView):
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
 class SupplierDetail(LoginRequiredMixin, DetailView):
     model = Supplier
 
 
-@crumb(_('Create supplier'), 'supplier_list', [])
 class SupplierCreate(PermissionRequiredMixin, CreateView):
     model = Supplier
     permission_required = 'supplier.add_supplier'
@@ -26,7 +45,6 @@ class SupplierCreate(PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy('supplier_list')
 
 
-@crumb(_('Edit'), 'supplier_detail', ['pk'])
 class SupplierEdit(PermissionRequiredMixin, UpdateView):
     model = Supplier
     permission_required = 'supplier.change_supplier'
@@ -34,7 +52,6 @@ class SupplierEdit(PermissionRequiredMixin, UpdateView):
     success_url = reverse_lazy('supplier_list')
 
 
-@crumb(_('Delete'), 'supplier_detail', ['pk'])
 class SupplierDelete(PermissionRequiredMixin, DeleteView):
     model = Supplier
     permission_required = 'supplier.delete_supplier'
