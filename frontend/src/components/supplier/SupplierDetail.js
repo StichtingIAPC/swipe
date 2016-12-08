@@ -1,8 +1,7 @@
-import React, { PropTypes } from 'react'
-import { Link, browserHistory } from 'react-router'
-import { connect } from 'react-redux';
-
-import FontAwesome from '../tools/icons/FontAwesome'
+import React, {PropTypes} from "react";
+import {Link, browserHistory} from "react-router";
+import {connect} from "react-redux";
+import FontAwesome from "../tools/icons/FontAwesome";
 
 class SupplierDetail extends React.Component {
 	trash(evt) {
@@ -11,7 +10,6 @@ class SupplierDetail extends React.Component {
 
 	render() {
 		if (!this.props.supplier) {
-			browserHistory.push(`/supplier/`);
 			return null;
 		}
 

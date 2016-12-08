@@ -1,18 +1,50 @@
-import React from 'react';
-import {Link} from 'react-router';
-import { connect } from 'react-redux';
-
-import FontAwesome from '../tools/icons/FontAwesome';
-
-import SupplierListEntry from './SupplierListEntry';
-
-import { populateSuppliers } from '../../actions/suppliers';
+import React from "react";
+import {Link} from "react-router";
+import {connect} from "react-redux";
+import FontAwesome from "../tools/icons/FontAwesome";
+import {populateSuppliers} from "../../actions/suppliers";
 
 class SupplierList extends React.Component {
 	update(event) {
 		event.preventDefault();
 		this.props.update();
 		return false;
+	}
+
+	renderEntry({ supplierID, supplier }) {
+		return (
+			<tr className={Number(supplierID) == supplier.id ? 'active' : null}>
+				<td>
+					{supplier.name}
+				</td>
+				<td>
+					<div className="btn-group pull-right">
+						{
+							supplier.updating ? (
+								<Link
+									to="#"
+									className="btn btn-success btn-xs disabled"
+									title="Updating">
+									<FontAwesome icon="refresh" />
+								</Link>
+							) : null
+						}
+						<Link
+							to={`/supplier/${supplier.id}/`}
+							className="btn btn-default btn-xs"
+							title="Details">
+							<FontAwesome icon="crosshairs" />
+						</Link>
+						<Link
+							to={`/supplier/${supplier.id}/edit/`}
+							className="btn btn-default btn-xs"
+							title="Edit">
+							<FontAwesome icon="edit" />
+						</Link>
+					</div>
+				</td>
+			</tr>
+		)
 	}
 
 	render() {
@@ -55,7 +87,7 @@ class SupplierList extends React.Component {
 						<tbody>
 							{Object.keys(this.props.suppliers).filter((key) => this.props.suppliers[key]).map(
 								(id) => (
-									<SupplierListEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
+									<this.renderEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
 								)
 							)}
 						</tbody>
