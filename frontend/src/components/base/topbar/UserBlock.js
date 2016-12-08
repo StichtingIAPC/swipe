@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import autoBind from 'react-autobind';
 import { connect } from 'react-redux';
 
-import Glyphicon from '../../tools/Glyphicon';
+import Glyphicon from '../../tools/icons/Glyphicon';
 
 class UserBlock extends React.Component {
 	constructor(props) {

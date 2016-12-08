@@ -13,8 +13,14 @@ import Application from './components/Application.js';
 import Dashboard from './components/Dashboard.js'
 import HelloWorld from './components/HelloWorld.js';
 
+// Supplier components
+import SupplierBase from 'components/supplier/SupplierBase';
+import SupplierEdit from 'components/supplier/SupplierEdit';
+import SupplierDetail from 'components/supplier/SupplierDetail';
+import SupplierCreate from 'components/supplier/SupplierCreate';
+
 class Routes extends React.Component {
-	checkAuthentication(nextState, transition) {
+	checkAuthentication(nextState) {
 		if (this.props.user === null) this.props.authenticate(nextState.location.pathname);
 	}
 
@@ -28,7 +34,13 @@ class Routes extends React.Component {
 				<Route path="dashboard" component={Dashboard} />
 				<Route path="helloworld" component={HelloWorld} />
 
-				{/*
+				<Route path="" component={SupplierBase}>
+					<Route path="supplier/create/" component={SupplierCreate} />
+					<Route path="supplier/:supplierID/edit" component={SupplierEdit} />
+					<Route path="supplier/:supplierID/" component={SupplierDetail} />
+					<Route path="supplier/" />
+				</Route>
+
 				<Route path="pos">
 					<IndexRedirect to="register" />
 					<Route path="register">
@@ -37,7 +49,7 @@ class Routes extends React.Component {
 						<Route path="open" />
 						<Route path="close" />
 					</Route>
-				</Route>*/}
+				</Route>
 				<Route path="*" component={Error404} />
 			</Route>
 		</Router>;

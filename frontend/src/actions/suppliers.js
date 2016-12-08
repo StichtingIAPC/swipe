@@ -1,8 +1,4 @@
-import auth from '../core/auth';
-
-/**
- * Created by Matthias on 18/11/2016.
- */
+// TODO: rewrite from Thunk to sagas
 
 export const ADD_SUPPLIER = 'ADD_SUPPLIER';
 export function addSupplier(supplier) {

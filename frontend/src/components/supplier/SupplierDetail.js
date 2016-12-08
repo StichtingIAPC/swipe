@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react'
 import { Link, browserHistory } from 'react-router'
 import { connect } from 'react-redux';
 
-import FontAwesome from '../tools/FontAwesome'
+import FontAwesome from '../tools/icons/FontAwesome'
 
 class SupplierDetail extends React.Component {
 	trash(evt) {

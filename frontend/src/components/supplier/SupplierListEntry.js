@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 
-import FontAwesome from '../tools/FontAwesome';
+import FontAwesome from '../tools/icons/FontAwesome';
 
 export default class SupplierListEntry extends React.Component {
 	render() {

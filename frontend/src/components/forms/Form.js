@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 
-import FontAwesome from '../tools/FontAwesome';
+import FontAwesome from '../tools/icons/FontAwesome';
 
 export default class Form extends React.Component {
 	render() {
