@@ -1,6 +1,6 @@
-import React, { PropTypes } from 'react';
-import { Link } from 'react-router';
-import FontAwesome from 'components/tools/icons/FontAwesome.js';
+import React, {PropTypes} from "react";
+import {Link} from "react-router";
+import FontAwesome from "components/tools/icons/FontAwesome.js";
 
 export default class SidebarLink extends React.Component {
 	constructor(props) {
@@ -44,6 +44,7 @@ export default class SidebarLink extends React.Component {
 }
 
 SidebarLink.propTypes = {
+	text: PropTypes.string.isRequired,
 	to: PropTypes.string,
 	icon: PropTypes.string,
 	children: PropTypes.node,
