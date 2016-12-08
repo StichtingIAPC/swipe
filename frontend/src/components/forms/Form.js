@@ -1,13 +1,9 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 
-import FA from '../tools/FontAwesome';
+import FontAwesome from '../tools/FontAwesome';
 
-/**
- * Created by Matthias on 18/11/2016.
- */
-
-export class Form extends React.Component {
+export default class Form extends React.Component {
 	render() {
 		return (
 			<div className="box">
@@ -16,8 +12,8 @@ export class Form extends React.Component {
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
-								<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Close"><FA icon="close" /></Link>
-								<Link onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FA icon="repeat" /></Link>
+								<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
+								<Link onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></Link>
 							</div>
 						</div>
 					</div>
@@ -48,5 +44,3 @@ Form.propTypes = {
 Form.defaultProps = {
 	returnLink: '/',
 };
-
-export default Form;

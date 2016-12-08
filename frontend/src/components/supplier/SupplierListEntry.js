@@ -1,11 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 
-import FA from '../tools/FontAwesome';
-
-/**
- * Created by Matthias on 26/11/2016.
- */
+import FontAwesome from '../tools/FontAwesome';
 
 export default class SupplierListEntry extends React.Component {
 	render() {
@@ -22,7 +18,7 @@ export default class SupplierListEntry extends React.Component {
 									to="#"
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
-									<FA icon="refresh" />
+									<FontAwesome icon="refresh" />
 								</Link>
 							) : null
 						}
@@ -30,13 +26,13 @@ export default class SupplierListEntry extends React.Component {
 							to={`/supplier/${this.props.supplier.id}/`}
 							className="btn btn-default btn-xs"
 							title="Details">
-							<FA icon="crosshairs" />
+							<FontAwesome icon="crosshairs" />
 						</Link>
 						<Link
 							to={`/supplier/${this.props.supplier.id}/edit/`}
 							className="btn btn-default btn-xs"
 							title="Edit">
-							<FA icon="edit" />
+							<FontAwesome icon="edit" />
 						</Link>
 					</div>
 				</td>

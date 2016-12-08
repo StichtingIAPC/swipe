@@ -2,17 +2,19 @@ import React from 'react';
 import {Link} from 'react-router';
 import { connect } from 'react-redux';
 
-import FA from '../tools/FontAwesome';
+import FontAwesome from '../tools/FontAwesome';
 
 import SupplierListEntry from './SupplierListEntry';
 
 import { populateSuppliers } from '../../actions/suppliers';
 
-/**
- * Created by Matthias on 17/11/2016.
- */
+class SupplierList extends React.Component {
+	update(event) {
+		event.preventDefault();
+		this.props.update();
+		return false;
+	}
 
-let SupplierList = class extends React.Component {
 	render() {
 		return (
 			<div className="box">
@@ -25,14 +27,14 @@ let SupplierList = class extends React.Component {
 									className={`btn btn-sm ${this.props.invalid ? 'btn-danger' : 'btn-default'} ${this.props.fetching ? 'disabled' : ''}`}
 									to="#"
 									title="Refresh"
-									onClick={this.props.update}>
-									<FA icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
+									onClick={this.update.bind(this)}>
+									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
 									className="btn btn-default btn-sm"
 									to="/supplier/create/"
 									title="Create new supplier">
-									<FA icon="plus" />
+									<FontAwesome icon="plus" />
 								</Link>
 							</div>
 						</div>
@@ -77,26 +79,11 @@ SupplierList.defaultProps = {
 	},
 };
 
-SupplierList = connect(
-	(state, ownProps) => {
-		return {
-			...ownProps,
-			suppliers: state.suppliers.objects,
-			invalid: state.suppliers.invalid,
-			fetching: state.suppliers.fetching,
-		}
-	},
-	(dispatch, ownProps) => {
-		return {
-			...ownProps,
-			update: (evt) => {
-				evt.preventDefault();
-				dispatch(populateSuppliers());
-			},
-		}
-	})(SupplierList);
-
-export {
-	SupplierList,
-};
-export default SupplierList;
+export default connect(
+	state => ({
+		suppliers: state.suppliers.objects,
+		invalid: state.suppliers.invalid,
+		fetching: state.suppliers.fetching,
+	}),
+	dispatch => ({ update: () => dispatch(populateSuppliers()) })
+)(SupplierList);

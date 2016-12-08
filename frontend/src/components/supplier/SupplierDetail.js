@@ -2,12 +2,9 @@ import React, { PropTypes } from 'react'
 import { Link, browserHistory } from 'react-router'
 import { connect } from 'react-redux';
 
-import FA from '../tools/FontAwesome'
-/**
- * Created by Matthias on 17/11/2016.
- */
+import FontAwesome from '../tools/FontAwesome'
 
-let SupplierDetail = class extends React.Component {
+class SupplierDetail extends React.Component {
 	trash(evt) {
 		evt.preventDefault();
 	}
@@ -26,8 +23,8 @@ let SupplierDetail = class extends React.Component {
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
-								<Link to={`/supplier/${supplier.id}/edit`} className="btn btn-default btn-sm" title="Edit"><FA icon="edit" /></Link>
-								<Link onClick={this.trash.bind(this)} className="btn btn-danger btn-sm" title="Delete"><FA icon="trash" /></Link>
+								<Link to={`/supplier/${supplier.id}/edit`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
+								<Link onClick={this.trash.bind(this)} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
 							</div>
 						</div>
 					</div>
@@ -55,17 +52,11 @@ SupplierDetail.propTypes = {
 	}).isRequired,
 };
 
-SupplierDetail = connect(
+export default connect(
 	(state, ownProps) => {
 		return {
 			...ownProps,
 			supplier: Object.values(state.suppliers.objects).find((obj) => obj.id == Number(ownProps.params.supplierID)),
 		}
-	})(SupplierDetail);
-
-
-export {
-	SupplierDetail,
-}
-
-export default SupplierDetail;
+	}
+)(SupplierDetail);
