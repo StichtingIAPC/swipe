@@ -5,8 +5,8 @@ import {
 	INVALIDATE_SUPPLIERS,
 	RECEIVE_SUPPLIERS,
 	REMOVE_SUPPLIER,
-	UPDATE_SUPPLIER,
-} from '../actions/suppliers'
+	CHANGE_SUPPLIER
+} from "../actions/suppliers";
 
 /**
  * Created by Matthias on 18/11/2016.
@@ -23,7 +23,7 @@ function handleSupplier({objects, ...rest}, action) {
 			...rest,
 			objects: {
 				...objects,
-				[action.supplier.id]: action.supplier,
+				[action.supplier.id]: {...action.supplier},
 			},
 		};
 	case MARK_SUPPLIER_AS_UPDATING:
@@ -44,7 +44,7 @@ function handleSupplier({objects, ...rest}, action) {
 			...rest,
 			objects: objs,
 		};
-	case UPDATE_SUPPLIER:
+	case CHANGE_SUPPLIER:
 		objs = {...objects};
 		objs[action.supplier.id] = action.supplier;
 		return {
@@ -70,7 +70,7 @@ function handleSuppliers(state, action) {
 			error: (action.error ? action.error : state.error),
 		};
 	case RECEIVE_SUPPLIERS:
-		const objects = [];
+		const objects = {};
 		for (const supplier of action.suppliers) {
 			objects[supplier.id] = {...supplier, searchUrl: supplier.search_url};
 		}
@@ -78,6 +78,7 @@ function handleSuppliers(state, action) {
 			objects: objects,
 			fetching: false,
 			invalid: false,
+			loaded: true,
 			lastModified: action.date,
 			error: null,
 		};
@@ -89,13 +90,14 @@ function handleSuppliers(state, action) {
 export function suppliers(state = {
 	objects: {},
 	fetching: false,
-	invalid: false,
+	invalid: true,
+	loaded: false,
 }, action) {
 	switch (action.type) {
 	case ADD_SUPPLIER:
 	case MARK_SUPPLIER_AS_UPDATING:
 	case REMOVE_SUPPLIER:
-	case UPDATE_SUPPLIER:
+	case CHANGE_SUPPLIER:
 		return handleSupplier(state, action);
 	case FETCH_SUPPLIERS:
 	case INVALIDATE_SUPPLIERS:

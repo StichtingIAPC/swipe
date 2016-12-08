@@ -1,12 +1,12 @@
 import React, {PropTypes} from "react";
 
 /**
- * Created by Matthias on 18/11/2016.
+ * Created by Matthias on 27/11/2016.
  */
 
-export default class StringField extends React.Component {
+export default class CharField extends React.Component {
 	render() {
-		const {name, className, value, ...rest} = this.props;
+		const {name, className, value, minLength, maxLength, ...rest} = this.props;
 		return (
 			<div className={className}>
 				<label className="col-sm-3 control-label" htmlFor={name}>{name}</label>
@@ -16,6 +16,8 @@ export default class StringField extends React.Component {
 						type="text"
 						id={name}
 						value={value}
+						minLength={minLength}
+						maxLength={maxLength}
 						{...rest} />
 				</div>
 			</div>
@@ -23,12 +25,14 @@ export default class StringField extends React.Component {
 	}
 }
 
-StringField.propTypes = {
+CharField.propTypes = {
 	name: PropTypes.string.isRequired,
 	value: PropTypes.string.isRequired,
+	minLength: PropTypes.number.isRequired,
+	maxLength: PropTypes.number.isRequired,
 	className: PropTypes.string,
 };
 
-StringField.defaultProps = {
+CharField.defaultProps = {
 	className: 'form-group',
 };

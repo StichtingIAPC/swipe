@@ -1,7 +1,6 @@
-import React, { PropTypes } from 'react';
-import { Link } from 'react-router';
-
-import FontAwesome from '../tools/icons/FontAwesome';
+import React, {PropTypes} from "react";
+import {Link} from "react-router";
+import FontAwesome from "../tools/icons/FontAwesome";
 
 export default class Form extends React.Component {
 	render() {
@@ -22,7 +21,7 @@ export default class Form extends React.Component {
 					<form className="form-horizontal" onSubmit={this.props.onSubmit} >
 						{this.props.children}
 						<div className="form-group">
-							<div className="col-sm-10 col-sm-offset-2">
+							<div className="col-sm-9 col-sm-offset-3">
 								<button className="btn btn-success">Save</button>
 							</div>
 						</div>
