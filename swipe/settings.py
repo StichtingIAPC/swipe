@@ -70,6 +70,7 @@ INSTALLED_APPS = (
     'internalise',
     'externalise',
     'authorization',
+    'customer_invoicing',
 )
 
 MIDDLEWARE_CLASSES = [

@@ -652,3 +652,20 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
             Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                        customer=self.customer_person_2)
 
+    def test_refund_stock_amount(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments(article_1=3)
+        self.create_transactions_article_type_for_order(article_1=2)
+        stl = SalesTransactionLine.objects.get(article=self.articletype_1)
+        rfl_1 = RefundTransactionLine(price=self.price_eur_1, count=-1, sold_transaction_line=stl)
+        money_1 = Money(amount=self.price_eur_1.amount * -1, currency=self.price_eur_1.currency)
+        pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
+        st_level = Stock.objects.get(article=self.articletype_1)
+        self.assertEqual(st_level.count, 1)
+        Transaction.create_transaction(user=self.user_2, payments=[pymnt_1], transaction_lines=[rfl_1],
+                                       customer=self.customer_person_2)
+        st_level = Stock.objects.get(article=self.articletype_1, labeltype__isnull=True)
+        self.assertEqual(st_level.count, 1)
+
+
