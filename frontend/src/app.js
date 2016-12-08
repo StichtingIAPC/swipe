@@ -3,10 +3,12 @@
 // System dependencies
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, IndexRedirect, browserHistory } from 'react-router';
-import { createStore, applyMiddleware } from 'redux';
-import thunkMiddleware from 'redux-thunk'
+import { createStore, applyMiddleware, compose } from 'redux';
 import { Provider } from 'react-redux';
+import createSagaMiddleware from 'redux-saga';
+import Routes from './Routes.js';
+import { browserHistory } from 'react-router';
+import { syncHistoryWithStore, routerMiddleware } from 'react-router-redux';
 
 import './jQueryFix.js';
 
@@ -20,47 +22,36 @@ import 'admin-lte/dist/css/AdminLTE.min.css';
 import 'admin-lte/dist/css/skins/skin-blue.min.css';
 
 // Pages
-import Dashboard from './components/Dashboard.js';
-import { Error404 } from 'www/components/error';
-import { Application } from './components/base/Application';
 import rootReducer from './reducers/root';
-import auth from './core/auth';
+import Application from './components/Application.js'
+import saga from './saga.js';
 
-// Routes
-import SupplierRoute from './routing/SupplierRoutes';
-import { populateSuppliers } from './actions/suppliers';
-
+// Set up the Redux store
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const sagaMiddleware = createSagaMiddleware();
 const store = createStore(
 	rootReducer,
-	applyMiddleware(
-		thunkMiddleware
-	)
+	composeEnhancers(applyMiddleware(routerMiddleware(browserHistory), sagaMiddleware))
 );
 
-auth.initialize(store);
+// Run the main saga
+sagaMiddleware.run(saga);
 
-console.log(store);
-store.dispatch(populateSuppliers());
+// Create enhanced history
+const enhancedHistory = syncHistoryWithStore(browserHistory, store);
 
-ReactDOM.render(
-	<Provider store={store}>
-		<Router history={browserHistory}>
-			<Route path="/" component={Application}>
-				<IndexRedirect to="/dashboard" />
-				<Route path="dashboard" component={Dashboard} />
-				{SupplierRoute}
-				<Route path="pos">
-					<IndexRedirect to="register" />
-					<Route path="register">
-						<IndexRedirect to="state" />
-						<Route path="state" />
-						<Route path="open" />
-						<Route path="close" />
-					</Route>
-				</Route>
-				<Route path="*" component={Error404} />
-			</Route>
-		</Router>
-	</Provider>
-	, document.getElementById('app')
-);
+// Render function
+function render() {
+	ReactDOM.render(
+		<Provider store={store}>
+			<Routes history={enhancedHistory}>
+				<Application />
+			</Routes>
+		</Provider>
+		, document.getElementById('app')
+	);
+}
+
+// First render + register hot loader for hot reloading in a dev environment
+render();
+if (module.hot) module.hot.accept('./components/Application.js', render);

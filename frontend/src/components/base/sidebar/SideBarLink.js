@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
-import FA from '../../tools/FontAwesome.js';
+import FontAwesome from '../../tools/FontAwesome.js';
 
 export default class SidebarLink extends React.Component {
 	constructor(props) {
@@ -26,14 +26,14 @@ export default class SidebarLink extends React.Component {
 
 		const openswitch = this.props.children ? (
 			<span className="pull-right-container" onClick={this.toggle.bind(this)}>
-				<FA icon={(this.state.open ? 'angle-down' : 'angle-left') + ' pull-right'} />
+				<FontAwesome icon={(this.state.open ? 'angle-down' : 'angle-left') + ' pull-right'} />
 			</span>
 		) : null;
 
 		return (
 			<li className={this.state.open ? 'treeview active' : 'treeview'}>
 				<Link to={this.props.to} activeClassName={this.props.activeClassName || 'active'}>
-					<FA icon={this.props.icon ? this.props.icon : 'circle-o'} />
+					<FontAwesome icon={this.props.icon ? this.props.icon : 'circle-o'} />
 					<span>{this.props.text}</span>
 					{openswitch}
 				</Link>
@@ -43,14 +43,14 @@ export default class SidebarLink extends React.Component {
 	}
 }
 
-SBLink.propTypes = {
-	to: PropTypes.string.isRequired,
+SidebarLink.propTypes = {
+	to: PropTypes.string,
 	icon: PropTypes.string,
 	children: PropTypes.node,
 	activeClassName: PropTypes.string,
 };
 
-SBLink.defaultProps = {
+SidebarLink.defaultProps = {
 	icon: 'circle-o',
 	activeClassName: 'active',
 };

@@ -1,13 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router'
 
-/**
- * Created by Matthias on 08/11/2016.
- */
-
 export class Error404 extends React.Component {
 	render() {
-
 		return (
 			<div className="row">
 				<div className="col-sm-10 col-sm-offset-1 col-md-8 col-sm-offset-2 col-md-6 col-md-offset-3">

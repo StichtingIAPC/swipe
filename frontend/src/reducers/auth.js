@@ -1,59 +1,16 @@
-import {
-	LOGIN,
-	LOGOUT,
-	FAIL_AUTHENTICATION,
-	START_AUTHENTICATION,
-	STOP_AUTHENTICATION,
-} from '../actions/auth';
+const initialState = {
+	currentUser: null,
+	loading: false,
+	error: null,
+	token: null,
+	nextRoute: '/',
+};
 
-export const AUTHENTICATING = Symbol('AUTHENTICATING');
-
-/**
- * Created by Matthias on 18/11/2016.
- */
-
-export function authReducer(state = {
-	user: null,
-	status: 'UNAUTHENTICATED',
-	fails: 0,
-}, action) {
-	switch (action.type) {
-	case LOGIN:
-		return {
-			...state,
-			user: {
-				username: action.user.username,
-				gravatarUrl: action.user.gravatarUrl,
-				permissions: [...action.user.permissions],
-			},
-			status: 'AUTHENTICATED',
-			fails: 0,
-		};
-	case LOGOUT:
-		return {
-			...state,
-			user: null,
-			status: 'UNAUTHENTICATED',
-		};
-	case START_AUTHENTICATION:
-		return {
-			...state,
-			fails: 0,
-			status: AUTHENTICATING,
-		};
-	case STOP_AUTHENTICATION:
-		return {
-			...state,
-			status: state.user !== null ? 'AUTHENTICATED' : 'UNAUTHENTICATED',
-		};
-	case FAIL_AUTHENTICATION:
-		return {
-			...state,
-			fails: state.fails + 1,
-		};
-	default:
-		return state;
-	}
+export default function authenticationReducer(state = initialState, action) {
+	if (action.type === 'AUTH_SET_ROUTE_AFTER_AUTH') return { ...state, nextRoute: action.route };
+	if (action.type === 'AUTH_START_LOGIN') return { ...state, loading: true };
+	if (action.type === 'AUTH_LOGIN_SUCCESS') return { ...state, token: action.token, loading: false, currentUser: action.user };
+	if (action.type === 'AUTH_LOGIN_ERROR') return { ...state, token: null, loading: false, error: action.error, currentUser: null };
+	if (action.type === 'AUTH_LOGIN_RESET') return { ...state, token: null, error: null, currentUser: null };
+	return state;
 }
-
-export default authReducer;

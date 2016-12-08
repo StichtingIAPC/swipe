@@ -1,22 +1,9 @@
 'use strict';
 
 const path = require('path');
-const webpack = require('webpack');
 
 const APP_DIR = path.resolve(path.join(__dirname, 'frontend', 'src'));
 const BUILD_DIR = path.resolve(path.join(__dirname, 'frontend', 'dist'));
-
-// we place our resources in the {app}/static folder,
-// {app} is specified here such that it can be found by webpack and imported.
-const apps = [
-	'article',
-	'assortment',
-	'frontend',
-	'money',
-	'register',
-	'tools',
-	'www',
-];
 
 module.exports = {
 	entry: [
@@ -29,17 +16,17 @@ module.exports = {
 		filename: 'bundle.js',
 	},
 	module: {
-		loaders: [
+		rules: [
 			{
 				test: /\.jsx?/,
 				exclude: /node_modules/,
-				loaders: [ 'react-hot', 'babel' ],
+				loaders: [ 'react-hot-loader/webpack', 'babel-loader' ],
 			}, {
 				test: /\.scss$/,
-				loaders: [ 'style', 'css', 'sass' ],
+				loaders: [ 'style-loader', 'css-loader', 'sass-loader' ],
 			}, {
 				test: /\.css$/,
-				loaders: [ 'style', 'css' ],
+				loaders: [ 'style-loader', 'css-loader' ],
 			}, {
 				test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
 				loader: "url-loader?limit=10000&mimetype=application/font-woff",
@@ -54,18 +41,9 @@ module.exports = {
 		],
 	},
 	resolve: {
-		root: [].concat(
-			apps.map(
-				app => path.join(__dirname, app, 'static')
-			)
-		),
+		modules: [ 'node_modules', APP_DIR ],
 	},
-	sassLoader: {
-		includePaths: apps.map(
-			app => path.join(__dirname, app, 'static')
-		).concat([path.join(APP_DIR)]),
-	},
-	devtool: 'cheap-module-source-map',
+	//devtool: 'cheap-module-source-map',
 	devServer: {
 		headers: { "Access-Control-Allow-Origin": "*" },
 	},

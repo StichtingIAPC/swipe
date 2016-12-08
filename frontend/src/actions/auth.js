@@ -1,42 +1,19 @@
-/**
- * Created by Matthias on 18/11/2016.
- */
-export const LOGIN = 'LOGIN';
-export function login(user) {
-	return {
-		type: LOGIN,
-		user: {
-			username: user.username,
-			gravatarUrl: user.gravatarUrl,
-			permissions: user.permissions,
-		},
-	};
+export function startLogin(username, password) {
+	return { type: "AUTH_START_LOGIN", username, password };
+};
+
+export function loginSuccess(token, user) {
+	return { type: "AUTH_LOGIN_SUCCESS", user };
 }
 
-export const LOGOUT = 'LOGOUT';
-export function logout() {
-	return {
-		type: LOGOUT,
-	};
+export function loginError(error) {
+	return { type: "AUTH_LOGIN_ERROR", error };
 }
 
-export const START_AUTHENTICATION = 'START_AUTHENTICATION';
-export function startAuthentication() {
-	return {
-		type: START_AUTHENTICATION,
-	}
+export function loginReset() {
+	return { type: "AUTH_LOGIN_RESET" };
 }
 
-export const STOP_AUTHENTICATION = 'STOP_AUTHENTICATION';
-export function stopAuthentication() {
-	return {
-		type: STOP_AUTHENTICATION,
-	}
-}
-
-export const FAIL_AUTHENTICATION = 'FAILED_AUTHENTICATION';
-export function failAuthentication() {
-	return {
-		type: FAIL_AUTHENTICATION,
-	}
+export function setRouteAfterAuthentication(route) {
+	return { type: "AUTH_SET_ROUTE_AFTER_AUTH", route };
 }

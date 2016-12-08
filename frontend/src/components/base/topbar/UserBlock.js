@@ -3,10 +3,9 @@ import { Link } from 'react-router';
 import autoBind from 'react-autobind';
 import { connect } from 'react-redux';
 
-import auth from '../../../core/auth';
 import Glyphicon from '../../tools/Glyphicon';
 
-let UserBlock = class extends React.Component {
+class UserBlock extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -47,7 +46,7 @@ let UserBlock = class extends React.Component {
 								<Link to="/profile" className="btn btn-default btn-flat">Profile</Link>
 							</div>
 							<div className="pull-right">
-								<Link onClick={auth.startLogout} className="btn btn-default btn-flat">Logout</Link>
+								{/*<Link onClick={auth.startLogout} className="btn btn-default btn-flat">Logout</Link>*/}
 							</div>
 						</li>
 					</ul>
@@ -56,10 +55,10 @@ let UserBlock = class extends React.Component {
 		} else {
 			return (
 				<li className="dropdown user user-menu">
-					<Link onClick={auth.startAuthentication} className="user-link login">
+					{/*}<Link onClick={auth.startAuthentication} className="user-link login">
 						<Glyphicon glyph="log-in" x-class="top-bar-icon" />
 						<span>Login</span>
-					</Link>
+					</Link>*/}
 				</li>
 			);
 		}
@@ -71,20 +70,7 @@ UserBlock.propTypes = {
 	'isAuthenticated': PropTypes.bool.isRequired,
 };
 
-UserBlock = connect(
-	(state, ownProps) => ({
-		...ownProps,
-		user: state.auth.user,
-		isAuthenticated: (state.auth.user !== null),
-	}),
-	(dispatch, ownProps) => ({
-		...ownProps,
-	})
+export default connect(
+	state => ({ user: state.auth.currentUser, isAuthenticated: (state.auth.currentUser !== null) }),
+	null
 )(UserBlock);
-
-export {
-	UserBlock,
-}
-
-
-export default UserBlock;

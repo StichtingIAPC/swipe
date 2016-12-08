@@ -1,15 +1,12 @@
 import { combineReducers } from 'redux'
 
+import { routerReducer } from 'react-router-redux';
+
 import suppliers from './suppliers';
 import auth from './auth';
 
-/**
- * Created by Matthias on 18/11/2016.
- */
-
-export const swipeApp = combineReducers({
+export default combineReducers({
 	suppliers,
 	auth,
+	routing: routerReducer,
 });
-
-export default swipeApp;

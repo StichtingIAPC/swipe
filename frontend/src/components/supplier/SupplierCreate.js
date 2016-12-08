@@ -11,7 +11,7 @@ import { StringField } from '../forms/fields';
  * Created by Matthias on 17/11/2016.
  */
 
-let SupplierCreate = class extends React.Component {
+class SupplierCreate extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -65,7 +65,7 @@ let SupplierCreate = class extends React.Component {
 
 SupplierCreate.propTypes = {};
 
-SupplierCreate = connect(
+export default connect(
 	(state, ownProps) => {
 		return {
 			...ownProps,
@@ -78,10 +78,3 @@ SupplierCreate = connect(
 		};
 	}
 )(SupplierCreate);
-
-
-export {
-	SupplierCreate,
-}
-
-export default SupplierCreate;

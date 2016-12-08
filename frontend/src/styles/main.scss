@@ -67,3 +67,30 @@ h4 { font-size: 1.2em; }
 	overflow: auto;
 //	padding-left: 230px;
 }
+
+/* AUTHENTICATION */
+.page-authentication {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.page-authentication .auth-form {
+	display: block;
+	width: 300px;
+	max-width: 90vh;
+	margin: 0 auto;
+	background: #fff;
+	box-shadow: 0 0 8px #333;
+	padding: 8px 16px;
+	padding-top: 0;
+}
+
+.page-authentication .auth-form label {
+	display: block;
+}
+
+.page-authentication .auth-form input {
+	display: block;
+	width: 100%;
+}
