@@ -1,27 +1,18 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
+
+// Actions
+import { toggleSidebar } from 'actions/sidebar.js';
 
 // Components
 import Topbar from 'components/base/topbar/Topbar.js';
 import Sidebar from 'components/base/sidebar/Sidebar.js';
 
-export default class Application extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			sidebarCollapsed: false,
-		};
-	}
-
-	sidebarToggle() {
-		this.setState({ sidebarCollapsed: !this.state.sidebarCollapsed });
-	}
-
+class Application extends React.Component {
 	render() {
 		return (
-			<div className={'wrapper fixed' + (this.state.sidebarCollapsed ? ' sidebar-collapse sidebar-mini' : ' sidebar-open')}>
-				<Topbar name={this.props.name} sidebarToggle={this.sidebarToggle.bind(this)} />
+			<div className={'wrapper fixed' + (this.props.sidebarOpen ? ' sidebar-collapse sidebar-mini' : ' sidebar-open')}>
+				<Topbar name={this.props.name} sidebarToggle={this.props.toggleSidebar} />
 				<Sidebar />
 				<div className="content-wrapper">
 					<div className="content">
@@ -32,3 +23,8 @@ export default class Application extends React.Component {
 		);
 	}
 }
+
+export default connect(
+	state => ({ sidebarOpen: state.sidebar }),
+	dispatch => ({ toggleSidebar: () => dispatch(toggleSidebar()) })
+)(Application);
