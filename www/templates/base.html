@@ -1,19 +1,13 @@
 {% load i18n %}
 {% load staticfiles %}
-{% load compress %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Swipe - {% block page_title %}Page{% endblock %}</title>
-    {% compress css %}
-        <link rel="stylesheet" type="text/x-scss-once" href="{% static 'scss/www/framework.scss' %}" />
-        <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/www/main.scss' %}" />
-    {% endcompress %}
-    {% compress js %}
-        <script type="text/javascript" src="{% static 'bower_components/domchanger/domchanger.js' %}"></script>
-        <script type="text/javascript" src="{% static 'bower_components/axios/dist/axios.js' %}"></script>
+        <link rel="stylesheet" type="text/x-scss-once" href="{% static 'scss/www/../static/www/scss/framework.scss' %}" />
+        <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/www/../static/www/scss/main.scss' %}" />
         <script type="text/javascript">
             /**
              * @type { {
@@ -27,9 +21,6 @@
         };
         </script>
         <script type="module" src="{% static 'js/main.js' %}"></script>
-        <script type="text/javascript" src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'bower_components/foundation-sites/dist/foundation.js' %}"></script>
-    {% endcompress %}
 </head>
 <body class="container horizontal">
 <div class="container horizontal grow">

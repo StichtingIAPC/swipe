@@ -127,3 +127,8 @@ DEBUG = True
 # Cache timeout for LDAP
 # AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 BASE_URL = "https://swipe.iapc.utwente.nl/"
+
+# CORS_ORIGIN_WHITELIST = [
+#     'localhost:8080',
+#     '127.0.0.1:8080',
+# ]
