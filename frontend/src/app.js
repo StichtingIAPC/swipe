@@ -29,6 +29,15 @@ const store = createStore(
 // Run the main saga
 sagaMiddleware.run(saga);
 
+// Check if there is auth info to be restored
+if (window && window.localStorage && window.localStorage.getItem('LAST_LOGIN_SUCCESS_ACTION')) {
+	try {
+		store.dispatch(JSON.parse(window.localStorage.getItem('LAST_LOGIN_SUCCESS_ACTION')));
+	} catch (e) {
+		console.error(e);
+	}
+}
+
 // Create enhanced history
 const enhancedHistory = syncHistoryWithStore(browserHistory, store);
 

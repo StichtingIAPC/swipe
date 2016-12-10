@@ -25,3 +25,8 @@ export function* login({ username, password }) {
 		yield put(loginError(e));
 	}
 }
+
+export function* saveLoginDetails(action) {
+	if (!window || !window.localStorage) return;
+	window.localStorage.setItem('LAST_LOGIN_SUCCESS_ACTION', JSON.stringify(action));
+}
