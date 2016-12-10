@@ -1,9 +1,9 @@
 export function startLogin(username, password) {
 	return { type: "AUTH_START_LOGIN", username, password };
-};
+}
 
 export function loginSuccess(token, user) {
-	return { type: "AUTH_LOGIN_SUCCESS", user };
+	return { type: "AUTH_LOGIN_SUCCESS", token, user };
 }
 
 export function loginError(error) {
