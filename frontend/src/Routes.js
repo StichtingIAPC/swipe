@@ -17,7 +17,6 @@ import HelloWorld from './components/HelloWorld.js';
 import SupplierBase from 'components/supplier/SupplierBase';
 import SupplierEdit from 'components/supplier/SupplierEdit';
 import SupplierDetail from 'components/supplier/SupplierDetail';
-import SupplierCreate from 'components/supplier/SupplierCreate';
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -35,7 +34,7 @@ class Routes extends React.Component {
 				<Route path="helloworld" component={HelloWorld} />
 
 				<Route path="" component={SupplierBase}>
-					<Route path="supplier/create/" component={SupplierCreate} />
+					<Route path="supplier/create/" component={SupplierEdit} />
 					<Route path="supplier/:supplierID/edit" component={SupplierEdit} />
 					<Route path="supplier/:supplierID/" component={SupplierDetail} />
 					<Route path="supplier/" />

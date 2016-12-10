@@ -1,9 +1,5 @@
 import React, { PropTypes } from 'react';
 
-/**
- * Created by Matthias on 18/11/2016.
- */
-
 export default class StringField extends React.Component {
 	render() {
 		const {name, className, value, ...rest} = this.props;

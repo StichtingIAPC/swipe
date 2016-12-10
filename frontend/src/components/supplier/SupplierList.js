@@ -1,14 +1,18 @@
 import React from "react";
-import {Link} from "react-router";
-import {connect} from "react-redux";
+import { Link } from "react-router";
+import { connect } from "react-redux";
 import FontAwesome from "../tools/icons/FontAwesome";
-import {populateSuppliers} from "../../actions/suppliers";
+import { startFetchingSuppliers } from "../../actions/suppliers";
 
 class SupplierList extends React.Component {
 	update(event) {
 		event.preventDefault();
 		this.props.update();
 		return false;
+	}
+
+	componentDidMount() {
+		this.props.update();
 	}
 
 	renderEntry({ supplierID, supplier }) {
@@ -98,24 +102,10 @@ class SupplierList extends React.Component {
 	}
 };
 
-SupplierList.defaultProps = {
-	suppliers: {
-		1: {
-			name: 'Nedis',
-			id: 1,
-		},
-		2: {
-			name: 'Copaco',
-			id: 2,
-		},
-	},
-};
-
 export default connect(
 	state => ({
-		suppliers: state.suppliers.objects,
-		invalid: state.suppliers.invalid,
+		suppliers: state.suppliers.suppliers,
 		fetching: state.suppliers.fetching,
 	}),
-	dispatch => ({ update: () => dispatch(populateSuppliers()) })
+	dispatch => ({ update: () => dispatch(startFetchingSuppliers()) })
 )(SupplierList);

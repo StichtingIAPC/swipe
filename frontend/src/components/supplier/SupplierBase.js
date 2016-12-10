@@ -2,10 +2,6 @@ import React from 'react';
 
 import SupplierList from './SupplierList';
 
-/**
- * Created by Matthias on 17/11/2016.
- */
-
 export class SupplierBase extends React.Component {
 	render() {
 		return (
