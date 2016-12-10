@@ -1,11 +1,9 @@
-import React from 'react';
-import { browserHistory } from 'react-router';
-import { connect } from 'react-redux';
-
-import { createSupplier } from '../../actions/suppliers';
-
-import Form from '../forms/Form';
-import { StringField } from '../forms/fields';
+import React from "react";
+import {browserHistory} from "react-router";
+import {connect} from "react-redux";
+import {createSupplier} from "../../actions/suppliers";
+import Form from "../forms/Form";
+import {StringField} from "../forms/fields";
 
 /**
  * Created by Matthias on 17/11/2016.
@@ -39,7 +37,6 @@ class SupplierCreate extends React.Component {
 		const obj = this.state.workingCopy;
 		obj.lastModified = new Date();
 		await this.props.addSupplier(obj);
-		browserHistory.push(`/supplier/${obj.id}/`);
 	}
 
 	render() {
