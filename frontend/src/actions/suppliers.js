@@ -1,77 +1,19 @@
-// TODO: rewrite from Thunk to sagas
-
-export const ADD_SUPPLIER = 'ADD_SUPPLIER';
-export function addSupplier(supplier) {
-	return {
-		type: ADD_SUPPLIER,
-		supplier,
-	}
+export function startFetchingSuppliers() {
+	return {	type: 'SUPPLIER_FETCH_START' };
 }
 
-export const REMOVE_SUPPLIER = 'REMOVE_SUPPLIER';
-export function removeSupplier(id) {
-	return {
-		type: REMOVE_SUPPLIER,
-		id,
-	}
+export function doneFetchingSuppliers(suppliers) {
+	return { type: 'SUPPLIER_FETCH_DONE', suppliers };
 }
 
-export const MARK_SUPPLIER_AS_UPDATING = 'MARK_SUPPLIER_AS_UPDATING';
-export function fetchSupplier(id) {
-	return {
-		type: MARK_SUPPLIER_AS_UPDATING,
-		id,
-	}
+export function createSupplier(supplier) {
+	return { type: 'SUPPLIER_CREATE', supplier };
 }
 
-export const UPDATE_SUPPLIER = 'UPDATE_SUPPLIER';
-export function changeSupplier(supplier) {
-	return {
-		type: UPDATE_SUPPLIER,
-		supplier,
-	}
+export function updateSupplier(supplier) {
+	return {	type: 'SUPPLIER_UPDATE', supplier };
 }
 
-export const FETCH_SUPPLIERS = 'FETCH_SUPPLIERS';
-export function fetchSuppliers() {
-	return {
-		type: FETCH_SUPPLIERS,
-	}
-}
-
-export const INVALIDATE_SUPPLIERS = 'INVALIDATE_SUPPLIERS';
-export function invalidateSuppliers(error) {
-	return {
-		type: INVALIDATE_SUPPLIERS,
-		error,
-	}
-}
-
-export const RECEIVE_SUPPLIERS = 'RECEIVE_SUPPLIERS';
-export function receiveSuppliers(suppliers) {
-	return {
-		type: RECEIVE_SUPPLIERS,
-		suppliers,
-		date: new Date(),
-	}
-}
-
-export function populateSuppliers() {
-	return {
-		type: 'SUPPLIER_POPULATE_SUPPLIERS',
-	}
-}
-
-export function createSupplier(suppl) {
-	return {
-		type: 'SUPPLIER_CREATE_SUPPLIER',
-		suppl,
-	}
-}
-
-export function updateSupplier(suppl) {
-	return {
-		type: 'SUPPLIER_UPDATE_SUPPLIER',
-		suppl,
-	}
+export function deleteSupplier(supplier) {
+	return { type: 'SUPPLIER_DELETE', supplier };
 }

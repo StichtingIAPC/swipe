@@ -1,5 +1,5 @@
 import React, {PropTypes} from "react";
-import {Link, browserHistory} from "react-router";
+import { Link } from "react-router";
 import {connect} from "react-redux";
 import FontAwesome from "../tools/icons/FontAwesome";
 
@@ -9,6 +9,7 @@ class SupplierDetail extends React.Component {
 	}
 
 	render() {
+		console.log(this.props);
 		if (!this.props.supplier) {
 			return null;
 		}
@@ -51,10 +52,8 @@ SupplierDetail.propTypes = {
 };
 
 export default connect(
-	(state, ownProps) => {
-		return {
-			...ownProps,
-			supplier: Object.values(state.suppliers.objects).find((obj) => obj.id == Number(ownProps.params.supplierID)),
-		}
-	}
+	(state, ownProps) => ({
+		...ownProps,
+		supplier: state.suppliers.suppliers.filter(s => s.id == parseInt(ownProps.params.supplierID || '-1'))[0],
+	})
 )(SupplierDetail);
