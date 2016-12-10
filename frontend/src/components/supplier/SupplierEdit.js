@@ -55,7 +55,6 @@ class SupplierEdit extends React.Component {
 };
 
 function mapStateToProps(state, ownProps) {
-	console.log(state.suppliers.suppliers);
 	return {	supplier: (state.suppliers.suppliers || []).filter(s => s.id === parseInt(ownProps.params.supplierID || '-1'))[0] };
 }
 

@@ -17,7 +17,6 @@ export function* login({ username, password }) {
 		yield put(loginSuccess(data.token, data.user));
 
 		const nextRoute = yield select(state => state.auth.nextRoute);
-		console.log('nextRoute', nextRoute);
 		if (nextRoute != null) {
 			yield put(push(nextRoute));
 			yield put(setRouteAfterAuthentication('/'));
