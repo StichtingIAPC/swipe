@@ -26,6 +26,8 @@ const store = createStore(
 	composeEnhancers(applyMiddleware(routerMiddleware(browserHistory), sagaMiddleware))
 );
 
+export const getState = store.getState.bind(store);
+
 // Run the main saga
 sagaMiddleware.run(saga);
 
