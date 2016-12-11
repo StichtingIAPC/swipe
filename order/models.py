@@ -11,6 +11,8 @@ from money.models import *
 from public_info.models import Shared
 from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
+from stock.stocklabel import OrderLabel
+from stock.models import Stock
 
 
 class Order(Blame, Shared):
@@ -92,6 +94,13 @@ class Order(Blame, Shared):
         print("{:<7}{:14}{:10}{:12}".format("Number", "Name", "Exp.Price", "State"))
         for ocl in ocls:
             print(ocl)
+
+    def get_stock(self):
+        """
+        Gets all the stock associated with this order.
+        :return: A QuerySet with Stock's of this order
+        """
+        return Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=self.pk)
 
 
 class OrderLineState(ImmutableBlame):
