@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from blame.models import ImmutableBlame, Blame
 from article.models import ArticleType
 from money.models import CostField, Cost
@@ -78,14 +78,15 @@ class RevaluationDocument(Blame):
                                        "is_in": True})
 
         # Everything here should be ok, we can save here
-        doc = RevaluationDocument(memo=memo, user_modified=user)
-        doc.save()
-        for line in revaluation_lines:  # type: RevaluationLine
-            line.revaluation_document = doc
-            line.user_modified = user
-            line.save()
+        with transaction.atomic():
+            doc = RevaluationDocument(memo=memo, user_modified=user)
+            doc.save()
+            for line in revaluation_lines:  # type: RevaluationLine
+                line.revaluation_document = doc
+                line.user_modified = user
+                line.save()
 
-        StockChangeSet.construct(description="Revaluation document {}".format(doc.id), entries=stock_mods,
+            StockChangeSet.construct(description="Revaluation document {}".format(doc.id), entries=stock_mods,
                                  enum=enum["revaluation"])
 
     @staticmethod
