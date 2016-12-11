@@ -209,6 +209,9 @@ class StockChangeSet(models.Model):
         :return: A completed StockChangeSet of the modification
         :rtype: StockChangeSet
         """
+        # Check if stock is locked
+        if StockLock.is_locked():
+            raise LockError("Stock is locked. Unlock first")
         # Check if the entry dictionaries are complete
         for entry in entries:
             stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
@@ -275,3 +278,64 @@ class StockChange(StockLabeledLine):
 
     def __str__(self):
         return "{}| {} x {} {}".format(self.pk, self.count, self.article, self.label)
+
+
+class StockLock(models.Model):
+    """
+    A locker for the stock
+    """
+
+    # Indicates if the stock is locked
+    locked = models.BooleanField(default=False)
+
+    def save(self):
+        # We only save one subject
+        self.pk = 1
+        super(StockLock, self).save()
+
+    def delete(self, using=None, keep_parents=False):
+        # No deletion
+        pass
+
+    @staticmethod
+    def is_locked() -> bool:
+        stls = StockLock.objects.all()
+        if len(stls) > 1:
+            raise LockError("More than one lock. Aborting")
+        if len(stls) == 0:
+            sl = StockLock(locked=False)
+            sl.save()
+            return False
+        else:
+            return stls[0].locked
+
+    @staticmethod
+    def is_unlocked() -> bool:
+        return not StockLock.is_locked()
+
+    @staticmethod
+    def lock():
+        stls = StockLock.objects.all()
+        if len(stls) > 1:
+            raise LockError("More than one lock. Aborting")
+        if len(stls) == 0:
+            sl = StockLock(locked=True)
+            sl.save()
+        else:
+            stls[0].locked = True
+            stls[0].save()
+
+    @staticmethod
+    def unlock():
+        stls = StockLock.objects.all()
+        if len(stls) > 1:
+            raise LockError("More than one lock. Aborting")
+        if len(stls) == 0:
+            StockLock.objects.create(locked=False)
+        else:
+            stls[0].locked = False
+            stls[0].save()
+
+
+class LockError(Exception):
+    pass

@@ -9,10 +9,11 @@ from article.tests import INeedSettings
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
 from stock.stocklabel import StockLabel, StockLabelNotFoundError
-from stock.models import Stock, StockChange, StockChangeSet
+from stock.models import Stock, StockChange, StockChangeSet, StockLock
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost, AccountingGroup, SalesPriceField
 from swipe.settings import DELETE_STOCK_ZERO_LINES
+from tools.testing import TestData
 
 
 class StockTest(INeedSettings, TestCase):
@@ -873,3 +874,31 @@ class LabelTest(INeedSettings, TestCase):
         self.assertRaises(StockLabelNotFoundError, self.create_forgotten_stock)
     def testEmptyStockChangeSet(self):
         StockChangeSet.construct(description="!",entries=[],enum=0)
+
+
+class StockLockTest(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_lock_get(self):
+        self.assertTrue(StockLock.is_unlocked())
+        # After creation
+        self.assertTrue(StockLock.is_unlocked())
+
+    def test_lock_set(self):
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.lock()
+        self.assertTrue(StockLock.is_locked())
+        StockLock.lock()
+        self.assertTrue(StockLock.is_locked())
+        StockLock.lock()
+        self.assertTrue(StockLock.is_locked())
+        StockLock.unlock()
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.lock()
+        self.assertTrue(StockLock.is_locked())
+        StockLock.unlock()
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.unlock()
+        self.assertTrue(StockLock.is_unlocked())
