@@ -32,3 +32,17 @@ export function post(url, object, {headers = {}, ...rest}) {
 		}
 	).then((response) => response.ok ? response : Promise.reject(response))
 }
+
+export function patch(url, object, {headers = {}, ...rest}) {
+	return fetch(
+		config.baseurl + url,
+		{
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Token ${getState().auth.token}`,
+			},
+			body: JSON.stringify(object),
+		}
+	).then((response) => response.ok ? response : Promise.reject(response));
+}
