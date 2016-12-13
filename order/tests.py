@@ -11,8 +11,9 @@ from money.models import VAT, Price, Currency, AccountingGroup, Money, Cost
 from order import models
 from order.models import Order, OrderLine, OrderLineState, OrderCombinationLine
 from register.models import ConsistencyChecker
-from stock.models import StockChangeSet
+from stock.models import StockChangeSet, Stock
 from stock.stocklabel import OrderLabel
+from tools.testing import TestData
 
 # Create your tests here.
 
@@ -374,4 +375,33 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
 
         self.assertEquals(correct_state_1, SOLD_PRODUCTS_1)
         self.assertEquals(correct_state_2, SOLD_PRODUCTS_2)
+
+
+class TestGetStock(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_get_stock_from_order(self):
+        # Order 1
+        self.create_custorders(article_1=5, article_2=7)
+        # Order 2
+        self.create_custorders(article_1=11, article_2=13)
+        self.create_suporders(article_1=16, article_2=20)
+        self.create_packingdocuments(article_1=16, article_2=20)
+        order_1 = Order.objects.get(id=1)
+        order_2 = Order.objects.get(id=2)
+        stock_lines_1 = order_1.get_stock()
+        for line in stock_lines_1:
+            if line.article == self.articletype_1:
+                self.assertEqual(line.count, 5)
+            else:
+                self.assertEqual(line.count, 7)
+
+        stock_lines_2 = order_2.get_stock()
+        for line in stock_lines_2:
+            if line.article == self.articletype_1:
+                self.assertEqual(line.count, 11)
+            else:
+                self.assertEqual(line.count, 13)
 
