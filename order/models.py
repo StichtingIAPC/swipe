@@ -85,6 +85,11 @@ class Order(Blame, Shared):
             for i in range(total_othercosts[key]):
                 othercost_lines[i].sell(user)
 
+    def unarrived_products(self):
+        return self.orderline_set.filter(state__in=['O', 'L'])
+
+    def arrived_products(self):
+        return self.orderline_set.filter(state=['A'])
 
     def __str__(self):
         return "Customer: {}, Copro: {}, Date: {} ".format(self.customer, self.user_created, self.date_created)
