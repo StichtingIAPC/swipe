@@ -13,4 +13,3 @@ urlpatterns = [
     url(r'^(?P<str>\w{0,5000})/$', barcode, name="barcode"),
 
 ]
-
