@@ -91,7 +91,8 @@ class Person(Customer):
     types = models.ManyToManyField(PersonType, blank=True, verbose_name=_("Person types"))
 
     # Optional OneToOneField to link this person to a User in the system.
-    user = models.OneToOneField(User, blank=True, null=True, on_delete=models.SET_NULL, verbose_name=_("Swipe username"))
+    user = models.OneToOneField(User, blank=True, null=True, on_delete=models.SET_NULL,
+                                verbose_name=_("Swipe username"))
 
     def verify(self):
         """
@@ -144,8 +145,9 @@ class Person(Customer):
 
 class ContactOrganisation(Customer):
     """
-    When selling products to organisations, we still need to contact someone in order to give them information about the process.
-    An organisation therefore, should always have a contact that we can reach for information purposes.
+    When selling products to organisations, we still need to contact someone in order to give them
+    information about the process. An organisation therefore, should always have a contact that we can reach
+    for information purposes.
     """
     contact = models.ForeignKey(to="Person", verbose_name=_("Person"))
     organisation = models.ForeignKey(to="Organisation", verbose_name=_("Organisation"))
