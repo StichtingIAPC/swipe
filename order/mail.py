@@ -22,7 +22,7 @@ class OrderArrivedMail(SwipeMail):
         unarrived_products_combined = OrderCombinationLine.get_ol_combinations(qs=unarrived_products)
         self.unarrived_products = list(unarrived_products_combined)
 
-        super().__init__(to_customers=[self.customer])
+        super().__init__(to_customers=[self.customer], *args, **kwargs)
 
     def get_context(self):
         ctx = super().get_context()

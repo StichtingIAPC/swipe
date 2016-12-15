@@ -20,10 +20,8 @@ def breadcrumbs(context):
     """
     request = context['request']
     if request is None:
-        raise template.TemplateSyntaxError(
-            'Context does not have a "request" field: Is this tag not used in a top-level template, or in a '
-            'restricted context?'
-        )
+        raise template.TemplateSyntaxError('Context does not have a "request" field: Is this tag not used in a '
+                                           'top-level template, or in a restricted context?')
 
     func, args, kwargs = request.resolver_match
 
@@ -65,7 +63,10 @@ def breadcrumbs(context):
     }
 
 
-def crumb(name, parent=None, parent_kwargs=[]):
+def crumb(name, parent=None, parent_kwargs=None):
+    if parent_kwargs is None:
+        parent_kwargs = []
+
     if KNOWN_CRUMBS[parent] is not None:
         text, p, p_kw = KNOWN_CRUMBS[parent]
         if p is not None:

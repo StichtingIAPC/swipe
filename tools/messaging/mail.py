@@ -17,7 +17,8 @@ class SwipeMail(EmailMultiAlternatives):
     reply_to = None
     subject = None
 
-    def __init__(self, to=None, to_customers=None, attachments=None, cc=None, cc_customers=None, reply_to=None, connection=None):
+    def __init__(self, to=None, to_customers=None, attachments=None, cc=None, cc_customers=None, reply_to=None,
+                 connection=None):
         if to_customers:
             for user in to_customers:
                 self.to_customers.append(user) if user not in self.to_customers else None
