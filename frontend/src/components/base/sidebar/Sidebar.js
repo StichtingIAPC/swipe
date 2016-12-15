@@ -10,7 +10,7 @@ class Sidebar extends React.Component {
 			<aside className="main-sidebar">
 				<section className="sidebar">
 					<ul className="sidebar-menu">
-						<SidebarLink text="Supplier" icon="truck" to="/supplier/"/>
+						<SidebarLink text="Supplier" icon="truck" to="/supplier/" />
 						<li><br /></li>
 						<SidebarLink onClick={this.props.logout} text="Log out" glyph="log-out" />
 					</ul>
