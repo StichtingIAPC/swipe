@@ -1,0 +1,37 @@
+=== Nederlandse versie onder ===
+
+Dear {{ customer.name }},
+
+We'd like to inform you that {% if unarrived_products %}part of {% endif %}your order has arrived. Please feel free to come by and pick up the following products:
+{% for product_set in arrived_products %}
+ {{ product_set.number }}x {{ product_set.wishable.name }} ({{ product_set.single_sale_price }} pp), for a total of {{product_set.sale_price}}
+{% endfor %}
+{% if unarrived_products %}
+The following products have yet to arrive at our store:
+{% for product_set in unarrived_products %}
+ {{ product_set.number }}x {{ product_set.wishable.name }} ({{ product_set.single_sale_price }} pp), for a total of {{product_set.sale_price}}
+{% endfor %}
+
+Best regards,
+
+
+the IAPC sales team.
+
+=== English version above ===
+
+Beste {{ customer.name }},
+
+We willen je graag er op attenderen dat de bestelling die je had geplaatst {% if unarrived_products %}gedeeltelijk {% endif %} is aangekomen. Voelt u vrij om de volgende producten op te komen halen:
+{% for product_set in arrived_products %}
+ {{ product_set.number }}x {{ product_set.wishable.name }} ({{ product_set.single_sale_price }} p/s), totaalprijs {{product_set.sale_price}}
+{% endfor %}
+{% if unarrived_products %}
+De volgende producten moeten nog binnenkomen bij onze winkel:
+{% for product_set in unarrived_products %}
+ {{ product_set.number }}x {{ product_set.wishable.name }} ({{ product_set.single_sale_price }} p/s), totaalprijs {{product_set.sale_price}}
+{% endfor %}
+
+Met vriendelijke groet,
+
+
+het IAPC verkoopteam.
