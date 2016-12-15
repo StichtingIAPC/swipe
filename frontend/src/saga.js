@@ -1,5 +1,5 @@
 import {takeEvery, takeLatest} from "redux-saga";
-import {login, saveLoginDetails} from "./sagas/auth.js";import {populateCurrencies, createCurrency, updateCurrency} from "./sagas/money/currencies";
+import {login, saveLoginDetails} from "./sagas/auth.js";
 import {populateCurrencies, createCurrency, updateCurrency} from "./sagas/money/currencies";
 import {fetchSuppliers, createSupplier, updateSupplier} from "./sagas/suppliers";
 
