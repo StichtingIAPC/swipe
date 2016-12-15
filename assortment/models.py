@@ -182,7 +182,7 @@ class AssortmentUnitType(models.Model):
     # is it a string, an integer, a decimal or a boolean?
     incremental_type = models.CharField(max_length=3,
                                         choices=sorted(
-                                            [c_type['as_choice'] for n, c_type in conf_labels.COUNTING_TYPES.items()]),
+                                            [c_type['as_choice'] for m, c_type in conf_labels.COUNTING_TYPES.items()]),
                                         blank=True,
                                         null=True)
     # in case of integer or decimal, do you want it to be visualized in powers of something, like millions, billions,
