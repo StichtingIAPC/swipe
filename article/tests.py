@@ -9,7 +9,8 @@ from money.models import VAT
 class INeedSettings:
     # noinspection PyUnusedLocal
     def __init__(self, *args, **kwargs):
-        super(INeedSettings, self).__init__()
+        # noinspection PyArgumentList
+        super(INeedSettings, self).__init__(*args, **kwargs)
         self.vat_group = None
         self.acc_group = None
         self.branch = None
