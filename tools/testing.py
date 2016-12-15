@@ -13,7 +13,8 @@ from django.test import TestCase
 
 class TestData:
 
-    def __init__(self):
+    # noinspection PyUnusedLocal
+    def __init__(self, *args, **kwargs):
         self.currency_data_eur = None
         self.currency_data_usd = None
         self.vat_group_high = None

@@ -7,7 +7,8 @@ from money.models import VAT
 
 
 class INeedSettings:
-    def __init__(self):
+    # noinspection PyUnusedLocal
+    def __init__(self, *args, **kwargs):
         super(INeedSettings, self).__init__()
         self.vat_group = None
         self.acc_group = None

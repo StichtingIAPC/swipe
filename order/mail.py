@@ -8,7 +8,7 @@ class OrderArrivedMail(SwipeMail):
     string_template = 'order/mail/order_arrived.txt'
     reply_to = settings.SWIPE_POS_MAIL
 
-    def __init__(self, orders):
+    def __init__(self, orders, *args, **kwargs):
         self.customer = orders[0].customer
         for order in orders:
             if order.customer != self.customer:
@@ -22,7 +22,7 @@ class OrderArrivedMail(SwipeMail):
         unarrived_products_combined = OrderCombinationLine.get_ol_combinations(qs=unarrived_products)
         self.unarrived_products = list(unarrived_products_combined)
 
-        super().__init__(to_customers=[self.customer])
+        super().__init__(to_customers=[self.customer], *args, **kwargs)
 
     def get_context(self):
         ctx = super().get_context()
