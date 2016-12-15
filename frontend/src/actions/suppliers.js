@@ -43,7 +43,7 @@ export const INVALIDATE_SUPPLIERS = 'INVALIDATE_SUPPLIERS';
 export function invalidateSuppliers(error) {
 	return {
 		type: INVALIDATE_SUPPLIERS,
-		error: error,
+		error,
 	}
 }
 
@@ -57,44 +57,21 @@ export function receiveSuppliers(suppliers) {
 }
 
 export function populateSuppliers() {
-	return function(dispatch) {
-		dispatch(fetchSuppliers());
-		return auth.fetch('/supplier/', {method: 'GET'})
-			.then(response => response.json())
-			.then(json => dispatch(receiveSuppliers(json)))
-			.catch(error => dispatch(invalidateSuppliers(error)))
+	return {
+		type: 'SUPPLIER_POPULATE_SUPPLIERS',
 	}
 }
 
 export function createSupplier(suppl) {
-	return function(dispatch) {
-		const supplier = {...suppl, search_url: suppl.searchUrl}; delete supplier.searchUrl;
-		dispatch(invalidateSuppliers());
-		auth.fetch('/supplier/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(supplier),
-		})
-			.then((request) => request.json())
-			.then((json) => dispatch(addSupplier(json)))
-			.catch(() => populateSuppliers())
+	return {
+		type: 'SUPPLIER_CREATE_SUPPLIER',
+		suppl,
 	}
 }
 
 export function updateSupplier(suppl) {
-	return function(dispatch) {
-		const supplier = {...suppl, search_url: suppl.searchUrl}; delete supplier.searchUrl;
-		dispatch(fetchSupplier(supplier.id));
-		auth.fetch(`/supplier/${supplier.id}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(supplier),
-		})
-			.then((request) => request.json())
-			.then((json) => dispatch(changeSupplier({...json, searchUrl: json.search_url })))
+	return {
+		type: 'SUPPLIER_UPDATE_SUPPLIER',
+		suppl,
 	}
 }

@@ -1,17 +1,14 @@
-import React, { PropTypes } from 'react';
-import { browserHistory } from 'react-router';
-import { connect } from 'react-redux';
-
-import { updateSupplier } from '../../actions/suppliers';
-
-import Form from '../forms/Form';
-import { StringField } from '../forms/fields';
+import React, {PropTypes} from "react";
+import {connect} from "react-redux";
+import {updateSupplier} from "../../actions/suppliers";
+import Form from "../forms/Form";
+import {StringField} from "../forms/fields";
 
 /**
  * Created by Matthias on 17/11/2016.
  */
 
-let SupplierEdit = class extends React.Component {
+class SupplierEdit extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -25,7 +22,6 @@ let SupplierEdit = class extends React.Component {
 		const obj = this.state.workingCopy;
 		obj.lastModified = new Date();
 		this.props.updateSupplier(obj);
-		browserHistory.push(`/supplier/${obj.id}/`);
 	}
 
 	reset(evt) {
@@ -49,7 +45,6 @@ let SupplierEdit = class extends React.Component {
 
 	render() {
 		if (!this.props.supplier) {
-			browserHistory.push(`/supplier/`);
 			return null;
 		}
 
@@ -72,7 +67,7 @@ let SupplierEdit = class extends React.Component {
 			</Form>
 		)
 	}
-};
+}
 
 SupplierEdit.propTypes = {
 	params: PropTypes.shape({
@@ -85,7 +80,7 @@ SupplierEdit.propTypes = {
 	}),
 };
 
-SupplierEdit = connect(
+export default connect(
 	(state, ownProps) => {
 		return {
 			...ownProps,
@@ -99,8 +94,3 @@ SupplierEdit = connect(
 		}
 	}
 )(SupplierEdit);
-
-export {
-	SupplierEdit,
-}
-export default SupplierEdit;
