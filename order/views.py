@@ -10,10 +10,6 @@ from tools.tables import Table, Column
 class OrderView(TemplateView):
     template_name = 'order/view_order.html'
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        order_id = kwargs['order_id']
-
 
 @public_view(Order)
 class PublicOrderView(TemplateView):

@@ -8,7 +8,7 @@ class OrderArrivedMail(SwipeMail):
     string_template = 'order/mail/order_arrived.txt'
     reply_to = settings.SWIPE_POS_MAIL
 
-    def __init__(self, orders, *args, **kwargs):
+    def __init__(self, orders):
         self.customer = orders[0].customer
         for order in orders:
             if order.customer != self.customer:
