@@ -21,7 +21,6 @@ class SupplierOrder(ImmutableBlame):
     """
     supplier = models.ForeignKey(Supplier)
 
-
     def __str__(self):
         return "Supplier: {}, User: {}".format(self.supplier, self.user_created)
 
@@ -30,14 +29,15 @@ class SupplierOrder(ImmutableBlame):
     def create_supplier_order(user_modified, supplier, articles_ordered=None, allow_different_currency=False):
         """
         Checks if supplier order information is correct and orders it at the correct supplier
-        :param user: user to which the order is authorized
+        :param user_modified: user to which the order is authorized
         :param supplier: supplier which should order the products
         :param articles_ordered:
         :type articles_ordered: List[List[ArticleType, int, Cost]]
         :param allow_different_currency: If true, removes checks for the currency to see if its the system currency
         """
 
-        ordered_dict = SupplierOrder.verify_data_assertions(user_modified, supplier, articles_ordered, allow_different_currency)
+        ordered_dict = SupplierOrder.verify_data_assertions(user_modified, supplier, articles_ordered,
+                                                            allow_different_currency)
 
         demand_errors = SupplierOrder.verify_article_demand(ordered_dict)
 
@@ -99,8 +99,9 @@ class SupplierOrder(ImmutableBlame):
         Checks basic assertions about the supplied data, including the supplier ability to supply the specified products
         :param user: user to which the order is authorized
         :param supplier: supplier which should order the products
-        :param articles_ordered:
+        :param articles_ordered
         :type articles_ordered: List[List[ArticleType, int]]
+        :param allow_different_currency
         """
         raiseif(not user, IncorrectDataError, "You must supply me with a user which does this action")
         raiseif(not articles_ordered, IncorrectDataError, "You must supply me with articles that are being ordered")
@@ -113,8 +114,10 @@ class SupplierOrder(ImmutableBlame):
         for article, number, cost in articles_ordered:
             raiseif(not isinstance(article, ArticleType),
                     IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
-            raiseif(not isinstance(number, int), IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
-            raiseif(not isinstance(cost, Cost), IncorrectDataError, "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
+            raiseif(not isinstance(number, int), IncorrectDataError,
+                    "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
+            raiseif(not isinstance(cost, Cost), IncorrectDataError,
+                    "articles_ordered must be iterable of Tuple[ArticleType, int, Cost]")
 
             if not allow_different_currency:
                 raiseif(cost.currency.iso != USED_CURRENCY,
@@ -188,8 +191,9 @@ class SupplierOrderLine(Blame):
                         id=self.article_type.id).exists(),
                     InvalidDataError, "Ordered article is not known to ordered OrProduct")
             else:
+                # Customer article matches ordered article
                 raiseif(not self.order_line.wishable.sellabletype.articletype == self.article_type,
-                        InvalidDataError, "The order's article type is not this line's ArticleType")  # Customer article matches ordered article
+                        InvalidDataError, "The order's article type is not this line's ArticleType")
             # +1 query for customer ordered lines
         checked_ats = False
         if not hasattr(self, 'supplier_article_type') or self.supplier_article_type is None:
@@ -200,9 +204,8 @@ class SupplierOrderLine(Blame):
             checked_ats = True
 
             raiseif(len(sup_art_types) != 1, InvalidDataError, "There can only be one SupplierArticleType")
-            self.supplier_article_type == sup_art_types[0]
 
-        if not checked_ats:  #should happen all the time
+        if not checked_ats:  # should happen all the time
             raiseif(self.supplier_article_type.supplier != self.supplier_order.supplier,
                     InvalidDataError, "The supplier_order's supplier must be the supplier of the "
                                       "supplier_article_type")  # Article can be ordered at supplier
@@ -225,16 +228,17 @@ class SupplierOrderLine(Blame):
             # +1 query for the user_created from supplier_order
             else:
                 StockWishTable.remove_products_from_table(self.user_modified, article_type=self.article_type, number=1,
-                                                          supplier_order=self.supplier_order, stock_wish=None, indirect=True)
+                                                          supplier_order=self.supplier_order, stock_wish=None,
+                                                          indirect=True)
             # +1 query to remove one product from the stockwishtable, or to change the state of our order_line
-            super(SupplierOrderLine, self).save(*args, **kwargs)
+            super(SupplierOrderLine, self).save(**kwargs)
             # +1 query to save the SOL itself
-            sos = SupplierOrderState(supplier_order_line=self, state=self.state,user_modified=self.user_modified)
+            sos = SupplierOrderState(supplier_order_line=self, state=self.state, user_modified=self.user_modified)
             sos.save()
             # +1 query to save the state transition
         else:
             # Maybe some extra logic here?
-            super(SupplierOrderLine, self).save(*args, **kwargs)
+            super(SupplierOrderLine, self).save(**kwargs)
 
     @transaction.atomic()
     def transition(self, new_state, user_modified):
@@ -379,7 +383,7 @@ class StockWishTableLine(Blame):
                 IndirectionError,
                 "StockWishTableLine must be called indirectly from StockWishTable")
 
-        super(StockWishTableLine, self).save(*args, **kwargs)
+        super(StockWishTableLine, self).save(**kwargs)
 
 
 class StockWishTable:
@@ -415,7 +419,7 @@ class StockWishTable:
             log.save(indirect=True)
 
     @staticmethod
-    def remove_products_from_table(user_modified,article_type, number, indirect=False,
+    def remove_products_from_table(user_modified, article_type, number, indirect=False,
                                    stock_wish=None, supplier_order=None):
         raiseif(number <= 0, IncorrectDataError, "number of products to remove from table must be bigger than 0")
         if not indirect:
@@ -434,11 +438,8 @@ class StockWishTable:
                 article_type_status.number -= number
                 article_type_status.save(indirect=indirect)
 
-            log = StockWishTableLog(
-                number=-number,
-                article_type=article_type,
-                stock_wish=stock_wish,
-                supplier_order=supplier_order,user_modified=user_modified)
+            log = StockWishTableLog(number=-number, article_type=article_type, stock_wish=stock_wish,
+                                    supplier_order=supplier_order, user_modified=user_modified)
             log.save(indirect=True)
 
 
@@ -480,8 +481,8 @@ class StockWishTableLog(ImmutableBlame):
 
 class SupplierOrderCombinationLine:
     """
-    A helper class to group SupplierOrderLines together based on shared properties. This allows for quick summaries where
-    summation of all lines was a bad alternative.
+    A helper class to group SupplierOrderLines together based on shared properties. This allows for quick summaries
+    where summation of all lines was a bad alternative.
     """
 
     number = 0
@@ -506,6 +507,7 @@ class SupplierOrderCombinationLine:
 
     @staticmethod
     def prefix_field_names(model, prefix):
+        # noinspection PyProtectedMember
         fields = model._meta.get_fields()
         ret = []
         for field in fields:
@@ -514,9 +516,8 @@ class SupplierOrderCombinationLine:
         return ret
 
     @staticmethod
-    def get_sol_combinations(supplier_order=None, article_type=None, state=None,
-                             qs=SupplierOrderLine.objects, include_price_field=True
-                             , supplier=None):
+    def get_sol_combinations(supplier_order=None, article_type=None, state=None, qs=SupplierOrderLine.objects,
+                             include_price_field=True, supplier=None):
         result = []
         filtr = {}
         if supplier_order:
@@ -556,9 +557,9 @@ class SupplierOrderCombinationLine:
 
 class DistributionStrategy:
     """
-    An interface for a consistent way of deciding the distribution of the products ordered at our suppliers. Also contains
-    a distributionfunction that actually handles the actual distribution of the articles for users who prefer a manual way
-    of operation.
+    An interface for a consistent way of deciding the distribution of the products ordered at our suppliers. Also
+    contains a distributionfunction that actually handles the actual distribution of the articles for users who
+    prefer a manual way of operation.
     """
 
     @staticmethod
@@ -592,8 +593,8 @@ class DistributionStrategy:
                          isinstance(supplier_order_line.order_line, OrderLine)),
                     IncorrectDataError, "supplier order line's order line link is not instance of OrderLine")
 
-            supplier_order_line.supplier_article_type = ArticleTypeSupplier.objects.get(article_type=supplier_order_line.article_type,
-                                                                                        supplier=supplier)
+            supplier_order_line.supplier_article_type = ArticleTypeSupplier.objects\
+                .get(article_type=supplier_order_line.article_type, supplier=supplier)
             if supplier_order_line.order_line is not None:
                 # Discount the possibility of OrProducts for now
                 raiseif(supplier_order_line.article_type !=
@@ -748,4 +749,3 @@ class InvalidDataError(Exception):
     Data is supplied that, after further inspection, does not meet the specified criteria.
     """
     pass
-

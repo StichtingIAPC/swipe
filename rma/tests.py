@@ -2,10 +2,9 @@ from django.test import TestCase
 from tools.testing import TestData
 from rma.models import CustomerRMATask, RMACause, AbstractionError, StockRMA, InternalRMA, \
     InternalRMAState, DirectRefundRMA, TestRMA, CustomerTaskDescription, RMACountError
-from sales.models import Transaction, TransactionLine, SalesTransactionLine, \
+from sales.models import Transaction, SalesTransactionLine, \
     RefundTransactionLine, InvalidDataException, Payment
 from stock.models import Stock
-from stock.stocklabel import OrderLabel
 from logistics.models import StockWish
 from money.models import Price, Money
 
@@ -31,11 +30,12 @@ class BasicTests(TestCase, TestData):
             cause.save()
 
     def test_stock_rma(self):
-        StockWish.create_stock_wish(user_modified=self.user_1, articles_ordered=[(self.articletype_1, 5),(self.articletype_2, 5)])
+        StockWish.create_stock_wish(user_modified=self.user_1, articles_ordered=[(self.articletype_1, 5),
+                                                                                 (self.articletype_2, 5)])
         self.create_suporders(article_1=5, article_2=5)
         self.create_packingdocuments()
         value = Stock.objects.get(article=self.articletype_1).book_value
-        srma = StockRMA(article_type=self.articletype_1, user_modified=self.user_1, value= value)
+        srma = StockRMA(article_type=self.articletype_1, user_modified=self.user_1, value=value)
         srma.save()
         irs = InternalRMA.objects.all()
         self.assertEqual(len(irs), 1)
@@ -68,8 +68,8 @@ class BasicTests(TestCase, TestData):
         self.create_packingdocuments()
         self.create_transactions_article_type_for_order()
         stl = SalesTransactionLine.objects.first()
-        price = stl.price # type: Price
-        rfl = RefundTransactionLine(user_modified=self.user_1, count=-1, sold_transaction_line= stl,
+        price = stl.price  # type: Price
+        rfl = RefundTransactionLine(user_modified=self.user_1, count=-1, sold_transaction_line=stl,
                                     creates_rma=True, price=price)
         money = Money(amount=price.amount*-1, currency=self.currency_eur)
         pymnt = Payment(amount=money, payment_type=self.paymenttype_maestro)
@@ -92,7 +92,7 @@ class BasicTests(TestCase, TestData):
         crt.save()
         c1 = CustomerTaskDescription(customer_rma_task=crt, text="Something broke I think.", user_modified=self.user_1)
         c1.save()
-        c2 = CustomerTaskDescription(customer_rma_task=crt, text="It did break.", user_modified= self.user_2)
+        c2 = CustomerTaskDescription(customer_rma_task=crt, text="It did break.", user_modified=self.user_2)
         c2.save()
         comments = CustomerTaskDescription.objects.filter(customer_rma_task=crt)
         self.assertEqual(len(comments), 2)

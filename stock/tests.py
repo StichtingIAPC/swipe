@@ -70,7 +70,7 @@ class StockTest(INeedSettings, TestCase):
 
         i = 0
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
 
         try:
             Cost(amount=Decimal("1.00000"), currency=cur)
@@ -90,7 +90,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
@@ -138,7 +138,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("1.50000"), currency=cur)
@@ -194,7 +194,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
@@ -254,7 +254,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
@@ -295,7 +295,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         sp2 = Cost(amount=Decimal("1.00000"), currency=cur)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
@@ -345,7 +345,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
@@ -396,7 +396,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         sp2 = Cost(amount=Decimal("1.00000"), currency=cur)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
@@ -460,7 +460,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
 
@@ -495,7 +495,7 @@ class StockTest(INeedSettings, TestCase):
         # Create some objects to use in the tests
         i = 0
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
 
@@ -529,7 +529,7 @@ class StockTest(INeedSettings, TestCase):
         i = 0
         eur = Currency("EUR")
         usd = Currency("USD")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
         cost_usd = Cost(amount=Decimal(str(1)), currency=usd)  # 1 dollar
         art = ArticleType.objects.create(name="P1", branch=self.branch,
@@ -596,7 +596,7 @@ class StockTest(INeedSettings, TestCase):
         """
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         book_value = None
@@ -686,7 +686,7 @@ class LabelTest(INeedSettings, TestCase):
 
     def testBasicLabel(self):
         eur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
@@ -871,5 +871,7 @@ class LabelTest(INeedSettings, TestCase):
 
     def testStockLabelNotRegistred(self):
         self.assertRaises(StockLabelNotFoundError, self.create_forgotten_stock)
+
+    # noinspection PyMethodMayBeStatic
     def testEmptyStockChangeSet(self):
-        StockChangeSet.construct(description="!",entries=[],enum=0)
+        StockChangeSet.construct(description="!", entries=[], enum=0)

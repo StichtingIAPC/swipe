@@ -6,10 +6,12 @@ from django.dispatch import receiver
 from order.models import OrderLine, InconsistencyError
 
 
+# noinspection PyUnusedLocal
 @receiver(post_save, sender=StockChange)
 def stock_change_handler(sender, **kwargs):
     stock_change = kwargs['instance']  # type: StockChange
     if stock_change.change_set.enum == enum['cash_register']:
+        # noinspection PyProtectedMember
         if stock_change.labeltype == OrderLabel._labeltype:
             if not stock_change.is_in:
                 # This means something was sold!
@@ -28,6 +30,7 @@ def stock_change_handler(sender, **kwargs):
                         lines[i].sell(lines[i].user_modified)
     elif stock_change.change_set.enum == enum['internalise']:
         # This looks suspiciously like the body above. When encountered again, this needs to put into a function
+        # noinspection PyProtectedMember
         if stock_change.labeltype == OrderLabel._labeltype:
             # Internalise only moves out
             orders_to_complete = stock_change.count

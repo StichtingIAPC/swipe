@@ -66,7 +66,8 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         money_2 = Money(amount=Decimal("2"), currency=self.price_eur_1.currency)
         pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_invoice)
 
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1, pymnt_2], customer=None)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1],
+                                       payments=[pymnt_1, pymnt_2], customer=None)
 
         trans = Transaction.objects.get()
         self.assertEqual(len(CustInvoice.objects.all()), 1)
@@ -85,8 +86,10 @@ class CustInvoiceTestCustomInvoice(TestCase, TestData):
     def test_create_custom_invoice(self):
         invoice_lines = [["USB kabels", self.price_eur_1], ["Poolse schoonmaakmiddelen", self.price_eur_2]]
         CustomCustInvoice.create_custom_invoice(invoice_name="Jaap de Steen", invoice_address="Hallenweg 5",
-                                                invoice_zip_code="7522NB", invoice_city="Enschede", invoice_country="Nederland",
-                                                invoice_email_address="bestuuur@iapc.utwente.nl", text_price_combinations=invoice_lines,
+                                                invoice_zip_code="7522NB", invoice_city="Enschede",
+                                                invoice_country="Nederland",
+                                                invoice_email_address="bestuuur@iapc.utwente.nl",
+                                                text_price_combinations=invoice_lines,
                                                 user=self.user_1)
 
         self.assertEqual(len(CustInvoice.objects.all()), 1)
@@ -121,6 +124,7 @@ class CustInvoiceTestCustomInvoice(TestCase, TestData):
         custom_invoice = CustomCustInvoice.objects.get()
         self.assertTrue(custom_invoice.handled)
 
+
 class CustInvoicePayments(TestCase, TestData):
 
     def setUp(self):
@@ -142,7 +146,6 @@ class CustInvoicePayments(TestCase, TestData):
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
         receipt_cust_invoice.pay(Money(amount=self.price_eur_1.amount, currency=self.currency_eur), self.user_1)
-        cust_payment = CustPayment.objects.get()
         self.assertTrue(receipt_cust_invoice.handled)
 
     def test_payments_all_invoice_partial_payment_too_little(self):
@@ -161,7 +164,6 @@ class CustInvoicePayments(TestCase, TestData):
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
         receipt_cust_invoice.pay(Money(amount=Decimal("1"), currency=self.currency_eur), self.user_1)
-        cust_payment = CustPayment.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
 
     def test_payments_all_invoice_partial_payment_too_much(self):
@@ -180,7 +182,6 @@ class CustInvoicePayments(TestCase, TestData):
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
         receipt_cust_invoice.pay(Money(amount=Decimal("2"), currency=self.currency_eur), self.user_1)
-        cust_payment = CustPayment.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
 
     def test_payments_partial_invoice(self):
@@ -226,12 +227,6 @@ class CustInvoicePayments(TestCase, TestData):
         self.assertFalse(receipt_cust_invoice.handled)
         receipt_cust_invoice.pay(Money(amount=Decimal("1"), currency=self.currency_eur), self.user_1)
         self.assertFalse(receipt_cust_invoice.handled)
-        cust_payment = CustPayment.objects.get()
         receipt_cust_invoice.pay(Money(amount=Decimal("1"), currency=self.currency_eur), self.user_1)
         self.assertTrue(receipt_cust_invoice.handled)
         self.assertEqual(len(CustPayment.objects.all()), 2)
-
-
-
-
-
