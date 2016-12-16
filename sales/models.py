@@ -34,17 +34,17 @@ class TransactionLine(Blame):
     # Reference to order, null if stock
     order = models.IntegerField(null=True)
 
-    def save(self, *args, **kwargs):
+    def save(self, **kwargs):
         if type(self) == TransactionLine:
             raise Id10TError("Cannot instantiate super class TransactionLine. Use specific instead!")
-        super(TransactionLine, self).save(*args, **kwargs)
+        super(TransactionLine, self).save(**kwargs)
 
     def __str__(self):
         if not hasattr(self, 'transaction') or self.transaction is None:
             trans = "None"
         else:
             trans = self.transaction.pk
-        if not hasattr(self,'num') or self.num is None:
+        if not hasattr(self, 'num') or self.num is None:
             num = "None"
         else:
             num = self.num
@@ -65,7 +65,7 @@ class TransactionLine(Blame):
         else:
             ordr = self.order
         return "Transaction: {}, Item_number: {}, " \
-               "Count: {}, PricePP: {}, Refunded: {}, Order: {}, Text: {}".format(trans,num, count, price, refun,
+               "Count: {}, PricePP: {}, Refunded: {}, Order: {}, Text: {}".format(trans, num, count, price, refun,
                                                                                   ordr, self.text)
 
 
@@ -126,8 +126,8 @@ class OtherTransactionLine(TransactionLine):
 
 class RefundTransactionLine(TransactionLine):
     """
-    This a refund of a sold TransactionLine. The sold transaction line that is pointed to, must not be a RefundTransactionLine
-    itself. Furthermore, transactionlines cannot be refunded more than they are stored.
+    This a refund of a sold TransactionLine. The sold transaction line that is pointed to, must not be a
+    RefundTransactionLine itself. Furthermore, transactionlines cannot be refunded more than they are stored.
     """
     # The transaction line that is already sold.
     sold_transaction_line = models.ForeignKey(TransactionLine, related_name="sold_line")
@@ -160,19 +160,22 @@ class RefundTransactionLine(TransactionLine):
             else:
                 if isinstance(self.sold_transaction_line, SalesTransactionLine):
                     stock_change = [{"article": self.sold_transaction_line.article,
-                                    'book_value': self.sold_transaction_line.cost,
-                                    'count': self.count*-1,  # Refunds have a negative count, therefore it should be negated
-                                    'is_in': True}]
-                    StockChangeSet.construct(description="Refund of transactionline {}".format(self.sold_transaction_line.id), entries=stock_change, enum=enum["cash_register"])
+                                     'book_value': self.sold_transaction_line.cost,
+                                     # Refunds have a negative count, therefore it should be negated
+                                     'count': self.count*-1,
+                                     'is_in': True}]
+                    StockChangeSet.construct(description="Refund of transactionline "
+                                                         "{}".format(self.sold_transaction_line.id),
+                                             entries=stock_change, enum=enum["cash_register"])
                 elif hasattr(self.sold_transaction_line, 'salestransactionline'):
                     stock_change = [{"article": self.sold_transaction_line.salestransactionline.article,
-                                    'book_value': self.sold_transaction_line.salestransactionline.cost,
-                                    'count': self.count * -1,
-                                    # Refunds have a negative count, therefore it should be negated
-                                    'is_in': True}]
-                    StockChangeSet.construct(
-                                                description="Refund of transactionline {}".format(self.sold_transaction_line.id),
-                                                entries=stock_change, enum=enum["cash_register"])
+                                     'book_value': self.sold_transaction_line.salestransactionline.cost,
+                                     # Refunds have a negative count, therefore it should be negated
+                                     'count': self.count * -1,
+                                     'is_in': True}]
+                    StockChangeSet.construct(description="Refund of transactionline "
+                                                         "{}".format(self.sold_transaction_line.id),
+                                             entries=stock_change, enum=enum["cash_register"])
                 super(RefundTransactionLine, self).save()
         super(RefundTransactionLine, self).save()
 
@@ -190,7 +193,7 @@ class Payment(models.Model):
     payment_type = models.ForeignKey('register.PaymentType')
 
     def __str__(self):
-        if not hasattr(self,'transaction') or self.transaction is None:
+        if not hasattr(self, 'transaction') or self.transaction is None:
             trans = "None"
         else:
             trans = self.transaction
@@ -215,21 +218,21 @@ class Transaction(Blame):
     # Customer. Null for anonymous customer
     customer = models.ForeignKey(Customer, null=True)
 
-    def save(self, *args, indirect=False, **kwargs):
+    def save(self, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError("Please use the Transaction.construct function.")
-        super(Transaction, self).save(*args, **kwargs)
+        super(Transaction, self).save(**kwargs)
 
     @staticmethod
     def create_transaction(user: User, payments, transaction_lines,
                            customer=None):
         """
-        Creates a transaction with the necessary information. Checks stock and payment assertions. The transactionLines provided
-        will be checked and modified until they are in such a state that they can be saved.
+        Creates a transaction with the necessary information. Checks stock and payment assertions. The transactionLines
+        provided will be checked and modified until they are in such a state that they can be saved.
         :param user: The user which handled the Transaction
         :param payments: List[Payment]. A list of payments to pay for the products. Must match the prices.
-        :param transaction_lines: List[TransactionLine]. A list if TransactionLines. It is important to supply at least the
-        following information for each TransactionLine:
+        :param transaction_lines: List[TransactionLine]. A list if TransactionLines. It is important to supply at
+        least the following information for each TransactionLine:
         - All: price, count
         - SalesTransactionLine: article, order
         - OtherCostTransactionLine: other_cost_type, order
@@ -266,12 +269,12 @@ class Transaction(Blame):
 
         for payment in payments:
             if payment.payment_type not in possible_payment_types:
-                raise PaymentTypeError("Paymenttype: {}, is not in the possible list of payments for the open registers".
-                                       format(payment.payment_type))
+                raise PaymentTypeError("Paymenttype: {}, is not in the possible list of payments for the "
+                                       "open registers".format(payment.payment_type))
             if payment.payment_type.is_invoicing:
                 transaction_has_invoiced_payment = True
 
-        ILLEGAL_ORDER_REFERENCE = -1 # Primary key chosen in such a way that it is never chosen
+        ILLEGAL_ORDER_REFERENCE = -1  # Primary key chosen in such a way that it is never chosen
 
         # Now some general checks, including stock checks
         # Build up supply
@@ -280,7 +283,8 @@ class Transaction(Blame):
             raiseif(not hasattr(tr_line, 'price') or not tr_line.price, IncorrectDataException, "line.price must exist")
             typ = type(tr_line)
             if typ == SalesTransactionLine:
-                raiseif(not hasattr(tr_line, 'article') or not tr_line.article, InvalidDataException, "line.article must exist")
+                raiseif(not hasattr(tr_line, 'article') or not tr_line.article, InvalidDataException,
+                        "line.article must exist")
                 raiseif(tr_line.count <= 0, InvalidDataException, "There should be more than 1 articles per line")
                 ordr = tr_line.order
                 if ordr is None:
@@ -319,7 +323,7 @@ class Transaction(Blame):
                     raise NotEnoughStockError("There is no stock without any label for article type {}".format(article))
                 elif length > 1:
                     raise StockModelError("There are more than two lines for stock of the same label. "
-                                             "This shouldn't be happening.")
+                                          "This shouldn't be happening.")
                 else:
                     if arts[0].count < stock_level_dict[key]:
                         raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {}".
@@ -328,6 +332,7 @@ class Transaction(Blame):
                 raiseif(arts[0].count < stock_level_dict[key],
                         NotEnoughStockError, "You are trying to sell too much.")
             else:
+                # noinspection PyProtectedMember
                 arts = Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=order,
                                             article=article)
                 length = arts.__len__()
@@ -336,12 +341,13 @@ class Transaction(Blame):
                                               article))
                 elif length > 1:
                     raise StockModelError("There are more than two lines for stock of the same label. "
-                                             "This shouldn't be happening.")
+                                          "This shouldn't be happening.")
                 else:
                     if arts[0].count < stock_level_dict[key]:
-                        raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand for {} in order {}".
-                                                  format(article, arts[0].count,
-                                                         stock_level_dict[key], order))
+                        raise NotEnoughStockError("ArticleType {} has {} in stock but there is demand "
+                                                  "for {} in order {}".format(article, arts[0].count,
+                                                                              stock_level_dict[key], order))
+
         # If the interpreter is here, it means there are no problems with the stock.
         # Test payments
         should_be_paid = defaultdict(lambda: 0)
@@ -404,9 +410,9 @@ class Transaction(Blame):
                                   "while only {} were sold for the relevant line.".
                                   format(accounted_new, accounted_old, str(key), amount_sold_in_pointed_transaction))
 
-
         # We assume everything succeeded, now we construct the stock changes
         change_set = []
+
         # Transaction lines
         for tr_line in transaction_lines:
             if type(tr_line) == SalesTransactionLine:
@@ -419,6 +425,7 @@ class Transaction(Blame):
                               'is_in': False}
                     change_set.append(change)
                 else:
+                    # noinspection PyProtectedMember
                     stock_line = Stock.objects.get(article=tr_line.article, labeltype=OrderLabel._labeltype,
                                                    labelkey=tr_line.order)
                     tr_line.cost = stock_line.book_value
@@ -448,17 +455,18 @@ class Transaction(Blame):
             trans = Transaction(salesperiod=salesperiod, customer=customer, user_modified=user)
             trans.save(indirect=True)
 
-            for i in range(0,len(transaction_lines)):
+            for i in range(0, len(transaction_lines)):
                 transaction_lines[i].transaction = trans
                 transaction_lines[i].save()
 
             # The post signal of the StockChangeSet should solve the problems of the OrderLines
             CASH_REGISTER_ENUM = 0
-            StockChangeSet.construct(description="Transaction: {}".format(trans.pk), entries=change_set, enum=CASH_REGISTER_ENUM)
+            StockChangeSet.construct(description="Transaction: {}".format(trans.pk), entries=change_set,
+                                     enum=CASH_REGISTER_ENUM)
 
             # Payments
             for payment in payments:
-                payment.transaction=trans
+                payment.transaction = trans
                 payment.save()
 
             # Changing the other_costs to sold in their orderlines
@@ -470,7 +478,8 @@ class Transaction(Blame):
 
             # Create invoice as it has an invoicing payment type. Handled by customer invoicing module.
             if transaction_has_invoiced_payment:
-                customer_invoicing.models.ReceiptCustInvoiceHelper.create_customer_invoice_from_transaction(user, trans, payments)
+                customer_invoicing.models.ReceiptCustInvoiceHelper.create_customer_invoice_from_transaction(user, trans,
+                                                                                                            payments)
 
 
 class UnimplementedError(Exception):

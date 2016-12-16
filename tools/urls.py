@@ -4,7 +4,6 @@ from django.conf.urls import url
 from tools.views import TableView
 
 
-
 app_name = 'tools'
 urlpatterns = ()
 

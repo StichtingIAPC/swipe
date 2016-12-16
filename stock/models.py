@@ -140,7 +140,9 @@ class Stock(StockLabeledLine):
                 raise CurrencyInconsistencyError("GOT {} instead of {}".format(
                     merge_line.book_value.currency, stock_mod.book_value.currency))
 
-            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST \
+                    and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 \
+                    and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
                                  "from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
 
@@ -150,7 +152,9 @@ class Stock(StockLabeledLine):
                     merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count()
                 )
                 merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
-            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - old_cost.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST \
+                    and int((merge_line.book_value.amount - old_cost.amount) * 10 ** 5) != 0 \
+                    and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
                                  "from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount))
             # Update stockmod count

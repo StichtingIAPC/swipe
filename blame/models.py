@@ -32,7 +32,7 @@ class Blame(BasicBlame):
             self.user_created = self.user_modified
         super(Blame, self).save(kwargs)
         typ = self._meta
-        to_string=self.__str__()
+        to_string = self.__str__()
         BlameLog.objects.create(
             type=typ,
             user_modified=self.user_modified,
@@ -51,15 +51,15 @@ class ImmutableBlame(BasicBlame):
         abstract = True
 
     def __init__(self, *args, **kwargs):
-        kwargs["user_created"] = kwargs.get("user_created",kwargs.get("user_modified", None))
+        kwargs["user_created"] = kwargs.get("user_created", kwargs.get("user_modified", None))
         kwargs.pop("user_modified", None)
         super(ImmutableBlame, self).__init__(*args, **kwargs)
 
     @transaction.atomic
     def save(self, **kwargs):
-        if not hasattr(self,"user_created") and hasattr(self, "user_modified"):
+        if not hasattr(self, "user_created") and hasattr(self, "user_modified"):
             self.user_created = self.user_modified
-            delattr(self,"user_modified")
+            delattr(self, "user_modified")
 
         raiseif(self.pk is not None,
                 ImmutableBlameEditException,
@@ -87,7 +87,9 @@ class BlameLog(models.Model):
     to_string = models.CharField(max_length=128)
 
     def __str__(self):
-        return "{} {} @ {} > {} :{}".format(self.date_modified,self.user_modified.__str__().ljust(8)[:8],self.type.ljust(18)[:18], self.obj_pk.__str__().rjust(7," "), self.to_string)
+        return "{} {} @ {} > {} :{}".format(self.date_modified, self.user_modified.__str__().ljust(8)[:8],
+                                            self.type.ljust(18)[:18], self.obj_pk.__str__().rjust(7, " "),
+                                            self.to_string)
 
 
 class BlameTest(Blame):

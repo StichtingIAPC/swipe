@@ -2,7 +2,7 @@ from django.test import TestCase
 from tools.testing import TestData
 from decimal import Decimal
 from money.models import Cost
-from externalise.models import ExternaliseDocument, ExternaliseLine, IncorrectPriceError, IncorrectCountError
+from externalise.models import ExternaliseDocument, IncorrectPriceError, IncorrectCountError
 from stock.models import Stock
 
 
@@ -16,7 +16,8 @@ class ExternaliseTests(TestCase, TestData):
         count = 2
         with self.assertRaises(IncorrectPriceError):
             ExternaliseDocument.create_external_products_document(user=self.user_1,
-                                                              article_information_list=[(self.articletype_1, count, local_cost)],
+                                                                  article_information_list=[
+                                                                      (self.articletype_1, count, local_cost)],
                                                                   memo="Foo")
 
     def test_zero_count(self):
@@ -32,7 +33,8 @@ class ExternaliseTests(TestCase, TestData):
         local_cost = Cost(amount=Decimal(2), currency=self.currency_eur)
         count = 2
         ExternaliseDocument.create_external_products_document(user=self.user_1,
-                                                              article_information_list=[[self.articletype_1, count, local_cost]],
+                                                              article_information_list=[
+                                                                  [self.articletype_1, count, local_cost]],
                                                               memo="Foo")
         st = Stock.objects.get()
         self.assertEqual(st.book_value, local_cost)
@@ -46,7 +48,7 @@ class ExternaliseTests(TestCase, TestData):
         ExternaliseDocument.create_external_products_document(user=self.user_1,
                                                               article_information_list=[
                                                                   [self.articletype_1, count, local_cost],
-                                                              [self.articletype_1, count, local_cost]],
+                                                                  [self.articletype_1, count, local_cost]],
                                                               memo="Foo")
         st = Stock.objects.get()
         self.assertEqual(st.book_value, local_cost)
@@ -114,7 +116,3 @@ class ExternaliseTests(TestCase, TestData):
         self.assertEqual(st.count, count_1+count_2)
         self.assertEqual(st.article, self.articletype_1)
         self.assertEqual(st.labeltype, None)
-
-
-
-

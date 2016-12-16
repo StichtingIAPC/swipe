@@ -14,11 +14,11 @@ class RMACause(Blame):
     """
     The reason why an RMA has entered the system for us. The type effects how it is handled in the system.
     """
-    def save(self, *args, **kwargs):
+    def save(self, **kwargs):
         if type(self) == RMACause:
             raise AbstractionError("Cannot store superclass RMACause")
         
-        super(RMACause, self).save(*args, **kwargs)
+        super(RMACause, self).save(**kwargs)
 
 
 class StockRMA(RMACause):
@@ -165,7 +165,7 @@ class DirectRefundRMA(RMACause):
     @transaction.atomic()
     def save(self, *args, **kwargs):
         if not hasattr(self, 'refund_line') or self.refund_line is None:
-            raise AttributeError("DirectRefundRMA is missing refund_line")
+            raise RMAAttributeError("DirectRefundRMA is missing refund_line")
         if self.pk is None:
             sold_line = self.refund_line.sold_transaction_line
             if hasattr(sold_line, 'salestransactionline') and sold_line.salestransactionline is not None:
@@ -271,11 +271,10 @@ class StockError(Exception):
 class MatchingException(Exception):
     pass
 
+
 class DataError(Exception):
     pass
 
 
-class AttributeError(Exception):
+class RMAAttributeError(Exception):
     pass
-
-
