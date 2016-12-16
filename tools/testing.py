@@ -1,6 +1,6 @@
 from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money
 from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
-from register.models import PaymentType, Register, RegisterMaster
+from register.models import PaymentType, Register
 from decimal import Decimal
 from crm.models import User, Person
 from supplier.models import Supplier, ArticleTypeSupplier
@@ -12,6 +12,58 @@ from django.test import TestCase
 
 
 class TestData:
+
+    # noinspection PyUnusedLocal
+    def __init__(self, *args, **kwargs):
+        self.currency_data_eur = None
+        self.currency_data_usd = None
+        self.vat_group_high = None
+        self.vat_group_low = None
+        self.currency_eur = None
+        self.currency_usd = None
+        self.accounting_group_components = None
+        self.accounting_group_food = None
+        self.branch_1 = None
+        self.branch_2 = None
+        self.paymenttype_cash = None
+        self.paymenttype_maestro = None
+        self.paymenttype_invoice = None
+        self.register_1 = None
+        self.register_2 = None
+        self.register_3 = None
+        self.register_4 = None
+        self.denomination_eur_20 = None
+        self.denomination_eur_0_01 = None
+        self.price_eur_1 = None
+        self.price_eur_2 = None
+        self.cost_eur_1 = None
+        self.cost_eur_2 = None
+        self.supplier_1 = None
+        self.supplier_2 = None
+        self.articletype_1 = None
+        self.articletype_2 = None
+        self.articletypesupplier_article_1 = None
+        self.articletypesupplier_article_2 = None
+        self.othercosttype_1 = None
+        self.othercosttype_2 = None
+        self.customer_person_1 = None
+        self.customer_person_2 = None
+        self.user_1 = None
+        self.user_2 = None
+        self.CUSTORDERED_ARTICLE_1 = None
+        self.CUSTORDERED_ARTICLE_2 = None
+        self.CUSTORDERED_OTHERCOST_1 = None
+        self.CUSTORDERED_OTHERCOST_2 = None
+        self.STOCKWISHED_ARTICLE_1 = None
+        self.STOCKWISHED_ARTICLE_2 = None
+        self.SUPPLIERORDERED_ARTICLE_1 = None
+        self.SUPPLIERORDERED_ARTICLE_2 = None
+        self.PACKING_ARTICLE_1 = None
+        self.PACKING_ARTICLE_2 = None
+        self.SOLD_ARTICLE_1 = None
+        self.SOLD_ARTICLE_2 = None
+        self.SOLD_OTHERCOST_1 = None
+        super(TestData, self).__init__()
 
     def setup_base_data(self):
         self.currency_data_eur = CurrencyData(iso="EUR", name="Euro", symbol="€", digits=2)
@@ -27,7 +79,8 @@ class TestData:
         self.currency_eur = Currency(iso="EUR")
         self.currency_usd = Currency(iso="USD")
 
-        self.accounting_group_components = AccountingGroup(name="Components", vat_group=self.vat_group_high, accounting_number=1)
+        self.accounting_group_components = AccountingGroup(name="Components", vat_group=self.vat_group_high,
+                                                           accounting_number=1)
         self.accounting_group_components.save()
         self.accounting_group_food = AccountingGroup(name="Food", vat_group=self.vat_group_low, accounting_number=2)
         self.accounting_group_food.save()
@@ -44,10 +97,14 @@ class TestData:
         self.paymenttype_invoice = PaymentType(name="Invoice", is_invoicing=True)
         self.paymenttype_invoice.save()
 
-        self.register_1 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash, name="Register 1")
-        self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True, payment_type=self.paymenttype_cash, name="Register 2")
-        self.register_3 = Register(currency=self.currency_data_eur, is_cash_register=False, payment_type=self.paymenttype_maestro, name="Register 3")
-        self.register_4 = Register(currency=self.currency_data_eur, is_cash_register=False, payment_type=self.paymenttype_invoice, name="Register 4")
+        self.register_1 = Register(currency=self.currency_data_eur, is_cash_register=True,
+                                   payment_type=self.paymenttype_cash, name="Register 1")
+        self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True,
+                                   payment_type=self.paymenttype_cash, name="Register 2")
+        self.register_3 = Register(currency=self.currency_data_eur, is_cash_register=False,
+                                   payment_type=self.paymenttype_maestro, name="Register 3")
+        self.register_4 = Register(currency=self.currency_data_eur, is_cash_register=False,
+                                   payment_type=self.paymenttype_invoice, name="Register 4")
         self.register_1.save()
         self.register_2.save()
         self.register_3.save()
@@ -71,26 +128,39 @@ class TestData:
         self.supplier_2 = Supplier(name="Supplier 2")
         self.supplier_2.save()
 
-        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components, branch=self.branch_1)
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
+                                         branch=self.branch_1)
         self.articletype_1.save()
-        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food, branch=self.branch_2)
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
+                                         branch=self.branch_2)
         self.articletype_2.save()
 
-        self.articletypesupplier_article_1 = ArticleTypeSupplier(supplier=self.supplier_1, article_type=self.articletype_1, cost=self.cost_eur_1, availability='A', supplier_string="SupplierArticleType 1", minimum_number_to_order=1)
+        self.articletypesupplier_article_1 = ArticleTypeSupplier(supplier=self.supplier_1,
+                                                                 article_type=self.articletype_1,
+                                                                 cost=self.cost_eur_1, availability='A',
+                                                                 supplier_string="SupplierArticleType 1",
+                                                                 minimum_number_to_order=1)
         self.articletypesupplier_article_1.save()
-        self.articletypesupplier_article_2 = ArticleTypeSupplier(supplier=self.supplier_1, article_type=self.articletype_2, cost=self.cost_eur_2, availability='A', supplier_string="SupplierArticleType 2", minimum_number_to_order=1)
+        self.articletypesupplier_article_2 = ArticleTypeSupplier(supplier=self.supplier_1,
+                                                                 article_type=self.articletype_2,
+                                                                 cost=self.cost_eur_2, availability='A',
+                                                                 supplier_string="SupplierArticleType 2",
+                                                                 minimum_number_to_order=1)
         self.articletypesupplier_article_2.save()
 
-        self.othercosttype_1 = OtherCostType(name="OtherCostType 1", accounting_group=self.accounting_group_components, branch=self.branch_1, fixed_price=self.price_eur_1)
+        self.othercosttype_1 = OtherCostType(name="OtherCostType 1", accounting_group=self.accounting_group_components,
+                                             branch=self.branch_1, fixed_price=self.price_eur_1)
         self.othercosttype_1.save()
-        self.othercosttype_2 = OtherCostType(name="OtherCostType 2", accounting_group=self.accounting_group_food, branch=self.branch_2, fixed_price=self.price_eur_2)
+        self.othercosttype_2 = OtherCostType(name="OtherCostType 2", accounting_group=self.accounting_group_food,
+                                             branch=self.branch_2, fixed_price=self.price_eur_2)
         self.othercosttype_2.save()
 
         self.customer_person_1 = Person(address="Drienerlolaan 5", city="Enschede", email="bestuur@iapc.utwente.nl",
                                         name="Jaap de Steen", phone="0534893927", zip_code="7522NB")
         self.customer_person_1.save()
-        self.customer_person_2 = Person(address="Drienerlolaan 5", city="Enschede", email="schaduwbestuur@iapc.utwente.nl",
-                                           name="Gerda Steenhuizen", phone="0534894260", zip_code="7522NB")
+        self.customer_person_2 = Person(address="Drienerlolaan 5", city="Enschede",
+                                        email="schaduwbestuur@iapc.utwente.nl", name="Gerda Steenhuizen",
+                                        phone="0534894260", zip_code="7522NB")
         self.customer_person_2.save()
 
         self.user_1 = User(username="jsteen")
@@ -127,7 +197,6 @@ class TestData:
                 art_wishes.append([self.articletype_2, self.STOCKWISHED_ARTICLE_2])
             StockWish.create_stock_wish(user_modified=self.user_1, articles_ordered=art_wishes)
 
-
     def create_suporders(self, article_1=4, article_2=5):
         self.SUPPLIERORDERED_ARTICLE_1 = article_1
         self.SUPPLIERORDERED_ARTICLE_2 = article_2
@@ -151,8 +220,9 @@ class TestData:
             if article_2 > 0:
                 atccs.append([self.articletype_2, self.PACKING_ARTICLE_2])
         if atccs:
-            PackingDocument.create_packing_document(supplier=self.supplier_1, packing_document_name="Packing document name 1", user=self.user_1,
-                                                article_type_cost_combinations=atccs)
+            PackingDocument.create_packing_document(supplier=self.supplier_1,
+                                                    packing_document_name="Packing document name 1", user=self.user_1,
+                                                    article_type_cost_combinations=atccs)
 
     def create_transactions_article_type_for_order(self, article_1=2, article_2=3, othercost_1=4):
         self.SOLD_ARTICLE_1 = article_1
@@ -162,21 +232,28 @@ class TestData:
             if not self.register_3.is_open():
                 self.register_3.open(counted_amount=Decimal(0))
             if article_1 > 0:
-                tl_1 = SalesTransactionLine(price=self.price_eur_1, count=self.SOLD_ARTICLE_1, order=1, article=self.articletype_1)
+                tl_1 = SalesTransactionLine(price=self.price_eur_1, count=self.SOLD_ARTICLE_1, order=1,
+                                            article=self.articletype_1)
                 money_1 = Money(amount=self.price_eur_1.amount*self.SOLD_ARTICLE_1, currency=self.price_eur_1.currency)
                 pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
-                Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+                Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1],
+                                               customer=None)
             if article_2 > 0:
                 tl_2 = SalesTransactionLine(price=self.price_eur_2, count=self.SOLD_ARTICLE_2, order=1,
                                             article=self.articletype_2)
-                money_2 = Money(amount=self.price_eur_2.amount * self.SOLD_ARTICLE_2, currency=self.price_eur_2.currency)
+                money_2 = Money(amount=self.price_eur_2.amount * self.SOLD_ARTICLE_2,
+                                currency=self.price_eur_2.currency)
                 pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_maestro)
-                Transaction.create_transaction(user=self.user_2, transaction_lines=[tl_2], payments=[pymnt_2], customer=self.customer_person_1)
+                Transaction.create_transaction(user=self.user_2, transaction_lines=[tl_2], payments=[pymnt_2],
+                                               customer=self.customer_person_1)
             if othercost_1 > 0:
-                octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=self.SOLD_OTHERCOST_1, other_cost_type=self.othercosttype_1, order=1)
-                money_3 = Money(amount=self.price_eur_1.amount*self.SOLD_OTHERCOST_1, currency=self.price_eur_1.currency)
+                octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=self.SOLD_OTHERCOST_1,
+                                                  other_cost_type=self.othercosttype_1, order=1)
+                money_3 = Money(amount=self.price_eur_1.amount*self.SOLD_OTHERCOST_1,
+                                currency=self.price_eur_1.currency)
                 pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
-                Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1], customer=self.customer_person_2)
+                Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                               customer=self.customer_person_2)
 
 
 class TestMixins(TestCase, TestData):
@@ -188,5 +265,3 @@ class TestMixins(TestCase, TestData):
         self.create_stockwish()
         self.create_packingdocuments()
         self.create_transactions_article_type_for_order()
-
-

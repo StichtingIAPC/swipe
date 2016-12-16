@@ -14,4 +14,3 @@ class SupplierSerializer(serializers.ModelSerializer):
             'is_used',
             'is_backup',
         )
-

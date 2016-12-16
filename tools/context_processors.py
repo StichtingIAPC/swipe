@@ -5,6 +5,7 @@ from django.http import HttpRequest
 from swipe import settings
 
 
+# noinspection PyUnusedLocal
 def swipe_globals(request):
     """
     :param request:

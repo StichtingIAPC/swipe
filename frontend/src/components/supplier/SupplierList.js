@@ -1,18 +1,54 @@
-import React from 'react';
-import {Link} from 'react-router';
-import { connect } from 'react-redux';
-
-import FontAwesome from '../tools/icons/FontAwesome';
-
-import SupplierListEntry from './SupplierListEntry';
-
-import { populateSuppliers } from '../../actions/suppliers';
+import React from "react";
+import { Link } from "react-router";
+import { connect } from "react-redux";
+import FontAwesome from "../tools/icons/FontAwesome";
+import { startFetchingSuppliers } from "../../actions/suppliers";
 
 class SupplierList extends React.Component {
 	update(event) {
 		event.preventDefault();
 		this.props.update();
 		return false;
+	}
+
+	componentDidMount() {
+		this.props.update();
+	}
+
+	renderEntry({ supplierID, supplier }) {
+		return (
+			<tr className={Number(supplierID) == supplier.id ? 'active' : null}>
+				<td>
+					{supplier.name}
+				</td>
+				<td>
+					<div className="btn-group pull-right">
+						{
+							supplier.updating ? (
+								<Link
+									to="#"
+									className="btn btn-success btn-xs disabled"
+									title="Updating">
+									<FontAwesome icon="refresh" />
+								</Link>
+							) : null
+						}
+						<Link
+							to={`/supplier/${supplier.id}/`}
+							className="btn btn-default btn-xs"
+							title="Details">
+							<FontAwesome icon="crosshairs" />
+						</Link>
+						<Link
+							to={`/supplier/${supplier.id}/edit/`}
+							className="btn btn-default btn-xs"
+							title="Edit">
+							<FontAwesome icon="edit" />
+						</Link>
+					</div>
+				</td>
+			</tr>
+		)
 	}
 
 	render() {
@@ -55,7 +91,7 @@ class SupplierList extends React.Component {
 						<tbody>
 							{Object.keys(this.props.suppliers).filter((key) => this.props.suppliers[key]).map(
 								(id) => (
-									<SupplierListEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
+									<this.renderEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
 								)
 							)}
 						</tbody>
@@ -66,24 +102,10 @@ class SupplierList extends React.Component {
 	}
 };
 
-SupplierList.defaultProps = {
-	suppliers: {
-		1: {
-			name: 'Nedis',
-			id: 1,
-		},
-		2: {
-			name: 'Copaco',
-			id: 2,
-		},
-	},
-};
-
 export default connect(
 	state => ({
-		suppliers: state.suppliers.objects,
-		invalid: state.suppliers.invalid,
+		suppliers: state.suppliers.suppliers,
 		fetching: state.suppliers.fetching,
 	}),
-	dispatch => ({ update: () => dispatch(populateSuppliers()) })
+	dispatch => ({ update: () => dispatch(startFetchingSuppliers()) })
 )(SupplierList);

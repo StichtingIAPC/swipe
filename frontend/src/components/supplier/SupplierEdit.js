@@ -1,106 +1,67 @@
-import React, { PropTypes } from 'react';
-import { browserHistory } from 'react-router';
-import { connect } from 'react-redux';
+import React from "react";
+import { connect } from "react-redux";
+import { createSupplier, updateSupplier } from "../../actions/suppliers";
+import Form from "../forms/Form";
+import { StringField } from "../forms/fields";
 
-import { updateSupplier } from '../../actions/suppliers';
-
-import Form from '../forms/Form';
-import { StringField } from '../forms/fields';
-
-/**
- * Created by Matthias on 17/11/2016.
- */
-
-let SupplierEdit = class extends React.Component {
+class SupplierEdit extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			supplier: this.props.supplier,
-			workingCopy: {...this.props.supplier},
-		}
+		this.state = this.getResetState();
 	}
 
-	update(evt) {
-		evt.preventDefault();
-		const obj = this.state.workingCopy;
-		obj.lastModified = new Date();
-		this.props.updateSupplier(obj);
-		browserHistory.push(`/supplier/${obj.id}/`);
+	componentWillMount() {
+		this.reset(null);
+	}
+
+	getResetState() {
+		if (this.props.supplier != null) return { ...this.props.supplier };
+		return { id: null, name: '', notes: '', searchUrl: '' };
 	}
 
 	reset(evt) {
-		evt.preventDefault();
-		this.setState({workingCopy: {...this.state.supplier}});
+		if (evt) evt.preventDefault();
+		this.setState(this.getResetState());
 	}
 
-	componentWillReceiveProps(nextProps) {
-		if (this.state.supplier != nextProps.supplier) {
-			this.setState({
-				supplier: nextProps.supplier,
-				workingCopy: {
-					name: "",
-					notes: "",
-					searchUrl: "",
-					...nextProps.supplier,
-				},
-			})
+	submit(evt) {
+		evt.preventDefault();
+		if (this.state.id == null) {
+			this.props.addSupplier({ ...this.state, lastModified: new Date() });
+		} else {
+			this.props.editSupplier({ ...this.state, lastModified: new Date() });
 		}
+	}
+
+	componentWillReceiveProps(props) {
+		if (this.state.id === null && props.supplier != null && props.supplier.id != null) this.reset();
 	}
 
 	render() {
-		if (!this.props.supplier) {
-			browserHistory.push(`/supplier/`);
-			return null;
-		}
+		const updateValue = key => evt => this.setState({ [key]: evt.target.value });
 
-		const updateValue = (key) =>
-			(evt) => this.setState({workingCopy: {
-				...this.state.workingCopy,
-				[key]: evt.target.value,
-			}});
-
-		const supplier = this.state.workingCopy;
 		return (
 			<Form
-				title={`Edit ${supplier.name}`}
-				onSubmit={this.update.bind(this)}
+				title={((typeof this.state.id === 'number') ? 'Edit' : 'Add') + " supplier"}
+				onSubmit={this.submit.bind(this)}
 				onReset={this.reset.bind(this)}
-				returnLink={`/supplier/${supplier.id}/`}>
-				<StringField onChange={updateValue('name')} name="Name" value={supplier.name} />
-				<StringField onChange={updateValue('notes')} name="Notes" value={supplier.notes} />
-				<StringField onChange={updateValue('searchUrl')} name="Search url" value={supplier.searchUrl} />
+				returnLink={`/supplier/`}>
+				<StringField onChange={updateValue('name')} value={this.state.name} name="Name" />
+				<StringField onChange={updateValue('notes')} value={this.state.notes} name="Notes" />
+				<StringField onChange={updateValue('searchUrl')} value={this.state.searchUrl} name="Search Url" />
 			</Form>
 		)
 	}
 };
 
-SupplierEdit.propTypes = {
-	params: PropTypes.shape({
-		supplierID: PropTypes.string.isRequired,
-	}).isRequired,
-	supplier: PropTypes.shape({
-		name: PropTypes.string.isRequired,
-		notes: PropTypes.string,
-		searchUrl: PropTypes.string,
-	}),
-};
-
-SupplierEdit = connect(
-	(state, ownProps) => {
-		return {
-			...ownProps,
-			supplier: Object.values(state.suppliers.objects).find((obj) => obj.id == Number(ownProps.params.supplierID)),
-		}
-	},
-	(dispatch, ownProps) => {
-		return {
-			...ownProps,
-			updateSupplier: (supplier) => dispatch(updateSupplier(supplier)),
-		}
-	}
-)(SupplierEdit);
-
-export {
-	SupplierEdit,
+function mapStateToProps(state, ownProps) {
+	return {	supplier: (state.suppliers.suppliers || []).filter(s => s.id === parseInt(ownProps.params.supplierID || '-1'))[0] };
 }
-export default SupplierEdit;
+
+export default connect(
+	mapStateToProps,
+	dispatch => ({
+		addSupplier: supplier => dispatch(createSupplier(supplier)),
+		editSupplier: supplier => dispatch(updateSupplier(supplier)),
+	})
+)(SupplierEdit);

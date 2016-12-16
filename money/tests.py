@@ -34,7 +34,7 @@ class MoneyTest(TestCase):
 
     def testCreateMoneyWithoutCurency(self):
         m = Money(Decimal("5.21"), None, use_system_currency=True)
-        self.assertEqual(m.currency,Currency(iso=USED_CURRENCY))
+        self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
 class CostTest(TestCase):
@@ -55,7 +55,7 @@ class CostTest(TestCase):
         self.assertEqual(i, 1)
 
     def testCreateCostWithoutCurrency(self):
-        m = Cost(Decimal("5.21"), None,use_system_currency=True)
+        m = Cost(Decimal("5.21"), None, use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
@@ -102,7 +102,8 @@ class SalesPriceTest(TestCase):
         self.assertEqual(i, 1)
 
     def testCreatePriceWithoutCurrency(self):
-        m = SalesPrice(amount=Decimal("5.21"), vat=Decimal("1.93"), currency=None, cost=Decimal("4"), use_system_currency=True)
+        m = SalesPrice(amount=Decimal("5.21"), vat=Decimal("1.93"), currency=None, cost=Decimal("4"),
+                       use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
@@ -175,10 +176,10 @@ class SalesPriceMathTest(TestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
-        self.m1 = SalesPrice(amount=Decimal("1.00000"), vat=Decimal("1.21"), currency=eur, cost = Decimal("2.00000"))
-        self.m2 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.21"), currency=eur, cost = Decimal("1.00000"))
-        self.m3 = SalesPrice(amount=Decimal("2.00000"), vat=Decimal("1.21"), currency=usd, cost = Decimal("0.00000"))
-        self.m4 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.06"), currency=eur, cost = Decimal("0.00000"))
+        self.m1 = SalesPrice(amount=Decimal("1.00000"), vat=Decimal("1.21"), currency=eur, cost=Decimal("2.00000"))
+        self.m2 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.21"), currency=eur, cost=Decimal("1.00000"))
+        self.m3 = SalesPrice(amount=Decimal("2.00000"), vat=Decimal("1.21"), currency=usd, cost=Decimal("0.00000"))
+        self.m4 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.06"), currency=eur, cost=Decimal("0.00000"))
         self.num = 4
 
     def testMoneyAdd(self):
@@ -213,7 +214,7 @@ class SalesPriceMathTest(TestCase):
                 self.m1 * w
 
     def testSalesPriceMargin(self):
-        t = SalesPrice(amount=Decimal("4.00000"), vat=Decimal("2"), currency=Currency("EUR"),cost=Decimal("0.5"))
+        t = SalesPrice(amount=Decimal("4.00000"), vat=Decimal("2"), currency=Currency("EUR"), cost=Decimal("0.5"))
         self.assertEquals(t.get_profit(), 1.5)
         self.assertEquals(t.get_margin(), 3)
 

@@ -18,7 +18,8 @@ urlpatterns = [
     url(r'^customers/(?P<pk>[0-9]+)/edit_person$', PersonEdit.as_view(), name='customer_edit_person'),
     url(r'^customers/(?P<pk>[0-9]+)/edit_organisation$', OrganisationEdit.as_view(), name='customer_edit_organisation'),
 
-    url(r'^save_typefields/(?P<object_type>person|organisation)/(?P<pk>[0-9]+)$', TypeFieldSave.as_view(), name='save_type_fields'),
+    url(r'^save_typefields/(?P<object_type>person|organisation)/(?P<pk>[0-9]+)$', TypeFieldSave.as_view(),
+        name='save_type_fields'),
 
     # PersonType URLs
     url(r'^persontypes$', PersonTypeList.as_view(), name='persontype_list'),
@@ -36,7 +37,8 @@ urlpatterns = [
 
     # ContactOrganisationType URLs
     url(r'^contactorganisation/add$', ContactOrganisationCreate.as_view(), name='customer_add_contactorganisation'),
-    url(r'^contactorganisation/(?P<pk>[0-9]+)/edit$', ContactOrganisationEdit.as_view(), name='contactorganisation_edit'),
+    url(r'^contactorganisation/(?P<pk>[0-9]+)/edit$', ContactOrganisationEdit.as_view(),
+        name='contactorganisation_edit'),
 
     # PersonTypeField URLs
     url(r'^persontypefields$', PersonTypeFieldList.as_view(), name='persontypefield_list'),
@@ -47,8 +49,11 @@ urlpatterns = [
 
     # OrganisationTypeField URLs
     url(r'^organisationtypefields$', OrganisationTypeFieldList.as_view(), name='organisationtypefield_list'),
-    url(r'^organisationtypefields/(?P<pk>[0-9]+)$', OrganisationTypeFieldDetail.as_view(), name='organisationtypefield_detail'),
+    url(r'^organisationtypefields/(?P<pk>[0-9]+)$', OrganisationTypeFieldDetail.as_view(),
+        name='organisationtypefield_detail'),
     url(r'^organisationtypefields/add$', OrganisationTypeFieldCreate.as_view(), name='organisationtypefield_add'),
-    url(r'^organisationtypefields/(?P<pk>[0-9]+)/delete$', OrganisationTypeFieldDelete.as_view(), name='organisationtypefield_delete'),
-    url(r'^organisationtypefields/(?P<pk>[0-9]+)/edit$', OrganisationTypeFieldEdit.as_view(), name='organisationtypefield_edit'),
+    url(r'^organisationtypefields/(?P<pk>[0-9]+)/delete$', OrganisationTypeFieldDelete.as_view(),
+        name='organisationtypefield_delete'),
+    url(r'^organisationtypefields/(?P<pk>[0-9]+)/edit$', OrganisationTypeFieldEdit.as_view(),
+        name='organisationtypefield_edit'),
 ]
