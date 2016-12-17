@@ -16,6 +16,8 @@ class RevaluationDocument(Blame):
     # A memo indicating the reason why the products were revaluated(generally this is important)
     memo = models.CharField(max_length=255)
 
+    stock_change_set = models.ForeignKey(StockChangeSet, null=True)
+
     @staticmethod
     def create_revaluation_document(user: User, article_type_cost_label_combinations, memo: str):
         """
@@ -86,8 +88,10 @@ class RevaluationDocument(Blame):
                 line.user_modified = user
                 line.save()
 
-            StockChangeSet.construct(description="Revaluation document {}".format(doc.id), entries=stock_mods,
+            scs = StockChangeSet.construct(description="Revaluation document {}".format(doc.id), entries=stock_mods,
                                  enum=enum["revaluation"])
+            doc.stock_change_set = scs
+            doc.save()
 
     @staticmethod
     def create_revaluation_document_stock(user: User, article_type_cost_combination, memo: str):
