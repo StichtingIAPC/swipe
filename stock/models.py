@@ -301,7 +301,7 @@ class StockLock(models.Model):
     @staticmethod
     def is_locked() -> bool:
         try:
-            stl = StockLock.objects.get(pk=1)
+            stl = StockLock.objects.get(id=1)
             return stl.locked
         except StockLock.DoesNotExist:
             StockLock.objects.create(id=1, locked=False)
@@ -315,7 +315,7 @@ class StockLock(models.Model):
     def lock(user: User):
         raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
         try:
-            sl = StockLock.objects.get(pk=1)
+            sl = StockLock.objects.get(id=1)
             sl.locked = True
             sl.save()
         except StockLock.DoesNotExist:
@@ -327,7 +327,7 @@ class StockLock(models.Model):
     def unlock(user: User):
         raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
         try:
-            sl = StockLock.objects.get(pk=1)
+            sl = StockLock.objects.get(id=1)
             sl.locked = False
             sl.save()
         except StockLock.DoesNotExist:
