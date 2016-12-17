@@ -321,7 +321,7 @@ class StockLock(models.Model):
         except StockLock.DoesNotExist:
             StockLock.objects.create(id=1, locked=True)
 
-        StockLockLog.objects.create(state=False, user=user)
+        StockLockLog.objects.create(locked=True, user=user)
 
     @staticmethod
     def unlock(user: User):
@@ -333,7 +333,7 @@ class StockLock(models.Model):
         except StockLock.DoesNotExist:
             StockLock.objects.create(id=1, locked=False)
 
-        StockLockLog.objects.create(state=False, user=user)
+        StockLockLog.objects.create(locked=False, user=user)
 
 
 class StockLockLog(models.Model):
@@ -341,7 +341,7 @@ class StockLockLog(models.Model):
     A log of the state of the stock with user
     """
 
-    state = models.BooleanField()
+    locked = models.BooleanField()
 
     user = models.ForeignKey(User)
 
