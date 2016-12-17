@@ -6,6 +6,8 @@ from stock.exceptions import StockSmallerThanZeroError, Id10TError
 from money.exceptions import CurrencyInconsistencyError
 from stock.stocklabel import StockLabeledLine, StockLabel
 from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
+from crm.models import User
+from tools.util import raiseif
 # Stop PyCharm from seeing tools as a package.
 # noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, HIGH
@@ -292,53 +294,56 @@ class StockLock(models.Model):
     # Indicates if the stock is locked
     locked = models.BooleanField(default=False)
 
-    def save(self):
-        # We only save one subject
-        self.pk = 1
-        super(StockLock, self).save()
-
     def delete(self, using=None, keep_parents=False):
         # No deletion
         pass
 
     @staticmethod
     def is_locked() -> bool:
-        stls = StockLock.objects.all()
-        if len(stls) > 1:
-            raise LockError("More than one lock. Aborting")
-        if len(stls) == 0:
-            sl = StockLock(locked=False)
-            sl.save()
+        try:
+            stl = StockLock.objects.get(pk=1)
+            return stl.locked
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=False)
             return False
-        else:
-            return stls[0].locked
 
     @staticmethod
     def is_unlocked() -> bool:
         return not StockLock.is_locked()
 
     @staticmethod
-    def lock():
-        stls = StockLock.objects.all()
-        if len(stls) > 1:
-            raise LockError("More than one lock. Aborting")
-        if len(stls) == 0:
-            sl = StockLock(locked=True)
+    def lock(user: User):
+        raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
+        try:
+            sl = StockLock.objects.get(pk=1)
+            sl.locked = True
             sl.save()
-        else:
-            stls[0].locked = True
-            stls[0].save()
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=True)
+
+        StockLockLog.objects.create(state=False, user=user)
 
     @staticmethod
-    def unlock():
-        stls = StockLock.objects.all()
-        if len(stls) > 1:
-            raise LockError("More than one lock. Aborting")
-        if len(stls) == 0:
-            StockLock.objects.create(locked=False)
-        else:
-            stls[0].locked = False
-            stls[0].save()
+    def unlock(user: User):
+        raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
+        try:
+            sl = StockLock.objects.get(pk=1)
+            sl.locked = False
+            sl.save()
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=False)
+
+        StockLockLog.objects.create(state=False, user=user)
+
+
+class StockLockLog(models.Model):
+    """
+    A log of the state of the stock with user
+    """
+
+    state = models.BooleanField()
+
+    user = models.ForeignKey(User)
 
 
 class LockError(Exception):
