@@ -9,10 +9,11 @@ from article.tests import INeedSettings
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
 from stock.stocklabel import StockLabel, StockLabelNotFoundError
-from stock.models import Stock, StockChange, StockChangeSet
+from stock.models import Stock, StockChange, StockChangeSet, StockLock, LockError, StockLockLog
 from article.models import ArticleType
-from money.models import Currency, VAT, Cost, AccountingGroup, SalesPriceField
+from money.models import Currency, VAT, Cost, AccountingGroup
 from swipe.settings import DELETE_STOCK_ZERO_LINES
+from tools.testing import TestData
 
 
 class StockTest(INeedSettings, TestCase):
@@ -875,3 +876,47 @@ class LabelTest(INeedSettings, TestCase):
     # noinspection PyMethodMayBeStatic
     def testEmptyStockChangeSet(self):
         StockChangeSet.construct(description="!", entries=[], enum=0)
+
+
+class StockLockTest(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_lock_get(self):
+        self.assertTrue(StockLock.is_unlocked())
+        # After creation
+        self.assertTrue(StockLock.is_unlocked())
+
+    def test_lock_set(self):
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.unlock(self.user_1)
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.unlock(self.user_1)
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.unlock(self.user_1)
+        self.assertTrue(StockLock.is_unlocked())
+        self.assertEqual(StockLockLog.objects.all().count(), 7)
+
+
+    def test_blocking_criterium_and_effect(self):
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 1,
+                    'is_in': True}]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0)
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        with self.assertRaises(LockError):
+            StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0)
+
