@@ -1,8 +1,8 @@
 import fetch from "isomorphic-fetch";
 import config from "./config";
-import {getState} from "./app";
+import { getState } from "./app";
 
-export function get(url, {headers = {}, ...rest}) {
+export function get(url, {headers = {}, ...rest} = {}) {
 	return fetch(
 		config.baseurl + url,
 		{
@@ -17,7 +17,7 @@ export function get(url, {headers = {}, ...rest}) {
 	).then((response) => response.ok ? response : Promise.reject(response))
 }
 
-export function post(url, object, {headers = {}, ...rest}) {
+export function post(url, object, {headers = {}, ...rest} = {}) {
 	return fetch(
 		config.baseurl + url,
 		{
@@ -33,7 +33,7 @@ export function post(url, object, {headers = {}, ...rest}) {
 	).then((response) => response.ok ? response : Promise.reject(response))
 }
 
-export function patch(url, object, {headers = {}, ...rest}) {
+export function patch(url, object, {headers = {}, ...rest} = {}) {
 	return fetch(
 		config.baseurl + url,
 		{
@@ -41,8 +41,10 @@ export function patch(url, object, {headers = {}, ...rest}) {
 			headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Token ${getState().auth.token}`,
+				...headers,
 			},
 			body: JSON.stringify(object),
+			...rest,
 		}
 	).then((response) => response.ok ? response : Promise.reject(response));
 }

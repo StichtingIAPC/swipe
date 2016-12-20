@@ -14,8 +14,8 @@ export default class IntegerField extends React.Component {
 					<input
 						className="form-control"
 						type="number"
-						min="0"
-						step="1"
+						min={0}
+						step={1}
 						value={this.props.value}
 						onChange={this.props.onChange}
 						{...rest} />

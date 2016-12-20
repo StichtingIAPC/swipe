@@ -1,14 +1,14 @@
 import React from "react";
-import {connect} from "react-redux";
-import {connectMixin, fetchStateRequirementsFor} from "../../core/StateRequirements";
+import { connect } from "react-redux";
+import { connectMixin, fetchStateRequirementsFor } from "../../core/StateRequirements";
 import CurrencyList from "./currency/CurrencyList";
-import {currencies} from "../../actions/money/currencies";
+import { currencies } from "../../actions/money/currencies";
 
 /**
  * Created by Matthias on 26/11/2016.
  */
 
-let MoneyBase = class extends React.Component {
+class MoneyBase extends React.Component {
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
 	}
@@ -25,10 +25,8 @@ let MoneyBase = class extends React.Component {
 			</div>
 		)
 	}
-};
+}
 
-MoneyBase = connect(
+export default connect(
 	connectMixin({ currencies })
 )(MoneyBase);
-
-export default MoneyBase

@@ -8,7 +8,7 @@ export default function MoneyInput({currency, value, onChange, children, ...rest
 	return (
 		<div className="input-group">
 			<span className="input-group-addon">{currency.symbol}</span>
-			<input className="form-control" value={value} step={10 ** (-currency.digits)} onChange={onChange} {...restProps} />
+			<input className="form-control" value={Number(value).toFixed(currency.digits)} step={10 ** (-currency.digits)} onChange={onChange} {...restProps} />
 			{children}
 		</div>
 	);

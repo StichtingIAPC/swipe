@@ -27,7 +27,8 @@ class CurrencyListView(mixins.ListModelMixin,
 class CurrencyView(mixins.UpdateModelMixin,
                    mixins.RetrieveModelMixin,
                    generics.GenericAPIView):
-    queryset = CurrencyData.objects.all()
+    queryset = CurrencyData.objects.all()\
+        .prefetch_related('denomination_set')
     serializer_class = CurrencySerializer
 
     def get(self, request, *args, **kwargs):

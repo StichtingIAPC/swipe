@@ -1,6 +1,6 @@
 import React from "react";
-import {Link, browserHistory} from "react-router";
-import {connect} from "react-redux";
+import { Link, browserHistory } from "react-router";
+import { connect } from "react-redux";
 import FontAwesome from "../../tools/icons/FontAwesome";
 
 /**
@@ -57,7 +57,6 @@ class CurrencyDetail extends React.Component {
 							</dd>
 						</div>
 					</dl>
-
 				</div>
 			</div>
 		)
@@ -66,7 +65,6 @@ class CurrencyDetail extends React.Component {
 
 export default connect(
 	(state, ownProps) => ({
-		...ownProps,
-		currency: Object.values(state.currencies.objects).find((obj) => obj.iso == ownProps.params.currencyID),
+		currency: state.currencies.currencies.find((obj) => obj.iso == ownProps.params.currencyID),
 	})
 )(CurrencyDetail);

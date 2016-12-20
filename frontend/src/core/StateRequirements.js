@@ -1,4 +1,4 @@
-import {connect} from "react-redux";
+import { connect } from "react-redux";
 
 /**
  * Created by Matthias on 28/11/2016.
@@ -7,7 +7,7 @@ import {connect} from "react-redux";
 export function connectMixin(requirements, state = null) {
 	function func(_state) {
 		const missingRequirements = Object.entries(requirements)
-			.filter((entry) => !_state[entry[0]].loaded);
+			.filter((entry) => _state[entry[0]][entry[0]].length == 0);
 		return {
 			requirementsLoaded: missingRequirements.length == 0,
 			missingRequirements: missingRequirements,

@@ -1,75 +1,68 @@
-import {call, put} from "redux-saga/effects";
-import {push} from "react-router-redux";
+import { call, put } from "redux-saga/effects";
+import { push } from "react-router-redux";
 import {
-	startFetchCurrencies,
-	invalidateCurrencies,
-	receiveCurrencies,
-	addCurrency,
-	markCurrencyAsUpdating,
-	changeCurrency
+	startFetchingCurrencies,
+	doneFetchingCurrencies,
+	currencyInputError,
+	currencyFetchError
 } from "../../actions/money/currencies";
-import config from "../../config";
-import fetch from "isomorphic-fetch";
+import { get, post } from "../../api";
 
-export function* populateCurrencies() {
-	yield put(startFetchCurrencies());
+export function* fetchCurrencies({ redirectTo }) {
 	try {
 		const data = yield (yield call(
-			fetch,
-			config.baseurl + '/money/currency/',
-			{
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			}
+			get,
+			'/money/currency/',
 		)).json();
-		yield put(receiveCurrencies(data))
+		yield put(doneFetchingCurrencies(data));
+		if (redirectTo)
+			yield put(push(redirectTo));
 	} catch (e) {
-		put(invalidateCurrencies());
+		console.log(e);
+		yield put(currencyFetchError(e.message));
 	}
 }
 
 export function* createCurrency({ curr }) {
 	const currency = {...curr};
-	yield put(invalidateCurrencies());
 	try {
 		const data = yield (yield call(
-			fetch,
-			config.baseurl + '/money/currency/',
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(currency),
-			}
+			post,
+			'/money/currency/',
+			currency,
 		)).json();
-		yield put(addCurrency(data));
-		yield put(push(`/money/currency/${data.iso}/`));
+		yield put(startFetchingCurrencies({
+			redirectTo: `/money/currency/${data.iso}/`,
+		}));
 	} catch (e) {
-		put(invalidateCurrencies(e));
+		console.log(e);
+		let msg;
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = yield call(e.json.bind(e));
+		yield put(currencyInputError(msg));
 	}
 }
 
 export function* updateCurrency({ curr }) {
 	const currency = {...curr};
-	yield put(markCurrencyAsUpdating(curr.iso));
 	try {
 		const data = yield (yield call(
-			fetch,
-			config.baseurl + `/money/currency/${currency.iso}/`,
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				data: JSON.stringify(currency),
-			}
+			post,
+			`/money/currency/${currency.iso}/`,
+			currency,
 		)).json();
-		yield put(changeCurrency(data));
-		yield put(push(`/money/currency/${data.iso}/`));
+		yield put(startFetchingCurrencies({
+			redirectTo: `/money/currency/${data.iso}/`,
+		}));
 	} catch (e) {
-		yield put(invalidateCurrencies(e));
+		console.log(e);
+		let msg;
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = yield call(e.json.bind(e));
+		yield put(currencyInputError(msg));
 	}
 }

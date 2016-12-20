@@ -1,7 +1,7 @@
-import React, {PropTypes} from "react";
-import {Link} from "react-router";
-import {connect} from "react-redux";
-import {populateCurrencies} from "../../../actions/money/currencies";
+import React, { PropTypes } from "react";
+import { Link } from "react-router";
+import { connect } from "react-redux";
+import { startFetchingCurrencies } from "../../../actions/money/currencies";
 import FontAwesome from "../../tools/icons/FontAwesome";
 /**
  * Created by Matthias on 26/11/2016.
@@ -57,9 +57,18 @@ class CurrencyList extends React.Component {
 
 	render() {
 		return (
-			<div className={`box ${this.props.invalid ? 'box-danger' : 'box-success'} ${this.state.open ? '' : 'collapsed-box'}`}>
+			<div
+				className={
+					`box${
+						this.state.open ? '' : ' collapsed-box'
+					}${
+						this.props.errorMsg ? ' box-danger box-solid' : ''
+					}`
+				}>
 				<div className="box-header with-border">
-					<h3 className="box-title">List of currencies</h3>
+					<h3 className="box-title">
+						List of currencies
+					</h3>
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
@@ -95,14 +104,22 @@ class CurrencyList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{Object.keys(this.props.currencies).filter(key => this.props.currencies[key]).map(
-								(id) => (
-									<this.renderEntry activeID={this.props.currencyID} key={id} currency={this.props.currencies[id]} />
+							{this.props.currencies.map(
+								(item) => (
+									<this.renderEntry activeID={this.props.currencyID} key={item.iso} currency={item} />
 								)
 							)}
 						</tbody>
 					</table>
 				</div>
+				{
+					this.props.errorMsg ? (
+						<div className="box-footer">
+							<FontAwesome icon="warning" />
+							<span>{this.props.errorMsg}</span>
+						</div>
+					) : null
+				}
 			</div>
 		)
 	}
@@ -115,15 +132,14 @@ CurrencyList.propTypes = {
 export default connect(
 	(state, ownProps) => ({
 		...ownProps,
-		currencies: state.currencies.objects,
-		invalid: state.currencies.invalid,
+		errorMsg: state.currencies.fetchError,
+		currencies: state.currencies.currencies,
 		fetching: state.currencies.fetching,
 	}),
-	(dispatch, ownProps) => ({
-		...ownProps,
+	(dispatch) => ({
 		update: (evt) => {
 			evt.preventDefault();
-			dispatch(populateCurrencies());
+			dispatch(startFetchingCurrencies());
 		},
 	})
 )(CurrencyList);
