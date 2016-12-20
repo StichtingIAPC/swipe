@@ -1,5 +1,3 @@
-import { connect } from "react-redux";
-
 /**
  * Created by Matthias on 28/11/2016.
  */

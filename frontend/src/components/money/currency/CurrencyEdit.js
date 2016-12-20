@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Link, browserHistory } from "react-router";
+import { Link } from "react-router";
 import { updateCurrency, createCurrency } from "../../../actions/money/currencies";
 import Form from "../../forms/Form";
 import { StringField, IntegerField, CharField, MoneyInput } from "../../forms/fields";
@@ -40,7 +40,7 @@ class CurrencyEdit extends React.Component {
 	}
 
 	update(evt) {
-		evt.preventDefault();
+		if (evt) evt.preventDefault();
 		const obj = {
 			...this.state.workingCopy,
 		};
@@ -49,7 +49,7 @@ class CurrencyEdit extends React.Component {
 	}
 
 	create(evt) {
-		evt.preventDefault();
+		if (evt) evt.preventDefault();
 		const obj = {
 			...this.state.workingCopy,
 		};
@@ -93,7 +93,7 @@ class CurrencyEdit extends React.Component {
 		);
 
 		const removeDenom = (index) => (
-			(evt) => {
+			() => {
 				const newDenoms = [...this.state.workingCopy.denomination_set];
 				newDenoms.splice(index, 1);
 				this.setState({
