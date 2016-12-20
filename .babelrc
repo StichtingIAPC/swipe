@@ -1,3 +1,17 @@
 {
-	"presets": [ "es2015", "stage-0", "react" ]
+	"presets": [
+		["env", {
+			"debug": true,
+			"targets": {
+				"browsers": [
+					"last 2 ff versions",
+					"Firefox ESR",
+					"last 2 chrome versions",
+					"last 2 edge versions"
+				]
+			}
+		}],
+		"stage-0",
+		"react"
+	]
 }
