@@ -1,6 +1,7 @@
 from django.db import models
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
+from stock.models import StockChange
 
 
 class StockCountDocument(ImmutableBlame):
@@ -27,3 +28,41 @@ class StockCountLine(Blame):
     out_count = models.IntegerField()
     # How much is actually present
     physical_count = models.IntegerField()
+
+
+class TemporaryCounterLine:
+    """
+    A line that is presented to the user of a Stock count. Contains information generated from the database
+    """
+
+    article_type = ArticleType()
+
+    previous_count = 0
+
+    in_count = 0
+
+    out_count = 0
+
+    expected_count = 0
+
+    @staticmethod
+    def get_all_stock_changes_since_last_stock_count():
+        if StockCountDocument.objects.exists():
+            last_stock_count = StockCountDocument.objects.last()
+            stock_changes = StockChange.objects.filter(
+                change_set__date__gt=last_stock_count.date_created).select_related("change_set")
+        else:
+            stock_changes = StockChange.objects.all().select_related("change_set")
+
+        return stock_changes
+
+    @staticmethod
+    def get_all_temporary_counterlines_since_last_stock_count():
+        stock_changes = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
+
+        article_mods = {}
+        # for change in stock_changes:
+        #     if article_mods.get(change.article):
+        #         pass
+        #     else:
+        #         pass
