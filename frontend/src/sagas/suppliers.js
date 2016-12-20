@@ -1,8 +1,12 @@
-import {call, put} from "redux-saga/effects";
-import {push} from "react-router-redux";
-import {get, post, patch} from "../api";
-import { startFetchingSuppliers, doneFetchingSuppliers } from "../actions/suppliers";
-
+import { call, put } from "redux-saga/effects";
+import { push } from "react-router-redux";
+import { get, post, patch } from "../api";
+import {
+	startFetchingSuppliers,
+	doneFetchingSuppliers,
+	supplierFetchError,
+	supplierInputError
+} from "../actions/suppliers";
 function renameProp(item, original, target) {
 	const newitem = { ...item };
 	newitem[target] = newitem[original];
@@ -10,16 +14,18 @@ function renameProp(item, original, target) {
 	return newitem;
 }
 
-export function* fetchSuppliers() {
+export function* fetchSuppliers({redirectTo}) {
 	try {
 		const data = yield (yield call(
 			get,
 			'/supplier/',
 		)).json();
 		yield put(doneFetchingSuppliers(data.map(s => renameProp(s, 'search_url', 'searchUrl'))));
+		if (redirectTo)
+			yield put(push(redirectTo));
 	}	catch (e) {
-		// TODO: error handling
-		//yield put(invalidateSuppliers(e));
+		console.log(e);
+		yield put(supplierFetchError(e.message));
 	}
 }
 
@@ -35,13 +41,17 @@ export function* createSupplier({ supplier }) {
 			document,
 		)).json();
 
-		// Routing over here is ugly, since that couples UI with business logic,
-		// but I also do not know of a better way currently...
-		yield put(startFetchingSuppliers());
-		yield put(push(`/supplier/${data.id}/`));
+		yield put(startFetchingSuppliers({
+			redirectTo: `/supplier/${data.id}/`,
+		}));
 	} catch (e) {
-		// TODO: error handling
-		//yield put(invalidateSuppliers(e));
+		console.log(e);
+		let msg;
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = e.json();
+		yield put(supplierInputError(msg));
 	}
 }
 
@@ -57,10 +67,16 @@ export function* updateSupplier({ supplier }) {
 			supplier,
 		)).json();
 
-		yield put(startFetchingSuppliers())
-		yield put(push(`/supplier/${data.id}/`))
+		yield put(startFetchingSuppliers({
+			redirectTo: `/supplier/${data.id}/`,
+		}));
 	} catch (e) {
-		// TODO: error handling
-		//yield put(invalidateSuppliers(e));
+		console.log(e);
+		let msg;
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = e.json();
+		yield put(supplierInputError(msg));
 	}
 }
