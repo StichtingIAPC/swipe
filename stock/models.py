@@ -6,6 +6,8 @@ from stock.exceptions import StockSmallerThanZeroError, Id10TError
 from money.exceptions import CurrencyInconsistencyError
 from stock.stocklabel import StockLabeledLine, StockLabel
 from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
+from crm.models import User
+from tools.util import raiseif
 # Stop PyCharm from seeing tools as a package.
 # noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, HIGH
@@ -140,7 +142,9 @@ class Stock(StockLabeledLine):
                 raise CurrencyInconsistencyError("GOT {} instead of {}".format(
                     merge_line.book_value.currency, stock_mod.book_value.currency))
 
-            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST \
+                    and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 \
+                    and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
                                  "from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
 
@@ -150,7 +154,9 @@ class Stock(StockLabeledLine):
                     merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count()
                 )
                 merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
-            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - old_cost.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST \
+                    and int((merge_line.book_value.amount - old_cost.amount) * 10 ** 5) != 0 \
+                    and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
                                  "from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount))
             # Update stockmod count
@@ -209,6 +215,9 @@ class StockChangeSet(models.Model):
         :return: A completed StockChangeSet of the modification
         :rtype: StockChangeSet
         """
+        # Check if stock is locked
+        if StockLock.is_locked():
+            raise LockError("Stock is locked. Unlock first")
         # Check if the entry dictionaries are complete
         for entry in entries:
             stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
@@ -275,3 +284,67 @@ class StockChange(StockLabeledLine):
 
     def __str__(self):
         return "{}| {} x {} {}".format(self.pk, self.count, self.article, self.label)
+
+
+class StockLock(models.Model):
+    """
+    A locker for the stock
+    """
+
+    # Indicates if the stock is locked
+    locked = models.BooleanField(default=False)
+
+    def delete(self, using=None, keep_parents=False):
+        # No deletion
+        pass
+
+    @staticmethod
+    def is_locked() -> bool:
+        try:
+            stl = StockLock.objects.get(id=1)
+            return stl.locked
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=False)
+            return False
+
+    @staticmethod
+    def is_unlocked() -> bool:
+        return not StockLock.is_locked()
+
+    @staticmethod
+    def lock(user: User):
+        raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
+        try:
+            sl = StockLock.objects.get(id=1)
+            sl.locked = True
+            sl.save()
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=True)
+
+        StockLockLog.objects.create(locked=True, user=user)
+
+    @staticmethod
+    def unlock(user: User):
+        raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
+        try:
+            sl = StockLock.objects.get(id=1)
+            sl.locked = False
+            sl.save()
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=False)
+
+        StockLockLog.objects.create(locked=False, user=user)
+
+
+class StockLockLog(models.Model):
+    """
+    A log of the state of the stock with user
+    """
+
+    locked = models.BooleanField()
+
+    user = models.ForeignKey(User)
+
+
+class LockError(Exception):
+    pass

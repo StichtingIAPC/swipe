@@ -68,9 +68,6 @@ class ArticleTypeSupplier(models.Model):
         gps = GraduationPricing.objects.filter(article_type_supplier=self)
         return len(gps) > 0
 
-    def save(self):
-        super(ArticleTypeSupplier, self).save()
-
 
 class GraduationPricing(models.Model):
     """

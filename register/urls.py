@@ -19,7 +19,6 @@ from register.views import index, RegisterList, OpenFormView, CloseFormView, IsO
     RegisterDetail, PaymentTypeList, PaymentTypeCreate, PaymentTypeDetail, RegisterEdit
 
 
-
 urlpatterns = [
     # Standard page
     url(r'^$', index, name="register_index"),

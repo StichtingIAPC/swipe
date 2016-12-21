@@ -32,7 +32,7 @@ class AccountingGroup(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return "{}({})".format(self.name,self.vat_group.to_rate_string())
+        return "{}({})".format(self.name, self.vat_group.to_rate_string())
 
 
 class VATLevelField(models.DecimalField):
@@ -282,7 +282,7 @@ class CostField(MoneyField):
 
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
-    #TODO: SAVE CHECK?``
+    # TODO: SAVE CHECK?
     def __init__(self, amount, vat=None, currency=None, use_system_currency=False):
         if use_system_currency:
             currency = Currency(iso=USED_CURRENCY)
@@ -670,11 +670,12 @@ class TestPriceType(models.Model):
     price = PriceField(type="cost")
 
 
-# Define monetary types here
-money_types = {"cost": Cost, "money": Money}
-
 class InvalidISOError(Exception):
     pass
 
+
 class InvalidDataError(Exception):
     pass
+
+# Define monetary types here
+money_types = {"cost": Cost, "money": Money}

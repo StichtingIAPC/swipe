@@ -418,12 +418,15 @@ class SalesPeriod(models.Model):
             for register in open_registers:
                 for registercount in registercounts:
                     if registercount.register_period.register == register:
-                        opening_count = RegisterCount.objects.filter(register_period=registercount.register_period).first()
+                        opening_count = RegisterCount.objects.filter(register_period=registercount.register_period)\
+                            .first()
                         if totals.get(registercount.register_period.register.currency.iso, None):
-                            totals[registercount.register_period.register.currency.iso] += registercount.amount - opening_count.amount
+                            totals[registercount.register_period.register.currency.iso] += \
+                                registercount.amount - opening_count.amount
 
                         else:
-                            totals[registercount.register_period.register.currency.iso] = registercount.amount - opening_count.amount
+                            totals[registercount.register_period.register.currency.iso] = \
+                                registercount.amount - opening_count.amount
 
             # Run all transactions
             for transation in Transaction.objects.filter(salesperiod=sales_period):
@@ -605,8 +608,8 @@ class MoneyInOut(models.Model):
 
 class SalesPeriodDifference(models.Model):
     """
-    Resolves differences between expected amounts of money in the combined opened registers and the actual amount of money.
-    Count is per type of money
+    Resolves differences between expected amounts of money in the combined opened registers and the actual
+    amount of money. Count is per type of money
     """
     # Period in which there is a difference
     sales_period = models.ForeignKey(SalesPeriod)

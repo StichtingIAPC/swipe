@@ -48,6 +48,7 @@ class StockLabel:
     _labeltype = None
 
     # Adds labeltype to reverse lookup table (labeltypes)
+    # noinspection PyProtectedMember
     @classmethod
     def register(cls, label_type):
 
@@ -96,6 +97,7 @@ class StockLabel:
     def __eq__(self, other):
         if other is None and (self.labeltype is None or self.labeltype == ""):
             return True
+        # noinspection PyBroadException
         try:
             return other.key == self.key and other.labeltype == self.labeltype
         except Exception:

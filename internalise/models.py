@@ -11,9 +11,9 @@ from stock.enumeration import enum
 
 class InternaliseDocument(Blame):
     """
-    A way to use products for internal usage. Can be taken from any present article in the stockTable, including reesrved
-    palces with a label like an order. The should be used for assigning products for internal usage and not as a magical
-    way of reducing the stock.
+    A way to use products for internal usage. Can be taken from any present article in the stockTable, including
+    reserved places with a label like an order. The should be used for assigning products for internal usage and
+    not as a magical way of reducing the stock.
     """
     # A memo which can contain the explanation for the usage of the products.
     memo = models.TextField()
@@ -23,8 +23,9 @@ class InternaliseDocument(Blame):
         """
 
         :param user: The user who commanded the change.
-        :param articles_with_information: List(Tuple(articleType, count, label_type StockLabel, label_key integer)). The information
-         needed to effectuate the internalisation. Count should be strictly positive. Labels should null for stock.
+        :param articles_with_information: The information needed to effectuate the internalisation.
+                                           Count should be strictly positive. Labels should null for stock.
+        :type articles_with_information: list(tuple(articleType, count, label_type StockLabel, label_key integer))
         :param memo: The memo which is used as the description
         """
         raiseif(not isinstance(user, User), DataTypeError, "user is not a User")
@@ -35,7 +36,7 @@ class InternaliseDocument(Blame):
             raiseif(not isinstance(article, ArticleType), DataTypeError, "article should be an ArticleType")
             raiseif(not isinstance(count, int), DataTypeError, "count should be an int")
             raiseif(count <= 0, DataValidityError, "count should be greater than 0")
-            if ((label_type and (not label_key or label_key <= 0 )) or (not label_type and label_key)):
+            if (label_type and (not label_key or label_key <= 0)) or (not label_type and label_key):
                 raise DataValidityError("Cannot gage if label is used or not")
             article_demand[(article, label_type, label_key)] += count
 
@@ -44,12 +45,15 @@ class InternaliseDocument(Blame):
 
         for article, label_type, label_key in article_demand.keys():
             if label_type:
+                # noinspection PyProtectedMember
                 st = Stock.objects.get(article=article, labeltype=label_type._labeltype, labelkey=label_key)
                 if st.count < article_demand[(article, label_type, label_key)]:
                     raise DataValidityError("Tried to internalise {} for article {} with keytype {} and value {}"
-                                            "but only {} is present".format(article_demand[(article, label_type, label_key)]
-                                                                            , article, label_type, label_key, st.count))
+                                            "but only {} is present".format(article_demand[(article, label_type,
+                                                                                            label_key)], article,
+                                                                            label_type, label_key, st.count))
                 else:
+                    # noinspection PyProtectedMember
                     internal_lines.append(InternaliseLine(article_type=article,
                                                           label_type=label_type._labeltype,
                                                           identifier=label_key,
@@ -68,12 +72,13 @@ class InternaliseDocument(Blame):
                 st = Stock.objects.get(article=article, labelkey__isnull=True)
                 if st.count < article_demand[(article, label_type, label_key)]:
                     raise DataValidityError("Tried to internalise {} for articleType {} from stock while stock only"
-                                                    "contains {} products".format(article_demand[(article, label_type, label_key)],
-                                                                                  article, st.count))
+                                            "contains {} products".format(article_demand[(article, label_type,
+                                                                                          label_key)],
+                                                                          article, st.count))
                 else:
                     internal_lines.append(InternaliseLine(article_type=article, label_type=None, identifier=None,
-                                                                  count=article_demand[(article, label_type, label_key)],
-                                                                  cost=st.book_value, user_modified=user))
+                                                          count=article_demand[(article, label_type, label_key)],
+                                                          cost=st.book_value, user_modified=user))
                     stock_mod_entries.append({
                         'article': article,
                         'book_value': st.book_value,
@@ -91,7 +96,6 @@ class InternaliseDocument(Blame):
         StockChangeSet.construct(description="Internalisation with document {}".format(doc.pk),
                                  entries=stock_mod_entries,
                                  enum=enum['internalise'])
-
 
 
 class InternaliseLine(ImmutableBlame):

@@ -10,6 +10,7 @@ from tools.tables import Table, Column
 class TableView(View):
     template_name = "tools/table_test.html"
 
+    # noinspection PyUnusedLocal
     def get(self, request, *args, **kwargs):
         qs = Stock.objects\
             .select_related('article')\

@@ -45,7 +45,8 @@ class OpenFormView(PermissionRequiredMixin, View):
                 cnt = Decimal(0)
                 for denomination in Denomination.objects.filter(currency=reg.currency):
                     denomination_counts.append(DenominationCount(denomination=denomination,
-                                                                 amount=int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])))
+                                                                 amount=int(request.POST["reg_{}_{}"
+                                                                            .format(col.name, denomination.amount)])))
 
                     cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
 
@@ -121,7 +122,8 @@ class CloseFormView(PermissionRequiredMixin, View):
                 register_counts.append(rc)
                 for denomination in Denomination.objects.filter(currency=reg.currency):
                     denomination_counts.append(DenominationCount(register_count=rc, denomination=denomination,
-                                                                 amount=int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])))
+                                                                 amount=int(request.POST["reg_{}_{}"
+                                                                            .format(col.name, denomination.amount)])))
 
             SalesPeriod.close(register_counts, denomination_counts, request.POST["MEMO"])
             # <process form cleaned data>
@@ -132,7 +134,7 @@ class CloseFormView(PermissionRequiredMixin, View):
 
 
 @crumb(_('Register list'), 'register_index')
-class RegisterList(LoginRequiredMixin,ListView):
+class RegisterList(LoginRequiredMixin, ListView):
     model = Register
     template_name = "register/register_list.html"
 
@@ -155,7 +157,7 @@ class RegisterEdit(PermissionRequiredMixin, UpdateView):
 
 
 @crumb(_('Register period list'), 'register_index')
-class RegisterPeriodList(LoginRequiredMixin,ListView):
+class RegisterPeriodList(LoginRequiredMixin, ListView):
     model = RegisterPeriod
 
 
@@ -168,7 +170,7 @@ class RegisterCreate(PermissionRequiredMixin, CreateView):
     fields = ['name', 'currency', 'is_cash_register', 'is_active', 'payment_type']
 
     def get_success_url(self):
-        return reverse_lazy('register_detail', kwargs={'pk':self.object.pk})
+        return reverse_lazy('register_detail', kwargs={'pk': self.object.pk})
 
 
 @crumb(_('Register index'))

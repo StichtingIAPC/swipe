@@ -145,7 +145,7 @@ class CustomCustInvoice(CustInvoice):
                                  invoice_zip_code=invoice_zip_code, invoice_city=invoice_city,
                                  invoice_country=invoice_country, invoice_email_address=invoice_email_address)
         lines = []  # Type: List[CustomInvoiceLine]
-        to_be_paid = Money(amount = Decimal(0), currency=text_price_combinations[0][1].currency)
+        to_be_paid = Money(amount=Decimal(0), currency=text_price_combinations[0][1].currency)
         for text, price in text_price_combinations:
             raiseif(not isinstance(text, str), IncorrectClassError, "text should be a string")
             raiseif(not isinstance(price, Price), IncorrectClassError, "price should be a Price")

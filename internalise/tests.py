@@ -13,7 +13,8 @@ class InternaliseTests(TestCase, TestData):
         self.setup_base_data()
 
     def test_creation_function_stock_single_article(self):
-        StockWish.create_stock_wish(user_modified=self.user_1, articles_ordered=[[self.articletype_1, 20], [self.articletype_2, 20]])
+        StockWish.create_stock_wish(user_modified=self.user_1, articles_ordered=[[self.articletype_1, 20],
+                                                                                 [self.articletype_2, 20]])
         self.create_suporders(article_1=5)
         self.create_packingdocuments(article_1=4)
         st = Stock.objects.get(article=self.articletype_1, labeltype__isnull=True)
@@ -22,7 +23,9 @@ class InternaliseTests(TestCase, TestData):
         cost = st.book_value
         INTERNALISE_ART_1 = 2
         InternaliseDocument.create_internal_products_document(user=self.user_1,
-                                                              articles_with_information=[(self.articletype_1, INTERNALISE_ART_1, None, None)],
+                                                              articles_with_information=[(self.articletype_1,
+                                                                                          INTERNALISE_ART_1,
+                                                                                          None, None)],
                                                               memo="Foo")
         st = Stock.objects.get(article=self.articletype_1, labeltype__isnull=True)
         self.assertEqual(st.count, IN_STOCK-INTERNALISE_ART_1)
@@ -128,7 +131,9 @@ class InternaliseTests(TestCase, TestData):
         st = Stock.objects.get()
         self.assertEqual(st.count, IN_STOCK_ART_1)
         InternaliseDocument.create_internal_products_document(user=self.user_1,
-                                                              articles_with_information=[[self.articletype_1, IN_STOCK_ART_1, None, None]],
+                                                              articles_with_information=[
+                                                                  [self.articletype_1, IN_STOCK_ART_1, None, None]
+                                                              ],
                                                               memo="Foo3")
         stock = Stock.objects.all()
         self.assertEqual(len(stock), 0)
@@ -144,7 +149,8 @@ class InternaliseTests(TestCase, TestData):
         self.assertEqual(len(ols), CUST_ORDERED_ART_1)
         InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                               articles_with_information=[
-                                                                  [self.articletype_1, CUST_ORDERED_ART_1, OrderLabel, 1]],
+                                                                  [self.articletype_1, CUST_ORDERED_ART_1,
+                                                                   OrderLabel, 1]],
                                                               memo="Foo3")
         stock = Stock.objects.all()
         self.assertEqual(len(stock), 0)
@@ -160,9 +166,10 @@ class InternaliseTests(TestCase, TestData):
         self.assertEqual(st.count, CUST_ORDERED_ART_1)
         with self.assertRaises(DataValidityError):
             InternaliseDocument.create_internal_products_document(user=self.user_1,
-                                                              articles_with_information=[
-                                                                  [self.articletype_1, CUST_ORDERED_ART_1+1, OrderLabel, 1]],
-                                                              memo="Foo3")
+                                                                  articles_with_information=[
+                                                                      [self.articletype_1, CUST_ORDERED_ART_1+1,
+                                                                       OrderLabel, 1]],
+                                                                  memo="Foo3")
 
     def test_too_many_articles_labeled_loose(self):
         CUST_ORDERED_ART_1 = 6
@@ -174,7 +181,8 @@ class InternaliseTests(TestCase, TestData):
         with self.assertRaises(DataValidityError):
             InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                                   articles_with_information=[
-                                                                   [self.articletype_1, CUST_ORDERED_ART_1-2, OrderLabel, 1],
+                                                                   [self.articletype_1, CUST_ORDERED_ART_1-2,
+                                                                    OrderLabel, 1],
                                                                    [self.articletype_1, 3, OrderLabel, 1]],
                                                                   memo="Foo3")
 
@@ -188,7 +196,8 @@ class InternaliseTests(TestCase, TestData):
         with self.assertRaises(DataValidityError):
             InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                                   articles_with_information=[
-                                                                   [self.articletype_1, CUST_ORDERED_ART_1+1, None, None]],
+                                                                   [self.articletype_1, CUST_ORDERED_ART_1+1,
+                                                                    None, None]],
                                                                   memo="Foo3")
 
     def test_too_many_articles_stock_loose(self):
@@ -201,6 +210,7 @@ class InternaliseTests(TestCase, TestData):
         with self.assertRaises(DataValidityError):
             InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                                   articles_with_information=[
-                                                                   [self.articletype_1, CUST_ORDERED_ART_1-2, None, None],
+                                                                   [self.articletype_1, CUST_ORDERED_ART_1-2,
+                                                                    None, None],
                                                                    [self.articletype_1, 3, None, None]],
                                                                   memo="Foo3")

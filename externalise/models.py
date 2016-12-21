@@ -12,9 +12,9 @@ from tools.util import raiseif
 
 class ExternaliseDocument(Blame):
     """
-    A document that represents getting products from a non-standard source. Can be used to take in stock anything that is
-    an articleType. Should not be used in place of supplier related processes as this method contains almost no information
-    in describing the process. This is however quite useful for adding "random" products to stock.
+    A document that represents getting products from a non-standard source. Can be used to take in stock anything
+    that is an articleType. Should not be used in place of supplier related processes as this method contains almost
+    no information in describing the process. This is however quite useful for adding "random" products to stock.
     """
     # A memo that desribes why the externalisation process has taken place
     memo = models.TextField()
@@ -25,19 +25,22 @@ class ExternaliseDocument(Blame):
         """
 
         :param user: The user that created the document
-        :param article_information_list: List(Tuple(article, count, cost)). A list of articles with multiplicity and cost.
-        This is enough info to create the stock.
+        :param article_information_list: A list of articles with multiplicity and cost.
+                                          This is enough info to create the stock.
+        :type article_information_list: list(tuple(article, count, cost))
         :param memo: A memo to explain the reason for adding the articles
         """
         raiseif(not isinstance(user, User), IncorrectClassError())
         raiseif(not isinstance(memo, str), IncorrectClassError())
         counter = defaultdict(lambda: 0)
         for article, count, cost in article_information_list:
-            raiseif(not isinstance(article, ArticleType), IncorrectClassError,"")
-            raiseif(not isinstance(count, int), IncorrectClassError,"")
-            raiseif(not isinstance(cost, Cost), IncorrectClassError,"")
-            raiseif(count <= 0, IncorrectCountError,"Count is less than or equal to 0. This is not possible")
-            raiseif(cost._amount < Decimal(0), IncorrectPriceError,"Products cost negative amount of money. This cannot happen.")
+            raiseif(not isinstance(article, ArticleType), IncorrectClassError, "")
+            raiseif(not isinstance(count, int), IncorrectClassError, "")
+            raiseif(not isinstance(cost, Cost), IncorrectClassError, "")
+            raiseif(count <= 0, IncorrectCountError, "Count is less than or equal to 0. This is not possible")
+            # noinspection PyProtectedMember
+            raiseif(cost._amount < Decimal(0), IncorrectPriceError,
+                    "Products cost negative amount of money. This cannot happen.")
             counter[(article, cost)] += count
 
         stock_entries = []
@@ -83,11 +86,11 @@ class ExternaliseLine(ImmutableBlame):
                          'count': self.count,
                          'is_in': True}
                     ]
-                    StockChangeSet.construct(description="Direct externalisation from new externaliseline", entries=entry,
-                                             enum=enum['externalise'])
+                    StockChangeSet.construct(description="Direct externalisation from new externaliseline",
+                                             entries=entry, enum=enum['externalise'])
                 else:
-                    raise IncorrectStockDataError("Either stock is non-positive "
-                                                  "or cost is non-positive. Count: {}, Cost: {}".format(self.count, self.cost.amount))
+                    raise IncorrectStockDataError("Either stock is non-positive or cost is non-positive. "
+                                                  "Count: {}, Cost: {}".format(self.count, self.cost.amount))
         else:
             super(ExternaliseLine, self).save()
 
