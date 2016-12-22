@@ -1,8 +1,8 @@
+from django.utils import timezone
 from django.db import models
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
 from stock.models import StockChange
-from time import timezone
 
 
 class StockCountDocument(ImmutableBlame):
