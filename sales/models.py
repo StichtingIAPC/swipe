@@ -332,8 +332,7 @@ class Transaction(Blame):
                 raiseif(arts[0].count < stock_level_dict[key],
                         NotEnoughStockError, "You are trying to sell too much.")
             else:
-                # noinspection PyProtectedMember
-                arts = Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=order,
+                arts = Stock.objects.filter(labeltype=OrderLabel.labeltype, labelkey=order,
                                             article=article)
                 length = arts.__len__()
                 if length == 0:
@@ -425,8 +424,7 @@ class Transaction(Blame):
                               'is_in': False}
                     change_set.append(change)
                 else:
-                    # noinspection PyProtectedMember
-                    stock_line = Stock.objects.get(article=tr_line.article, labeltype=OrderLabel._labeltype,
+                    stock_line = Stock.objects.get(article=tr_line.article, labeltype=OrderLabel.labeltype,
                                                    labelkey=tr_line.order)
                     tr_line.cost = stock_line.book_value
                     change = {'article': tr_line.article,

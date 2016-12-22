@@ -177,8 +177,8 @@ class SimpleClassTests(TestCase):
         self.assertEquals(len(stock), 1)
         st_line = stock[0]
         self.assertEquals(st_line.count, NUMBER_BATCHED)
-        self.assertEquals(st_line.labeltype, OrderLabel._labeltype)
-        self.assertEquals(st_line.labelkey, 1) # Order identifier/pk
+        self.assertEquals(st_line.labeltype, OrderLabel.labeltype)
+        self.assertEquals(st_line.labelkey, 1)  # Order identifier/pk
 
     def test_stock_storage_of_orders_more_orders(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -218,7 +218,7 @@ class SimpleClassTests(TestCase):
         self.assertEquals(len(stock), 2)
         for st in stock:
             self.assertEquals(st.count, 1)
-            self.assertEquals(st.labeltype, OrderLabel._labeltype)
+            self.assertEquals(st.labeltype, OrderLabel.labeltype)
 
         self.assertEquals(stock[0].labelkey, 1)  # Order identifier/pk
         self.assertEquals(stock[1].labelkey, 2)  # Order identifier/pk
@@ -254,7 +254,7 @@ class SimpleClassTests(TestCase):
         self.assertEquals(len(stock), 1)
         for st in stock:
             self.assertEquals(st.count, 2)
-            self.assertEquals(st.labeltype, OrderLabel._labeltype)
+            self.assertEquals(st.labeltype, OrderLabel.labeltype)
             self.assertEquals(st.labelkey, 1)  # Order pk
 
     def test_packingdocumentline_storage_without_stock_mod(self):
