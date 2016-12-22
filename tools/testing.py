@@ -120,6 +120,8 @@ class TestData:
 
         self.cost_eur_1 = Cost(amount=Decimal(1.23), currency=self.currency_eur)
         self.cost_eur_2 = Cost(amount=Decimal(2.10), currency=self.currency_eur)
+        self.cost_eur_3 = Cost(amount=Decimal(3.14), currency=self.currency_eur)
+        self.cost_eur_4 = Cost(amount=Decimal(10.01), currency=self.currency_eur)
 
         self.supplier_1 = Supplier(name="Supplier 1")
         self.supplier_1.save()
