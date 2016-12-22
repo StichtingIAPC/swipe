@@ -2,6 +2,7 @@ from django.test import TestCase
 from tools.testing import TestData
 from stock_count.models import TemporaryCounterLine, StockCountDocument
 from stock.models import Stock, StockChangeSet
+import time
 
 class PreparationTests(TestCase, TestData):
 
@@ -10,7 +11,6 @@ class PreparationTests(TestCase, TestData):
 
     def test_stock_changes_no_stock_modifications(self):
         changes = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
-        print(changes)
         self.assertEqual(len(changes), 0)
 
     def test_temporary_count_line_no_stock_count(self):
@@ -25,7 +25,7 @@ class PreparationTests(TestCase, TestData):
                  ]
         StockChangeSet.construct(description="", entries=entry, enum=0)
         changes = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
-        print(changes)
+        self.assertEqual(len(changes), 2)
 
     def test_temporary_count_line_one_stock_count_no_new_lines(self):
         entry = [{'article': self.articletype_1,
@@ -41,7 +41,7 @@ class PreparationTests(TestCase, TestData):
         StockCountDocument(user_modified=self.user_1).save()
         changes = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
 
-        print(changes)
+        self.assertEqual(len(changes), 0)
 
     def test_temporary_count_line_one_stock_count_some_new_lines(self):
         entry = [{'article': self.articletype_1,
@@ -60,8 +60,11 @@ class PreparationTests(TestCase, TestData):
                   'count': 5,
                   'is_in': True},
                  ]
+        # This prevents the next StockChange from being stores at the exact time as the StockCountDocument
+        time.sleep(0.01)
         StockChangeSet.construct(description="", entries=entry, enum=0)
         changes = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
-
-        print(changes)
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0].article, self.articletype_2)
+        self.assertEqual(changes[0].count, 5)
 
