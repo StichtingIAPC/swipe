@@ -3,6 +3,7 @@ from django.db import models
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
 from stock.models import StockChange
+from tools.util import raiseif
 
 
 class StockCountDocument(ImmutableBlame):
@@ -16,6 +17,36 @@ class StockCountDocument(ImmutableBlame):
         # precision matters in time calculation which are crucial to the process.
         self.date_created = timezone.now()
         super(StockCountDocument, self).save()
+
+    @staticmethod
+    def get_discrepancies():
+        """
+        This function is important to the stock count. It generates a list of function where the stored count is not
+        equal to the expected count as in the TemporaryArticleCount for the article. This is needed because of the
+        Stock-lines that articles can be taken from. When there is a shortage of items, you need to be able to pick
+        the Stock-lines from which to subtract the articles. This function indicates where differences, if any, are.
+        After this, you should be able to puzzle how to solve any stock shortage.
+        """
+        # In practice, the system should be more automatic and lenient. It will suffice for now.
+        raiseif(ArticleType.objects.count() != TemporaryArticleCount.objects.filter(checked=True), UncountedError,
+                "The number of ArticleTypes is not equal to the number of counted ArticleTypes")
+        tacs = TemporaryArticleCount.objects.all()
+        article_counts = {}
+        for tac in tacs:
+            article_counts[tac.article_type] = tac.count
+
+        changes, stock_count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
+        counter_lines = TemporaryCounterLine.\
+            get_all_temporary_counterlines_since_last_stock_count(stock_changes=changes,
+                                                                  last_stock_count=stock_count)
+        discrepancies = []
+        for line in counter_lines:
+            article_type = line.article_type
+            diff = article_counts[article_type] - line.expected_count
+            if diff != 0:
+                discrepancies.append((article_type, diff))
+
+        return discrepancies
 
 
 class StockCountLine(Blame):
@@ -55,12 +86,12 @@ class TemporaryCounterLine:
 
     expected_count = 0
 
-    def __init__(self, article_type, previous_count, in_count, out_count, expected_count):
+    def __init__(self, article_type, previous_count, in_count, out_count):
         self.article_type = article_type
         self.previous_count = previous_count
         self.in_count = in_count
         self.out_count = out_count
-        self.expected_count = expected_count
+        self.expected_count = previous_count + in_count - out_count
 
     def __str__(self):
         return "Article: {}, prev: {}, in: {}, out: {}, expected: {}".format(self.article_type, self.previous_count,
@@ -98,10 +129,11 @@ class TemporaryCounterLine:
                     article_mods[change.article].out_count = article_mods[change.article].out_count + change.count
             else:
                 if change.is_in:
-                    article_mods[change.article] = TemporaryCounterLine(change.article, 0, change.count, 0, 0)
+                    article_mods[change.article] = TemporaryCounterLine(change.article, 0, change.count, 0)
                 else:
-                    article_mods[change.article] = TemporaryCounterLine(change.article, 0, 0, change.count, 0)
+                    article_mods[change.article] = TemporaryCounterLine(change.article, 0, 0, change.count)
 
+        modded_articles = article_mods.keys()
         article_mods = list(article_mods.values())
 
         if last_stock_count:
@@ -124,19 +156,22 @@ class TemporaryCounterLine:
 
 class TemporaryArticleCount(models.Model):
     """
-    Temporary store of the article count. This allows for multiple users counting the stock separately.
+    Temporary store of the article count. This allows for multiple users counting the stock separately. Used as eventual
+    input as the actual count.
     """
     # The articleType to be counted
     article_type = models.OneToOneField(ArticleType)
     # The number of articles counted temporarily.
     count = models.IntegerField()
+    # Checks if the amount is truly counted or just a default.
+    checked = models.BooleanField(default=False)
 
     @staticmethod
     def clear_temporary_counts():
         """
         Sets all counts back to 0
         """
-        TemporaryArticleCount.objects.all().update(count=0)
+        TemporaryArticleCount.objects.all().update(count=0, checked=False)
 
     @staticmethod
     def update_temporary_counts(article_type_count_combinations):
@@ -149,7 +184,22 @@ class TemporaryArticleCount(models.Model):
         for article, count in article_type_count_combinations:
             art = TemporaryArticleCount.objects.filter(article_type=article)
             if len(art) == 0:
-                TemporaryArticleCount.objects.create(article=article, count=count)
+                TemporaryArticleCount.objects.create(article_type=article, count=count, checked=True)
             else:
                 art[0].count = count
                 art[0].save()
+
+    def __str__(self):
+        return "Article: {}, count: {}, checked: {}".format(self.article_type, self.count, self.checked)
+
+    def __eq__(self, other):
+        if type(other) is not TemporaryArticleCount:
+            return False
+        else:
+            return self.article_type == other.article_type and self.count == other.count \
+                   and self.checked == other.checked
+
+
+class UncountedError(Exception):
+    pass
+
