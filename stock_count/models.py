@@ -25,6 +25,8 @@ class StockCountLine(Blame):
     the physical count of the product. The expected value is previous_count+in_count-out_count
     """
 
+    # The document which it
+    document = models.ForeignKey(StockCountDocument)
     # The article type
     article_type = models.ForeignKey(ArticleType)
     # The amount present at a previous count(or 0 if there was no previous count for this product)
@@ -35,6 +37,7 @@ class StockCountLine(Blame):
     out_count = models.IntegerField()
     # How much is actually present
     physical_count = models.IntegerField()
+    # NB: The expected count is 'previous_count + in_count - out_count' and this conforms to the database count
 
 
 class TemporaryCounterLine:
@@ -64,6 +67,14 @@ class TemporaryCounterLine:
                                                                              self.in_count, self.out_count,
                                                                              self.expected_count)
 
+    def __eq__(self, other):
+        if type(other) is not TemporaryCounterLine:
+            return False
+        else:
+            return (self.article_type == other.article_type and self.previous_count == other.previous_count
+            and self.in_count == other.in_count and self.out_count == other.out_count and self.expected_count ==
+                    other.expected_count)
+
     @staticmethod
     def get_all_stock_changes_since_last_stock_count():
         if StockCountDocument.objects.exists():
@@ -71,12 +82,13 @@ class TemporaryCounterLine:
             stock_changes = StockChange.objects.filter(
                 change_set__date__gt=last_stock_count.date_created).select_related("change_set")
         else:
+            last_stock_count = None
             stock_changes = StockChange.objects.all().select_related("change_set")
 
-        return stock_changes
+        return stock_changes, last_stock_count
 
     @staticmethod
-    def get_all_provisional_temporary_counterlines(stock_changes):
+    def get_all_temporary_counterlines_since_last_stock_count(stock_changes, last_stock_count: StockCountDocument):
         article_mods = {}
         for change in stock_changes:
             if article_mods.get(change.article):
@@ -90,10 +102,25 @@ class TemporaryCounterLine:
                 else:
                     article_mods[change.article] = TemporaryCounterLine(change.article, 0, 0, change.count, 0)
 
-    @staticmethod
-    def get_all_temporary_counterlines_since_last_stock_count():
-        pass
-        #print(article_mods)
+        article_mods = article_mods.values()
+
+        if last_stock_count:
+            count_lines = StockCountLine.objects.filter(document=last_stock_count)
+            count_dict = {}
+            # Full the previous value as the expected value(DB value) at the previous count
+            for line in count_lines:
+                count_dict[line.article_type] = line.previous_count + line.in_count - line.out_count
+
+            for mod in article_mods:
+                count = count_dict.get(mod.article_type, None)
+                if count:
+                    mod.previous_count = count
+
+        else:
+            for mod in article_mods:  # Type: TemporaryCounterLine
+                mod.expected_count = mod.previous_count + mod.in_count - mod.out_count
+
+        return article_mods  # Type: List[TemporaryCounterLine]
 
 
 class TemporaryArticleCount(models.Model):
