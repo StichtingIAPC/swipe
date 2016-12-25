@@ -920,3 +920,11 @@ class StockLockTest(TestCase, TestData):
             StockChangeSet.construct(description="Stocking",
                                  entries=entries, enum=0)
 
+    def test_block_override(self):
+        StockLock.lock(self.user_1)
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 1,
+                    'is_in': True}]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0, force_ignore_lock=True)

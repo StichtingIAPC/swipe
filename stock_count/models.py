@@ -102,7 +102,7 @@ class TemporaryCounterLine:
                 else:
                     article_mods[change.article] = TemporaryCounterLine(change.article, 0, 0, change.count, 0)
 
-        article_mods = article_mods.values()
+        article_mods = list(article_mods.values())
 
         if last_stock_count:
             count_lines = StockCountLine.objects.filter(document=last_stock_count)
@@ -116,9 +116,8 @@ class TemporaryCounterLine:
                 if count:
                     mod.previous_count = count
 
-        else:
-            for mod in article_mods:  # Type: TemporaryCounterLine
-                mod.expected_count = mod.previous_count + mod.in_count - mod.out_count
+        for mod in article_mods:  # Type: TemporaryCounterLine
+            mod.expected_count = mod.previous_count + mod.in_count - mod.out_count
 
         return article_mods  # Type: List[TemporaryCounterLine]
 

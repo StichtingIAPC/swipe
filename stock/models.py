@@ -202,7 +202,7 @@ class StockChangeSet(models.Model):
 
     @classmethod
     @transaction.atomic()
-    def construct(cls, description, entries, enum):
+    def construct(cls, description, entries, enum, force_ignore_lock=False):
         """
         Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
@@ -212,11 +212,13 @@ class StockChangeSet(models.Model):
         :type entries: list(dict)
         :param enum: Number to describe what caused this change
         :type enum: int
+        :param force_ignore_lock: Ignore the stock lock. This is almost never a good idea.
+        :type force_ignore_lock: bool
         :return: A completed StockChangeSet of the modification
         :rtype: StockChangeSet
         """
         # Check if stock is locked
-        if StockLock.is_locked():
+        if StockLock.is_locked() and not force_ignore_lock:
             raise LockError("Stock is locked. Unlock first")
         # Check if the entry dictionaries are complete
         for entry in entries:
