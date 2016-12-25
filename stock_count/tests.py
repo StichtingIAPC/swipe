@@ -238,5 +238,6 @@ class EndingTests(TestCase, TestData):
         self.setup_base_data()
 
     def test_get_discrepancies_not_enough_counts(self):
-        TemporaryArticleCount.update_temporary_counts([(self.ar)])
+        pass
+        # TemporaryArticleCount.update_temporary_counts([(self.ar)])
 
