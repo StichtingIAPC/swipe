@@ -13,32 +13,19 @@ class PreparationTests(TestCase, TestData):
     def setUp(self):
         # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
         # are saved in a fixed manner
-
-        self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
-        self.vat_group_high.save()
-        self.vat_group_low = VAT(vatrate=1.06, name="Low", active=True)
-        self.vat_group_low.save()
-
-        self.currency_eur = Currency(iso="EUR")
-        self.currency_usd = Currency(iso="USD")
-
-        self.accounting_group_components = AccountingGroup(name="Components", vat_group=self.vat_group_high,
-                                                           accounting_number=1)
-        self.accounting_group_components.save()
-        self.accounting_group_food = AccountingGroup(name="Food", vat_group=self.vat_group_low, accounting_number=2)
-        self.accounting_group_food.save()
-
-        self.branch_1 = AssortmentArticleBranch(name="First Branch", parent_tag=None)
-        self.branch_1.save()
-        self.branch_2 = AssortmentArticleBranch(name="Second Branch", parent_tag=self.branch_1)
-        self.branch_2.save()
-
+        self.part_setup_vat_group()
+        self.part_setup_currency()
+        self.part_setup_accounting_group()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_costs()
+        self.part_setup_supplier()
         self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
                                          branch=self.branch_1)
         self.articletype_1.save()
         self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
                                          branch=self.branch_2)
         self.articletype_2.save()
+        self.part_setup_users()
 
     def test_stock_changes_no_stock_modifications(self):
         changes, stock_count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
@@ -263,31 +250,19 @@ class IntermediaryTests(TestCase, TestData):
     def setUp(self):
         # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
         # are saved in a fixed manner
-        self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
-        self.vat_group_high.save()
-        self.vat_group_low = VAT(vatrate=1.06, name="Low", active=True)
-        self.vat_group_low.save()
-
-        self.currency_eur = Currency(iso="EUR")
-        self.currency_usd = Currency(iso="USD")
-
-        self.accounting_group_components = AccountingGroup(name="Components", vat_group=self.vat_group_high,
-                                                           accounting_number=1)
-        self.accounting_group_components.save()
-        self.accounting_group_food = AccountingGroup(name="Food", vat_group=self.vat_group_low, accounting_number=2)
-        self.accounting_group_food.save()
-
-        self.branch_1 = AssortmentArticleBranch(name="First Branch", parent_tag=None)
-        self.branch_1.save()
-        self.branch_2 = AssortmentArticleBranch(name="Second Branch", parent_tag=self.branch_1)
-        self.branch_2.save()
-
+        self.part_setup_vat_group()
+        self.part_setup_currency()
+        self.part_setup_accounting_group()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_costs()
+        self.part_setup_supplier()
         self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
                                          branch=self.branch_1)
         self.articletype_1.save()
         self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
                                          branch=self.branch_2)
         self.articletype_2.save()
+        self.part_setup_users()
 
     def test_store_temporary_count(self):
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 8)])
@@ -321,32 +296,20 @@ class EndingTests(TestCase, TestData):
     def setUp(self):
         # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
         # are saved in a fixed manner
-
-        self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
-        self.vat_group_high.save()
-        self.vat_group_low = VAT(vatrate=1.06, name="Low", active=True)
-        self.vat_group_low.save()
-
-        self.currency_eur = Currency(iso="EUR")
-        self.currency_usd = Currency(iso="USD")
-
-        self.accounting_group_components = AccountingGroup(name="Components", vat_group=self.vat_group_high,
-                                                           accounting_number=1)
-        self.accounting_group_components.save()
-        self.accounting_group_food = AccountingGroup(name="Food", vat_group=self.vat_group_low, accounting_number=2)
-        self.accounting_group_food.save()
-
-        self.branch_1 = AssortmentArticleBranch(name="First Branch", parent_tag=None)
-        self.branch_1.save()
-        self.branch_2 = AssortmentArticleBranch(name="Second Branch", parent_tag=self.branch_1)
-        self.branch_2.save()
-
+        self.part_setup_vat_group()
+        self.part_setup_currency()
+        self.part_setup_accounting_group()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_costs()
+        self.part_setup_supplier()
+        self.part_setup_article_types()
         self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
                                          branch=self.branch_1)
         self.articletype_1.save()
         self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
                                          branch=self.branch_2)
         self.articletype_2.save()
+        self.part_setup_users()
 
     def test_get_discrepancies_not_enough_counts(self):
         pass
