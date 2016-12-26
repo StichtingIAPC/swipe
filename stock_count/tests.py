@@ -1,6 +1,7 @@
 from django.test import TestCase
 from tools.testing import TestData
-from stock_count.models import TemporaryCounterLine, StockCountDocument, StockCountLine, TemporaryArticleCount
+from stock_count.models import TemporaryCounterLine, StockCountDocument, StockCountLine, TemporaryArticleCount, \
+    UncountedError
 from stock.models import Stock, StockChangeSet
 from article.models import ArticleType
 from money.models import VAT, Currency, AccountingGroup
@@ -290,6 +291,21 @@ class IntermediaryTests(TestCase, TestData):
         for tac in tacs:
             self.assertEqual(tac, correct.get(tac.article_type))
 
+    def test_clear_temporary_counts(self):
+        TemporaryArticleCount.clear_temporary_counts()
+        tacs = TemporaryArticleCount.objects.all()
+        self.assertEqual(len(tacs), 2)
+
+    def test_partial_update_temporary_counts(self):
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2)])
+        TemporaryArticleCount.clear_temporary_counts()
+        tacs = TemporaryArticleCount.objects.all()
+        correct = {self.articletype_1: TemporaryArticleCount(article_type=self.articletype_1, count=0, checked=False),
+                   self.articletype_2: TemporaryArticleCount(article_type=self.articletype_2, count=0, checked=False)}
+        self.assertEqual(len(tacs), 2)
+        for tac in tacs:
+            self.assertEqual(tac, correct.get(tac.article_type))
+
 
 class EndingTests(TestCase, TestData):
 
@@ -302,7 +318,6 @@ class EndingTests(TestCase, TestData):
         self.part_setup_assortment_article_branch()
         self.part_setup_costs()
         self.part_setup_supplier()
-        self.part_setup_article_types()
         self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
                                          branch=self.branch_1)
         self.articletype_1.save()
@@ -312,6 +327,113 @@ class EndingTests(TestCase, TestData):
         self.part_setup_users()
 
     def test_get_discrepancies_not_enough_counts(self):
-        pass
-        # TemporaryArticleCount.update_temporary_counts([(self.ar)])
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        with self.assertRaises(UncountedError):
+            StockCountDocument.get_discrepancies()
+
+    def test_get_discrepancies_not_checked(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.clear_temporary_counts()
+        with self.assertRaises(UncountedError):
+            StockCountDocument.get_discrepancies()
+
+    def test_get_discrepancies_no_discrepancies(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.clear_temporary_counts()
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
+        discs = StockCountDocument.get_discrepancies()
+        self.assertEqual(len(discs), 0)
+
+    def test_get_discrepancies_counted_but_should_be_zero(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.clear_temporary_counts()
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 1)])
+        discs = StockCountDocument.get_discrepancies()
+        correct = (self.articletype_2, 1)
+        self.assertEqual(len(discs), 1)
+        self.assertEqual(discs[0], correct)
+
+    def test_get_discrepancies_not_counted_but_should_be(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.clear_temporary_counts()
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 0), (self.articletype_2, 0)])
+        discs = StockCountDocument.get_discrepancies()
+        correct = (self.articletype_1, -2)
+        self.assertEqual(len(discs), 1)
+        self.assertEqual(discs[0], correct)
+
+    def test_get_discrepancies_two_discrepancies(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.clear_temporary_counts()
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 1), (self.articletype_2, 1)])
+        discs = StockCountDocument.get_discrepancies()
+        correct = {self.articletype_1: (self.articletype_1, -1),
+                   self.articletype_2: (self.articletype_2, 1)}
+        self.assertEqual(len(discs), 2)
+        for disc in discs:
+            self.assertEqual(disc, correct.get(disc[0]))
+
+    def test_get_discrepancies_previous_stock_count(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        sc = StockCountDocument(user_created=self.user_1)
+        sc.save()
+        scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
+                             out_count=0, physical_count=2, user_modified=sc.user_created)
+        scl.save()
+        TemporaryArticleCount.clear_temporary_counts()
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
+        discs = StockCountDocument.get_discrepancies()
+        self.assertEqual(len(discs), 0)
+
+    def test_get_discrepancies_different_previous_physical_count(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        sc = StockCountDocument(user_created=self.user_1)
+        sc.save()
+        scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
+                             out_count=0, physical_count=3, user_modified=sc.user_created)
+        scl.save()
+        TemporaryArticleCount.clear_temporary_counts()
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
+        discs = StockCountDocument.get_discrepancies()
+        self.assertEqual(len(discs), 0)
 

@@ -2,8 +2,9 @@ from django.utils import timezone
 from django.db import models
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
-from stock.models import StockChange
+from stock.models import StockChange, StockChangeSet
 from tools.util import raiseif
+from crm.models import User
 
 
 class StockCountDocument(ImmutableBlame):
@@ -11,6 +12,7 @@ class StockCountDocument(ImmutableBlame):
     The document collection all the counts of all the articles in the stock. The document is regarded as a diff
     from the previous stock count.
     """
+    stock_change_set = models.ForeignKey(StockChangeSet, null=True)
 
     def save(self, **kwargs):
         # To ensure setting the time, this should not be done by Django/database as it is not reliable when
@@ -28,7 +30,7 @@ class StockCountDocument(ImmutableBlame):
         After this, you should be able to puzzle how to solve any stock shortage.
         """
         # In practice, the system should be more automatic and lenient. It will suffice for now.
-        raiseif(ArticleType.objects.count() != TemporaryArticleCount.objects.filter(checked=True), UncountedError,
+        raiseif(ArticleType.objects.count() != TemporaryArticleCount.objects.filter(checked=True).count(), UncountedError,
                 "The number of ArticleTypes is not equal to the number of counted ArticleTypes")
         tacs = TemporaryArticleCount.objects.all()
         article_counts = {}
@@ -47,6 +49,21 @@ class StockCountDocument(ImmutableBlame):
                 discrepancies.append((article_type, diff))
 
         return discrepancies
+
+    @staticmethod
+    def create_stock_count(user: User):
+        """
+        Creates a stock count. This requires the following things:
+        - all ArticleTypes are counted as in TemporaryArticleCount
+        - For any discrepancies where the physical count of an ArticleType is lower than the expected count,
+        enough valid DiscrepancySolution-s are offered to pick the correct StockLine-s to subtract the differing
+        articles from.
+        If the above conditions are met, the system will be able to create a StockCount with the relevant
+        StockCountLines.
+        :param user: The user who authorised the process
+        :return:
+        """
+        pass
 
 
 class StockCountLine(Blame):
@@ -70,6 +87,22 @@ class StockCountLine(Blame):
     physical_count = models.IntegerField()
     # NB: The expected count is 'previous_count + in_count - out_count' and this conforms to the database count
 
+
+class DiscrepancySolution(models.Model):
+    """
+    A collection of solutions for discrepancies that reduce stock.
+    The solutions for each article are used in order of primary key.
+    """
+    # The articleType to delete items from stock from
+    article_type = models.ForeignKey(ArticleType)
+    # The stocklabel string to potentially delete the articles from. null for stock
+    stock_label = models.CharField(null=True, max_length=30)
+    # The stocklabel key to potentially delete articles from
+    stock_key = models.IntegerField(null=True)
+
+    @staticmethod
+    def remove_all_solutions():
+        DiscrepancySolution.objects.all().delete()
 
 class TemporaryCounterLine:
     """
@@ -186,6 +219,13 @@ class TemporaryArticleCount(models.Model):
         Sets all counts back to 0
         """
         TemporaryArticleCount.objects.all().update(count=0, checked=False)
+        article_type_ids = TemporaryArticleCount.objects.all().values('id')
+        ats = ArticleType.objects.exclude(id__in=article_type_ids)
+        if len(ats) > 0:
+            new_temporary_article_counts = []
+            for at in ats:
+                new_temporary_article_counts.append(TemporaryArticleCount(article_type=at, count=0, checked=False))
+            TemporaryArticleCount.objects.bulk_create(new_temporary_article_counts)
 
     @staticmethod
     def update_temporary_counts(article_type_count_combinations):
@@ -201,6 +241,7 @@ class TemporaryArticleCount(models.Model):
                 TemporaryArticleCount.objects.create(article_type=article, count=count, checked=True)
             else:
                 art[0].count = count
+                art[0].checked = True
                 art[0].save()
 
     def __str__(self):
