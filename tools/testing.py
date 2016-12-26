@@ -13,83 +13,54 @@ from django.test import TestCase
 
 class TestData:
 
-    # noinspection PyUnusedLocal
-    def __init__(self, *args, **kwargs):
-        self.currency_data_eur = None
-        self.currency_data_usd = None
-        self.vat_group_high = None
-        self.vat_group_low = None
-        self.currency_eur = None
-        self.currency_usd = None
-        self.accounting_group_components = None
-        self.accounting_group_food = None
-        self.branch_1 = None
-        self.branch_2 = None
-        self.paymenttype_cash = None
-        self.paymenttype_maestro = None
-        self.paymenttype_invoice = None
-        self.register_1 = None
-        self.register_2 = None
-        self.register_3 = None
-        self.register_4 = None
-        self.denomination_eur_20 = None
-        self.denomination_eur_0_01 = None
-        self.price_eur_1 = None
-        self.price_eur_2 = None
-        self.cost_eur_1 = None
-        self.cost_eur_2 = None
-        self.supplier_1 = None
-        self.supplier_2 = None
-        self.articletype_1 = None
-        self.articletype_2 = None
-        self.articletypesupplier_article_1 = None
-        self.articletypesupplier_article_2 = None
-        self.othercosttype_1 = None
-        self.othercosttype_2 = None
-        self.customer_person_1 = None
-        self.customer_person_2 = None
-        self.user_1 = None
-        self.user_2 = None
-        self.CUSTORDERED_ARTICLE_1 = None
-        self.CUSTORDERED_ARTICLE_2 = None
-        self.CUSTORDERED_OTHERCOST_1 = None
-        self.CUSTORDERED_OTHERCOST_2 = None
-        self.STOCKWISHED_ARTICLE_1 = None
-        self.STOCKWISHED_ARTICLE_2 = None
-        self.SUPPLIERORDERED_ARTICLE_1 = None
-        self.SUPPLIERORDERED_ARTICLE_2 = None
-        self.PACKING_ARTICLE_1 = None
-        self.PACKING_ARTICLE_2 = None
-        self.SOLD_ARTICLE_1 = None
-        self.SOLD_ARTICLE_2 = None
-        self.SOLD_OTHERCOST_1 = None
-        super(TestData, self).__init__()
-
     def setup_base_data(self):
+        self.part_setup_currency_data()
+        self.part_setup_vat_group()
+        self.part_setup_currency()
+        self.part_setup_accounting_group()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_payment_types()
+        self.part_setup_registers()
+        self.part_setup_denominations()
+        self.part_setup_prices()
+        self.part_setup_costs()
+        self.part_setup_supplier()
+        self.part_setup_article_types()
+        self.part_setup_article_type_supplier()
+        self.part_setup_othercosts()
+        self.part_setup_customers()
+        self.part_setup_users()
+
+    def part_setup_currency_data(self):
         self.currency_data_eur = CurrencyData(iso="EUR", name="Euro", symbol="€", digits=2)
         self.currency_data_eur.save()
         self.currency_data_usd = CurrencyData(iso="USD", name="US Dollar", symbol="$", digits=2)
         self.currency_data_usd.save()
 
+    def part_setup_vat_group(self):
         self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
         self.vat_group_high.save()
         self.vat_group_low = VAT(vatrate=1.06, name="Low", active=True)
         self.vat_group_low.save()
 
+    def part_setup_currency(self):
         self.currency_eur = Currency(iso="EUR")
         self.currency_usd = Currency(iso="USD")
 
+    def part_setup_accounting_group(self):
         self.accounting_group_components = AccountingGroup(name="Components", vat_group=self.vat_group_high,
                                                            accounting_number=1)
         self.accounting_group_components.save()
         self.accounting_group_food = AccountingGroup(name="Food", vat_group=self.vat_group_low, accounting_number=2)
         self.accounting_group_food.save()
 
+    def part_setup_assortment_article_branch(self):
         self.branch_1 = AssortmentArticleBranch(name="First Branch", parent_tag=None)
         self.branch_1.save()
         self.branch_2 = AssortmentArticleBranch(name="Second Branch", parent_tag=self.branch_1)
         self.branch_2.save()
 
+    def part_setup_payment_types(self):
         self.paymenttype_cash = PaymentType(name="Cash")
         self.paymenttype_cash.save()
         self.paymenttype_maestro = PaymentType(name="Maestro")
@@ -97,6 +68,7 @@ class TestData:
         self.paymenttype_invoice = PaymentType(name="Invoice", is_invoicing=True)
         self.paymenttype_invoice.save()
 
+    def part_setup_registers(self):
         self.register_1 = Register(currency=self.currency_data_eur, is_cash_register=True,
                                    payment_type=self.paymenttype_cash, name="Register 1")
         self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True,
@@ -110,22 +82,29 @@ class TestData:
         self.register_3.save()
         self.register_4.save()
 
+    def part_setup_denominations(self):
         self.denomination_eur_20 = Denomination(currency=self.currency_data_eur, amount=20)
         self.denomination_eur_20.save()
         self.denomination_eur_0_01 = Denomination(currency=self.currency_data_eur, amount=0.01)
         self.denomination_eur_0_01.save()
 
+    def part_setup_prices(self):
         self.price_eur_1 = Price(amount=Decimal(1.23), currency=self.currency_eur, vat=1.21)
         self.price_eur_2 = Price(amount=Decimal(2.10), currency=self.currency_eur, vat=1.06)
 
+    def part_setup_costs(self):
         self.cost_eur_1 = Cost(amount=Decimal(1.23), currency=self.currency_eur)
         self.cost_eur_2 = Cost(amount=Decimal(2.10), currency=self.currency_eur)
+        self.cost_eur_3 = Cost(amount=Decimal(3.14), currency=self.currency_eur)
+        self.cost_eur_4 = Cost(amount=Decimal(10.01), currency=self.currency_eur)
 
+    def part_setup_supplier(self):
         self.supplier_1 = Supplier(name="Supplier 1")
         self.supplier_1.save()
         self.supplier_2 = Supplier(name="Supplier 2")
         self.supplier_2.save()
 
+    def part_setup_article_types(self):
         self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
                                          branch=self.branch_1)
         self.articletype_1.save()
@@ -133,6 +112,7 @@ class TestData:
                                          branch=self.branch_2)
         self.articletype_2.save()
 
+    def part_setup_article_type_supplier(self):
         self.articletypesupplier_article_1 = ArticleTypeSupplier(supplier=self.supplier_1,
                                                                  article_type=self.articletype_1,
                                                                  cost=self.cost_eur_1, availability='A',
@@ -146,6 +126,7 @@ class TestData:
                                                                  minimum_number_to_order=1)
         self.articletypesupplier_article_2.save()
 
+    def part_setup_othercosts(self):
         self.othercosttype_1 = OtherCostType(name="OtherCostType 1", accounting_group=self.accounting_group_components,
                                              branch=self.branch_1, fixed_price=self.price_eur_1)
         self.othercosttype_1.save()
@@ -153,6 +134,7 @@ class TestData:
                                              branch=self.branch_2, fixed_price=self.price_eur_2)
         self.othercosttype_2.save()
 
+    def part_setup_customers(self):
         self.customer_person_1 = Person(address="Drienerlolaan 5", city="Enschede", email="bestuur@iapc.utwente.nl",
                                         name="Jaap de Steen", phone="0534893927", zip_code="7522NB")
         self.customer_person_1.save()
@@ -161,6 +143,7 @@ class TestData:
                                         phone="0534894260", zip_code="7522NB")
         self.customer_person_2.save()
 
+    def part_setup_users(self):
         self.user_1 = User(username="jsteen")
         self.user_1.save()
         self.user_2 = User(username="ghuis")

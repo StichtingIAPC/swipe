@@ -109,8 +109,7 @@ class Order(Blame, Shared):
         Gets all the stock associated with this order.
         :return: A QuerySet with Stock's of this order
         """
-        # noinspection PyProtectedMember
-        return Stock.objects.filter(labeltype=OrderLabel._labeltype, labelkey=self.pk)
+        return Stock.objects.filter(labeltype=OrderLabel.labeltype, labelkey=self.pk)
 
 
 class OrderLineState(ImmutableBlame):

@@ -647,16 +647,16 @@ class StockTest(INeedSettings, TestCase):
 
 @StockLabel.register
 class ZStockLabel(StockLabel):
-    _labeltype = "Zz"
+    labeltype = "Zz"
 
 
 @StockLabel.register
 class TestStockLabel(StockLabel):
-    _labeltype = "test"
+    labeltype = "test"
 
 
 class ForgottenStockLabel(StockLabel):
-    _labeltype = "forgotten"
+    labeltype = "forgotten"
 
 
 class LabelTest(INeedSettings, TestCase):
@@ -761,7 +761,7 @@ class LabelTest(INeedSettings, TestCase):
 
     def testTestLabelWithoutName(self):
         class InValidLabel(StockLabel):
-            _labeltype = ""
+            labeltype = ""
 
         self.labeltype = InValidLabel
         self.assertRaises(ValueError, self.raise_Invalid_Label_type_added)
