@@ -2,6 +2,7 @@ from django.test import TestCase
 from tools.testing import TestData
 from stock_count.models import TemporaryCounterLine, StockCountDocument, StockCountLine, TemporaryArticleCount
 from stock.models import Stock, StockChangeSet
+from article.models import ArticleType
 import time
 
 
@@ -152,8 +153,10 @@ class PreparationTests(TestCase, TestData):
         StockChangeSet.construct(description="", entries=entry, enum=0)
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
-        correct = TemporaryCounterLine(self.articletype_1, IN_TOTAL-OUT_1, NEW_IN_TOTAL, NEW_OUT_1)
-        self.assertEqual(mods[0], correct)
+        correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL-OUT_1, NEW_IN_TOTAL, NEW_OUT_1),
+                   self.articletype_2: TemporaryCounterLine(self.articletype_2, 0, 0, 0)}
+        for mod in mods:
+            self.assertEqual(mod, correct.get(mod.article_type))
 
     def test_temporary_counter_lines_newly_used_article(self):
         IN_1 = 5
@@ -196,6 +199,32 @@ class PreparationTests(TestCase, TestData):
         correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL-OUT_1,
                                                             NEW_IN_1, 0,),
                    self.articletype_2: TemporaryCounterLine(self.articletype_2, 0, NEW_IN_2, 0)}
+        for mod in mods:
+            self.assertEqual(mod, correct.get(mod.article_type))
+
+
+    def test_keep_previous_count_no_stock_change(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        sc = StockCountDocument(user_created=self.user_1)
+        sc.save()
+        scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
+                             out_count=0, physical_count=2, user_modified=sc.user_created)
+        scl.save()
+        entry = [{'article': self.articletype_2,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
+        mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
+        correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, 2, 0, 0),
+                   self.articletype_2: TemporaryCounterLine(self.articletype_2, 0, 3, 0)}
         for mod in mods:
             self.assertEqual(mod, correct.get(mod.article_type))
 

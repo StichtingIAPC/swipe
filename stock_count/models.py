@@ -133,7 +133,21 @@ class TemporaryCounterLine:
                 else:
                     article_mods[change.article] = TemporaryCounterLine(change.article, 0, 0, change.count)
 
-        modded_articles = article_mods.keys()
+        # Grab articles that are not yet considered in the list. These are articles which contained no modification
+        # since the last stock count. They could however, still be in stock.
+        modded_articles = list(article_mods.keys())
+        modded_article_ids = []
+        for m_a in modded_articles:
+            modded_article_ids.append(m_a.id)
+
+        if len(modded_article_ids) != ArticleType.objects.count():
+            ats = list(ArticleType.objects.all().exclude(id__in=modded_article_ids))
+        else:
+            ats = []
+
+        for at in ats:
+            article_mods[at] = TemporaryCounterLine(at, 0, 0, 0)
+
         article_mods = list(article_mods.values())
 
         if last_stock_count:
