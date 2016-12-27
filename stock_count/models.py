@@ -1,10 +1,13 @@
 from django.utils import timezone
-from django.db import models
+from django.db import models, transaction
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
-from stock.models import StockChange, StockChangeSet
-from tools.util import raiseif
+from stock.models import StockChange, StockChangeSet, Stock
+from stock.enumeration import enum
+from tools.util import raiseif, raiseifnot
 from crm.models import User
+from money.models import Cost
+from decimal import Decimal
 
 
 class StockCountDocument(ImmutableBlame):
@@ -28,6 +31,7 @@ class StockCountDocument(ImmutableBlame):
         Stock-lines that articles can be taken from. When there is a shortage of items, you need to be able to pick
         the Stock-lines from which to subtract the articles. This function indicates where differences, if any, are.
         After this, you should be able to puzzle how to solve any stock shortage.
+
         """
         # In practice, the system should be more automatic and lenient. It will suffice for now.
         raiseif(ArticleType.objects.count() != TemporaryArticleCount.objects.filter(checked=True).count(), UncountedError,
@@ -63,7 +67,100 @@ class StockCountDocument(ImmutableBlame):
         :param user: The user who authorised the process
         :return:
         """
-        pass
+        discrepancies = StockCountDocument.get_discrepancies()
+
+        solutions = DiscrepancySolution.objects.all()
+        # Throw the solutions into dicts for easy comparison
+        solution_dict = {}
+        for solution in solutions:
+            entry = solution_dict.get(solution.article_type, None)
+            if entry:
+                solution_dict[solution.article_type].append(solution)
+            else:
+                solution_dict[solution.article_type] = [solution]
+
+        # Do we still need the original? I'm not sure so lets use a copy.
+        discrepancies_left = discrepancies.copy()
+        # Stock modifications to be done
+        entries = []
+
+        for article, difference in discrepancies_left:
+            if difference > 0:
+                sts = Stock.objects.filter(article=article, labelkey__isnull=True)
+                if len(sts) == 1:
+                    entries.append({'article': article,
+                                    'book_value': sts[0].book_value,
+                                    'count': difference,
+                                    'is_in': True})
+                else:
+                    last_change = StockChange.objects.filter(article=article).last()  # type: StockChange
+                    if last_change:
+                        entries.append({'article': article,
+                                        'book_value': last_change.book_value,
+                                        'count': difference,
+                                        'is_in': True})
+                    else:
+                        # An article was counted but something like it has never come in before.
+                        # An elegant solution is probably possible but this situation seems incredibly unlikely
+                        entries.append({'article': article,
+                                        'book_value': Cost(amount=Decimal(0), use_system_currency=True),
+                                        'count': difference,
+                                        'is_in': True})
+            elif difference < 0:
+                matchings = solution_dict.get(article, None)  # type: list[DiscrepancySolution]
+                if matchings:
+                    to_be_solved = difference*-1
+                    no_of_matchings = len(matchings)
+                    i = 0
+                    while to_be_solved > 0 and i < no_of_matchings:
+                        match = matchings[i]
+                        try:
+                            st = Stock.objects.get(article=match.article_type, labeltype=match.stock_label,
+                                                   labelkey=match.stock_key)
+                            if st.count <= to_be_solved:
+                                entries.append({'article': article,
+                                                'book_value': st.book_value,
+                                                'count': st.count,
+                                                'is_in': False})
+                                to_be_solved -= st.count
+                            else:
+                                entries.append({'article': article,
+                                                'book_value': st.book_value,
+                                                'count': to_be_solved,
+                                                'is_in': False})
+                                to_be_solved = 0
+                            i += 1
+                        except Stock.DoesNotExist:
+                            raise SolutionError("Solution {} does not exist in Stock".format(match))
+                    if to_be_solved > 0:
+                        raise SolutionError("Not enough solutions for article {}".format(article))
+                else:
+                    raise SolutionError("No solutions where provided yet a negative discrepancy was found")
+            else:
+                raise FunctionError("The difference function indicated an error of 0 for {}. This is not possible".
+                                    format(article))
+
+        # If we are here, we can assume everything worked out ok
+
+        counts = TemporaryArticleCount.get_count_dict()
+        changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
+        mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
+        # Let's save
+        with transaction.atomic():
+            doc = StockCountDocument(user_modified=user)
+            doc.save()
+            for mod in mods:
+                physical = count.get(mod.article_type, None)
+                raiseif(physical is None, UncountedError, "ArticleType {} is uncounted".format(mod.article_type))
+                scl = StockCountLine(document=doc, article_type=mod.article_type, previous_count=mod.previous_count,
+                                     in_count=mod.in_count, out_count=mod.out_count,
+                                     physical_count=physical)
+                scl.save()
+            change_set = StockChangeSet.construct(description="Stockchanges for Stock count", entries=entries,
+                                                  enum=enum["stock_count"])
+            # We now have a saved document. Lets set the stock change set for checking purposes
+            doc.stock_change_set = change_set
+            doc.save()
 
 
 class StockCountLine(Blame):
@@ -103,6 +200,25 @@ class DiscrepancySolution(models.Model):
     @staticmethod
     def remove_all_solutions():
         DiscrepancySolution.objects.all().delete()
+
+    @staticmethod
+    def remove_solution_for_article_type(article_type):
+        raiseifnot(isinstance(article_type, ArticleType), TypeError, "article_type should be an ArticleType")
+        DiscrepancySolution.objects.filter(article_type=article_type).delete()
+
+    @staticmethod
+    def add_solutions(discrepancy_solutions):
+        """
+        Adds solutions for discrepancies that have less than expected articles. These solutions are used in order,
+        to subtract articles from.
+        :param discrepancy_solutions: List[DiscrepancySolutions] Entered in order of importance for
+        solving the discrepancy. There need to be enough for these to resolve all the shortages.
+        :type discrepancy_solutions: list[DiscrepancySolution]
+        """
+        for ds in discrepancy_solutions:
+            raiseifnot(isinstance(ds, DiscrepancySolution), TypeError, "ds should be a DiscrepancySolution")
+            ds.save()
+
 
 class TemporaryCounterLine:
     """
@@ -153,6 +269,14 @@ class TemporaryCounterLine:
 
     @staticmethod
     def get_all_temporary_counterlines_since_last_stock_count(stock_changes, last_stock_count: StockCountDocument):
+        """
+        Returns a list of all temporary counter lines since the last stock. It makes these lines from the
+        stock changes since the last stock count.
+        :param stock_changes:
+        :param last_stock_count:
+        :rtype list[TemporaryCounterLine]
+        :return:
+        """
         article_mods = {}
         for change in stock_changes:
             if article_mods.get(change.article):
@@ -244,6 +368,17 @@ class TemporaryArticleCount(models.Model):
                 art[0].checked = True
                 art[0].save()
 
+    @staticmethod
+    def get_count_dict():
+        """
+        Returns a dictionary of all counts that are checked.
+        """
+        result = {}
+        lst = list(TemporaryArticleCount.objects.filter(checked=True))
+        for elem in lst:
+            result[elem.article_type] = elem
+        return result
+
     def __str__(self):
         return "Article: {}, count: {}, checked: {}".format(self.article_type, self.count, self.checked)
 
@@ -256,5 +391,13 @@ class TemporaryArticleCount(models.Model):
 
 
 class UncountedError(Exception):
+    pass
+
+
+class FunctionError(Exception):
+    pass
+
+
+class SolutionError(Exception):
     pass
 
