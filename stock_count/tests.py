@@ -145,10 +145,10 @@ class PreparationTests(TestCase, TestData):
                    'is_in': False},
                  ]
         StockChangeSet.construct(description="", entries=entry, enum=0)
-        sc = StockCountDocument(user_created=self.user_1)
+        sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
-                       out_count=3, physical_count=9, user_modified=sc.user_created)
+                       out_count=3, physical_count=9, user_modified=sc.user_modified)
         scl.save()
         NEW_IN_1 = 1
         NEW_IN_2 = 2
@@ -194,10 +194,10 @@ class PreparationTests(TestCase, TestData):
                   'is_in': False},
                  ]
         StockChangeSet.construct(description="", entries=entry, enum=0)
-        sc = StockCountDocument(user_created=self.user_1)
+        sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
-                             out_count=3, physical_count=9, user_modified=sc.user_created)
+                             out_count=3, physical_count=9, user_modified=sc.user_modified)
         scl.save()
         NEW_IN_1 = 1
         NEW_IN_2 = 2
@@ -227,10 +227,10 @@ class PreparationTests(TestCase, TestData):
                   'is_in': True},
                  ]
         StockChangeSet.construct(description="", entries=entry, enum=0)
-        sc = StockCountDocument(user_created=self.user_1)
+        sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
-                             out_count=0, physical_count=2, user_modified=sc.user_created)
+                             out_count=0, physical_count=2, user_modified=sc.user_modified)
         scl.save()
         entry = [{'article': self.articletype_2,
                   'book_value': self.cost_eur_1,
@@ -410,10 +410,10 @@ class EndingTests(TestCase, TestData):
                   'is_in': True},
                  ]
         StockChangeSet.construct(description="", entries=entry, enum=0)
-        sc = StockCountDocument(user_created=self.user_1)
+        sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
-                             out_count=0, physical_count=2, user_modified=sc.user_created)
+                             out_count=0, physical_count=2, user_modified=sc.user_modified)
         scl.save()
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
@@ -427,13 +427,27 @@ class EndingTests(TestCase, TestData):
                   'is_in': True},
                  ]
         StockChangeSet.construct(description="", entries=entry, enum=0)
-        sc = StockCountDocument(user_created=self.user_1)
+        sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
-                             out_count=0, physical_count=3, user_modified=sc.user_created)
+                             out_count=0, physical_count=3, user_modified=sc.user_modified)
         scl.save()
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
         discs = StockCountDocument.get_discrepancies()
         self.assertEqual(len(discs), 0)
+
+    def test_make_stock_count_no_discrepancies(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 {'article': self.articletype_2,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 3)])
+        StockCountDocument.create_stock_count(self.user_1)
 

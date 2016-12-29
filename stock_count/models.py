@@ -10,7 +10,7 @@ from money.models import Cost
 from decimal import Decimal
 
 
-class StockCountDocument(ImmutableBlame):
+class StockCountDocument(Blame):
     """
     The document collection all the counts of all the articles in the stock. The document is regarded as a diff
     from the previous stock count.
@@ -150,11 +150,11 @@ class StockCountDocument(ImmutableBlame):
             doc = StockCountDocument(user_modified=user)
             doc.save()
             for mod in mods:
-                physical = count.get(mod.article_type, None)
+                physical = counts.get(mod.article_type, None)
                 raiseif(physical is None, UncountedError, "ArticleType {} is uncounted".format(mod.article_type))
                 scl = StockCountLine(document=doc, article_type=mod.article_type, previous_count=mod.previous_count,
                                      in_count=mod.in_count, out_count=mod.out_count,
-                                     physical_count=physical)
+                                     physical_count=physical, user_modified=user)
                 scl.save()
             change_set = StockChangeSet.construct(description="Stockchanges for Stock count", entries=entries,
                                                   enum=enum["stock_count"])
@@ -183,6 +183,19 @@ class StockCountLine(Blame):
     # How much is actually present
     physical_count = models.IntegerField()
     # NB: The expected count is 'previous_count + in_count - out_count' and this conforms to the database count
+
+    def __str__(self):
+        if hasattr(self, 'document'):
+            doc = str(self.document.id)
+        else:
+            doc = "None"
+        if hasattr(self, 'article_type'):
+            art = str(self.article_type.id)
+        else:
+            art = 'None'
+        return "Document: {}, ArticleType: {}, Previous: {}," \
+               " In: {}, Out: {}, Physical: {}".format(doc, art, self.previous_count, self.in_count, self.out_count,
+                                                       self.physical_count)
 
 
 class DiscrepancySolution(models.Model):
@@ -376,7 +389,7 @@ class TemporaryArticleCount(models.Model):
         result = {}
         lst = list(TemporaryArticleCount.objects.filter(checked=True))
         for elem in lst:
-            result[elem.article_type] = elem
+            result[elem.article_type] = elem.count
         return result
 
     def __str__(self):
