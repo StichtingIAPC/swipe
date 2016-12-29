@@ -9,7 +9,7 @@ export function setToken(token){
 }
 
 
-export function get(url, {headers = {}, ...rest}) {
+export function get(url, {headers = {}, ...rest} = {}) {
 	return fetch(
 		config.baseurl + url,
 		{
@@ -24,7 +24,7 @@ export function get(url, {headers = {}, ...rest}) {
 	).then((response) => response.ok ? response : Promise.reject(response))
 }
 
-export function post(url, object, {headers = {}, ...rest}) {
+export function post(url, object, {headers = {}, ...rest} = {}) {
 	return fetch(
 		config.baseurl + url,
 		{
