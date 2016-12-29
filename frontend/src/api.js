@@ -1,6 +1,13 @@
 import fetch from "isomorphic-fetch";
 import config from "./config";
-import {getState} from "./app";
+
+let TOKEN = '';
+
+
+export function setToken(token){
+	TOKEN = token;
+}
+
 
 export function get(url, {headers = {}, ...rest}) {
 	return fetch(
@@ -9,7 +16,7 @@ export function get(url, {headers = {}, ...rest}) {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Token ${getState().auth.token}`,
+				'Authorization': `Token ${TOKEN}`,
 				...headers,
 			},
 			...rest,
@@ -24,7 +31,7 @@ export function post(url, object, {headers = {}, ...rest}) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Token ${getState().auth.token}`,
+				'Authorization': `Token ${TOKEN}`,
 				...headers,
 			},
 			body: JSON.stringify(object),
