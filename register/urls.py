@@ -15,24 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url
 
-from register.views import index, RegisterList, OpenFormView, CloseFormView, IsOpenStateView, RegisterCreate, \
-    RegisterDetail, PaymentTypeList, PaymentTypeCreate, PaymentTypeDetail, RegisterEdit
-
+from register import views
 
 urlpatterns = [
     # Standard page
-    url(r'^$', index, name="register_index"),
-
-    url(r'^state/$', IsOpenStateView.as_view(), name="register_state"),
-    url(r'^state/open/$', OpenFormView.as_view(), name="register_open"),
-    url(r'^state/close/$', CloseFormView.as_view(), name="register_close"),
-
-    url(r'^list/$', RegisterList.as_view(), name="register_list"),
-    url(r'^add/$', RegisterCreate.as_view(), name="register_create"),
-    url(r'^(?P<pk>[0-9]+)/$', RegisterDetail.as_view(), name="register_detail"),
-    url(r'^(?P<pk>[0-9]+)/edit/', RegisterEdit.as_view(), name="register_edit"),
-
-    url(r'^paymenttypes/$', PaymentTypeList.as_view(), name='paymenttype_list'),
-    url(r'^paymenttypes/add/$', PaymentTypeCreate.as_view(), name='paymenttype_create'),
-    url(r'^paymenttypes/(?P<pk>[0-9]+)/$', PaymentTypeDetail.as_view(), name='paymenttype_detail'),
+    url(r'^$', views.RegisterListView.as_view(), name="register-list"),
+    url(r'^(?P<pk>\d+)$', views.RegisterView.as_view(), name="register-view"),
 ]
