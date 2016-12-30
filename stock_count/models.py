@@ -153,9 +153,11 @@ class StockCountDocument(Blame):
             for mod in mods:
                 physical = counts.get(mod.article_type, None)
                 raiseif(physical is None, UncountedError, "ArticleType {} is uncounted".format(mod.article_type))
-                avg = money_values.get(mod.article_type)[1]
-                if not avg:
+                avg_tuple = money_values.get(mod.article_type)
+                if not avg_tuple:
                     avg = Cost(amount=Decimal(0), use_system_currency=True)
+                else:
+                    avg=avg_tuple[1]
                 scl = StockCountLine(document=doc, article_type=mod.article_type, previous_count=mod.previous_count,
                                      in_count=mod.in_count, out_count=mod.out_count,
                                      physical_count=physical, average_value=avg, text=mod.article_type.name,
@@ -212,6 +214,16 @@ class StockCountLine(models.Model):
                " In: {}, Out: {}, Physical: {}, Average value: {}, " \
                "Text: {}, Accounting group: {}".format(doc, art, self.previous_count, self.in_count, self.out_count,
                                                        self.physical_count, self.average_value, self.text, acc)
+
+    def __eq__(self, other):
+        if not isinstance(other, StockCountLine):
+            return False
+        else:
+            return self.document_id == other.document_id and self.article_type_id == other.article_type_id and \
+                self.previous_count == other.previous_count and self.in_count == other.in_count \
+                and self.out_count == other.out_count and self.physical_count == other.physical_count and \
+                self.average_value == other.average_value and self.text == other.text and \
+                self.accounting_group_id == other.accounting_group_id
 
 
 class DiscrepancySolution(models.Model):
