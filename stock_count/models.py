@@ -6,7 +6,7 @@ from stock.models import StockChange, StockChangeSet, Stock
 from stock.enumeration import enum
 from tools.util import raiseif, raiseifnot
 from crm.models import User
-from money.models import Cost
+from money.models import Cost, CostField, AccountingGroup
 from decimal import Decimal
 
 
@@ -145,6 +145,7 @@ class StockCountDocument(Blame):
         counts = TemporaryArticleCount.get_count_dict()
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
+        money_values = Stock.get_all_average_prices_and_amounts()
         # Let's save
         with transaction.atomic():
             doc = StockCountDocument(user_modified=user)
@@ -152,9 +153,13 @@ class StockCountDocument(Blame):
             for mod in mods:
                 physical = counts.get(mod.article_type, None)
                 raiseif(physical is None, UncountedError, "ArticleType {} is uncounted".format(mod.article_type))
+                avg = money_values.get(mod.article_type)[1]
+                if not avg:
+                    avg = Cost(amount=Decimal(0), use_system_currency=True)
                 scl = StockCountLine(document=doc, article_type=mod.article_type, previous_count=mod.previous_count,
                                      in_count=mod.in_count, out_count=mod.out_count,
-                                     physical_count=physical, user_modified=user)
+                                     physical_count=physical, average_value=avg, text=mod.article_type.name,
+                                     accounting_group=mod.article_type.accounting_group)
                 scl.save()
             change_set = StockChangeSet.construct(description="Stockchanges for Stock count", entries=entries,
                                                   enum=enum["stock_count"])
@@ -163,7 +168,7 @@ class StockCountDocument(Blame):
             doc.save()
 
 
-class StockCountLine(Blame):
+class StockCountLine(models.Model):
     """
     A line on a stock count. Considers all changes that have happened to an article since the last stock count.
     Registers the difference between the expected value and the real value by storing the expected number and
@@ -183,6 +188,12 @@ class StockCountLine(Blame):
     # How much is actually present
     physical_count = models.IntegerField()
     # NB: The expected count is 'previous_count + in_count - out_count' and this conforms to the database count
+    # The average value per product over all the products in stock
+    average_value = CostField()
+    # The snapshot of the name of the ArticleType
+    text = models.CharField(max_length=255)
+    # The accounting group of the ArticleType for snapshotting
+    accounting_group = models.ForeignKey(AccountingGroup)
 
     def __str__(self):
         if hasattr(self, 'document'):
@@ -193,9 +204,14 @@ class StockCountLine(Blame):
             art = str(self.article_type.id)
         else:
             art = 'None'
+        if hasattr(self, 'accounting_group'):
+            acc = str(self.accounting_group)
+        else:
+            acc = 'None'
         return "Document: {}, ArticleType: {}, Previous: {}," \
-               " In: {}, Out: {}, Physical: {}".format(doc, art, self.previous_count, self.in_count, self.out_count,
-                                                       self.physical_count)
+               " In: {}, Out: {}, Physical: {}, Average value: {}, " \
+               "Text: {}, Accounting group: {}".format(doc, art, self.previous_count, self.in_count, self.out_count,
+                                                       self.physical_count, self.average_value, self.text, acc)
 
 
 class DiscrepancySolution(models.Model):
