@@ -3,6 +3,7 @@ from tools.testing import TestData
 from stock_count.models import TemporaryCounterLine, StockCountDocument, StockCountLine, TemporaryArticleCount, \
     UncountedError
 from stock.models import Stock, StockChangeSet
+from stock.stocklabel import OrderLabel
 from article.models import ArticleType
 from money.models import VAT, Currency, AccountingGroup, Cost
 from assortment.models import AssortmentArticleBranch
@@ -496,4 +497,165 @@ class StockCountDocumentTests(TestCase, TestData):
         for scl in scls:
             self.assertEqual(scl, correct.get(scl.article_type))
 
+    def test_add_two_stock_lines_different_labels(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 {'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True,
+                  'label': OrderLabel(1)},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 5), (self.articletype_2, 0)])
+        StockCountDocument.create_stock_count(self.user_1)
+        doc = StockCountDocument.objects.get()
+        zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
+        correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
+                                                      in_count=5, out_count=0, physical_count=5,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
+                                                      in_count=0, out_count=0, physical_count=0,
+                                                      average_value=zero_cost, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        scls = StockCountLine.objects.all()
+        for scl in scls:
+            self.assertEqual(scl, correct.get(scl.article_type))
 
+    def test_more_counted_than_present(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 {'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True,
+                  'label': OrderLabel(1)},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 6), (self.articletype_2, 0)])
+        StockCountDocument.create_stock_count(self.user_1)
+        doc = StockCountDocument.objects.get()
+        zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
+        correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
+                                                      in_count=5, out_count=0, physical_count=6,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
+                                                      in_count=0, out_count=0, physical_count=0,
+                                                      average_value=zero_cost, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        scls = StockCountLine.objects.all()
+        for scl in scls:
+            self.assertEqual(scl, correct.get(scl.article_type))
+
+        st = Stock.objects.get(article_id=1, labeltype__isnull=True)
+        self.assertEqual(st.count, 3)
+
+    def test_more_counted_nothing_present_on_line(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True,
+                  'label': OrderLabel(1)},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 5), (self.articletype_2, 0)])
+        StockCountDocument.create_stock_count(self.user_1)
+        doc = StockCountDocument.objects.get()
+        zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
+        correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
+                                                      in_count=3, out_count=0, physical_count=5,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
+                                                      in_count=0, out_count=0, physical_count=0,
+                                                      average_value=zero_cost, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        scls = StockCountLine.objects.all()
+        for scl in scls:
+            self.assertEqual(scl, correct.get(scl.article_type))
+
+        st = Stock.objects.get(article_id=1, labeltype__isnull=True)
+        self.assertEqual(st.count, 2)
+
+    def test_mixed_addition(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True,
+                  'label': OrderLabel(1)},
+                 {'article': self.articletype_2,
+                  'book_value': self.cost_eur_2,
+                  'count': 1,
+                  'is_in': True,
+                  'label': OrderLabel(7)}
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 7), (self.articletype_2, 4)])
+        StockCountDocument.create_stock_count(self.user_1)
+        doc = StockCountDocument.objects.get()
+        correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
+                                                      in_count=3, out_count=0, physical_count=7,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
+                                                      in_count=1, out_count=0, physical_count=4,
+                                                      average_value=self.cost_eur_2, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        scls = StockCountLine.objects.all()
+        for scl in scls:
+            self.assertEqual(scl, correct.get(scl.article_type))
+
+        st_1 = Stock.objects.get(article_id=1, labeltype__isnull=True)
+        self.assertEqual(st_1.count, 4)
+        st_2 = Stock.objects.get(article_id=2, labeltype__isnull=True)
+        self.assertEqual(st_2.count, 3)
+
+    def test_addition_no_previous_stock(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 2)])
+        StockCountDocument.create_stock_count(self.user_1)
+        st_2 = Stock.objects.get(article_id=2, labeltype__isnull=True)
+        self.assertEqual(st_2.count, 2)
+        zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
+        self.assertEqual(st_2.book_value, zero_cost)
+
+    def test_addition_cost_from_stock_change(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 {'article': self.articletype_2,
+                  'book_value': self.cost_eur_2,
+                  'count': 3,
+                  'is_in': True},
+                 {'article': self.articletype_2,
+                  'book_value': self.cost_eur_2,
+                  'count': 3,
+                  'is_in': False}
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 2)])
+        StockCountDocument.create_stock_count(self.user_1)
+        st_2 = Stock.objects.get(article_id=2, labeltype__isnull=True)
+        self.assertEqual(st_2.count, 2)
+        self.assertEqual(st_2.book_value, self.cost_eur_2)
+
+    def test_subtraction_no_solution(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 7), (self.articletype_2, 4)])
