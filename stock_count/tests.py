@@ -1,7 +1,7 @@
 from django.test import TestCase
 from tools.testing import TestData
 from stock_count.models import TemporaryCounterLine, StockCountDocument, StockCountLine, TemporaryArticleCount, \
-    UncountedError
+    UncountedError, SolutionError, DiscrepancySolution
 from stock.models import Stock, StockChangeSet
 from stock.stocklabel import OrderLabel
 from article.models import ArticleType
@@ -658,4 +658,32 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': True},
                  ]
         StockChangeSet.construct(description="", entries=entry, enum=0)
-        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 7), (self.articletype_2, 4)])
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
+        with self.assertRaises(SolutionError):
+            StockCountDocument.create_stock_count(self.user_1)
+
+    def test_subtraction_wrong_solution(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
+        DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label="Order",
+                                                               stock_key=1)])
+        with self.assertRaises(SolutionError):
+            StockCountDocument.create_stock_count(self.user_1)
+
+    def test_subtraction_remove_from_stock(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
+        DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label=None,
+                                                               stock_key=None)])
+        StockCountDocument.create_stock_count(self.user_1)
+
