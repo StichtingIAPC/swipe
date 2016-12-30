@@ -197,11 +197,11 @@ class StockCountLine(models.Model):
 
     def __str__(self):
         if hasattr(self, 'document'):
-            doc = str(self.document.id)
+            doc = str(self.document_id)
         else:
             doc = "None"
         if hasattr(self, 'article_type'):
-            art = str(self.article_type.id)
+            art = str(self.article_type_id)
         else:
             art = 'None'
         if hasattr(self, 'accounting_group'):
