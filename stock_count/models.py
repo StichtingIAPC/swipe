@@ -159,7 +159,7 @@ class StockCountDocument(Blame):
                 scl = StockCountLine(document=doc, article_type=mod.article_type, previous_count=mod.previous_count,
                                      in_count=mod.in_count, out_count=mod.out_count,
                                      physical_count=physical, average_value=avg, text=mod.article_type.name,
-                                     accounting_group=mod.article_type.accounting_group)
+                                     accounting_group_id=mod.article_type.accounting_group_id)
                 scl.save()
             change_set = StockChangeSet.construct(description="Stockchanges for Stock count", entries=entries,
                                                   enum=enum["stock_count"])
