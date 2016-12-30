@@ -184,15 +184,16 @@ class Stock(StockLabeledLine):
         for st in sts:
             elem = result.get(st.article, None)
             if not elem:
-                result[st.article] = [st.count, st.book_value]
+                result[st.article] = (st.count, st.book_value)
             else:
                 old_count = elem[0]
                 old_value = elem[1]
                 extra_count = st.count
                 added_value_per_item = st.book_value
                 new_count = old_count+extra_count
-                new_average_value = (old_count*old_value + (extra_count*added_value_per_item)) / new_count
-                result[st.article] = [new_count, new_average_value]
+                # NB: The order matters as Cost * int is defined whereas int * Cost is not
+                new_average_value = (old_value*old_count + (added_value_per_item*extra_count)) / new_count
+                result[st.article] = (new_count, new_average_value)
 
         return result
 
