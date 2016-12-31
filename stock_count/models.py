@@ -2,12 +2,13 @@ from django.utils import timezone
 from django.db import models, transaction
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
-from stock.models import StockChange, StockChangeSet, Stock
+from stock.models import StockChange, StockChangeSet, Stock, StockLabel
 from stock.enumeration import enum
 from tools.util import raiseif, raiseifnot
 from crm.models import User
 from money.models import Cost, CostField, AccountingGroup
 from decimal import Decimal
+import time
 
 
 class StockCountDocument(Blame):
@@ -69,7 +70,7 @@ class StockCountDocument(Blame):
         """
         discrepancies = StockCountDocument.get_discrepancies()
 
-        solutions = DiscrepancySolution.objects.all()
+        solutions = DiscrepancySolution.objects.all().order_by('id')
         # Throw the solutions into dicts for easy comparison
         solution_dict = {}
         for solution in solutions:
@@ -118,16 +119,22 @@ class StockCountDocument(Blame):
                             st = Stock.objects.get(article=match.article_type, labeltype=match.stock_label,
                                                    labelkey=match.stock_key)
                             if st.count <= to_be_solved:
-                                entries.append({'article': article,
+                                stock_change= {'article': article,
                                                 'book_value': st.book_value,
                                                 'count': st.count,
-                                                'is_in': False})
+                                                'is_in': False}
+                                if match.stock_label:
+                                    stock_change['label'] = StockLabel.return_label(match.stock_label, match.stock_key)
+                                entries.append(stock_change)
                                 to_be_solved -= st.count
                             else:
-                                entries.append({'article': article,
+                                stock_change = {'article': article,
                                                 'book_value': st.book_value,
                                                 'count': to_be_solved,
-                                                'is_in': False})
+                                                'is_in': False}
+                                if match.stock_label:
+                                    stock_change['label'] = StockLabel.return_label(match.stock_label, match.stock_key)
+                                entries.append(stock_change)
                                 to_be_solved = 0
                             i += 1
                         except Stock.DoesNotExist:
@@ -150,6 +157,7 @@ class StockCountDocument(Blame):
         with transaction.atomic():
             doc = StockCountDocument(user_modified=user)
             doc.save()
+            time.sleep(0.01)
             for mod in mods:
                 physical = counts.get(mod.article_type, None)
                 raiseif(physical is None, UncountedError, "ArticleType {} is uncounted".format(mod.article_type))
@@ -259,6 +267,13 @@ class DiscrepancySolution(models.Model):
         for ds in discrepancy_solutions:
             raiseifnot(isinstance(ds, DiscrepancySolution), TypeError, "ds should be a DiscrepancySolution")
             ds.save()
+
+    def __str__(self):
+        if hasattr(self, 'article_type'):
+            art = self.article_type_id
+        else:
+            art = 'None'
+        return "ArticleType: {}, LabelType: {}, LabelKey: {}".format(art, self.stock_label, self.stock_key)
 
 
 class TemporaryCounterLine:
