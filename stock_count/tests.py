@@ -8,6 +8,7 @@ from article.models import ArticleType
 from money.models import VAT, Currency, AccountingGroup, Cost
 import time
 from decimal import Decimal
+from order.models import Order, OrderLine
 
 
 class PreparationTests(TestCase, TestData):
@@ -438,6 +439,7 @@ class EndingTests(TestCase, TestData):
         discs = StockCountDocument.get_discrepancies()
         self.assertEqual(len(discs), 0)
 
+
 class StockCountDocumentTests(TestCase, TestData):
 
     def setUp(self):
@@ -448,6 +450,7 @@ class StockCountDocumentTests(TestCase, TestData):
         self.part_setup_accounting_group()
         self.part_setup_assortment_article_branch()
         self.part_setup_costs()
+        self.part_setup_prices()
         self.part_setup_supplier()
         self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
                                          branch=self.branch_1)
@@ -456,6 +459,7 @@ class StockCountDocumentTests(TestCase, TestData):
                                          branch=self.branch_2)
         self.articletype_2.save()
         self.part_setup_users()
+        self.part_setup_customers()
 
     def test_make_stock_count_no_discrepancies(self):
         entry = [{'article': self.articletype_1,
@@ -726,13 +730,30 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': True,
                   'label': OrderLabel(1)}
                  ]
+        ordr = Order(customer=self.customer_person_1)
+        ordrlines = [OrderLine(order=ordr, state='A', wishable=self.articletype_1,
+                               expected_sales_price=self.price_eur_1),
+                     OrderLine(order=ordr, state='A', wishable=self.articletype_1,
+                               expected_sales_price=self.price_eur_1),
+                     OrderLine(order=ordr, state='A', wishable=self.articletype_1,
+                               expected_sales_price=self.price_eur_1)]
+        Order.make_order(ordr, ordrlines, self.user_1)
         StockChangeSet.construct(description="", entries=entry, enum=0)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 0)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label="Order",
                                                                stock_key=1)])
-        #StockCountDocument.create_stock_count(self.user_1)
-        #st = Stock.objects.get(article_id=1, labelkey=1)
-        #self.assertEqual(st.count, 1)
+        StockCountDocument.create_stock_count(self.user_1)
+        st = Stock.objects.get(article_id=1, labelkey=1)
+        self.assertEqual(st.count, 1)
+        lines = OrderLine.objects.filter(order=ordr)
+        a_counted, c_counted = 0, 0
+        for line in lines:
+            if line.state == 'C':
+                c_counted += 1
+            elif line.state == 'A':
+                a_counted += 1
+        self.assertEqual(c_counted, 2)
+        self.assertEqual(a_counted, 1)
 
     def test_subtraction_not_enough_solutions(self):
         entry = [{'article': self.articletype_1,
