@@ -20,7 +20,7 @@ def stock_change_handler(sender, **kwargs):
                 lines = list(OrderLine.objects.filter(order_id=order_number, state='A',
                                                       wishable__sellabletype__articletype=art_type))
                 if len(lines) < orders_to_complete:
-                    raise InconsistencyError("Something happened and there are not enough OrderLines to transition"
+                    raise InconsistencyError("Something happened and there are not enough OrderLines to transition "
                                              "to 'sold' for order {}. I cannot fix this :( Have fun fixing it in the"
                                              "database".format(order_number))
                 else:
@@ -37,7 +37,7 @@ def stock_change_handler(sender, **kwargs):
             lines = list(OrderLine.objects.filter(order_id=order_number, state='A',
                                                   wishable__sellabletype__articletype=art_type))
             if len(lines) < orders_to_complete:
-                raise InconsistencyError("Something happened and there are not enough OrderLines to transition"
+                raise InconsistencyError("Something happened and there are not enough OrderLines to transition "
                                          "to 'sold' for order {}. I cannot fix this :( Have fun fixing it in the"
                                          "database".format(order_number))
             else:

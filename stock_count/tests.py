@@ -6,7 +6,6 @@ from stock.models import Stock, StockChangeSet, StockChange
 from stock.stocklabel import OrderLabel
 from article.models import ArticleType
 from money.models import VAT, Currency, AccountingGroup, Cost
-from assortment.models import AssortmentArticleBranch
 import time
 from decimal import Decimal
 
@@ -442,7 +441,21 @@ class EndingTests(TestCase, TestData):
 class StockCountDocumentTests(TestCase, TestData):
 
     def setUp(self):
-        self.setup_base_data()
+        # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
+        # are saved in a fixed manner
+        self.part_setup_vat_group()
+        self.part_setup_currency()
+        self.part_setup_accounting_group()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_costs()
+        self.part_setup_supplier()
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
+                                         branch=self.branch_1)
+        self.articletype_1.save()
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
+                                         branch=self.branch_2)
+        self.articletype_2.save()
+        self.part_setup_users()
 
     def test_make_stock_count_no_discrepancies(self):
         entry = [{'article': self.articletype_1,
@@ -720,3 +733,56 @@ class StockCountDocumentTests(TestCase, TestData):
         StockCountDocument.create_stock_count(self.user_1)
         st = Stock.objects.get(article_id=1, labelkey=1)
         self.assertEqual(st.count, 1)
+
+    def test_subtraction_not_enough_solutions(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True},
+                 {'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True,
+                  'label': OrderLabel(1)}
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=0)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
+        DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label="Order",
+                                                               stock_key=1)])
+        with self.assertRaises(SolutionError):
+            StockCountDocument.create_stock_count(self.user_1)
+
+    def test_correct_outs(self):
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': True},
+                 {'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 3,
+                  'is_in': True,
+                  'label': OrderLabel(1)},
+                 {'article': self.articletype_1,
+                  'book_value': self.cost_eur_1,
+                  'count': 2,
+                  'is_in': False,
+                  'label': OrderLabel(1)}
+                 ]
+        StockChangeSet.construct(description="", entries=entry, enum=-1)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 0)])
+        StockCountDocument.create_stock_count(self.user_1)
+        doc = StockCountDocument.objects.get()
+        zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
+        correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
+                                                      in_count=5, out_count=2, physical_count=3,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
+                                                      in_count=0, out_count=0, physical_count=0,
+                                                      average_value=zero_cost, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        scls = StockCountLine.objects.all()
+        for scl in scls:
+            self.assertEqual(scl, correct.get(scl.article_type))
+
+
