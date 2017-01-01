@@ -8,7 +8,7 @@ from tools.util import raiseif, raiseifnot
 from crm.models import User
 from money.models import Cost, CostField, AccountingGroup
 from decimal import Decimal
-import time
+from datetime import timedelta
 
 
 class StockCountDocument(Blame):
@@ -157,7 +157,6 @@ class StockCountDocument(Blame):
         with transaction.atomic():
             doc = StockCountDocument(user_modified=user)
             doc.save()
-            time.sleep(0.01)
             for mod in mods:
                 physical = counts.get(mod.article_type, None)
                 raiseif(physical is None, UncountedError, "ArticleType {} is uncounted".format(mod.article_type))
@@ -176,6 +175,9 @@ class StockCountDocument(Blame):
             # We now have a saved document. Lets set the stock change set for checking purposes
             doc.stock_change_set = change_set
             doc.save()
+            change_set.date = doc.date_created+timedelta(milliseconds=10)
+            change_set.save(indirect=True)
+            return doc
 
 
 class StockCountLine(models.Model):
