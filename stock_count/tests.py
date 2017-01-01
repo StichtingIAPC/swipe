@@ -876,5 +876,116 @@ class StockCountDocumentTests(TestCase, TestData):
         for line in count_lines:
             self.assertEqual(line, correct.get(line.article_type))
 
+    def test_non_zero_two_consecutive_positive_differences(self):
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 3,
+                    'is_in': True},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_eur_2,
+                    'count': 5,
+                    'is_in': True}, ]
+        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 5)])
+        StockCountDocument.create_stock_count(self.user_1)
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 2,
+                    'is_in': True},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_eur_2,
+                    'count': 4,
+                    'is_in': True}, ]
+        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 7), (self.articletype_2, 9)])
+        doc_2 = StockCountDocument.create_stock_count(self.user_1)
+        count_lines = StockCountLine.objects.filter(document=doc_2)
+        correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
+                                                      in_count=3, out_count=0, physical_count=7,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
+                                                      in_count=4, out_count=0, physical_count=9,
+                                                      average_value=self.cost_eur_2, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        for line in count_lines:
+            self.assertEqual(line, correct.get(line.article_type))
+
+    def test_non_zero_start_negative_difference(self):
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 3,
+                    'is_in': True},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_eur_2,
+                    'count': 5,
+                    'is_in': True}, ]
+        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 5)])
+        DiscrepancySolution.add_solutions([DiscrepancySolution(article_type_id=1, stock_label=None, stock_key=None)])
+        StockCountDocument.create_stock_count(self.user_1)
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 2,
+                    'is_in': True},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_eur_2,
+                    'count': 4,
+                    'is_in': True}, ]
+        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
+        doc_2 = StockCountDocument.create_stock_count(self.user_1)
+        count_lines = StockCountLine.objects.filter(document=doc_2)
+        correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
+                                                      in_count=2, out_count=1, physical_count=4,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
+                                                      in_count=4, out_count=0, physical_count=9,
+                                                      average_value=self.cost_eur_2, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        for line in count_lines:
+            self.assertEqual(line, correct.get(line.article_type))
+
+    def test_non_zero_two_consecutive_negative_differences(self):
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 3,
+                    'is_in': True},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_eur_2,
+                    'count': 5,
+                    'is_in': True}, ]
+        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 5)])
+        DiscrepancySolution.add_solutions([DiscrepancySolution(article_type_id=1, stock_label=None, stock_key=None)])
+        StockCountDocument.create_stock_count(self.user_1)
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 3,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 1,
+                    'is_in': False},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_eur_2,
+                    'count': 4,
+                    'is_in': True}, ]
+        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
+        doc_2 = StockCountDocument.create_stock_count(self.user_1)
+        count_lines = StockCountLine.objects.filter(document=doc_2)
+        correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
+                                                      in_count=3, out_count=2, physical_count=4,
+                                                      average_value=self.cost_eur_1, text=self.articletype_1.name,
+                                                      accounting_group_id=self.articletype_1.accounting_group_id),
+                   self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
+                                                      in_count=4, out_count=0, physical_count=9,
+                                                      average_value=self.cost_eur_2, text=self.articletype_2.name,
+                                                      accounting_group_id=self.articletype_2.accounting_group_id)}
+        for line in count_lines:
+            self.assertEqual(line, correct.get(line.article_type))
+
 
 

@@ -172,11 +172,20 @@ class StockCountDocument(Blame):
                 scl.save()
             change_set = StockChangeSet.construct(description="Stockchanges for Stock count", entries=entries,
                                                   enum=enum["stock_count"])
+
+            # Reset information that is not up-to-date after creating the stock count document
+            DiscrepancySolution.remove_all_solutions()
+            TemporaryArticleCount.objects.all().update(count=0, checked=False)
+
             # We now have a saved document. Lets set the stock change set for checking purposes
             doc.stock_change_set = change_set
             doc.save()
+
+            # Essential timing issue. Neglecting this, this change set will not fall in the correct period
+            # This guarantees that it will be registered as created just after the stock count
             change_set.date = doc.date_created+timedelta(milliseconds=10)
             change_set.save(indirect=True)
+
             return doc
 
 
