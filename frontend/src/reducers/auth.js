@@ -15,11 +15,11 @@ export default function authenticationReducer(state = initialState, action) {
 		return { ...state, token: action.token, loading: false, currentUser: action.user };
 	}
 	if (action.type === 'AUTH_LOGIN_ERROR') {
-		setToken('');
+		setToken(null);
 		return { ...state, token: null, loading: false, error: action.error, currentUser: null };
 	}
 	if (action.type === 'AUTH_LOGIN_RESET') {
-		setToken('');
+		setToken(null);
 		return { ...state, token: null, error: null, currentUser: null };
 	}
 	return state;
