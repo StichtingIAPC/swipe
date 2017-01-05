@@ -246,3 +246,16 @@ class TestMixins(TestCase, TestData):
         self.create_stockwish()
         self.create_packingdocuments()
         self.create_transactions_article_type_for_order()
+
+
+class TestExclude(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_exclude(self):
+        list_1 = [self.articletype_1]
+        list_id = []
+        list_id.append(list_1[0].id)
+        print(ArticleType.objects.all().exclude(id__in=list_id))
+
