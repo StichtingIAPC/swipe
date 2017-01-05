@@ -1,6 +1,6 @@
-import {call, put} from "redux-saga/effects";
-import {push} from "react-router-redux";
-import {get, post, patch} from "../api";
+import { call, put } from "redux-saga/effects";
+import { push } from "react-router-redux";
+import { get, post, put as api_put } from "../api";
 import { startFetchingSuppliers, doneFetchingSuppliers } from "../actions/suppliers";
 
 function renameProp(item, original, target) {
@@ -52,7 +52,7 @@ export function* updateSupplier({ supplier }) {
 
 	try {
 		const data = yield (yield call(
-			patch,
+			api_put,
 			`/supplier/${supplier.id}/`,
 			supplier,
 		)).json();

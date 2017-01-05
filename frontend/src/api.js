@@ -108,7 +108,7 @@ export function patch(url, object, {headers = {}, ...rest} = {}) {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Token ${getState().auth.token}`,
+				'Authorization': `Token ${token}`,
 				...headers,
 			},
 			body: JSON.stringify(object),
