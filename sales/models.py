@@ -458,7 +458,7 @@ class Transaction(Blame):
 
             # The post signal of the StockChangeSet should solve the problems of the OrderLines
             StockChangeSet.construct(description="Transaction: {}".format(trans.pk), entries=change_set,
-                                     source=settings.STOCKCHANGE_SOURCE_CASHREGISTER)
+                                     source=StockChangeSet.SOURCE_CASHREGISTER)
 
             # Payments
             for payment in payments:
