@@ -184,7 +184,7 @@ class RevaluationTests(TestCase, TestData):
         self.assertEqual(reval_line.count, COUNT_1)
         self.assertEqual(reval_line.article_type, self.articletype_1)
         # Assure no change in labeled stock
-        st = Stock.objects.get(article=self.articletype_1, labeltype=OrderLabel._labeltype)
+        st = Stock.objects.get(article=self.articletype_1, labeltype=OrderLabel.labeltype)
         self.assertEqual(st.book_value, self.cost_eur_3)
 
 

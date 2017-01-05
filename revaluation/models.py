@@ -44,7 +44,7 @@ class RevaluationDocument(Blame):
             if label_type is None:
                 sts = Stock.objects.filter(article=article, labeltype=None, labelkey=None)
             else:
-                sts = Stock.objects.filter(article=article, labeltype=label_type._labeltype, labelkey=label_key)
+                sts = Stock.objects.filter(article=article, labeltype=label_type.labeltype, labelkey=label_key)
 
             if len(sts) > 1:
                 raise FatalStockException(article, label_type, label_key, "If you read this, Stock probably broke "
