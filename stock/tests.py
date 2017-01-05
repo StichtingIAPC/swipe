@@ -8,7 +8,7 @@ from unittest import skip
 from article.tests import INeedSettings
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
-from stock.stocklabel import StockLabel, StockLabelNotFoundError
+from stock.stocklabel import StockLabel, StockLabelNotFoundError, OrderLabel
 from stock.models import Stock, StockChange, StockChangeSet, StockLock, LockError, StockLockLog
 from article.models import ArticleType
 from money.models import Currency, VAT, Cost, AccountingGroup
@@ -906,7 +906,6 @@ class StockLockTest(TestCase, TestData):
         self.assertTrue(StockLock.is_unlocked())
         self.assertEqual(StockLockLog.objects.all().count(), 7)
 
-
     def test_blocking_criterium_and_effect(self):
         entries = [{'article': self.articletype_1,
                     'book_value': self.cost_eur_1,
@@ -918,5 +917,113 @@ class StockLockTest(TestCase, TestData):
         self.assertTrue(StockLock.is_locked())
         with self.assertRaises(LockError):
             StockChangeSet.construct(description="Stocking",
-                                 entries=entries, enum=0)
+                                     entries=entries, enum=0)
 
+    def test_block_override(self):
+        StockLock.lock(self.user_1)
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 1,
+                    'is_in': True}]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0, force_ignore_lock=True)
+
+
+class StockStatisticFunctions(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_generalisation_one_article_one_line(self):
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_eur_1,
+                    'count': 1,
+                    'is_in': True}]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0)
+        test_set = Stock.get_all_average_prices_and_amounts()
+        for key in test_set:
+            result = test_set[key]
+            self.assertEqual(result, (1, self.cost_eur_1))
+
+    def test_generalisation_one_article_two_lines(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        cost_2 = Cost(amount=Decimal(4), currency=Currency("EUR"))
+        entries = [{'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 1,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': cost_2,
+                    'count': 2,
+                    'is_in': True,
+                    'label': OrderLabel(3)}
+                   ]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0)
+        test_set = Stock.get_all_average_prices_and_amounts()
+        result = test_set[self.articletype_1]
+        cost_avg = Cost(amount=Decimal(3), currency=Currency("EUR"))
+        self.assertEqual(result, (3, cost_avg))
+
+    def test_generalisation_two_articles_mixed_amount_of_lines(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        cost_2 = Cost(amount=Decimal(4), currency=Currency("EUR"))
+        entries = [{'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 1,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': cost_2,
+                    'count': 2,
+                    'is_in': True,
+                    'label': OrderLabel(3)},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_eur_1,
+                    'count': 5,
+                    'is_in': True,
+                    'label': OrderLabel(1)}
+                   ]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0)
+        cost_avg = Cost(amount=Decimal(3), currency=Currency("EUR"))
+        test_set = Stock.get_all_average_prices_and_amounts()
+        art_1 = test_set[self.articletype_1]
+        art_2 = test_set[self.articletype_2]
+        self.assertEqual(art_1, (3, cost_avg))
+        self.assertEqual(art_2, (5, self.cost_eur_1))
+
+    def test_generalisation_fully_mixed(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        cost_2 = Cost(amount=Decimal(4), currency=Currency("EUR"))
+        cost_3 = Cost(amount=Decimal(6), currency=Currency("EUR"))
+        cost_4 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        entries = [{'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 1,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': cost_2,
+                    'count': 2,
+                    'is_in': True,
+                    'label': OrderLabel(3)},
+                   {'article': self.articletype_2,
+                    'book_value': cost_3,
+                    'count': 4,
+                    'is_in': True,
+                    'label': OrderLabel(1)},
+                   {'article': self.articletype_2,
+                    'book_value': cost_4,
+                    'count': 1,
+                    'is_in': True,
+                    'label': OrderLabel(1)}
+                   ]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, enum=0)
+        cost_avg_1 = Cost(amount=Decimal(3), currency=Currency("EUR"))
+        cost_avg_2 = Cost(amount=Decimal(5), currency=Currency("EUR"))
+        test_set = Stock.get_all_average_prices_and_amounts()
+        art_1 = test_set[self.articletype_1]
+        art_2 = test_set[self.articletype_2]
+        self.assertEqual(art_1, (3, cost_avg_1))
+        self.assertEqual(art_2, (5, cost_avg_2))
