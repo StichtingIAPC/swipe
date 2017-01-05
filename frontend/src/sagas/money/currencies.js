@@ -6,7 +6,7 @@ import {
 	currencyInputError,
 	currencyFetchError
 } from "../../actions/money/currencies";
-import { get, post } from "../../api";
+import { get, post, put as api_put } from "../../api";
 
 export function* fetchCurrencies({ redirectTo }) {
 	try {
@@ -18,7 +18,6 @@ export function* fetchCurrencies({ redirectTo }) {
 		if (redirectTo)
 			yield put(push(redirectTo));
 	} catch (e) {
-		console.log(e);
 		yield put(currencyFetchError(e.message));
 	}
 }
@@ -27,7 +26,7 @@ export function* createCurrency({ curr }) {
 	const currency = {...curr};
 	try {
 		const data = yield (yield call(
-			post,
+			api_put,
 			'/money/currency/',
 			currency,
 		)).json();
@@ -35,7 +34,6 @@ export function* createCurrency({ curr }) {
 			redirectTo: `/money/currency/${data.iso}/`,
 		}));
 	} catch (e) {
-		console.log(e);
 		let msg;
 		if (e instanceof Error)
 			msg = e.message;
@@ -57,7 +55,6 @@ export function* updateCurrency({ curr }) {
 			redirectTo: `/money/currency/${data.iso}/`,
 		}));
 	} catch (e) {
-		console.log(e);
 		let msg;
 		if (e instanceof Error)
 			msg = e.message;

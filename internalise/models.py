@@ -46,7 +46,7 @@ class InternaliseDocument(Blame):
         for article, label_type, label_key in article_demand.keys():
             if label_type:
                 # noinspection PyProtectedMember
-                st = Stock.objects.get(article=article, labeltype=label_type._labeltype, labelkey=label_key)
+                st = Stock.objects.get(article=article, labeltype=label_type.labeltype, labelkey=label_key)
                 if st.count < article_demand[(article, label_type, label_key)]:
                     raise DataValidityError("Tried to internalise {} for article {} with keytype {} and value {}"
                                             "but only {} is present".format(article_demand[(article, label_type,
@@ -55,7 +55,7 @@ class InternaliseDocument(Blame):
                 else:
                     # noinspection PyProtectedMember
                     internal_lines.append(InternaliseLine(article_type=article,
-                                                          label_type=label_type._labeltype,
+                                                          label_type=label_type.labeltype,
                                                           identifier=label_key,
                                                           cost=st.book_value,
                                                           count=article_demand[(article, label_type, label_key)],
