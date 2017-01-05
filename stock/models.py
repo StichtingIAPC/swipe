@@ -180,6 +180,26 @@ class Stock(StockLabeledLine):
     def __str__(self):
         return "{}| {}: {} @ {} {}".format(self.pk, self.article, self.count, self.book_value, self.label)
 
+    @staticmethod
+    def get_all_average_prices_and_amounts():
+        sts = Stock.objects.all()
+        result = {}
+        for st in sts:
+            elem = result.get(st.article, None)
+            if not elem:
+                result[st.article] = (st.count, st.book_value)
+            else:
+                old_count = elem[0]
+                old_value = elem[1]
+                extra_count = st.count
+                added_value_per_item = st.book_value
+                new_count = old_count+extra_count
+                # NB: The order matters as Cost * int is defined whereas int * Cost is not
+                new_average_value = (old_value*old_count + (added_value_per_item*extra_count)) / new_count
+                result[st.article] = (new_count, new_average_value)
+
+        return result
+
     class Meta:
         # This check  is only partly valid, because most databases don't enforce null uniqueness.
         unique_together = ('labeltype', 'labelkey', 'article',)
@@ -200,6 +220,7 @@ class StockChangeSet(models.Model):
     SOURCE_INTERNALISE = "internalise"
     SOURCE_EXTERNALISE = "externalise"
     SOURCE_REVALUATION = "revaluation"
+    SOURCE_STOCKCOUNT = "stock_count"
 
     # The choices for the source field, using the keys specified above.
     # The keys are separate variables so you can use them in other models (e.g. StockChangeSet.SOURCE_CASHREGISTER)
@@ -211,6 +232,7 @@ class StockChangeSet(models.Model):
         (SOURCE_INTERNALISE, _("Internalise")),
         (SOURCE_EXTERNALISE, _("Externalise")),
         (SOURCE_REVALUATION, _("Revaluation")),
+        (SOURCE_STOCKCOUNT, _("Stock count")),
     )
 
     # Date the changes were done
@@ -230,7 +252,7 @@ class StockChangeSet(models.Model):
 
     @classmethod
     @transaction.atomic()
-    def construct(cls, description, entries, source):
+    def construct(cls, description, entries, source, force_ignore_lock=False):
         """
         Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
@@ -240,12 +262,15 @@ class StockChangeSet(models.Model):
         :type entries: list(dict)
         :param source: The source of these changes, from one of StockChangeSet.STOCKCHANGE_SOURCES.
         :type source: str
+        :param force_ignore_lock: Ignore the stock lock. This is almost never a good idea.
+        :type force_ignore_lock: bool
         :return: A completed StockChangeSet of the modification
         :rtype: StockChangeSet
         """
         # Check if stock is locked
-        if StockLock.is_locked():
+        if StockLock.is_locked() and not force_ignore_lock:
             raise LockError("Stock is locked. Unlock first")
+
         # Check if the entry dictionaries are complete
         for entry in entries:
             stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
