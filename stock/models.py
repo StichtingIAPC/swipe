@@ -214,7 +214,7 @@ class StockChangeSet(models.Model):
     # and only remove or edit them if you are absolutely sure what you are doing!
     # If you change this you will need to create a new migration, and
     # possibly a data migration if you change the existing strings!
-    SOURCE_TEST = "test_do_not_use"  # This is a value to use in tests and should never be used in actual code.
+    SOURCE_TEST_DO_NOT_USE = "test_do_not_use"  # This is a value to use in tests and should never be used in actual code.
     SOURCE_CASHREGISTER = "cash_register"
     SOURCE_SUPPLICATION = "supplication"
     SOURCE_RMA = "rma"
@@ -227,7 +227,7 @@ class StockChangeSet(models.Model):
     # The keys are separate variables so you can use them in other models (e.g. StockChangeSet.SOURCE_CASHREGISTER)
     # If you change this you will need to create a new migration.
     STOCKCHANGE_SOURCES = (
-        (SOURCE_TEST, _("Test (DO NOT USE)")),
+        (SOURCE_TEST_DO_NOT_USE, _("Test (DO NOT USE)")),
         (SOURCE_CASHREGISTER, _("Cash register")),
         (SOURCE_SUPPLICATION, _("Supplication")),
         (SOURCE_RMA, _("RMA")),
@@ -272,6 +272,13 @@ class StockChangeSet(models.Model):
         # Check if stock is locked
         if StockLock.is_locked() and not force_ignore_lock:
             raise LockError("Stock is locked. Unlock first")
+
+        # Check if source is correct
+        valid_sources = [x[0] for x in StockChangeSet.STOCKCHANGE_SOURCES]
+        if source not in valid_sources:
+            raise ValueError("Source given for this StockChangeSet ({}) is not in the valid sources list: {}".format(
+                source, valid_sources
+            ))
 
         # Check if the entry dictionaries are complete
         for entry in entries:

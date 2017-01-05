@@ -647,6 +647,31 @@ class StockTest(INeedSettings, TestCase):
         else:
             self.assertEqual(st.__len__(), 1)
 
+    def testInvalidSource(self):
+        i = 0
+        # Create some objects to use in the tests
+        eur = Currency("EUR")
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
+        art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                         accounting_group=self.accountinggroup)
+
+        # Sample article
+        entries = [{
+            'article': art,
+            'book_value': cost_eur,
+            'count': 1,
+            'is_in': True
+        }]
+        try:
+            StockChangeSet.construct(description="AddInvalidSource", entries=entries,
+                                     source="some_nonexisting_source_is_nonexisting")
+        except ValueError:
+            i = 1
+
+        # This should have failed, so i should be 1
+        self.assertEqual(i, 1)
+
 
 @StockLabel.register
 class ZStockLabel(StockLabel):
