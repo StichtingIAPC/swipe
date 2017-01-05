@@ -1,6 +1,7 @@
 from django.db import models
 from django.db import transaction
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 from article.models import ArticleType
 from money.models import CostField
