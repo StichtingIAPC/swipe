@@ -32,15 +32,15 @@ def remove_orderlines(stock_change: StockChange):
                 action = ""
                 if source_val == StockChangeSet.SOURCE_CASHREGISTER:
                     action = "Something happened and there are not enough OrderLines to transition " \
-                             "to 'sold' for order {}. I cannot fix this :( Have fun fixing it in the" \
+                             "to 'sold' for order {}. I cannot fix this :( Have fun fixing it in the " \
                              "database"
                 elif source_val == StockChangeSet.SOURCE_INTERNALISE:
                     action = "Something happened and there are not enough OrderLines to transition " \
-                             "to 'internalised' for order {}. I cannot fix this :( Have fun fixing it in the" \
+                             "to 'internalised' for order {}. I cannot fix this :( Have fun fixing it in the " \
                              "database"
                 elif source_val == StockChangeSet.SOURCE_STOCKCOUNT:
                     action = "Something happened and there are not enough OrderLines to transition " \
-                             "to 'cancelled' for order {}. I cannot fix this :( Have fun fixing it in the" \
+                             "to 'cancelled' for order {}. I cannot fix this :( Have fun fixing it in the " \
                              "database"
                 raise InconsistencyError(action.format(order_number))
             else:

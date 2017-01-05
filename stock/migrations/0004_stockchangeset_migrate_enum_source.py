@@ -8,6 +8,7 @@ from django.db import migrations
 def migrate_enum_to_stock(apps, schema_editor):
     # The migration dict to use to migrate the data
     source_migration_dict = {
+        -1: "test_do_not_use",
         0: "cash_register",
         1: "supplication",
         2: "rma",

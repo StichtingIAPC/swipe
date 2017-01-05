@@ -214,6 +214,7 @@ class StockChangeSet(models.Model):
     # and only remove or edit them if you are absolutely sure what you are doing!
     # If you change this you will need to create a new migration, and
     # possibly a data migration if you change the existing strings!
+    SOURCE_TEST = "test_do_not_use"  # This is a value to use in tests and should never be used in actual code.
     SOURCE_CASHREGISTER = "cash_register"
     SOURCE_SUPPLICATION = "supplication"
     SOURCE_RMA = "rma"
@@ -226,6 +227,7 @@ class StockChangeSet(models.Model):
     # The keys are separate variables so you can use them in other models (e.g. StockChangeSet.SOURCE_CASHREGISTER)
     # If you change this you will need to create a new migration.
     STOCKCHANGE_SOURCES = (
+        (SOURCE_TEST, _("Test (DO NOT USE)")),
         (SOURCE_CASHREGISTER, _("Cash register")),
         (SOURCE_SUPPLICATION, _("Supplication")),
         (SOURCE_RMA, _("RMA")),
