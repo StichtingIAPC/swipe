@@ -65,11 +65,11 @@ class ArticleTypeSupplier(models.Model):
         unique_together = ['supplier', 'article_type']
 
     def has_graduated_pricing(self):
-        gps = GraduationPricing.objects.filter(article_type_supplier=self)
+        gps = VolumeDiscountPricing.objects.filter(article_type_supplier=self)
         return len(gps) > 0
 
 
-class GraduationPricing(models.Model):
+class VolumeDiscountPricing(models.Model):
     """
     Sometimes products become cheaper if ordered in larger quantities. This can be stored in graduated pricing
     schemes, such as this one.
