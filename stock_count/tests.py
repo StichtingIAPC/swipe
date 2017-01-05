@@ -44,7 +44,7 @@ class PreparationTests(TestCase, TestData):
                   'count': 7,
                   'is_in': True}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         changes, stock_count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         self.assertEqual(len(changes), 2)
 
@@ -58,7 +58,7 @@ class PreparationTests(TestCase, TestData):
                   'count': 7,
                   'is_in': True}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         StockCountDocument(user_modified=self.user_1).save()
         changes, stock_count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
 
@@ -74,7 +74,7 @@ class PreparationTests(TestCase, TestData):
                   'count': 7,
                   'is_in': True}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         StockCountDocument(user_modified=self.user_1).save()
         entry = [{'article': self.articletype_2,
                   'book_value': self.cost_eur_2,
@@ -83,7 +83,7 @@ class PreparationTests(TestCase, TestData):
                  ]
         # This prevents the next StockChange from being stores at the exact time as the StockCountDocument
         time.sleep(0.01)
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         changes, stock_count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         self.assertEqual(len(changes), 1)
         self.assertEqual(changes[0].article, self.articletype_2)
@@ -115,7 +115,7 @@ class PreparationTests(TestCase, TestData):
                   'count': 2,
                   'is_in': False}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
         for mod in mods:
@@ -146,7 +146,7 @@ class PreparationTests(TestCase, TestData):
                    'count': OUT_1,
                    'is_in': False},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
@@ -169,7 +169,7 @@ class PreparationTests(TestCase, TestData):
                   'count': NEW_OUT_1,
                   'is_in': False},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
         correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL-OUT_1, NEW_IN_TOTAL, NEW_OUT_1),
@@ -195,7 +195,7 @@ class PreparationTests(TestCase, TestData):
                   'count': OUT_1,
                   'is_in': False},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
@@ -212,7 +212,7 @@ class PreparationTests(TestCase, TestData):
                   'count': NEW_IN_2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
         correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL-OUT_1,
@@ -228,7 +228,7 @@ class PreparationTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
@@ -239,7 +239,7 @@ class PreparationTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
         correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, 2, 0, 0),
@@ -334,7 +334,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         with self.assertRaises(UncountedError):
             StockCountDocument.get_discrepancies()
 
@@ -344,7 +344,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.clear_temporary_counts()
         with self.assertRaises(UncountedError):
             StockCountDocument.get_discrepancies()
@@ -355,7 +355,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
         discs = StockCountDocument.get_discrepancies()
@@ -367,7 +367,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 1)])
         discs = StockCountDocument.get_discrepancies()
@@ -381,7 +381,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 0), (self.articletype_2, 0)])
         discs = StockCountDocument.get_discrepancies()
@@ -395,7 +395,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 1), (self.articletype_2, 1)])
         discs = StockCountDocument.get_discrepancies()
@@ -411,7 +411,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
@@ -428,7 +428,7 @@ class EndingTests(TestCase, TestData):
                   'count': 2,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
@@ -471,7 +471,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 3)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
@@ -497,7 +497,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 5), (self.articletype_2, 0)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
@@ -525,7 +525,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': True,
                   'label': OrderLabel(1)},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 5), (self.articletype_2, 0)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
@@ -553,7 +553,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': True,
                   'label': OrderLabel(1)},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 6), (self.articletype_2, 0)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
@@ -580,7 +580,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': True,
                   'label': OrderLabel(1)},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 5), (self.articletype_2, 0)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
@@ -612,7 +612,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': True,
                   'label': OrderLabel(7)}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 7), (self.articletype_2, 4)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
@@ -639,7 +639,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 2)])
         StockCountDocument.create_stock_count(self.user_1)
         st_2 = Stock.objects.get(article_id=2, labeltype__isnull=True)
@@ -661,7 +661,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'count': 3,
                   'is_in': False}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 2)])
         StockCountDocument.create_stock_count(self.user_1)
         st_2 = Stock.objects.get(article_id=2, labeltype__isnull=True)
@@ -674,7 +674,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
         with self.assertRaises(SolutionError):
             StockCountDocument.create_stock_count(self.user_1)
@@ -685,7 +685,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label="Order",
                                                                stock_key=1)])
@@ -698,7 +698,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label=None,
                                                                stock_key=None)])
@@ -738,7 +738,7 @@ class StockCountDocumentTests(TestCase, TestData):
                      OrderLine(order=ordr, state='A', wishable=self.articletype_1,
                                expected_sales_price=self.price_eur_1)]
         Order.make_order(ordr, ordrlines, self.user_1)
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 0)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label="Order",
                                                                stock_key=1)])
@@ -766,7 +766,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': True,
                   'label': OrderLabel(1)}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=0)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label="Order",
                                                                stock_key=1)])
@@ -789,7 +789,7 @@ class StockCountDocumentTests(TestCase, TestData):
                   'is_in': False,
                   'label': OrderLabel(1)}
                  ]
-        StockChangeSet.construct(description="", entries=entry, enum=-1)
+        StockChangeSet.construct(description="", entries=entry, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 0)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
@@ -815,7 +815,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 5,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 5)])
         StockCountDocument.create_stock_count(self.user_1)
         entries = [{'article': self.articletype_1,
@@ -826,7 +826,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
         count_lines = StockCountLine.objects.filter(document=doc_2)
@@ -850,7 +850,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 5,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 5)])
         StockCountDocument.create_stock_count(self.user_1)
         entries = [{'article': self.articletype_1,
@@ -861,7 +861,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 6), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
         count_lines = StockCountLine.objects.filter(document=doc_2)
@@ -885,7 +885,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 5,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 5)])
         StockCountDocument.create_stock_count(self.user_1)
         entries = [{'article': self.articletype_1,
@@ -896,7 +896,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 7), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
         count_lines = StockCountLine.objects.filter(document=doc_2)
@@ -920,7 +920,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 5,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 5)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type_id=1, stock_label=None, stock_key=None)])
         StockCountDocument.create_stock_count(self.user_1)
@@ -932,7 +932,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
         count_lines = StockCountLine.objects.filter(document=doc_2)
@@ -956,7 +956,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 5,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 5)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type_id=1, stock_label=None, stock_key=None)])
         StockCountDocument.create_stock_count(self.user_1)
@@ -972,7 +972,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
-        StockChangeSet.construct(description="", entries=entries, enum=-1)
+        StockChangeSet.construct(description="", entries=entries, source="stock_count")
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
         count_lines = StockCountLine.objects.filter(document=doc_2)

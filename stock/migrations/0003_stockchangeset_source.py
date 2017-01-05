@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='stockchangeset',
             name='source',
-            field=models.CharField(choices=[('cash_register', 'Cash register'), ('supplication', 'Supplication'), ('rma', 'RMA'), ('internalise', 'Internalise'), ('externalise', 'Externalise'), ('revaluation', 'Revaluation')], default='', max_length=50),
+            field=models.CharField(choices=[('cash_register', 'Cash register'), ('supplication', 'Supplication'), ('rma', 'RMA'), ('internalise', 'Internalise'), ('externalise', 'Externalise'), ('revaluation', 'Revaluation'), ('stock_count', 'Stock count')], default='', max_length=50),
             preserve_default=False,
         ),
     ]

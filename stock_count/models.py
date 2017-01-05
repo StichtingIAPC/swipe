@@ -3,7 +3,6 @@ from django.db import models, transaction
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
 from stock.models import StockChange, StockChangeSet, Stock, StockLabel
-from stock.enumeration import enum
 from tools.util import raiseif, raiseifnot
 from crm.models import User
 from money.models import Cost, CostField, AccountingGroup
@@ -171,7 +170,7 @@ class StockCountDocument(Blame):
                                      accounting_group_id=mod.article_type.accounting_group_id)
                 scl.save()
             change_set = StockChangeSet.construct(description="Stockchanges for Stock count", entries=entries,
-                                                  enum=enum["stock_count"])
+                                                  source=StockChangeSet.SOURCE_STOCKCOUNT)
 
             # Reset information that is not up-to-date after creating the stock count document
             DiscrepancySolution.remove_all_solutions()
