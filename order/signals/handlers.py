@@ -19,7 +19,7 @@ def remove_orderlines(stock_change: StockChange):
     :param stock_change: The StockChange to be checked for orderLines
     :return:
     """
-    acted_upon = [StockChangeSet.SOURCE_CASHREGISTER, StockChangeSet.SOURCE_INTERNALISE, StockChangeSet.STOCKCOUNT]
+    acted_upon = [StockChangeSet.SOURCE_CASHREGISTER, StockChangeSet.SOURCE_INTERNALISE, StockChangeSet.SOURCE_STOCKCOUNT]
     source_val = stock_change.change_set.source
     if stock_change.labeltype == OrderLabel.labeltype and source_val in acted_upon:
         if not stock_change.is_in:
@@ -38,7 +38,7 @@ def remove_orderlines(stock_change: StockChange):
                     action = "Something happened and there are not enough OrderLines to transition " \
                              "to 'internalised' for order {}. I cannot fix this :( Have fun fixing it in the" \
                              "database"
-                elif source_val == StockChangeSet.STOCKCOUNT:
+                elif source_val == StockChangeSet.SOURCE_STOCKCOUNT:
                     action = "Something happened and there are not enough OrderLines to transition " \
                              "to 'cancelled' for order {}. I cannot fix this :( Have fun fixing it in the" \
                              "database"
@@ -50,5 +50,5 @@ def remove_orderlines(stock_change: StockChange):
                         lines[i].sell(lines[i].user_modified)
                     elif source_val == StockChangeSet.SOURCE_INTERNALISE:
                         lines[i].use_for_internal_purposes(lines[i].user_modified)
-                    elif source_val == StockChangeSet.STOCKCOUNT:
+                    elif source_val == StockChangeSet.SOURCE_STOCKCOUNT:
                         lines[i].cancel(lines[i].user_created)
