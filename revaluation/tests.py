@@ -18,9 +18,10 @@ class RevaluationTests(TestCase, TestData):
                                "book_value": self.cost_eur_1,
                                "count": 5,
                                "is_in": True})
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         with self.assertRaises(NoStockExistsError):
-            RevaluationDocument.create_revaluation_document(user=self.user_1,article_type_cost_label_combinations=[(self.articletype_1, self.cost_eur_1, None, None)], memo="")
+            RevaluationDocument.create_revaluation_document(user=self.user_1, article_type_cost_label_combinations=[
+                (self.articletype_1, self.cost_eur_1, None, None)], memo="")
 
     def test_revaluation_of_wrong_label_stock(self):
         stock_addition = []
@@ -29,7 +30,7 @@ class RevaluationTests(TestCase, TestData):
                                "count": 5,
                                "is_in": True,
                                "label": OrderLabel(1)})
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         with self.assertRaises(NoStockExistsError):
             RevaluationDocument.create_revaluation_document(user=self.user_1, article_type_cost_label_combinations=[
                 (self.articletype_1, self.cost_eur_1, None, None)], memo="")
@@ -41,9 +42,10 @@ class RevaluationTests(TestCase, TestData):
                                "book_value": self.cost_eur_1,
                                "count": COUNT,
                                "is_in": True})
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         RevaluationDocument.create_revaluation_document(user=self.user_1,
-                                                        article_type_cost_label_combinations=[(self.articletype_1, self.cost_eur_2, None, None)],
+                                                        article_type_cost_label_combinations=[
+                                                            (self.articletype_1, self.cost_eur_2, None, None)],
                                                         memo="")
         reval_doc = RevaluationDocument.objects.get()
         reval_line = RevaluationLine.objects.get()
@@ -61,7 +63,7 @@ class RevaluationTests(TestCase, TestData):
                                "count": COUNT,
                                "is_in": True,
                                "label": OrderLabel(1)})
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         RevaluationDocument.create_revaluation_document(user=self.user_1,
                                                         article_type_cost_label_combinations=[
                                                             (self.articletype_1, self.cost_eur_2, OrderLabel, 1)],
@@ -88,7 +90,7 @@ class RevaluationTests(TestCase, TestData):
                                "count": COUNT_2,
                                "is_in": True,
                                })
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         RevaluationDocument.create_revaluation_document(user=self.user_1,
                                                         article_type_cost_label_combinations=[
                                                             (self.articletype_1, self.cost_eur_2, None, None),
@@ -129,12 +131,12 @@ class RevaluationTests(TestCase, TestData):
                                "count": COUNT_2,
                                "is_in": True,
                                })
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         RevaluationDocument.create_revaluation_document_stock(user=self.user_1,
                                                               article_type_cost_combination=[
-                                                            (self.articletype_1, self.cost_eur_2)
-                                                            ],
-                                                        memo="")
+                                                               (self.articletype_1, self.cost_eur_2)
+                                                              ],
+                                                              memo="")
 
         reval_doc = RevaluationDocument.objects.get()
         reval_line = RevaluationLine.objects.get()
@@ -150,7 +152,7 @@ class RevaluationTests(TestCase, TestData):
                                "book_value": self.cost_eur_1,
                                "count": 5,
                                "is_in": True})
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         with self.assertRaises(CostError):
             RevaluationDocument.create_revaluation_document(user=self.user_1, article_type_cost_label_combinations=[
                 (self.articletype_1, Cost(amount=Decimal(-3.14), currency=self.currency_eur), None, None)], memo="")
@@ -170,7 +172,7 @@ class RevaluationTests(TestCase, TestData):
                                "is_in": True,
                                "label": OrderLabel(1)
                                })
-        StockChangeSet.construct(description="Test", entries=stock_addition, enum=0)
+        StockChangeSet.construct(description="Test", entries=stock_addition, source="revaluation")
         RevaluationDocument.create_revaluation_document(user=self.user_1,
                                                         article_type_cost_label_combinations=[
                                                             (self.articletype_1, self.cost_eur_2, None, None),

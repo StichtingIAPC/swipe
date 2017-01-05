@@ -8,7 +8,6 @@ from crm.models import User, Customer
 from money.models import MoneyField, PriceField, CostField, AccountingGroup
 from order.models import OrderLine
 from stock.models import StockChangeSet, Id10TError, Stock
-from stock.enumeration import enum
 from stock.stocklabel import StockLabeledLine, OrderLabel
 from tools.util import raiseif
 import customer_invoicing.models
@@ -166,7 +165,7 @@ class RefundTransactionLine(TransactionLine):
                                      'is_in': True}]
                     StockChangeSet.construct(description="Refund of transactionline "
                                                          "{}".format(self.sold_transaction_line.id),
-                                             entries=stock_change, enum=enum["cash_register"])
+                                             entries=stock_change, source=StockChangeSet.SOURCE_CASHREGISTER)
                 elif hasattr(self.sold_transaction_line, 'salestransactionline'):
                     stock_change = [{"article": self.sold_transaction_line.salestransactionline.article,
                                      'book_value': self.sold_transaction_line.salestransactionline.cost,
@@ -175,7 +174,7 @@ class RefundTransactionLine(TransactionLine):
                                      'is_in': True}]
                     StockChangeSet.construct(description="Refund of transactionline "
                                                          "{}".format(self.sold_transaction_line.id),
-                                             entries=stock_change, enum=enum["cash_register"])
+                                             entries=stock_change, source=StockChangeSet.SOURCE_CASHREGISTER)
                 super(RefundTransactionLine, self).save()
         super(RefundTransactionLine, self).save()
 
@@ -220,7 +219,7 @@ class Transaction(Blame):
 
     def save(self, indirect=False, **kwargs):
         if not indirect:
-            raise Id10TError("Please use the Transaction.construct function.")
+            raise Id10TError("Please use the Transaction.create_transaction function.")
         super(Transaction, self).save(**kwargs)
 
     @staticmethod
@@ -458,9 +457,8 @@ class Transaction(Blame):
                 transaction_lines[i].save()
 
             # The post signal of the StockChangeSet should solve the problems of the OrderLines
-            CASH_REGISTER_ENUM = 0
             StockChangeSet.construct(description="Transaction: {}".format(trans.pk), entries=change_set,
-                                     enum=CASH_REGISTER_ENUM)
+                                     source=settings.STOCKCHANGE_SOURCE_CASHREGISTER)
 
             # Payments
             for payment in payments:

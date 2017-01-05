@@ -1,5 +1,7 @@
 from django.db import models
 from django.db import transaction
+from django.conf import settings
+
 from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import StockSmallerThanZeroError, Id10TError
@@ -187,12 +189,37 @@ class StockChangeSet(models.Model):
     A log of one or multiple stockchanges
     """
 
+    # The possible sources for a StockChange. If you change this, please only ADD new sources,
+    # and only remove or edit them if you are absolutely sure what you are doing!
+    # If you change this you will need to create a new migration, and
+    # possibly a data migration if you change the existing strings!
+    SOURCE_CASHREGISTER = "cash_register"
+    SOURCE_SUPPLICATION = "supplication"
+    SOURCE_RMA = "rma"
+    SOURCE_INTERNALISE = "internalise"
+    SOURCE_EXTERNALISE = "externalise"
+    SOURCE_REVALUATION = "revaluation"
+
+    # The choices for the source field, using the keys specified above.
+    # The keys are separate variables so you can use them in other models (e.g. StockChangeSet.SOURCE_CASHREGISTER)
+    # If you change this you will need to create a new migration.
+    STOCKCHANGE_SOURCES = (
+        (SOURCE_CASHREGISTER, _("Cash register")),
+        (SOURCE_SUPPLICATION, _("Supplication")),
+        (SOURCE_RMA, _("RMA")),
+        (SOURCE_INTERNALISE, _("Internalise")),
+        (SOURCE_EXTERNALISE, _("Externalise")),
+        (SOURCE_REVALUATION, _("Revaluation")),
+    )
+
+    # Date the changes were done
     date = models.DateTimeField(auto_now_add=True)
 
     # Description of what happened
     memo = models.CharField(max_length=255, null=True)
-    # Number to describe what caused this change
-    enum = models.IntegerField()
+
+    # The source of these changes, from the possible sources in the settings.
+    source = models.CharField(max_length=50, choices=STOCKCHANGE_SOURCES)
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -202,7 +229,7 @@ class StockChangeSet(models.Model):
 
     @classmethod
     @transaction.atomic()
-    def construct(cls, description, entries, enum):
+    def construct(cls, description, entries, source):
         """
         Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
@@ -210,8 +237,8 @@ class StockChangeSet(models.Model):
         :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have
                         at least the keys "article", "count", "book_value" and "is_in". See StockChange.
         :type entries: list(dict)
-        :param enum: Number to describe what caused this change
-        :type enum: int
+        :param source: The source of these changes, from one of StockChangeSet.STOCKCHANGE_SOURCES.
+        :type source: str
         :return: A completed StockChangeSet of the modification
         :rtype: StockChangeSet
         """
@@ -229,7 +256,7 @@ class StockChangeSet(models.Model):
                                  "StockChangeSet description: {}".format(stock_modification_keys, entry, description))
 
         # Create the StockChangeSet instance to use as a foreign key in the Stockchanges
-        sl = StockChangeSet(memo=description, enum=enum)
+        sl = StockChangeSet(memo=description, source=source)
         sl.save(indirect=True)
 
         # Create the Stockchanges and set the StockChangeSet in them.

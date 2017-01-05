@@ -1,8 +1,8 @@
-from stock.models import StockChange
-from stock.stocklabel import OrderLabel
-from stock.enumeration import enum
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from stock.models import StockChange, StockChangeSet
+from stock.stocklabel import OrderLabel
 from order.models import OrderLine, InconsistencyError
 
 
@@ -10,7 +10,7 @@ from order.models import OrderLine, InconsistencyError
 @receiver(post_save, sender=StockChange)
 def stock_change_handler(sender, **kwargs):
     stock_change = kwargs['instance']  # type: StockChange
-    if stock_change.change_set.enum == enum['cash_register']:
+    if stock_change.change_set.source == StockChangeSet.SOURCE_CASHREGISTER:
         if stock_change.labeltype == OrderLabel.labeltype:
             if not stock_change.is_in:
                 # This means something was sold!
@@ -27,7 +27,7 @@ def stock_change_handler(sender, **kwargs):
                     for i in range(orders_to_complete):
                         # We do need a hack for the user. But things work for the rest.
                         lines[i].sell(lines[i].user_modified)
-    elif stock_change.change_set.enum == enum['internalise']:
+    elif stock_change.change_set.source == StockChangeSet.SOURCE_INTERNALISE:
         # This looks suspiciously like the body above. When encountered again, this needs to put into a function
         if stock_change.labeltype == OrderLabel.labeltype:
             # Internalise only moves out

@@ -1,12 +1,13 @@
+from decimal import Decimal
+from collections import defaultdict
+
 from django.db import models, transaction
+
 from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
 from money.models import CostField, Cost
 from crm.models import User
-from decimal import Decimal
 from stock.models import StockChangeSet
-from stock.enumeration import enum
-from collections import defaultdict
 from tools.util import raiseif
 
 
@@ -56,7 +57,7 @@ class ExternaliseDocument(Blame):
         doc = ExternaliseDocument(memo=memo, user_modified=user)
         doc.save()
         StockChangeSet.construct(description="Externalisation by document {}".format(doc.pk), entries=stock_entries,
-                                 enum=enum['externalise'])
+                                 source=StockChangeSet.SOURCE_EXTERNALISE)
         for line in ext_lines:
             line.externalise_document = doc
             line.user_modified = user
@@ -87,7 +88,7 @@ class ExternaliseLine(ImmutableBlame):
                          'is_in': True}
                     ]
                     StockChangeSet.construct(description="Direct externalisation from new externaliseline",
-                                             entries=entry, enum=enum['externalise'])
+                                             entries=entry, source=StockChangeSet.SOURCE_EXTERNALISE)
                 else:
                     raise IncorrectStockDataError("Either stock is non-positive or cost is non-positive. "
                                                   "Count: {}, Cost: {}".format(self.count, self.cost.amount))
