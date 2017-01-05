@@ -14,9 +14,13 @@ class CSVParser(SupplierDataParser):
     pass
 
 
-class XMLSupplierRelation(models.Model):
+class DataTypeSupplierRelation(models.Model):
 
     supplier = models.ForeignKey(Supplier)
+
+class XMLSupplierRelation(DataTypeSupplierRelation):
+
+
 
     # The descriptor for a product
     item_name = models.CharField(max_length=30)
@@ -36,13 +40,11 @@ class XMLSupplierRelation(models.Model):
     packing_amount = models.CharField(max_length=30)
 
 
-class CSVSupplierRelation(models.Model):
-
-    supplier = models.ForeignKey(Supplier)
+class CSVSupplierRelation(DataTypeSupplierRelation):
 
     # The element separator
     separator = models.CharField(max_length=5)
-
+    # The first line(s) can be CSV-metadata
     start_at = models.IntegerField()
     # Unique product identifier for supplier. Unique referer per supplier.
     number = models.IntegerField()
