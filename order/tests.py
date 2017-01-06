@@ -273,7 +273,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'is_in': True,
             'label': OrderLabel(1)
         }]
-        StockChangeSet.construct(description="Bla", entries=changeset, source="cash_register")
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
@@ -301,7 +301,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
         }]
 
         SOLD_PRODUCTS = 5
-        StockChangeSet.construct(description="Bla", entries=changeset, source="cash_register")
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
@@ -353,7 +353,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
 
         SOLD_PRODUCTS_1 = 4
         SOLD_PRODUCTS_2 = 2
-        StockChangeSet.construct(description="Bla", entries=changeset, source="cash_register")
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
