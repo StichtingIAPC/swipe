@@ -1,11 +1,11 @@
 from django.db import models, transaction
+
 from crm.models import Customer
 from blame.models import Blame, ImmutableBlame
 from money.models import MoneyField
 from sales.models import Transaction, RefundTransactionLine, TransactionLine, SalesTransactionLine
 from article.models import ArticleType
 from stock.models import Stock, StockChangeSet
-from stock.enumeration import enum
 from tools.util import raiseif
 from crm.models import User
 
@@ -41,7 +41,8 @@ class StockRMA(RMACause):
                       'book_value': articles[0].book_value,
                       'count': 1,
                       'is_in': False}]
-            StockChangeSet.construct(description=description, entries=entry, enum=enum['rma'])
+            StockChangeSet.construct(description=description, entries=entry,
+                                     source=StockChangeSet.SOURCE_RMA)
             super(StockRMA, self).save()
             ima = InternalRMA(rma_cause=self, user_modified=self.user_created, customer=None)
             ima.save()

@@ -1,4 +1,5 @@
 from django.db import models, transaction
+
 from blame.models import ImmutableBlame, Blame
 from article.models import ArticleType
 from money.models import CostField, Cost
@@ -6,7 +7,6 @@ from crm.models import User
 from tools.util import raiseif, raiseifnot
 from stock.models import Stock, StockChangeSet
 from stock.stocklabel import StockLabel
-from stock.enumeration import enum
 
 
 class RevaluationDocument(Blame):
@@ -89,7 +89,7 @@ class RevaluationDocument(Blame):
                 line.save()
 
             scs = StockChangeSet.construct(description="Revaluation document {}".format(doc.id), entries=stock_mods,
-                                 enum=enum["revaluation"])
+                                           source=StockChangeSet.SOURCE_REVALUATION)
             doc.stock_change_set = scs
             doc.save()
 

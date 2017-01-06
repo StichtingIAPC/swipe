@@ -105,9 +105,9 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         # Re-using entries for test.
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -153,7 +153,7 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
 
         entries = [{
@@ -163,7 +163,7 @@ class StockTest(INeedSettings, TestCase):
             'is_in': True
         }]
         # Re-using entries for test.
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -209,9 +209,9 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         # Re-using entries for test.
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -271,7 +271,7 @@ class StockTest(INeedSettings, TestCase):
         # Execute two stock modifications, creating two StockLogs
         start = time.clock()
         for i in range(1, 100000):
-            StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         print("Time elapsed during generation: {}".format(time.clock() - start))
 
         print("Generated")
@@ -316,7 +316,7 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute the stock modification, creating a StockChangeSet
-        log_1 = StockChangeSet.construct(description="MultipleProductsTest", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="MultipleProductsTest", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -367,7 +367,7 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute the stock modification, creating a StockChangeSet
-        log_1 = StockChangeSet.construct(description="MultipleArticlesTest", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="MultipleArticlesTest", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we added two types of article to the stock
         self.assertEquals(len(Stock.objects.all()), 2)
@@ -426,11 +426,13 @@ class StockTest(INeedSettings, TestCase):
         }
 
         # Execute the needed modifications
-        log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
-        log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
+        log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2],
+                                         source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2],
+                                         source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         log_3 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2 2xProduct1",
-                                         entries=[entry_1, entry_2, entry_1], enum=1)
-        log_4 = StockChangeSet.construct(description="Sell 1xProduct2", entries=[entry_3], enum=1)
+                                         entries=[entry_1, entry_2, entry_1], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        log_4 = StockChangeSet.construct(description="Sell 1xProduct2", entries=[entry_3], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Get resulting stocks
         art_stock = Stock.objects.get(article=art)
@@ -478,7 +480,7 @@ class StockTest(INeedSettings, TestCase):
             }]
 
             # Do stock modification
-            StockChangeSet.construct(description="AverageTest{}".format(i), entries=entries, enum=1)
+            StockChangeSet.construct(description="AverageTest{}".format(i), entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Get stock for article
         st = Stock.objects.get(article=art)
@@ -514,7 +516,8 @@ class StockTest(INeedSettings, TestCase):
                 }]
 
                 # Do stock modification
-                StockChangeSet.construct(description="NegativeStockTest{}".format(i), entries=entries, enum=1)
+                StockChangeSet.construct(description="NegativeStockTest{}".format(i), entries=entries,
+                                         source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         except StockSmallerThanZeroError:
             i = 1
@@ -543,7 +546,7 @@ class StockTest(INeedSettings, TestCase):
             'count': 1,
             'is_in': True
         }]
-        StockChangeSet.construct(description="AddEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check if the product was successfully added to the stock
         self.assertEqual(len(Stock.objects.all()), 1)
@@ -558,7 +561,7 @@ class StockTest(INeedSettings, TestCase):
             'is_in': True
         }]
         try:
-            StockChangeSet.construct(description="AddDollarStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddDollarStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         except CurrencyInconsistencyError:
             i = 1
 
@@ -580,7 +583,7 @@ class StockTest(INeedSettings, TestCase):
         i = 0
 
         try:
-            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         except CurrencyInconsistencyError:
             i = 1
 
@@ -614,7 +617,7 @@ class StockTest(INeedSettings, TestCase):
                 'is_in': True
             }]
 
-            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         for i in range(1, 7):  # 1 to 6. Average should be 3.5
             # Define book value, only remove for average cost.
             book_value = Cost(amount=Decimal(3.5000), currency=cur)
@@ -624,7 +627,7 @@ class StockTest(INeedSettings, TestCase):
                     'count': 1,
                     'is_in': False
             }]
-            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         entries = [{
             'article': art,
@@ -633,7 +636,7 @@ class StockTest(INeedSettings, TestCase):
             'is_in': False
         }]
 
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.assertEqual(len(StockChange.objects.all_without_label()), 13)
         self.assertEqual(len(StockChange.objects.all_without_label()), 13)
 
@@ -643,6 +646,31 @@ class StockTest(INeedSettings, TestCase):
             self.assertEqual(st.__len__(), 0)
         else:
             self.assertEqual(st.__len__(), 1)
+
+    def testInvalidSource(self):
+        i = 0
+        # Create some objects to use in the tests
+        eur = Currency("EUR")
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
+        art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                         accounting_group=self.accountinggroup)
+
+        # Sample article
+        entries = [{
+            'article': art,
+            'book_value': cost_eur,
+            'count': 1,
+            'is_in': True
+        }]
+        try:
+            StockChangeSet.construct(description="AddInvalidSource", entries=entries,
+                                     source="some_nonexisting_source_is_nonexisting")
+        except ValueError:
+            i = 1
+
+        # This should have failed, so i should be 1
+        self.assertEqual(i, 1)
 
 
 @StockLabel.register
@@ -700,8 +728,8 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         self.assertEqual(len(StockChange.objects.filter(label=self.label1a)), 2)
         self.assertEqual(len(StockChange.objects.all_without_label()), 0)
@@ -710,12 +738,12 @@ class LabelTest(INeedSettings, TestCase):
         t = TestStockLabel(4)
 
         entries[0]["label"] = t
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         entries[0]["label"] = None
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
     def raisesTest(self):
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=self.entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=self.entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
     def testLabelFailBecauseNoLabel(self):
         eur = Currency("EUR")
@@ -731,7 +759,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.entries = [{
             'article': art,
             'book_value': cost_eur,
@@ -742,7 +770,7 @@ class LabelTest(INeedSettings, TestCase):
         self.assertEqual(Stock.objects.get(label=self.label1a).count, 1)
         self.assertEqual(StockChange.objects.all().__len__(), 1)
         entries[0]['is_in'] = False
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         if DELETE_STOCK_ZERO_LINES:
             self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(), 0)
         else:
@@ -773,7 +801,7 @@ class LabelTest(INeedSettings, TestCase):
         # Add 1 article with cost 1 euro
         entries = self.def_entries
 
-        StockChangeSet.construct(description="AddFirstStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddFirstStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.assertEqual(StockChange.objects.all().__len__(), 1)
         self.assertEqual(Stock.objects.all().__len__(), 1)
         self.assertEqual(Stock.objects.all_without_label().__len__(), 0)
@@ -790,7 +818,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': False,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.assertEqual(StockChange.objects.all().__len__(), 3)
         if DELETE_STOCK_ZERO_LINES:
             self.assertEqual(Stock.objects.all().__len__(), 1)
@@ -819,7 +847,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.cost_eur = self.cost_eur + self.cost_eur
         entries = [{
             'article': self.def_art,
@@ -834,7 +862,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         without_label = Stock.objects.all_without_label()
         without_line = without_label[0]
         self.assertEqual(without_label.__len__(), 1)
@@ -875,7 +903,7 @@ class LabelTest(INeedSettings, TestCase):
 
     # noinspection PyMethodMayBeStatic
     def testEmptyStockChangeSet(self):
-        StockChangeSet.construct(description="!", entries=[], enum=0)
+        StockChangeSet.construct(description="!", entries=[], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
 
 class StockLockTest(TestCase, TestData):
@@ -912,12 +940,12 @@ class StockLockTest(TestCase, TestData):
                     'count': 1,
                     'is_in': True}]
         StockChangeSet.construct(description="Stocking",
-                                 entries=entries, enum=0)
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         StockLock.lock(self.user_1)
         self.assertTrue(StockLock.is_locked())
         with self.assertRaises(LockError):
             StockChangeSet.construct(description="Stocking",
-                                     entries=entries, enum=0)
+                                     entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
     def test_block_override(self):
         StockLock.lock(self.user_1)
@@ -926,7 +954,8 @@ class StockLockTest(TestCase, TestData):
                     'count': 1,
                     'is_in': True}]
         StockChangeSet.construct(description="Stocking",
-                                 entries=entries, enum=0, force_ignore_lock=True)
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE,
+                                 force_ignore_lock=True)
 
 
 class StockStatisticFunctions(TestCase, TestData):
@@ -940,7 +969,7 @@ class StockStatisticFunctions(TestCase, TestData):
                     'count': 1,
                     'is_in': True}]
         StockChangeSet.construct(description="Stocking",
-                                 entries=entries, enum=0)
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         test_set = Stock.get_all_average_prices_and_amounts()
         for key in test_set:
             result = test_set[key]
@@ -960,7 +989,7 @@ class StockStatisticFunctions(TestCase, TestData):
                     'label': OrderLabel(3)}
                    ]
         StockChangeSet.construct(description="Stocking",
-                                 entries=entries, enum=0)
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         test_set = Stock.get_all_average_prices_and_amounts()
         result = test_set[self.articletype_1]
         cost_avg = Cost(amount=Decimal(3), currency=Currency("EUR"))
@@ -985,7 +1014,7 @@ class StockStatisticFunctions(TestCase, TestData):
                     'label': OrderLabel(1)}
                    ]
         StockChangeSet.construct(description="Stocking",
-                                 entries=entries, enum=0)
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         cost_avg = Cost(amount=Decimal(3), currency=Currency("EUR"))
         test_set = Stock.get_all_average_prices_and_amounts()
         art_1 = test_set[self.articletype_1]
@@ -1019,7 +1048,7 @@ class StockStatisticFunctions(TestCase, TestData):
                     'label': OrderLabel(1)}
                    ]
         StockChangeSet.construct(description="Stocking",
-                                 entries=entries, enum=0)
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         cost_avg_1 = Cost(amount=Decimal(3), currency=Currency("EUR"))
         cost_avg_2 = Cost(amount=Decimal(5), currency=Currency("EUR"))
         test_set = Stock.get_all_average_prices_and_amounts()
