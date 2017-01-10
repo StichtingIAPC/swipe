@@ -1,22 +1,22 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { Router, Route, IndexRedirect } from 'react-router';
-import { push } from 'react-router-redux';
-
-import { setRouteAfterAuthentication } from 'actions/auth.js'
-
+import React from "react";
+import { connect } from "react-redux";
+import { Router, Route, IndexRedirect } from "react-router";
+import { push } from "react-router-redux";
+import { setRouteAfterAuthentication } from "actions/auth.js";
 // Subrouters
-import { Error404 } from './components/base/Error404';
-
-import Authentication from './components/authentication/Authentication.js';
-import Application from './components/Application.js';
-import Dashboard from './components/Dashboard.js'
-import HelloWorld from './components/HelloWorld.js';
-
+import { Error404 } from "./components/base/Error404";
+import Authentication from "./components/authentication/Authentication.js";
+import Application from "./components/Application.js";
+import Dashboard from "./components/Dashboard.js";
+import HelloWorld from "./components/HelloWorld.js";
 // Supplier components
-import SupplierBase from 'components/supplier/SupplierBase';
-import SupplierEdit from 'components/supplier/SupplierEdit';
-import SupplierDetail from 'components/supplier/SupplierDetail';
+import SupplierBase from "components/supplier/SupplierBase";
+import SupplierEdit from "components/supplier/SupplierEdit";
+import SupplierDetail from "components/supplier/SupplierDetail";
+// Money components
+import MoneyBase from "./components/money/MoneyBase";
+import CurrencyDetail from "./components/money/currency/CurrencyDetail";
+import CurrencyEdit from "./components/money/currency/CurrencyEdit";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -33,11 +33,15 @@ class Routes extends React.Component {
 				<Route path="dashboard" component={Dashboard} />
 				<Route path="helloworld" component={HelloWorld} />
 
-				<Route path="" component={SupplierBase}>
-					<Route path="supplier/create/" component={SupplierEdit} />
-					<Route path="supplier/:supplierID/edit" component={SupplierEdit} />
-					<Route path="supplier/:supplierID/" component={SupplierDetail} />
-					<Route path="supplier/" />
+				<Route path="supplier" component={SupplierBase}>
+					<Route path="create/" component={SupplierEdit} />
+					<Route path=":supplierID/edit/" component={SupplierEdit} />
+					<Route path=":supplierID/" component={SupplierDetail} />
+				</Route>
+				<Route path="money" component={MoneyBase}>
+					<Route path="currency/create/" component={CurrencyEdit} />
+					<Route path="currency/:currencyID/edit/" component={CurrencyEdit} />
+					<Route path="currency/:currencyID/" component={CurrencyDetail} />
 				</Route>
 
 				<Route path="pos">

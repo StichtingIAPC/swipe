@@ -78,8 +78,8 @@ module.exports = {
 		'comma-dangle': [ 2, {
 			'arrays': 'always-multiline',
 			'objects': 'always-multiline',
-			'imports': 'always-multiline',
-			'exports': 'always-multiline',
+			'imports': 'only-multiline',
+			'exports': 'only-multiline',
 			'functions': 'ignore',
 		} ],
 		'comma-spacing': [ 2, { 'before': false, 'after': true } ],

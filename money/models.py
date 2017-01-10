@@ -2,16 +2,9 @@ from decimal import Decimal
 
 from django.core.validators import RegexValidator
 from django.db import models
-
-# Based on https://git.iapc.utwente.nl/swipe/swipe-design/issues/22
-# Global money representation parameters
-
 from django.utils.translation import ugettext_lazy
 
 from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
-
-
-# VAT : Pay the government, alas, we have to do this.
 from tools.util import raiseif
 
 
@@ -625,7 +618,6 @@ class Denomination(models.Model):
     The currency bundles that a currency has. A cash register can pay cash with only these means
     """
     currency = models.ForeignKey(CurrencyData)
-
     amount = models.DecimalField(decimal_places=DECIMAL_PLACES, max_digits=MAX_DIGITS)
 
     @classmethod

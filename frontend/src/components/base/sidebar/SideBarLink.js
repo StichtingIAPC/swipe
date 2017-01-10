@@ -1,6 +1,6 @@
 import React, {PropTypes} from "react";
 import {Link} from "react-router";
-import FontAwesome from "components/tools/icons/FontAwesome.js";
+import FontAwesome from "../../tools/icons/FontAwesome.js";
 
 export default class SidebarLink extends React.Component {
 	constructor(props) {
@@ -26,14 +26,14 @@ export default class SidebarLink extends React.Component {
 
 		const openswitch = this.props.children ? (
 			<span className="pull-right-container" onClick={this.toggle.bind(this)}>
-				<FontAwesome icon={(this.state.open ? 'angle-down' : 'angle-left') + ' pull-right'} />
+				<FontAwesome icon={(this.state.open ? 'minus-square' : 'plus-square') + ' pull-right'} />
 			</span>
 		) : null;
 
 		return (
 			<li className={this.state.open ? 'treeview active' : 'treeview'}>
-				<Link to={this.props.to} activeClassName={this.props.activeClassName || 'active'}>
-					<FontAwesome icon={this.props.icon ? this.props.icon : 'circle-o'} />
+				<Link to={this.props.to} activeClassName={this.props.activeClassName}>
+					<FontAwesome icon={this.props.icon} />
 					<span>{this.props.text}</span>
 					{openswitch}
 				</Link>

@@ -1,13 +1,14 @@
-import { combineReducers } from 'redux'
-
-import { routerReducer } from 'react-router-redux';
-import suppliers from './suppliers.js';
-import auth from './auth.js';
-import sidebar from './sidebar.js';
+import {combineReducers} from "redux";
+import {routerReducer} from "react-router-redux";
+import suppliers from "./suppliers";
+import auth from "./auth";
+import sidebar from "./sidebar";
+import currencies from "./money/currencies";
 
 export default combineReducers({
 	suppliers,
 	auth,
 	routing: routerReducer,
 	sidebar,
+	currencies,
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /**
  * Created by Matthias on 18/11/2016.
@@ -9,8 +9,8 @@ export default class BoolField extends React.Component {
 		const {name, className, ...rest} = this.props;
 		return (
 			<div className={className || `form-group`}>
-				<label className="col-sm-2 control-label" htmlFor={name}>{name}</label>
-				<div className="col-sm-10">
+				<label className="col-sm-3 control-label" htmlFor={name}>{name}</label>
+				<div className="col-sm-9">
 					<input
 						className="checkbox"
 						type="checkbox"

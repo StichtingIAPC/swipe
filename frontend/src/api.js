@@ -100,3 +100,19 @@ export async function del(url, object, {headers = {}, ...rest} = {}) {
 	if (result.ok) return result;
 	throw result;
 }
+
+export function patch(url, object, {headers = {}, ...rest} = {}) {
+	return fetch(
+		config.baseurl + url,
+		{
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Token ${token}`,
+				...headers,
+			},
+			body: JSON.stringify(object),
+			...rest,
+		}
+	).then((response) => response.ok ? response : Promise.reject(response));
+}
