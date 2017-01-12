@@ -169,6 +169,7 @@ class PreparationTests(TestCase, TestData):
                   'count': NEW_OUT_1,
                   'is_in': False},
                  ]
+        time.sleep(0.01)
         StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
@@ -212,6 +213,7 @@ class PreparationTests(TestCase, TestData):
                   'count': NEW_IN_2,
                   'is_in': True},
                  ]
+        time.sleep(0.01)
         StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
@@ -239,6 +241,7 @@ class PreparationTests(TestCase, TestData):
                   'count': 3,
                   'is_in': True},
                  ]
+        time.sleep(0.01)
         StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
@@ -826,6 +829,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
+        time.sleep(0.1)
         StockChangeSet.construct(description="", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
@@ -861,6 +865,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
+        time.sleep(0.1)
         StockChangeSet.construct(description="", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 6), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
@@ -896,6 +901,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
+        time.sleep(0.1)
         StockChangeSet.construct(description="", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 7), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
@@ -932,6 +938,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
+        time.sleep(0.1)
         StockChangeSet.construct(description="", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
@@ -972,6 +979,7 @@ class StockCountDocumentTests(TestCase, TestData):
                     'book_value': self.cost_eur_2,
                     'count': 4,
                     'is_in': True}, ]
+        time.sleep(0.1)
         StockChangeSet.construct(description="", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 9)])
         doc_2 = StockCountDocument.create_stock_count(self.user_1)
