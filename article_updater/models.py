@@ -19,7 +19,7 @@ class FileParser:
         raiseifnot(isinstance(file_location, str), TypeError)
         mimetype = mimetypes.guess_type(file_location)[0]  # type: str
         mimetype_first_part = mimetype.split('/')[0]
-        return mimetype_first_part == 'text'
+        return mimetype_first_part == 'text' or mimetype == 'application/xml'
 
 
 class SupplierDataParser:
