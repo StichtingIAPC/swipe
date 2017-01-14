@@ -1,5 +1,6 @@
 from django.test import TestCase, SimpleTestCase
 from article_updater.models import FileParser
+import mimetypes
 
 
 class ParserTests(SimpleTestCase):
@@ -13,7 +14,8 @@ class ParserTests(SimpleTestCase):
     # This should work but doesn't. Finding out why might be difficult due to different
     # computers giving different answers.
     def test_xml_file_is_plain_text(self):
-        self.assertTrue(FileParser.verify_file_is_plain_text("./article_updater/testing/Copaco_prijslijst_91658.xml"))
+        file_location = "./article_updater/testing/Copaco_prijslijst_91658.xml"
+        self.assertTrue(FileParser.verify_file_is_plain_text(file_location), mimetypes.guess_type(file_location)[0])
 
     def test_csv_file_is_plain_text(self):
         pass
