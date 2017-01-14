@@ -17,7 +17,9 @@ class FileParser:
     @staticmethod
     def verify_file_is_plain_text(file_location: str) -> bool:
         raiseifnot(isinstance(file_location, str), TypeError)
-        return mimetypes.guess_type(file_location)[0] == 'text/plain'
+        mimetype = mimetypes.guess_type(file_location)[0]  # type: str
+        mimetype_first_part = mimetype.split('/')[0]
+        return mimetype_first_part == 'text'
 
 
 class SupplierDataParser:

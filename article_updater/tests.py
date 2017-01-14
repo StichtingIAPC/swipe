@@ -12,14 +12,13 @@ class ParserTests(SimpleTestCase):
 
     # This should work but doesn't. Finding out why might be difficult due to different
     # computers giving different answers.
-    # def test_file_is_plain_text(self):
-    #     self.assertTrue(FileParser.verify_file_is_plain_text("./article_updater/tests.py"))
+    def test_xml_file_is_plain_text(self):
+        self.assertTrue(FileParser.verify_file_is_plain_text("./article_updater/testing/Copaco_prijslijst_91658.xml"))
+
+    def test_csv_file_is_plain_text(self):
+        pass
 
     def test_file_is_not_plain_text(self):
-        # If this test fails, it means that the file in question has been moved or deleted.
-        # In that case, either delete this test or point it to a different file.
-        # This file was chosen because at the time, it was one of the few plaintext files
-        # in the repository.
-        self.assertFalse(FileParser.verify_file_is_plain_text("./www/static/scss/www/foundation-icons/"
-                                                              "foundation-icons.eot"))
+        # I see what I did there
+        self.assertFalse(FileParser.verify_file_is_plain_text("./article_updater/testing/PB145906.jpg"))
 
