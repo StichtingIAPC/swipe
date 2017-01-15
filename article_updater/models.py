@@ -41,31 +41,43 @@ class FileParser:
         possible_correct_mimes = ['application/vnd.ms-excel', 'application/xml']
         return mimetype_first_part == 'text' or mimetype in possible_correct_mimes
 
+
 class DataTypeSupplierRelation(models.Model):
 
     supplier = models.ForeignKey(Supplier)
 
+    def verify_supplier_relation_integrity(self):
+        pass
+
 
 class XMLSupplierRelation(DataTypeSupplierRelation):
 
-
-
-    # The descriptor for a product
+    # The xml identifier for a product
     item_name = models.CharField(max_length=30)
     # Unique product identifier for supplier. Unique referer per supplier.
     number = models.CharField(max_length=30)
-
+    # The name given by the supplier
     name = models.CharField(max_length=30)
-
+    # The first price of the product
     price = models.CharField(max_length=30)
-
+    # How much the supplier has in stock
     supply = models.CharField(max_length=30)
     # EAN code. Unique referer globally.
-    ean = models.CharField(max_length=30)
+    ean = models.CharField(max_length=30, null=True)
+    # The minimum amount you have to buy
+    minimum_order = models.CharField(max_length=30, null=True)
+    # The divisor of the amount of products you have to buy
+    packing_amount = models.CharField(max_length=30, null=True)
 
-    minimum_order = models.CharField(max_length=30)
-
-    packing_amount = models.CharField(max_length=30)
+    def verify_supplier_relation_integrity(self):
+        attrs = [self.item_name, self.number, self.name, self.price, self.supply, self.ean, self.minimum_order,
+                 self.packing_amount]
+        name_set = set()
+        for att in attrs:
+            if att and att in name_set:
+                raise SupplierRelationDataError("Attribute matched twice!")
+            else:
+                name_set.add(att)
 
 
 class CSVSupplierRelation(DataTypeSupplierRelation):
@@ -83,15 +95,28 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
 
     supply = models.IntegerField()
     # EAN code. Unique referer globally.
-    ean = models.IntegerField()
+    ean = models.IntegerField(null=True)
 
-    minimum_order = models.IntegerField()
+    minimum_order = models.IntegerField(null=True)
 
-    packing_amount = models.IntegerField()
+    packing_amount = models.IntegerField(null=True)
+
+    def verify_supplier_relation_integrity(self):
+        attrs = [self.separator, self.start_at, self.number, self.name, self.price, self.supply, self.ean, self.minimum_order,
+                 self.packing_amount]
+        name_set = set()
+        for att in attrs:
+            if att and att in name_set:
+                raise SupplierRelationDataError("Attribute matched twice!")
+            else:
+                name_set.add(att)
 
 
 class SupplierDataParser:
-    pass
+
+    @staticmethod
+    def parse(file_location, supplier_data: DataTypeSupplierRelation):
+        pass
 
 
 class XMLParser(SupplierDataParser):
@@ -131,4 +156,8 @@ class CSVParser(SupplierDataParser):
 
 
 class SwipeParseError(Exception):
+    pass
+
+
+class SupplierRelationDataError(Exception):
     pass

@@ -1,6 +1,7 @@
 from django.test import TestCase, SimpleTestCase
 from xml.etree.ElementTree import ParseError
-from article_updater.models import FileParser, XMLParser, CSVParser, SwipeParseError, CSVSupplierRelation
+from article_updater.models import FileParser, XMLParser, CSVParser, \
+    SwipeParseError, CSVSupplierRelation, XMLSupplierRelation
 import mimetypes
 
 
@@ -51,4 +52,42 @@ class ParserTests(SimpleTestCase):
         self.assertEqual("CMP-CE039-1.5", result[0][2])
         self.assertEqual("CMP-CE070", result[1][2])
         self.assertEqual("CMP-CE070/3", result[2][2])
+
+
+class SupplierTests(SimpleTestCase):
+    """
+    Actual supplier data. If this fails, either these tests are broken or importing will fail in real life.
+    """
+
+    def setUp(self):
+        """
+        Actual supplier data.
+        """
+        self.copaco = XMLSupplierRelation(item_name="item", ean="EAN_code", number="item_id", name="long_desc",
+                                          price="price", supply="stock", minimum_order=None, packing_amount=None)
+        self.nedis = CSVSupplierRelation(number=2, ean=6, name=11, price=24, supply=32, minimum_order=28,
+                                         packing_amount=None, start_at=1, separator=",")
+        self.wave = CSVSupplierRelation(number=0, ean=0, name=2, price=3, supply=4, minimum_order=None,
+                                        packing_amount=None, separator="|", start_at=1)
+
+    def test_verify_supplier_relations(self):
+        self.copaco.verify_supplier_relation_integrity()
+        self.nedis.verify_supplier_relation_integrity()
+        self.wave.verify_supplier_relation_integrity()
+
+    def test_verify_copaco(self):
+        file_location = "./article_updater/testing/Copaco_prijslijst_91658-brief.xml"
+        parsed = XMLParser.parse(file_location, self.copaco)
+        root = parsed.getroot()
+        self.assertEqual("ATE-0AD6-1705-26EG", root[0][0].text)
+
+    def test_verify_nedis(self):
+        file_location = "./article_updater/testing/nedis_csv_brief.csv"
+        parsed = CSVParser.parse(file_location, self.nedis)
+        self.assertTrue(int, type(parsed[0][32]))
+
+    def test_verify_wave(self):
+        file_location = "./article_updater/testing/wave-2017-01-02.csv"
+        parsed = CSVParser.parse(file_location, self.wave)
+        self.assertEqual("1N1AA006", parsed[0][0])
 
