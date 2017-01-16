@@ -64,10 +64,10 @@ class SupplierTests(SimpleTestCase):
         Actual supplier data.
         """
         self.copaco = XMLSupplierRelation(item_name="item", ean="EAN_code", number="item_id", name="long_desc",
-                                          price="price", supply="stock", minimum_order=None, packing_amount=None)
-        self.nedis = CSVSupplierRelation(number=2, ean=6, name=11, price=24, supply=32, minimum_order=28,
+                                          cost="price", supply="stock", minimum_order=None, packing_amount=None)
+        self.nedis = CSVSupplierRelation(number=2, ean=6, name=9, cost=24, supply=32, minimum_order=28,
                                          packing_amount=None, start_at=1, separator=",")
-        self.wave = CSVSupplierRelation(number=0, ean=0, name=2, price=3, supply=4, minimum_order=None,
+        self.wave = CSVSupplierRelation(number=0, ean=5, name=2, cost=3, supply=4, minimum_order=None,
                                         packing_amount=None, separator="|", start_at=1)
 
     def test_verify_supplier_relations(self):
@@ -90,4 +90,25 @@ class SupplierTests(SimpleTestCase):
         file_location = "./article_updater/testing/wave-2017-01-02.csv"
         parsed = CSVParser.parse(file_location, self.wave)
         self.assertEqual("1N1AA006", parsed[0][0])
+
+    def test_produce_supplier_products_nedis(self):
+        file_location = "./article_updater/testing/nedis_csv_brief.csv"
+        parsed = CSVParser.parse(file_location, self.nedis)
+        supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.nedis)
+        # map of ean to supply level
+        correct = {5412810134038: 730,
+                   5412810102648: 611,
+                   5412810102655: 732}
+        for art in supplier_articles:
+            self.assertEqual(art.supply, correct[art.ean])
+
+    def test_produce_supplier_products_wave(self):
+        file_location = "./article_updater/testing/wave-2017-01-02.csv"
+        parsed = CSVParser.parse(file_location, self.wave)
+        supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.wave)
+        # map of ean to supply level
+        correct = {8717774650172: 1,
+                   8717774650066: 6}
+        for art in supplier_articles:
+            self.assertEqual(art.supply, correct[art.ean])
 

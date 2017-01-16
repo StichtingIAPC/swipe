@@ -90,6 +90,24 @@ class SupplierTypeArticle(models.Model):
     Information a supplier gives about its own products. Can be updated with price lists or manually.
     """
 
-    supplier = models.ForeignKey(Supplier)
+    article_type_supplier = models.ForeignKey(ArticleTypeSupplier, null=True)
 
-    supplier_string = models.CharField(primary_key=True, max_length=255)
+    number = models.CharField(max_length=100)
+
+    name = models.CharField(max_length=255)
+
+    ean = models.IntegerField(null=True)
+
+    cost = CostField(null=True)  # Describes the cost of
+
+    minimum_number_to_order = models.IntegerField(null=True)
+
+    supply = models.IntegerField(null=True)
+
+    packing_amount = models.IntegerField(null=True)
+
+    def __str__(self):
+        return "ArtTypSupId: {}, sup_number: {}, name: {}, ean: {}, cost: {}, minimum_order: {}, " \
+               "supply: {}, packing_amount: {}".format(self.article_type_supplier_id, self.number,
+                                                       self.name, self.ean, self.cost, self.minimum_number_to_order,
+                                                       self.supply, self.packing_amount)

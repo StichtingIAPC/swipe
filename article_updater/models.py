@@ -1,6 +1,9 @@
 from django.db import models
 from supplier.models import Supplier
 from tools.util import raiseifnot
+from supplier.models import SupplierTypeArticle
+from money.models import Cost
+from decimal import Decimal
 
 # For file lookup
 import os.path
@@ -58,8 +61,8 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
     number = models.CharField(max_length=30)
     # The name given by the supplier
     name = models.CharField(max_length=30)
-    # The first price of the product
-    price = models.CharField(max_length=30)
+    # The first cost of the product
+    cost = models.CharField(max_length=30)
     # How much the supplier has in stock
     supply = models.CharField(max_length=30)
     # EAN code. Unique referer globally.
@@ -70,7 +73,7 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
     packing_amount = models.CharField(max_length=30, null=True)
 
     def verify_supplier_relation_integrity(self):
-        attrs = [self.item_name, self.number, self.name, self.price, self.supply, self.ean, self.minimum_order,
+        attrs = [self.item_name, self.number, self.name, self.cost, self.supply, self.ean, self.minimum_order,
                  self.packing_amount]
         name_set = set()
         for att in attrs:
@@ -78,6 +81,10 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
                 raise SupplierRelationDataError("Attribute matched twice!")
             else:
                 name_set.add(att)
+
+    @staticmethod
+    def get_supplier_type_articles(xml_data, supplier_relation):
+        pass
 
 
 class CSVSupplierRelation(DataTypeSupplierRelation):
@@ -88,21 +95,21 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
     start_at = models.IntegerField()
     # Unique product identifier for supplier. Unique referer per supplier.
     number = models.IntegerField()
-
+    # The name given by the supplier
     name = models.IntegerField()
-
-    price = models.IntegerField()
-
+    # The first cost of the product
+    cost = models.IntegerField()
+    # How much the supplier has in stock
     supply = models.IntegerField()
     # EAN code. Unique referer globally.
     ean = models.IntegerField(null=True)
-
+    # The minimum amount you have to buy
     minimum_order = models.IntegerField(null=True)
-
+    # The divisor of the amount of products you have to buy
     packing_amount = models.IntegerField(null=True)
 
     def verify_supplier_relation_integrity(self):
-        attrs = [self.separator, self.start_at, self.number, self.name, self.price, self.supply, self.ean, self.minimum_order,
+        attrs = [self.separator, self.start_at, self.number, self.name, self.cost, self.supply, self.ean, self.minimum_order,
                  self.packing_amount]
         name_set = set()
         for att in attrs:
@@ -110,6 +117,43 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
                 raise SupplierRelationDataError("Attribute matched twice!")
             else:
                 name_set.add(att)
+
+    @staticmethod
+    def get_supplier_type_articles(csv_data, supplier_relation):
+        """
+
+        :param csv_data:
+        :param supplier_relation: The supplier location with the indices for the elements on the lines
+        :type supplier_relation: CSVSupplierRelation
+        :return:
+        :rtype List[SupplierTypeArticle]
+        """
+        supplier_type_articles = []
+        for line in csv_data:
+            number = line[supplier_relation.number]
+            name = line[supplier_relation.name]
+            cost = Cost(amount=Decimal(supplier_relation.cost), use_system_currency=True)
+            supply = int(line[supplier_relation.supply])
+
+            if supplier_relation.ean:
+                ean = int(line[supplier_relation.ean])
+            else:
+                ean = None
+            if supplier_relation.minimum_order:
+                minimum_order = int(line[supplier_relation.minimum_order])
+            else:
+                minimum_order = None
+            if supplier_relation.packing_amount:
+                packing_amount = int(line[supplier_relation.packing_amount])
+            else:
+                packing_amount = None
+
+            supplier_type_articles.append(SupplierTypeArticle(number=number, name=name,                                                               cost=cost,
+                                                              supply=supply, ean=ean,
+                                                              minimum_number_to_order=minimum_order,
+                                                              packing_amount=packing_amount))
+        return supplier_type_articles
+
 
 
 class SupplierDataParser:
