@@ -148,7 +148,7 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
             else:
                 packing_amount = None
 
-            supplier_type_articles.append(SupplierTypeArticle(number=number, name=name,                                                               cost=cost,
+            supplier_type_articles.append(SupplierTypeArticle(number=number, name=name, cost=cost,
                                                               supply=supply, ean=ean,
                                                               minimum_number_to_order=minimum_order,
                                                               packing_amount=packing_amount))
