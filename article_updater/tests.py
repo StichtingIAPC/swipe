@@ -5,6 +5,7 @@ from article_updater.models import FileParser, XMLParser, CSVParser, \
 import mimetypes
 from money.models import Cost
 from decimal import Decimal
+from supplier.models import Supplier
 
 
 class ParserTests(SimpleTestCase):
@@ -65,11 +66,16 @@ class SupplierTests(SimpleTestCase):
         """
         Actual supplier data.
         """
-        self.copaco = XMLSupplierRelation(item_name="item", ean="EAN_code", number="item_id", name="long_desc",
+        # Supplier dummies
+        copaco_supplier = Supplier(pk=1)
+        nedis_supplier = Supplier(pk=2)
+        wave_supplier = Supplier(pk=3)
+        # Supplier relation data, should work like the real suppliers
+        self.copaco = XMLSupplierRelation(supplier=copaco_supplier, item_name="item", ean="EAN_code", number="item_id", name="long_desc",
                                           cost="price", supply="stock", minimum_order=None, packing_amount=None)
-        self.nedis = CSVSupplierRelation(number=2, ean=6, name=9, cost=24, supply=32, minimum_order=28,
+        self.nedis = CSVSupplierRelation(supplier=nedis_supplier, number=2, ean=6, name=9, cost=24, supply=32, minimum_order=28,
                                          packing_amount=None, start_at=1, separator=",")
-        self.wave = CSVSupplierRelation(number=0, ean=5, name=2, cost=3, supply=4, minimum_order=None,
+        self.wave = CSVSupplierRelation(supplier=wave_supplier, number=0, ean=5, name=2, cost=3, supply=4, minimum_order=None,
                                         packing_amount=None, separator="|", start_at=1)
 
     def test_verify_supplier_relations(self):

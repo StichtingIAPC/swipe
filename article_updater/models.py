@@ -118,7 +118,8 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
             supplier_type_articles.append(SupplierTypeArticle(number=number, name=name, cost=cost,
                                                               supply=supply, ean=ean,
                                                               minimum_number_to_order=minimum_order,
-                                                              packing_amount=packing_amount))
+                                                              packing_amount=packing_amount,
+                                                              supplier=supplier_relation.supplier))
         return supplier_type_articles
 
 
@@ -190,7 +191,8 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
             supplier_type_articles.append(SupplierTypeArticle(number=number, name=name, cost=cost,
                                                               supply=supply, ean=ean,
                                                               minimum_number_to_order=minimum_order,
-                                                              packing_amount=packing_amount))
+                                                              packing_amount=packing_amount,
+                                                              supplier=supplier_relation.supplier))
         return supplier_type_articles
 
 

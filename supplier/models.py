@@ -90,7 +90,10 @@ class SupplierTypeArticle(models.Model):
     Information a supplier gives about its own products. Can be updated with price lists or manually.
     """
 
-    article_type_supplier = models.ForeignKey(ArticleTypeSupplier, null=True)
+    # A connection to a product in our own assortment via ArticleTypeSupplier
+    article_type_supplier = models.OneToOneField(ArticleTypeSupplier, null=True)
+    #
+    supplier = models.ForeignKey(Supplier)
 
     number = models.CharField(max_length=100)
 
@@ -98,7 +101,7 @@ class SupplierTypeArticle(models.Model):
 
     ean = models.IntegerField(null=True)
 
-    cost = CostField(null=True)  # Describes the cost of
+    cost = CostField(null=True)
 
     minimum_number_to_order = models.IntegerField(null=True)
 
@@ -107,7 +110,20 @@ class SupplierTypeArticle(models.Model):
     packing_amount = models.IntegerField(null=True)
 
     def __str__(self):
-        return "ArtTypSupId: {}, sup_number: {}, name: {}, ean: {}, cost: {}, minimum_order: {}, " \
-               "supply: {}, packing_amount: {}".format(self.article_type_supplier_id, self.number,
+        return "SupplierId: {}, ArtTypSupId: {}, sup_number: {}, name: {}, ean: {}, cost: {}, minimum_order: {}, " \
+               "supply: {}, packing_amount: {}".format(self.supplier_id, self.article_type_supplier_id, self.number,
                                                        self.name, self.ean, self.cost, self.minimum_number_to_order,
                                                        self.supply, self.packing_amount)
+
+    @staticmethod
+    def process_supplier_type_articles(supplier_type_articles):
+        """
+        Processes SupplierTypeArticles and updates the list of products. In the ideal case, old data would be
+        overwritten by new data. Experience does tell that this does not work. Therefore, some basic checks need to be done
+        :param supplier_type_articles:
+        :type supplier_type_articles: list[SupplierTypeArticle]
+        :return: A list of supplierTypeArticles that can be written back to the database
+        """
+
+        for sta in supplier_type_articles:
+            pass
