@@ -128,5 +128,12 @@ class SupplierTests(SimpleTestCase):
     def test_process_nedis_full(self):
         file_location = "./article_updater/testing/nedis_csv_full.csv"
         parsed = CSVParser.parse(file_location, self.nedis)
-        #supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.nedis)
+        supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.nedis)
+        # Checks if the extraction does not fail
+
+    def test_process_copaco_full(self):
+        file_location = "./article_updater/testing/Copaco_prijslijst_91658.xml"
+        parsed = XMLParser.parse(file_location, self.copaco)
+        supplier_articles = XMLSupplierRelation.get_supplier_type_articles(parsed, self.copaco)
+        # Checks if the extraction does not fail
 

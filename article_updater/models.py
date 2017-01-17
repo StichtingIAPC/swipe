@@ -175,14 +175,11 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
                 try:
                     ean = int(ean)
                 except ValueError:
-                    ean = -1
+                    ean = None
             else:
                 ean = None
             if supplier_relation.minimum_order:
-                #minimum_order = int(line[supplier_relation.minimum_order])
-                if line[28] == '0.0180':
-                    print(line[9])
-                minimum_order = 0
+                minimum_order = int(line[supplier_relation.minimum_order])
             else:
                 minimum_order = None
             if supplier_relation.packing_amount:
@@ -231,12 +228,33 @@ class CSVParser(SupplierDataParser):
                     raise SwipeParseError("File is not a CSV file")
         file = open(file_location, 'r', encoding='utf-8')
         lines = file.readlines()
+
+        # The mode of the parser. Some CSV files can contain double and single quotes around their
+        # elements. This means that the expected separator can appear freely in an element.
+        # if this is the case, the parser needs to use a different separater(that is, with quotes)
+        mode = 0
+        first_line = lines[0]
+        separators = [supplier_data.separator, "\""+supplier_data.separator+"\"",
+                      "'" + supplier_data.separator + "'"]
+        separated = [0, 0, 0]
+        for i in range(len(separators)):
+            separated[i] = len(first_line.split(separators[i]))
+        for i in range(len(separated)):
+            if separated[i] >= separated[mode]:
+                # Sets the mode to the highest amount of elements in a split with a certain
+                # separator. It seems very likely that such an approach will yield the right
+                # separator to be used
+                mode = i
+
+        # The elements to be parsed
         element_lines = []
         for i in range(supplier_data.start_at, len(lines)):
-            elements = lines[i].split(supplier_data.separator)
-            for j in range(len(elements)):
-                if elements[j].startswith('"') and elements[j].endswith('"'):
-                    elements[j] = elements[j][1:-1]
+            elements = lines[i].split(separators[mode])
+            if mode > 0:
+                # Strip first single or double quote not separated
+                elements[0] = elements[0][1:-1]
+                # Strip last single or double quote
+                elements[-1] = elements[-1][0:-2]
             element_lines.append(elements)
         return element_lines
 
