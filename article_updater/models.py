@@ -83,8 +83,43 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
                 name_set.add(att)
 
     @staticmethod
-    def get_supplier_type_articles(xml_data, supplier_relation):
-        pass
+    def get_supplier_type_articles(xml_data: ET, supplier_relation):
+        """
+
+        :param xml_data:
+        :param supplier_relation:
+        :type supplier_relation: XMLSupplierRelation
+        :return:
+        """
+        supplier_type_articles = []
+        for elem in xml_data.iter(supplier_relation.item_name):
+            number = elem.find(supplier_relation.number).text
+            name = elem.find(supplier_relation.name).text
+            price_prep = elem.find(supplier_relation.cost).text # type: str
+            price_prep = price_prep.replace(",",".")
+            cost = Cost(amount=Decimal(price_prep), use_system_currency=True)
+            supply = elem.find(supplier_relation.supply).text
+            if supplier_relation.ean:
+                ean = elem.find(supplier_relation.ean).text
+                try:
+                    ean = int(ean)
+                except ValueError:
+                    ean = -1
+            else:
+                ean = None
+            if supplier_relation.minimum_order:
+                minimum_order = int(elem.find(supplier_relation.minimum_order).text)
+            else:
+                minimum_order = None
+            if supplier_relation.packing_amount:
+                packing_amount = int(elem.find(supplier_relation.packing_amount).text)
+            else:
+                packing_amount = None
+            supplier_type_articles.append(SupplierTypeArticle(number=number, name=name, cost=cost,
+                                                              supply=supply, ean=ean,
+                                                              minimum_number_to_order=minimum_order,
+                                                              packing_amount=packing_amount))
+        return supplier_type_articles
 
 
 class CSVSupplierRelation(DataTypeSupplierRelation):
@@ -136,11 +171,18 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
             supply = int(line[supplier_relation.supply])
 
             if supplier_relation.ean:
-                ean = int(line[supplier_relation.ean])
+                ean = line[supplier_relation.ean]
+                try:
+                    ean = int(ean)
+                except ValueError:
+                    ean = -1
             else:
                 ean = None
             if supplier_relation.minimum_order:
-                minimum_order = int(line[supplier_relation.minimum_order])
+                #minimum_order = int(line[supplier_relation.minimum_order])
+                if line[28] == '0.0180':
+                    print(line[9])
+                minimum_order = 0
             else:
                 minimum_order = None
             if supplier_relation.packing_amount:

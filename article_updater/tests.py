@@ -3,6 +3,8 @@ from xml.etree.ElementTree import ParseError
 from article_updater.models import FileParser, XMLParser, CSVParser, \
     SwipeParseError, CSVSupplierRelation, XMLSupplierRelation
 import mimetypes
+from money.models import Cost
+from decimal import Decimal
 
 
 class ParserTests(SimpleTestCase):
@@ -111,4 +113,20 @@ class SupplierTests(SimpleTestCase):
                    8717774650066: 6}
         for art in supplier_articles:
             self.assertEqual(art.supply, correct[art.ean])
+
+    def test_produce_supplier_products_copaco(self):
+        file_location = "./article_updater/testing/Copaco_prijslijst_91658-brief.xml"
+        parsed = XMLParser.parse(file_location, self.copaco)
+        supplier_articles = XMLSupplierRelation.get_supplier_type_articles(parsed, self.copaco)
+        correct = {"ATE-0AD6-1705-26EG": Cost(amount=Decimal("14.85"), use_system_currency=True),
+                   "ATE-2L-1005P": Cost(amount=Decimal("20.16"), use_system_currency=True),
+                   "ATE-2L-1010P": Cost(amount=Decimal("37.09"), use_system_currency=True)
+                   }
+        for art in supplier_articles:
+            self.assertEqual(art.cost, correct[art.number])
+
+    def test_process_nedis_full(self):
+        file_location = "./article_updater/testing/nedis_csv_full.csv"
+        parsed = CSVParser.parse(file_location, self.nedis)
+        #supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.nedis)
 
