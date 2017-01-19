@@ -21,4 +21,6 @@ urlpatterns = [
     # Standard page
     url(r'^$', views.RegisterListView.as_view(), name="register-list"),
     url(r'^(?P<pk>\d+)$', views.RegisterView.as_view(), name="register-view"),
+    url(r'^paymenttype/$', views.PaymentTypeListView.as_view(), name="paymenttype_view"),
+    url(r'^paymenttype/(?P<pk>\d+)/', views.PaymentTypeView.as_view(), name="paymenttype_view"),
 ]

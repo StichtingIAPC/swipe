@@ -2,7 +2,8 @@ from decimal import Decimal
 
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.core.urlresolvers import reverse_lazy
-from django.db.models import Prefetch
+from django.db.models import F
+from django.db.models import Prefetch, Count
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
@@ -13,7 +14,7 @@ from money.models import Denomination, Price, VAT
 from register.forms import CloseForm, OpenForm
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
     RegisterPeriod, PaymentType
-from register.serializers import RegisterSerializer, PaymentTypeSerializer, SalesPeriodSerializer
+from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer
 from sales.models import Transaction
 from tools.templatetags.tools.breadcrumbs import crumb
 
@@ -21,18 +22,32 @@ from tools.templatetags.tools.breadcrumbs import crumb
 class RegisterListView(mixins.ListModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
-    queryset = Register.objects\
-        .prefetch_related(Prefetch(
+    queryset = Register.objects.select_related(
+        'payment_type'
+    ).annotate(
+        Count('registerperiod')
+    ).prefetch_related(
+        Prefetch(
             'registerperiod_set',
-            queryset=RegisterPeriod.objects.order_by('endTime')[:5]
-            .prefetch_related(Prefetch(
-                'registercount_set',
-                queryset=RegisterCount.objects.all().prefetch_related(Prefetch(
-                    'denominationcount_set',
-                    queryset=DenominationCount.objects.all().select_related('denomination')
-                ))
-            ))
-        ))
+            queryset=RegisterPeriod.objects.prefetch_related(
+                Prefetch(
+                    'registercount_set',
+                    queryset=RegisterCount.objects.filter(
+                        register_period__endTime__isnull=F('is_opening_count')
+                    ).prefetch_related(
+                        Prefetch(
+                            'denominationcount_set',
+                            queryset=DenominationCount.objects.select_related(
+                                'denomination'
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    ).prefetch_related(
+        'currency__denomination_set'
+    ) # Heavy prefetch query to optimize loading of objects, and prevent optional O(n) behaviour on the DB
     serializer_class = RegisterSerializer
 
     def get(self, request, *args, **kwargs):
@@ -45,19 +60,7 @@ class RegisterListView(mixins.ListModelMixin,
 class RegisterView(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    generics.GenericAPIView):
-    queryset = Register.objects\
-        .select_related('payment_type')\
-        .prefetch_related(Prefetch(
-            'registerperiod_set',
-            queryset=RegisterPeriod.objects.order_by('endTime')[:5]
-            .prefetch_related(Prefetch(
-                'registercount_set',
-                queryset=RegisterCount.objects.all().prefetch_related(Prefetch(
-                    'denominationcount_set',
-                    queryset=DenominationCount.objects.all().select_related('denomination')
-                ))
-            ))
-        ))
+    queryset = Register.objects.all()
     serializer_class = RegisterSerializer
 
     def get(self, request, *args, **kwargs):
@@ -80,17 +83,43 @@ class PaymentTypeListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class SalesPeriodListView(mixins.ListModelMixin,
-                          mixins.CreateModelMixin,
-                          generics.GenericAPIView):
-    queryset = SalesPeriod.objects.all()
-    serializer_class = SalesPeriodSerializer
+class PaymentTypeView(mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      generics.GenericAPIView):
+    queryset = PaymentType.objects.all()
+    serializer_class = PaymentTypeSerializer
 
     def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class RegisterCountListView(mixins.ListModelMixin,
+                            mixins.CreateModelMixin,
+                            generics.GenericAPIView):
+    queryset = RegisterCount.objects.prefetch_related(
+        'denominationcount_set__denomination'
+    ).prefetch_related(
+        'register_period__register__currency__denomination_set'
+    )
+    serializer_class = RegisterCountSerializer
+
+    def get(self, request, *args, **kwargs):
+        self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        self.create(request, *args, **kwargs)
+
+
+class RegisterCountView(mixins.RetrieveModelMixin,
+                        generics.GenericAPIView):
+    queryset = RegisterCount.objects.all()
+    serializer_class = RegisterCountSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
 
 @crumb(_('Open registers'), 'register_state')
