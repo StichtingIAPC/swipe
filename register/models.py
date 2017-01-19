@@ -87,13 +87,13 @@ class Register(models.Model):
                     if count.denomination == denom:
                         my_count = count.amount
                         break
-                counts.append(DenominationCount(denomination=denom, amount=my_count))
+                counts.append(DenominationCount(denomination=denom, number=my_count))
             return counts
         else:
-            denoms = Denomination.objects.filter(currency=self.currency)
+            denoms = self.currency.denomination_set.all()
             denom_list = []
             for denom in denoms:
-                denom_list.append(DenominationCount(denomination=denom, amount=0))
+                denom_list.append(DenominationCount(denomination=denom, number=0))
             return denom_list
 
     @transaction.atomic

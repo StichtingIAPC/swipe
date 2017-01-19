@@ -107,10 +107,11 @@ class RegisterCountListView(mixins.ListModelMixin,
     serializer_class = RegisterCountSerializer
 
     def get(self, request, *args, **kwargs):
-        self.list(request, *args, **kwargs)
+        return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        self.create(request, *args, **kwargs)
+        # TODO: insert register count check/validation on creation.
+        return self.create(request, *args, **kwargs)
 
 
 class RegisterCountView(mixins.RetrieveModelMixin,

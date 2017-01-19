@@ -33,19 +33,17 @@ class RegisterSerializer(serializers.ModelSerializer):
       "payment_type": PaymentType.PK
     }
     """
-    currency = serializers.PrimaryKeyRelatedField(read_only=True)
-    payment_type = serializers.PrimaryKeyRelatedField(read_only=True)
 
     def to_representation(self, instance: Register):
         obj = super().to_representation(instance=instance)
-        if instance.is_cash_register:
-            obj['denomination_counts'] = None
+        if not instance.is_cash_register:
+            obj['denomination_counts'] = []
             return obj
         denom_counts = instance.denomination_counts
 
         denomination_counts = [{
                 'amount': denom_count.denomination.amount,
-                'count': denom_count.amount
+                'count': denom_count.number
             } for denom_count in denom_counts
         ]
         obj['denomination_counts'] = denomination_counts
@@ -69,8 +67,6 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class RegisterCountSerializer(serializers.Serializer):
-    register_period = serializers.PrimaryKeyRelatedField(read_only=True)
-
     def to_representation(self, instance: RegisterCount):
         data = super().to_representation(instance=instance)
         denom_counts = None
