@@ -1,14 +1,16 @@
-from django.test import TestCase
-from tools.testing import TestData
-from stock_count.models import TemporaryCounterLine, StockCountDocument, StockCountLine, TemporaryArticleCount, \
-    UncountedError, SolutionError, DiscrepancySolution
-from stock.models import Stock, StockChangeSet, StockChange
-from stock.stocklabel import OrderLabel
-from article.models import ArticleType
-from money.models import VAT, Currency, AccountingGroup, Cost
 import time
 from decimal import Decimal
+
+from django.test import TestCase
+
+from article.models import ArticleType
+from money.models import Cost
 from order.models import Order, OrderLine
+from stock.models import Stock, StockChangeSet
+from stock.stocklabel import OrderLabel
+from stock_count.models import TemporaryCounterLine, StockCountDocument, StockCountLine, TemporaryArticleCount, \
+    UncountedError, SolutionError, DiscrepancySolution
+from tools.testing import TestData
 
 
 class PreparationTests(TestCase, TestData):
@@ -19,14 +21,11 @@ class PreparationTests(TestCase, TestData):
         self.part_setup_vat_group()
         self.part_setup_currency()
         self.part_setup_accounting_group()
-        self.part_setup_assortment_article_branch()
         self.part_setup_costs()
         self.part_setup_supplier()
-        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
-                                         branch=self.branch_1)
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components)
         self.articletype_1.save()
-        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
-                                         branch=self.branch_2)
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
         self.articletype_2.save()
         self.part_setup_users()
 
@@ -259,14 +258,11 @@ class IntermediaryTests(TestCase, TestData):
         self.part_setup_vat_group()
         self.part_setup_currency()
         self.part_setup_accounting_group()
-        self.part_setup_assortment_article_branch()
         self.part_setup_costs()
         self.part_setup_supplier()
-        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
-                                         branch=self.branch_1)
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components)
         self.articletype_1.save()
-        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
-                                         branch=self.branch_2)
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
         self.articletype_2.save()
         self.part_setup_users()
 
@@ -320,14 +316,11 @@ class EndingTests(TestCase, TestData):
         self.part_setup_vat_group()
         self.part_setup_currency()
         self.part_setup_accounting_group()
-        self.part_setup_assortment_article_branch()
         self.part_setup_costs()
         self.part_setup_supplier()
-        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
-                                         branch=self.branch_1)
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components)
         self.articletype_1.save()
-        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
-                                         branch=self.branch_2)
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
         self.articletype_2.save()
         self.part_setup_users()
 
@@ -451,15 +444,12 @@ class StockCountDocumentTests(TestCase, TestData):
         self.part_setup_vat_group()
         self.part_setup_currency()
         self.part_setup_accounting_group()
-        self.part_setup_assortment_article_branch()
         self.part_setup_costs()
         self.part_setup_prices()
         self.part_setup_supplier()
-        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
-                                         branch=self.branch_1)
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components)
         self.articletype_1.save()
-        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
-                                         branch=self.branch_2)
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
         self.articletype_2.save()
         self.part_setup_users()
         self.part_setup_customers()

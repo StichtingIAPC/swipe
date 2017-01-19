@@ -23,15 +23,14 @@ class StockWishTests(INeedSettings, TestCase):
         super().setUp()
 
         self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo1", branch=self.branch)
+                                        name="Foo1")
         self.article_type.save()
 
         self.at2 = ArticleType(accounting_group=self.acc_group,
-                               name="Foo2", branch=self.branch)
+                               name="Foo2")
         self.at2.save()
 
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3",
-                               branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
@@ -207,15 +206,15 @@ class SupplierOrderTests(INeedSettings, TestCase):
         self.acc_group.save()
 
         self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo1", branch=self.branch)
+                                        name="Foo1")
         self.article_type.save()
 
         self.at2 = ArticleType(accounting_group=self.acc_group,
-                               name="Foo2", branch=self.branch)
+                               name="Foo2")
         self.at2.save()
 
         self.at3 = ArticleType(accounting_group=self.acc_group,
-                               name="Foo3", branch=self.branch)
+                               name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
