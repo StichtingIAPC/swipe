@@ -56,15 +56,15 @@ class Register(models.Model):
 
     def is_open(self):
         # Checks if the register is in an opened state
-        amt = RegisterPeriod.objects.filter(register=self, endTime__isnull=True).count()
+        amt = self.registerperiod_set.filter(endTime__isnull=True).count()
         if amt > 1:
             raise IntegrityError("Register had more than one register period open")
-        return amt.count() == 1
+        return amt == 1
 
     def get_prev_open_count(self):
         # Get this registers previous count when it was closed.
         # This shouldn't be used for Brief Registers; they should start at zero instead.
-        if len(self.registerperiod_set.exists()) != 0:
+        if self.registerperiod_set.exists():
             period = self.registerperiod_set.last()
             count = RegisterCount.objects.get(register_period=period, is_opening_count=False)
             return Money(Decimal(count.amount), self.currency)
@@ -138,7 +138,7 @@ class Register(models.Model):
                     reg_count.save(denominations=denominations)
 
                     for denomination in denominations:
-                        counted_amount -= denomination.amount * denomination.denomination.amount
+                        counted_amount -= denomination.number * denomination.denomination.amount
                         denomination.register_count = reg_count
 
                     raiseif(counted_amount != Decimal("0.00000"),

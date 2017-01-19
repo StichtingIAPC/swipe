@@ -72,9 +72,9 @@ class BasicTest(TestCase):
         self.assertEquals(RegisterMaster.number_of_open_registers(), 0)
         self.assertEquals(len(RegisterMaster.get_open_registers()), 0)
         self.assertFalse(self.reg1.is_open())
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         self.assertTrue(self.reg1.is_open())
@@ -96,9 +96,9 @@ class BasicTest(TestCase):
         self.assertEquals(RegisterMaster.number_of_open_registers(), 0)
         self.assertFalse(RegisterMaster.sales_period_is_open())
         self.reg1.save()
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         self.assertTrue(RegisterMaster.sales_period_is_open())
@@ -114,9 +114,9 @@ class BasicTest(TestCase):
         reg_count_2.register_period = self.reg2.get_current_open_register_period()
         reg_count_2.amount = Decimal("10.22371")
         reg_counts = [reg_count_1, reg_count_2]
-        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, amount=1)
-        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, amount=1)
-        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
+        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, number=1)
+        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, number=1)
+        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.eu),
                                      num=1, text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
@@ -133,23 +133,23 @@ class BasicTest(TestCase):
     def test_mult_open_close(self):
         self.eu.save()
         self.reg1.save()
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         reg_count_1 = RegisterCount()
         reg_count_1.register_period = self.reg1.get_current_open_register_period()
         reg_count_1.amount = Decimal("4.22371")
         reg_counts = [reg_count_1]
-        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, amount=1)
-        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, amount=1)
-        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
+        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, number=1)
+        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, number=1)
+        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=2)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=2)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.24371"), denominations=denom_counts)
         self.assertEqual(len(OpeningCountDifference.objects.all()), 2)
@@ -162,9 +162,9 @@ class BasicTest(TestCase):
         self.assertFalse(RegisterMaster.sales_period_is_open())
         self.reg1.save()
 
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         self.assertTrue(RegisterMaster.sales_period_is_open())
@@ -192,9 +192,9 @@ class BasicTest(TestCase):
         self.reg3.save()
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         self.assertEquals(len(payment_types), 0)
-        self.reg1.open(Decimal("4.22371"), denominations=[DenominationCount(denomination=self.denom1, amount=1),
-                                                          DenominationCount(denomination=self.denom2, amount=1),
-                                                          DenominationCount(denomination=self.denom3, amount=1)])
+        self.reg1.open(Decimal("4.22371"), denominations=[DenominationCount(denomination=self.denom1, number=1),
+                                                          DenominationCount(denomination=self.denom2, number=1),
+                                                          DenominationCount(denomination=self.denom3, number=1)])
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         self.assertEquals(len(payment_types), 1)
         self.reg2.open(Decimal("1.21"))
