@@ -15,18 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import url
 
-from money.views import *
+from money import views
 
 urlpatterns = [
     # Standard page
-    url(r'^$', index, name="money_index"),
-    # Django internal documentation
-    url(r'^list/$', CurrencyDataList.as_view(), name="currencydata_list"),
-    url(r'^add/$', CurrencyDataCreate.as_view(), name='currencydata_add'),
-    url(r'^(?P<pk>[A-Z]+)/$', CurrencyDataDetail.as_view(), name='currencydata_detail'),
-    url(r'^(?P<pk>[A-Z]+)/edit/$', CurrencyDataEdit.as_view(), name='currencydata_edit'),
-
-    url(r'^(?P<pk>[A-Z]+)/denominations/$', DenominationList.as_view(), name='denomination_list'),
-    url(r'^(?P<pk>[A-Z]+)/denominations/add/$', DenominationCreate.as_view(), name='denomination_add'),
-    url(r'^(?P<pk>[A-Z]+)/denominations/(?P<denom>[0-9]+)/$', DenominationDetail.as_view(), name='denomination_detail')
+    url(r'^currency/$', views.CurrencyListView.as_view()),
+    url(r'^currency/(?P<pk>[a-zA-Z]{3})/', views.CurrencyView.as_view()),
+    url(r'^denomination/(?P<pk>\d+)/', views.DenominationDelete.as_view()),
 ]

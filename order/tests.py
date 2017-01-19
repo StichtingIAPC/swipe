@@ -273,7 +273,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'is_in': True,
             'label': OrderLabel(1)
         }]
-        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
@@ -282,7 +282,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'label': OrderLabel(1)
         }]
         with self.assertRaises(models.InconsistencyError):
-            StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+            StockChangeSet.construct(description="Bla", entries=changeset, source="cash_register")
 
     def test_signal_proper(self):
         pk = self.order.pk
@@ -301,7 +301,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
         }]
 
         SOLD_PRODUCTS = 5
-        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
@@ -310,7 +310,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'label': OrderLabel(pk)
         }]
 
-        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        StockChangeSet.construct(description="Bla", entries=changeset, source="cash_register")
         ols = OrderLine.objects.all()
         correct_state = 0
         for ol in ols:
@@ -353,7 +353,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
 
         SOLD_PRODUCTS_1 = 4
         SOLD_PRODUCTS_2 = 2
-        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changeset = [{
             'article': self.article_type,
             'book_value': self.cost,
@@ -370,7 +370,7 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             },
         ]
 
-        StockChangeSet.construct(description="Bla", entries=changeset, enum=0)
+        StockChangeSet.construct(description="Bla", entries=changeset, source="cash_register")
         ols = OrderLine.objects.all()
         correct_state_1 = 0
         correct_state_2 = 0

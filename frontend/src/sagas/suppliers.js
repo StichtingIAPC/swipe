@@ -1,8 +1,7 @@
-import {call, put} from "redux-saga/effects";
-import {push} from "react-router-redux";
-import fetch from "isomorphic-fetch";
+import { call, put } from "redux-saga/effects";
+import { push } from "react-router-redux";
+import { get, post, put as api_put } from "../api";
 import { startFetchingSuppliers, doneFetchingSuppliers } from "../actions/suppliers";
-import config from "../config";
 
 function renameProp(item, original, target) {
 	const newitem = { ...item };
@@ -14,14 +13,8 @@ function renameProp(item, original, target) {
 export function* fetchSuppliers() {
 	try {
 		const data = yield (yield call(
-			fetch,
-			config.baseurl + '/supplier/',
-			{
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			}
+			get,
+			'/supplier/',
 		)).json();
 		yield put(doneFetchingSuppliers(data.map(s => renameProp(s, 'search_url', 'searchUrl'))));
 	}	catch (e) {
@@ -37,15 +30,9 @@ export function* createSupplier({ supplier }) {
 
 	try {
 		const data = yield (yield call(
-			fetch,
-			config.baseurl + '/supplier/',
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(document),
-			}
+			post,
+			'/supplier/',
+			document,
 		)).json();
 
 		// Routing over here is ugly, since that couples UI with business logic,
@@ -65,15 +52,9 @@ export function* updateSupplier({ supplier }) {
 
 	try {
 		const data = yield (yield call(
-			fetch,
-			config.baseurl + `/supplier/${supplier.id}/`,
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(supplier),
-			}
+			api_put,
+			`/supplier/${supplier.id}/`,
+			supplier,
 		)).json();
 
 		yield put(startFetchingSuppliers())

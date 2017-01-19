@@ -1,4 +1,5 @@
 from django.db import models
+
 from blame.models import ImmutableBlame, Blame
 from article.models import ArticleType
 from money.models import CostField
@@ -6,7 +7,6 @@ from crm.models import User
 from tools.util import raiseif
 from collections import defaultdict
 from stock.models import Stock, StockChangeSet
-from stock.enumeration import enum
 
 
 class InternaliseDocument(Blame):
@@ -95,7 +95,7 @@ class InternaliseDocument(Blame):
 
         StockChangeSet.construct(description="Internalisation with document {}".format(doc.pk),
                                  entries=stock_mod_entries,
-                                 enum=enum['internalise'])
+                                 source=StockChangeSet.SOURCE_INTERNALISE)
 
 
 class InternaliseLine(ImmutableBlame):
