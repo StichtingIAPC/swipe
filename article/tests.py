@@ -13,7 +13,6 @@ class INeedSettings:
         super(INeedSettings, self).__init__(*args, **kwargs)
         self.vat_group = None
         self.acc_group = None
-        self.branch = None
         self._base_article_settings = None
 
     # noinspection PyPep8Naming
@@ -28,14 +27,9 @@ class INeedSettings:
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.branch = AssortmentArticleBranch.objects.create(
-            name='hoi',
-            parent_tag=None)
-
         self._base_article_settings = {
             'accounting_group': self.acc_group,
             'name': 'test',
-            'branch': self.branch
         }
 
 
@@ -61,7 +55,7 @@ class ArticleBasicTests(INeedSettings, TestCase):
         self.assertRaises(AbstractClassInitializationError, generic_wishable_type.save)
 
     def test_legal_save(self):
-        article_type = ArticleType(branch=self.branch)
+        article_type = ArticleType()
         article_type.name = "Foo"
         article_type.accounting_group = self.acc_group
         blocked = False
@@ -71,7 +65,7 @@ class ArticleBasicTests(INeedSettings, TestCase):
             blocked = True
         self.assertFalse(blocked)
 
-        and_product_type = AndProductType(branch=self.branch)
+        and_product_type = AndProductType()
         blocked = False
         try:
             and_product_type.save()
@@ -80,7 +74,7 @@ class ArticleBasicTests(INeedSettings, TestCase):
         self.assertFalse(blocked)
 
     def test_inheritance(self):
-        article_type = ArticleType(branch=self.branch)
+        article_type = ArticleType()
         article_type.name = "Foo"
         article_type.accounting_group = self.acc_group
         article_type.save()
@@ -97,13 +91,13 @@ class ArticleBasicTests(INeedSettings, TestCase):
                 raise Exception("Typing error: Abstract class is given while implementing type expected")
 
     def test_subclassing(self):
-        andproduct_type = AndProductType(branch=self.branch)
+        andproduct_type = AndProductType()
         andproduct_type.name = "Test"
         andproduct_type.save()
-        orproduct_type = OrProductType(branch=self.branch)
+        orproduct_type = OrProductType()
         orproduct_type.name = "Bar"
         orproduct_type.save()
-        article_type = ArticleType(branch=self.branch)
+        article_type = ArticleType()
         article_type.name = "Foo"
         article_type.accounting_group = self.acc_group
         article_type.save()

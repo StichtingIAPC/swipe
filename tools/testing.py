@@ -1,15 +1,18 @@
-from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money
-from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
-from register.models import PaymentType, Register
 from decimal import Decimal
-from crm.models import User, Person
-from supplier.models import Supplier, ArticleTypeSupplier
-from order.models import Order
-from logistics.models import SupplierOrder, StockWish
-from supplication.models import PackingDocument
-from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
+
 from django.test import TestCase
+
 from swipe.settings import USED_CURRENCY
+
+from article.models import ArticleType, OtherCostType
+from crm.models import User, Person
+from logistics.models import SupplierOrder, StockWish
+from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money
+from order.models import Order
+from register.models import PaymentType, Register
+from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
+from supplication.models import PackingDocument
+from supplier.models import Supplier, ArticleTypeSupplier
 
 
 class TestData:
@@ -19,7 +22,6 @@ class TestData:
         self.part_setup_vat_group()
         self.part_setup_currency()
         self.part_setup_accounting_group()
-        self.part_setup_assortment_article_branch()
         self.part_setup_payment_types()
         self.part_setup_registers()
         self.part_setup_denominations()
@@ -62,12 +64,6 @@ class TestData:
         self.accounting_group_components.save()
         self.accounting_group_food = AccountingGroup(name="Food", vat_group=self.vat_group_low, accounting_number=2)
         self.accounting_group_food.save()
-
-    def part_setup_assortment_article_branch(self):
-        self.branch_1 = AssortmentArticleBranch(name="First Branch", parent_tag=None)
-        self.branch_1.save()
-        self.branch_2 = AssortmentArticleBranch(name="Second Branch", parent_tag=self.branch_1)
-        self.branch_2.save()
 
     def part_setup_payment_types(self):
         self.paymenttype_cash = PaymentType(name="Cash")
@@ -114,11 +110,9 @@ class TestData:
         self.supplier_2.save()
 
     def part_setup_article_types(self):
-        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components,
-                                         branch=self.branch_1)
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components)
         self.articletype_1.save()
-        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
-                                         branch=self.branch_2)
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
         self.articletype_2.save()
 
     def part_setup_article_type_supplier(self):
@@ -137,10 +131,10 @@ class TestData:
 
     def part_setup_othercosts(self):
         self.othercosttype_1 = OtherCostType(name="OtherCostType 1", accounting_group=self.accounting_group_components,
-                                             branch=self.branch_1, fixed_price=self.price_system_currency_1)
+                                             fixed_price=self.price_system_currency_1)
         self.othercosttype_1.save()
         self.othercosttype_2 = OtherCostType(name="OtherCostType 2", accounting_group=self.accounting_group_food,
-                                             branch=self.branch_2, fixed_price=self.price_systen_currency_2)
+                                             fixed_price=self.price_systen_currency_2)
         self.othercosttype_2.save()
 
     def part_setup_customers(self):

@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 from django.test import TestCase
-from tools.testing import TestData
 from swipe.settings import USED_CURRENCY
 
 from article.models import ArticleType, OtherCostType
@@ -18,6 +17,7 @@ from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughSt
 from stock.models import Stock
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
+from tools.testing import TestData
 
 
 class TestTransactionCreationFunction(INeedSettings, TestCase):
@@ -37,13 +37,13 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1")
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2")
         self.at2.save()
 
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
@@ -78,7 +78,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.simple_payment_eur = Payment(amount=Money(amount=Decimal(2.0), currency=Currency(USED_CURRENCY)),
                                           payment_type=self.pt)
 
-        self.other_cost = OtherCostType(name="Oth1", branch=self.branch, accounting_group=self.acc_group,
+        self.other_cost = OtherCostType(name="Oth1", accounting_group=self.acc_group,
                                         fixed_price=self.price
                                         )
         self.other_cost.save()

@@ -28,9 +28,3 @@ def by_label(request, pk):
 def by_label_type(request, pk):
     relevant_wishables = WishableType.objects.filter(labels__label_type_id=pk)
     return json.dumps(list(relevant_wishables))
-
-
-# noinspection PyUnusedLocal
-def by_branch(request, pk):
-    relevant_wishables = WishableType.objects.filter(branch_id=pk)
-    return json.dumps(list(relevant_wishables))
