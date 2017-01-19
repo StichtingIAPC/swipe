@@ -37,7 +37,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: Register):
         obj = super().to_representation(instance=instance)
         if not instance.is_cash_register:
-            obj['denomination_counts'] = []
+            obj['denomination_counts'] = None
             return obj
         denom_counts = instance.denomination_counts
 
