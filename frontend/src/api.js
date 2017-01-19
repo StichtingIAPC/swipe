@@ -13,7 +13,7 @@ export function setToken(token) {
 }
 
 export function getToken() {
-	return Promise(
+	return new Promise(
 		accept => {
 			if (TOKEN == null) {
 				listeners.append(accept);

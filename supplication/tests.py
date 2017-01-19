@@ -3,7 +3,6 @@ from decimal import Decimal
 from django.test import TestCase
 
 from article.models import ArticleType
-from assortment.models import AssortmentArticleBranch
 from crm.models import Person, User
 from logistics.models import SupplierOrder, StockWish
 from money.models import VAT, AccountingGroup, Price, Currency, Cost, Money
@@ -33,17 +32,13 @@ class SimpleClassTests(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.branch = AssortmentArticleBranch.objects.create(
-            name='hoi',
-            parent_tag=None)
-
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", )
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", )
         self.at2.save()
 
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", )
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
@@ -293,17 +288,13 @@ class DistributionTests(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.branch = AssortmentArticleBranch.objects.create(
-            name='hoi',
-            parent_tag=None)
-
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", )
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", )
         self.at2.save()
 
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", )
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
@@ -769,15 +760,13 @@ class PackingDocumentCreationTests(TestCase):
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
 
-        self.branch = AssortmentArticleBranch.objects.create(name='hoi', parent_tag=None)
-
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
+        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", )
         self.article_type.save()
 
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
+        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", )
         self.at2.save()
 
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", )
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
