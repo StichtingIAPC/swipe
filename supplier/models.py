@@ -1,8 +1,11 @@
 from django.db import models
 from django.utils.translation import ugettext as _
+from django.utils import timezone
 
 from article.models import ArticleType
 from money.models import CostField
+
+from tools.util import raiseifnot
 
 
 class Supplier(models.Model):
@@ -109,6 +112,8 @@ class SupplierTypeArticle(models.Model):
 
     packing_amount = models.IntegerField(null=True)
 
+    date_updated = models.DateField(auto_now=True)
+
     def __str__(self):
         return "SupplierId: {}, ArtTypSupId: {}, sup_number: {}, name: {}, ean: {}, cost: {}, minimum_order: {}, " \
                "supply: {}, packing_amount: {}".format(self.supplier_id, self.article_type_supplier_id, self.number,
@@ -118,12 +123,44 @@ class SupplierTypeArticle(models.Model):
     @staticmethod
     def process_supplier_type_articles(supplier_type_articles):
         """
-        Processes SupplierTypeArticles and updates the list of products. In the ideal case, old data would be
+        Processes SupplierTypeArticles and updates the list of products for one supplier. In the ideal case, old data would be
         overwritten by new data. Experience does tell that this does not work. Therefore, some basic checks need to be done
         :param supplier_type_articles:
         :type supplier_type_articles: list[SupplierTypeArticle]
         :return: A list of supplierTypeArticles that can be written back to the database
         """
+        if len(supplier_type_articles) > 0:
+            supplier = supplier_type_articles[0].supplier
+        else:
+            return
+
+        # Basic sanity checks, fail quickly if an error occurs
+        for sta in supplier_type_articles:
+            raiseifnot(isinstance(sta, SupplierTypeArticle), TypeError, "sta should be a SupplierTypeArticle")
+            raiseifnot(sta.supplier == supplier, SupplierTypeArticleProcessingError, "Supplier is not uniform")
+
+        old_supplier_articles = SupplierTypeArticle.objects.filter(supplier=supplier)
+        old_art_dict = {}
+
+        for oldy in old_supplier_articles:
+            old_art_dict[oldy.number] = oldy
+
+        # Two lists: First is the list of old articles that can deleted because the new article has superseded
+        # the old one or the old is not found in the list any more. The new arts are the articles that renew an
+        # old line or are new in the price list
+        old_arts_to_be_deleted = []
+        new_arts_to_be_added = []
 
         for sta in supplier_type_articles:
-            pass
+            old_ver = old_art_dict.get(sta.number)
+            if not old_ver:
+                sta.date_updated = timezone.now()
+                new_arts_to_be_added.append(sta)
+            else:
+                pass
+
+        SupplierTypeArticle.objects.bulk_create(new_arts_to_be_added)
+
+
+class SupplierTypeArticleProcessingError(Exception):
+    pass
