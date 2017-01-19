@@ -5,7 +5,6 @@ from django.test import TestCase
 
 from article.models import ArticleType, OtherCostType
 from article.tests import INeedSettings
-from assortment.models import AssortmentArticleBranch
 from crm.models import Person
 from money.models import VAT, Price, Currency, AccountingGroup, Money, Cost
 from order import models
@@ -36,15 +35,15 @@ class OrderTest(INeedSettings, TestCase):
         self.acc_group.save()
 
         self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo", branch=self.branch)
+                                        name="Foo")
         self.article_type.save()
 
         self.at2 = ArticleType(accounting_group=self.acc_group,
-                               name="Bar", branch=self.branch)
+                               name="Bar")
         self.at2.save()
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
-        self.oc = OtherCostType(name="Baz", branch=self.branch, accounting_group=self.acc_group, fixed_price=self.money)
+        self.oc = OtherCostType(name="Baz", accounting_group=self.acc_group, fixed_price=self.money)
         self.oc.save()
 
         self.customer = Person()
@@ -246,12 +245,9 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
         self.acc_group.accounting_number = 2
         self.acc_group.vat_group = self.vat_group
         self.acc_group.save()
-        self.branch = AssortmentArticleBranch.objects.create(
-            name='hoi',
-            parent_tag=None)
 
         self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo", branch=self.branch)
+                                        name="Foo")
         self.article_type.save()
         self.eur = Currency(iso="EUR")
         self.cost = Cost(amount=Decimal(3), currency=self.eur)

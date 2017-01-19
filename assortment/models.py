@@ -2,57 +2,14 @@
 This file contains the models that are used to index, sort and model the assortment pages.
 """
 
-
 import math
 import re
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from assortment.config import labels as conf_labels
-
-
-class AssortmentArticleBranch(models.Model):
-    """
-    This is a way to group articles together, and group those groups together.
-    """
-    name = models.CharField(max_length=50, unique=True)
-    parent_tag = models.ForeignKey('AssortmentArticleBranch', blank=True, null=True)
-    presumed_labels = models.ManyToManyField('AssortmentLabelType')
-
-    def save(self, *args, **kwargs):
-        if self.has_cycle():
-            raise ValidationError('Cannot save branch with cyclic dependency')
-
-        if self.parent_tag is not None:
-            return super().save(*args, **kwargs)
-
-        nulls = AssortmentArticleBranch.objects.filter(parent_tag__isnull=True)
-        if len(nulls) is not 0 and not (len(nulls) is 1 and self in nulls):
-            raise ValidationError('Cannot save branch: Assortment already has a root')
-
-        super().save(*args, **kwargs)
-
-    def has_cycle(self):
-        if self.parent_tag is self:
-            return True
-
-        turtle, hare = self.parent_tag, self.parent_tag
-
-        while hare is not None:
-            hare = hare.parent_tag
-
-            if hare is None:
-                return False
-
-            if turtle is hare:
-                return True
-            turtle, hare = turtle.parent_tag, hare.parent_tag
-            if turtle is hare:
-                return True
-
-        return False
 
 
 class AssortmentLabel(models.Model):
