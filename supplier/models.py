@@ -7,6 +7,8 @@ from money.models import CostField
 
 from tools.util import raiseifnot
 
+import datetime
+
 
 class Supplier(models.Model):
     """
@@ -51,16 +53,16 @@ class ArticleTypeSupplier(models.Model):
         'U': 'Unknown availability',
         'D': 'Defunct product'
     }
-
+    # The supplier of this information
     supplier = models.ForeignKey(Supplier)
-
+    # The article type linked
     article_type = models.ForeignKey(ArticleType)
 
     cost = CostField()  # Describes the cost of
 
     minimum_number_to_order = models.IntegerField()
 
-    supplier_string = models.CharField(primary_key=True, max_length=255)
+    supplier_string = models.CharField(max_length=255)
 
     availability = models.CharField(max_length=255, choices=sorted(AVAILABILITY_OPTIONS_MEANINGS.items()))
 
@@ -95,23 +97,23 @@ class SupplierTypeArticle(models.Model):
 
     # A connection to a product in our own assortment via ArticleTypeSupplier
     article_type_supplier = models.OneToOneField(ArticleTypeSupplier, null=True)
-    #
+    # The supplier of an article
     supplier = models.ForeignKey(Supplier)
-
+    # The unique identifier of the supplier for this product
     number = models.CharField(max_length=100)
-
+    # The textual representation("name") of the article
     name = models.CharField(max_length=255)
-
+    # Unique numerical identifier, is a 14 digit long number
     ean = models.IntegerField(null=True)
-
+    # The price for which we can buy the product
     cost = CostField(null=True)
-
+    # The minimum number of articles you can order of this product
     minimum_number_to_order = models.IntegerField(null=True)
-
+    # How much articles are in stock
     supply = models.IntegerField(null=True)
-
+    # Articles are sold in multiples of the packing amount
     packing_amount = models.IntegerField(null=True)
-
+    # Date this article was updated
     date_updated = models.DateField(auto_now=True)
 
     def __str__(self):
@@ -139,6 +141,14 @@ class SupplierTypeArticle(models.Model):
             raiseifnot(isinstance(sta, SupplierTypeArticle), TypeError, "sta should be a SupplierTypeArticle")
             raiseifnot(sta.supplier == supplier, SupplierTypeArticleProcessingError, "Supplier is not uniform")
 
+        CLEAN_UP_LIMIT = 31
+
+        cutoff_date = datetime.date.today() - datetime.timedelta(days=CLEAN_UP_LIMIT)
+
+        # Removes all SupplierTypeArticles that are out of date. After {x} days, we can safely assume
+        # that the data holds no significance to the assortment.
+        SupplierTypeArticle.objects.filter(date_updated__lt=cutoff_date, supplier=supplier).delete()
+
         old_supplier_articles = SupplierTypeArticle.objects.filter(supplier=supplier)
         old_art_dict = {}
 
@@ -148,8 +158,8 @@ class SupplierTypeArticle(models.Model):
         # Two lists: First is the list of old articles that can deleted because the new article has superseded
         # the old one or the old is not found in the list any more. The new arts are the articles that renew an
         # old line or are new in the price list
-        old_arts_to_be_deleted = []
-        new_arts_to_be_added = []
+        old_arts_to_be_deleted = []  # type: list[SupplierTypeArticle]
+        new_arts_to_be_added = []  # type: list[SupplierTypeArticle]
 
         for sta in supplier_type_articles:
             old_ver = old_art_dict.get(sta.number)
@@ -157,8 +167,19 @@ class SupplierTypeArticle(models.Model):
                 sta.date_updated = timezone.now()
                 new_arts_to_be_added.append(sta)
             else:
+                # We have a match for an old article and a new article
+                # We must check if the details are similar enough to detect a match
+                # If the details match is dubious, the new data must be rejected
                 pass
 
+        # IDs of STAs to be deleted
+        delete_ids = []  # type: list[int]
+        for art in old_arts_to_be_deleted:
+            delete_ids.append(art.id)
+
+        # Delete old articles in one go
+        SupplierTypeArticle.objects.filter(id__in=delete_ids).delete()
+        # Create new articles in one go
         SupplierTypeArticle.objects.bulk_create(new_arts_to_be_added)
 
 
