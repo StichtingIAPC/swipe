@@ -8,6 +8,9 @@ from money.models import CostField
 from tools.util import raiseifnot
 
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Supplier(models.Model):
@@ -161,8 +164,15 @@ class SupplierTypeArticle(models.Model):
         old_arts_to_be_deleted = []  # type: list[SupplierTypeArticle]
         new_arts_to_be_added = []  # type: list[SupplierTypeArticle]
 
+        # If the old price and the price update differ more than ca. {price ratio - 1}*100%, it's probably not the
+        # correct article.
+        VALID_COST_RATIO_BOUND = 1.6
+
+        # If the ratio of minumum number to order is more than 3, its probably a different article
+        MINIMUM_NUMBER_TO_ORDER_RATIO = 3
+
         for sta in supplier_type_articles:
-            old_ver = old_art_dict.get(sta.number)
+            old_ver = old_art_dict.get(sta.number) # type: SupplierTypeArticle
             if not old_ver:
                 sta.date_updated = timezone.now()
                 new_arts_to_be_added.append(sta)
@@ -170,7 +180,30 @@ class SupplierTypeArticle(models.Model):
                 # We have a match for an old article and a new article
                 # We must check if the details are similar enough to detect a match
                 # If the details match is dubious, the new data must be rejected
-                pass
+
+                # Creates a cost ratio that's bigger than 1
+                cost_ratio = old_ver.cost / sta.cost
+                if cost_ratio < 1:
+                    cost_ratio = 1/cost_ratio
+                # Creates a minimum order ratio that's bigger than 1
+                min_order_ratio = sta.minimum_number_to_order/old_ver.minimum_number_to_order
+                if min_order_ratio < 1:
+                    min_order_ratio = 1/min_order_ratio
+                # Now we do all the checks
+                if old_ver.ean != sta.ean:
+                    logger.info("EAN does not match for SupplierArticleTypes with supplier ID {}".format(old_ver.number))
+                elif cost_ratio > VALID_COST_RATIO_BOUND:
+                    logger.info("Old price was {} and new price was {} for {}. "
+                                "Skipping".format(old_ver.cost, sta.cost, old_ver.number))
+                elif min_order_ratio > MINIMUM_NUMBER_TO_ORDER_RATIO:
+                    logger.info("Old min ord amount was {} and new one is {} for art {}. "
+                                "Difference is too big, "
+                                "aborting".format(old_ver.minimum_number_to_order, sta.minimum_number_to_order,
+                                                  old_ver.number))
+                else:
+                    # Mark the old line for deletion and mark the new line for creation
+                    old_arts_to_be_deleted.append(old_ver)
+                    new_arts_to_be_added.append(sta)
 
         # IDs of STAs to be deleted
         delete_ids = []  # type: list[int]
