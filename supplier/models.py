@@ -117,13 +117,33 @@ class SupplierTypeArticle(models.Model):
     # Articles are sold in multiples of the packing amount
     packing_amount = models.IntegerField(null=True)
     # Date this article was updated
-    date_updated = models.DateField(auto_now=True)
+    date_updated = models.DateField(default=timezone.now)
+
+    ## Class based constants
+    # SupplierTypeArticles are considered obsolete after CLEAN_UP_LIMIT days
+    CLEAN_UP_LIMIT = 31
+
+    # If the old price and the price update differ more than ca. {price ratio - 1}*100%, it's probably not the
+    # correct article.
+    VALID_COST_RATIO_BOUND = 1.6
+
+    # If the ratio of minumum number to order is more than 3, its probably a different article
+    MINIMUM_NUMBER_TO_ORDER_RATIO = 3
 
     def __str__(self):
         return "SupplierId: {}, ArtTypSupId: {}, sup_number: {}, name: {}, ean: {}, cost: {}, minimum_order: {}, " \
                "supply: {}, packing_amount: {}".format(self.supplier_id, self.article_type_supplier_id, self.number,
                                                        self.name, self.ean, self.cost, self.minimum_number_to_order,
                                                        self.supply, self.packing_amount)
+
+    def __eq__(self, other):
+        if not isinstance(other, SupplierTypeArticle):
+            return False
+        # Date does not matter
+        return self.article_type_supplier == other.article_type_supplier and self.supplier == other.supplier and \
+               self.number == other.number and self.ean == other.ean and self.cost == other.cost and \
+               self.minimum_number_to_order == other.minimum_number_to_order and self.supply == other.supply and \
+               self.packing_amount == other.packing_amount
 
     @staticmethod
     def process_supplier_type_articles(supplier_type_articles):
@@ -144,9 +164,7 @@ class SupplierTypeArticle(models.Model):
             raiseifnot(isinstance(sta, SupplierTypeArticle), TypeError, "sta should be a SupplierTypeArticle")
             raiseifnot(sta.supplier == supplier, SupplierTypeArticleProcessingError, "Supplier is not uniform")
 
-        CLEAN_UP_LIMIT = 31
-
-        cutoff_date = datetime.date.today() - datetime.timedelta(days=CLEAN_UP_LIMIT)
+        cutoff_date = datetime.date.today() - datetime.timedelta(days=SupplierTypeArticle.CLEAN_UP_LIMIT)
 
         # Removes all SupplierTypeArticles that are out of date. After {x} days, we can safely assume
         # that the data holds no significance to the assortment.
@@ -164,12 +182,7 @@ class SupplierTypeArticle(models.Model):
         old_arts_to_be_deleted = []  # type: list[SupplierTypeArticle]
         new_arts_to_be_added = []  # type: list[SupplierTypeArticle]
 
-        # If the old price and the price update differ more than ca. {price ratio - 1}*100%, it's probably not the
-        # correct article.
-        VALID_COST_RATIO_BOUND = 1.6
 
-        # If the ratio of minumum number to order is more than 3, its probably a different article
-        MINIMUM_NUMBER_TO_ORDER_RATIO = 3
 
         for sta in supplier_type_articles:
             old_ver = old_art_dict.get(sta.number) # type: SupplierTypeArticle
@@ -192,10 +205,10 @@ class SupplierTypeArticle(models.Model):
                 # Now we do all the checks
                 if old_ver.ean != sta.ean:
                     logger.info("EAN does not match for SupplierArticleTypes with supplier ID {}".format(old_ver.number))
-                elif cost_ratio > VALID_COST_RATIO_BOUND:
+                elif cost_ratio > SupplierTypeArticle.VALID_COST_RATIO_BOUND:
                     logger.info("Old price was {} and new price was {} for {}. "
                                 "Skipping".format(old_ver.cost, sta.cost, old_ver.number))
-                elif min_order_ratio > MINIMUM_NUMBER_TO_ORDER_RATIO:
+                elif min_order_ratio > SupplierTypeArticle.MINIMUM_NUMBER_TO_ORDER_RATIO:
                     logger.info("Old min ord amount was {} and new one is {} for art {}. "
                                 "Difference is too big, "
                                 "aborting".format(old_ver.minimum_number_to_order, sta.minimum_number_to_order,
