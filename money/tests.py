@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, SimpleTestCase
 
 from money.models import Cost
 from money.models import Currency, TestSalesPriceType, SalesPrice
@@ -107,7 +107,7 @@ class SalesPriceTest(TestCase):
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
-class MoneyMathTest(TestCase):
+class MoneyMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
@@ -139,7 +139,7 @@ class MoneyMathTest(TestCase):
 
 
 # Copy of MoneyMathTest; they are not exactly the same
-class CostMathTest(TestCase):
+class CostMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
@@ -178,7 +178,7 @@ class CostMathTest(TestCase):
 
 # Copy of MoneyMathTest; they are not exactly the same
 
-class SalesPriceMathTest(TestCase):
+class SalesPriceMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
@@ -225,11 +225,7 @@ class SalesPriceMathTest(TestCase):
         self.assertEquals(t.get_margin(), 3)
 
 
-class CurrencyDenomTest(TestCase):
-
-    def setUp(self):
-        self.euro = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
-        self.dollar = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
+class CurrencyDenomDBTest(TestCase):
 
     def test_currency_iso(self):
         with self.assertRaises(ValidationError):
@@ -240,6 +236,13 @@ class CurrencyDenomTest(TestCase):
         with self.assertRaises(ValidationError):
             foo = CurrencyData(iso="EDD", name="Estonian Drak", digits=4, symbol="D&aaaa")
             foo.full_clean()
+
+
+class CurrencyDenomTest(SimpleTestCase):
+
+    def setUp(self):
+        self.euro = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
+        self.dollar = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
 
     def test_currency_equals(self):
         self.assertNotEquals(self.euro, self.dollar)
