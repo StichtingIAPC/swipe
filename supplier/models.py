@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import ugettext as _
 from django.utils import timezone
 
@@ -51,7 +51,6 @@ class ArticleTypeSupplier(models.Model):
     AVAILABILITY_OPTIONS = ('A', 'S', 'L', 'U', 'D')
     AVAILABILITY_OPTIONS_MEANINGS = {
         'A': 'Available at Supplier',
-        'S': 'Soon available',
         'L': 'Later available',
         'U': 'Unknown availability',
         'D': 'Defunct product'
@@ -60,13 +59,13 @@ class ArticleTypeSupplier(models.Model):
     supplier = models.ForeignKey(Supplier)
     # The article type linked
     article_type = models.ForeignKey(ArticleType)
-
-    cost = CostField()  # Describes the cost of
-
+    # Cost of an article at the supplier
+    cost = CostField()
+    # Minimum number we need to order at the supplier
     minimum_number_to_order = models.IntegerField()
-
+    # The unique identifier at the supplier
     supplier_string = models.CharField(max_length=255)
-
+    # Can we get the articles at the supplier right now and if not, what should we expect?
     availability = models.CharField(max_length=255, choices=sorted(AVAILABILITY_OPTIONS_MEANINGS.items()))
 
     class Meta:
@@ -75,6 +74,50 @@ class ArticleTypeSupplier(models.Model):
     def has_graduated_pricing(self):
         gps = VolumeDiscountPricing.objects.filter(article_type_supplier=self)
         return len(gps) > 0
+
+    def __str__(self):
+        return "SupplierId: {}, ArtTypeId: {}, Cost: {}," \
+               " MinOrder: {}, Suppl String: {}, Availability: {}".format(self.supplier_id,
+                                                                          self.article_type_id, self.cost,
+                                                                          self.minimum_number_to_order,
+                                                                          self.supplier_string, self.availability)
+
+    @staticmethod
+    def update_article_type_suppliers(supplier: Supplier):
+        raiseifnot(isinstance(supplier, Supplier), TypeError, "supplier should be a supplier")
+        ats = ArticleTypeSupplier.objects.filter(supplier=supplier)
+        stas = SupplierTypeArticle.objects.filter(supplier=supplier)
+        stas_dict = {}
+        for sta in stas:
+            stas_dict[sta.number] = sta
+        for at in ats:
+            sta = stas_dict.get(at.supplier_string, None)  # type: SupplierTypeArticle
+            if sta:
+                # Copy values of STA to ATS
+                # Availability is loosely coupled as you can generally only tell if there
+                # are articles at the supplier or not.
+                at.cost = sta.cost
+                # Minimum order can be None which should not propagate
+                if sta.minimum_number_to_order:
+                    at.minimum_number_to_order = sta.minimum_number_to_order
+                if sta.supply > 0:
+                    at.availability = 'A'
+                else:
+                    at.availability = 'L'
+                # Link the STA to the ATS
+                sta.article_type_supplier = at
+            else:
+                """
+                We found no SupplierTypeArticle. We assume that the ArticleType is gone
+                at the supplier.
+                """
+                at.availability = 'D'
+
+        with transaction.atomic():
+            for at in ats:
+                at.save()
+            for sta in stas:
+                sta.save()
 
 
 class VolumeDiscountPricing(models.Model):
@@ -118,6 +161,9 @@ class SupplierTypeArticle(models.Model):
     packing_amount = models.IntegerField(null=True)
     # Date this article was updated
     date_updated = models.DateField(default=timezone.now)
+
+    class Meta:
+        unique_together = ['supplier', 'number']
 
     ## Class based constants
     # SupplierTypeArticles are considered obsolete after CLEAN_UP_LIMIT days

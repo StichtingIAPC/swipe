@@ -1,6 +1,6 @@
 from django.test import TestCase
 from tools.testing import TestData
-from supplier.models import SupplierTypeArticle, SupplierTypeArticleProcessingError
+from supplier.models import SupplierTypeArticle, SupplierTypeArticleProcessingError, ArticleTypeSupplier, ArticleType
 from money.models import Cost, Currency
 from decimal import Decimal
 
@@ -153,4 +153,75 @@ class SupplierTypeArticleUpdaterTests(TestCase, TestData):
         self.assertEqual(SupplierTypeArticle.objects.get(), sta_1_new)
 
 
+class ArticleTypeSupplierTests(TestCase, TestData):
+
+    def setUp(self):
+        self.part_setup_currency_data()
+        self.part_setup_vat_group()
+        self.part_setup_currency()
+        self.part_setup_accounting_group()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_payment_types()
+        self.part_setup_registers()
+        self.part_setup_denominations()
+        self.part_setup_prices()
+        self.part_setup_costs()
+        self.part_setup_supplier()
+        self.part_setup_article_types()
+        self.articletypesupplier_article_1 = ArticleTypeSupplier(supplier=self.supplier_1,
+                                                                 article_type=self.articletype_1,
+                                                                 cost=self.cost_eur_1, availability='A',
+                                                                 supplier_string="SupplierArticleType 1",
+                                                                 minimum_number_to_order=1)
+        self.articletypesupplier_article_1.save()
+        self.articletypesupplier_article_2 = ArticleTypeSupplier(supplier=self.supplier_1,
+                                                                 article_type=self.articletype_2,
+                                                                 cost=self.cost_eur_2, availability='A',
+                                                                 supplier_string="SupplierArticleType 2",
+                                                                 minimum_number_to_order=1)
+        self.articletypesupplier_article_2.save()
+
+    def test_update_ats_simple(self):
+        ats_1 = self.articletypesupplier_article_1
+        sta_1 = SupplierTypeArticle(supplier=self.supplier_1,
+                                    cost=self.cost_eur_1, number="SupplierArticleType 1",
+                                    name="Meh", minimum_number_to_order=2, supply=1)
+        sta_1.save()
+        ArticleTypeSupplier.update_article_type_suppliers(self.supplier_1)
+        at_updated = ArticleTypeSupplier.objects.get(article_type=self.articletype_1)
+        self.assertEqual(at_updated.minimum_number_to_order, 2)
+        self.assertEqual(at_updated.availability, 'A')
+        sta_updated = SupplierTypeArticle.objects.get()
+        self.assertEqual(sta_updated.article_type_supplier, at_updated)
+
+    def test_no_supply_means_state_change(self):
+        sta_1 = SupplierTypeArticle(supplier=self.supplier_1,
+                                    cost=self.cost_eur_1, number="SupplierArticleType 1",
+                                    name="Meh", minimum_number_to_order=2, supply=0)
+        sta_1.save()
+        ArticleTypeSupplier.update_article_type_suppliers(self.supplier_1)
+        at_updated = ArticleTypeSupplier.objects.get(article_type=self.articletype_1)
+        self.assertEqual(at_updated.availability, 'L')
+
+    def test_no_stas_means_no_supply_and_update(self):
+        ArticleTypeSupplier.update_article_type_suppliers(self.supplier_1)
+        at_updated = ArticleTypeSupplier.objects.get(article_type=self.articletype_1)
+        self.assertEqual(at_updated.availability, 'D')
+
+    def test_extra_sta_has_no_effect(self):
+        self.articletype_3 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
+                                         branch=self.branch_2)
+        ArticleTypeSupplier.update_article_type_suppliers(self.supplier_1)
+        self.assertEqual(ArticleTypeSupplier.objects.count(), 2)
+
+    def test_readding_supply_resets_ats_state(self):
+        self.articletypesupplier_article_1.availability='D'
+        self.articletypesupplier_article_1.save()
+        sta_1 = SupplierTypeArticle(supplier=self.supplier_1,
+                                    cost=self.cost_eur_1, number="SupplierArticleType 1",
+                                    name="Meh", minimum_number_to_order=2, supply=1)
+        sta_1.save()
+        ArticleTypeSupplier.update_article_type_suppliers(self.supplier_1)
+        at_updated = ArticleTypeSupplier.objects.get(article_type=self.articletype_1)
+        self.assertEqual(at_updated.availability, 'A')
 
