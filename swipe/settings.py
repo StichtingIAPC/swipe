@@ -287,7 +287,7 @@ FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 CASH_PAYMENT_TYPE_NAME = "Cash"
 
 # Current currency. Transactions are only possible with this currency
-USED_CURRENCY = "EUR"
+USED_CURRENCY = "AAZ"
 
 # Class name of current strategy for supplier orders.
 USED_SUPPLIERORDER_STRATEGY = "IndiscriminateCustomerStockStrategy"

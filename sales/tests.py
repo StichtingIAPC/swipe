@@ -660,15 +660,15 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
         self.create_suporders()
         self.create_packingdocuments()
         self.register_3.open(Decimal(0))
-        octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=oth_count,
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=oth_count,
                                           other_cost_type=self.othercosttype_1, order=1)
-        money_3 = Money(amount=self.price_eur_1.amount * oth_count, currency=self.price_eur_1.currency)
+        money_3 = Money(amount=self.price_system_currency_1.amount * oth_count, currency=self.price_system_currency_1.currency)
         pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
         Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                        customer=self.customer_person_2)
-        octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=1,
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=1,
                                           other_cost_type=self.othercosttype_1, order=1)
-        money_3 = Money(amount=self.price_eur_1.amount * 1, currency=self.price_eur_1.currency)
+        money_3 = Money(amount=self.price_system_currency_1.amount * 1, currency=self.price_system_currency_1.currency)
         pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
         with self.assertRaises(NotEnoughOrderLinesError):
             Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
@@ -680,8 +680,8 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
         self.create_packingdocuments(article_1=3)
         self.create_transactions_article_type_for_order(article_1=2)
         stl = SalesTransactionLine.objects.get(article=self.articletype_1)
-        rfl_1 = RefundTransactionLine(price=self.price_eur_1, count=-1, sold_transaction_line=stl)
-        money_1 = Money(amount=self.price_eur_1.amount * -1, currency=self.price_eur_1.currency)
+        rfl_1 = RefundTransactionLine(price=self.price_system_currency_1, count=-1, sold_transaction_line=stl)
+        money_1 = Money(amount=self.price_system_currency_1.amount * -1, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
         st_level = Stock.objects.get(article=self.articletype_1)
         self.assertEqual(st_level.count, 1)

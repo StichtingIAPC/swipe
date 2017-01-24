@@ -247,6 +247,7 @@ class Transaction(Blame):
 
         for payment in payments:
             raiseif(not isinstance(payment, Payment), "payment is not a Payment")
+            raiseif(not payment.amount.uses_system_currency(), InvalidDataException, "Payment currency should be system currency")
         types_supported = [SalesTransactionLine, OtherCostTransactionLine, OtherTransactionLine,
                            RefundTransactionLine]
         for tr_line in transaction_lines:

@@ -9,6 +9,7 @@ from logistics.models import SupplierOrder, StockWish
 from supplication.models import PackingDocument
 from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
 from django.test import TestCase
+from swipe.settings import USED_CURRENCY
 
 
 class TestData:
@@ -36,6 +37,10 @@ class TestData:
         self.currency_data_eur.save()
         self.currency_data_usd = CurrencyData(iso="USD", name="US Dollar", symbol="$", digits=2)
         self.currency_data_usd.save()
+        if USED_CURRENCY not in ["EUR", "USD"]:
+            self.currency_data_used = CurrencyData(iso=USED_CURRENCY, name="Default Currency", symbol="?", digits=2)
+        else:
+            self.currency_data_used = self.currency_data_eur
 
     def part_setup_vat_group(self):
         self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
@@ -73,9 +78,9 @@ class TestData:
                                    payment_type=self.paymenttype_cash, name="Register 1")
         self.register_2 = Register(currency=self.currency_data_eur, is_cash_register=True,
                                    payment_type=self.paymenttype_cash, name="Register 2")
-        self.register_3 = Register(currency=self.currency_data_eur, is_cash_register=False,
+        self.register_3 = Register(currency=self.currency_data_used, is_cash_register=False,
                                    payment_type=self.paymenttype_maestro, name="Register 3")
-        self.register_4 = Register(currency=self.currency_data_eur, is_cash_register=False,
+        self.register_4 = Register(currency=self.currency_data_used, is_cash_register=False,
                                    payment_type=self.paymenttype_invoice, name="Register 4")
         self.register_1.save()
         self.register_2.save()
@@ -89,14 +94,14 @@ class TestData:
         self.denomination_eur_0_01.save()
 
     def part_setup_prices(self):
-        self.price_eur_1 = Price(amount=Decimal(1.23), currency=self.currency_eur, vat=1.21)
-        self.price_eur_2 = Price(amount=Decimal(2.10), currency=self.currency_eur, vat=1.06)
+        self.price_system_currency_1 = Price(amount=Decimal(1.23), use_system_currency=True, vat=1.21)
+        self.price_systen_currency_2 = Price(amount=Decimal(2.10), use_system_currency=True, vat=1.06)
 
     def part_setup_costs(self):
-        self.cost_eur_1 = Cost(amount=Decimal(1.23), currency=self.currency_eur)
-        self.cost_eur_2 = Cost(amount=Decimal(2.10), currency=self.currency_eur)
-        self.cost_eur_3 = Cost(amount=Decimal(3.14), currency=self.currency_eur)
-        self.cost_eur_4 = Cost(amount=Decimal(10.01), currency=self.currency_eur)
+        self.cost_system_currency_1 = Cost(amount=Decimal(1.23), use_system_currency=True)
+        self.cost_system_currency_2 = Cost(amount=Decimal(2.10), use_system_currency=True)
+        self.cost_system_currency_3 = Cost(amount=Decimal(3.14), use_system_currency=True)
+        self.cost_system_currency_4 = Cost(amount=Decimal(10.01), use_system_currency=True)
 
     def part_setup_supplier(self):
         self.supplier_1 = Supplier(name="Supplier 1")
@@ -115,23 +120,23 @@ class TestData:
     def part_setup_article_type_supplier(self):
         self.articletypesupplier_article_1 = ArticleTypeSupplier(supplier=self.supplier_1,
                                                                  article_type=self.articletype_1,
-                                                                 cost=self.cost_eur_1, availability='A',
+                                                                 cost=self.cost_system_currency_1, availability='A',
                                                                  supplier_string="SupplierArticleType 1",
                                                                  minimum_number_to_order=1)
         self.articletypesupplier_article_1.save()
         self.articletypesupplier_article_2 = ArticleTypeSupplier(supplier=self.supplier_1,
                                                                  article_type=self.articletype_2,
-                                                                 cost=self.cost_eur_2, availability='A',
+                                                                 cost=self.cost_system_currency_2, availability='A',
                                                                  supplier_string="SupplierArticleType 2",
                                                                  minimum_number_to_order=1)
         self.articletypesupplier_article_2.save()
 
     def part_setup_othercosts(self):
         self.othercosttype_1 = OtherCostType(name="OtherCostType 1", accounting_group=self.accounting_group_components,
-                                             branch=self.branch_1, fixed_price=self.price_eur_1)
+                                             branch=self.branch_1, fixed_price=self.price_system_currency_1)
         self.othercosttype_1.save()
         self.othercosttype_2 = OtherCostType(name="OtherCostType 2", accounting_group=self.accounting_group_food,
-                                             branch=self.branch_2, fixed_price=self.price_eur_2)
+                                             branch=self.branch_2, fixed_price=self.price_systen_currency_2)
         self.othercosttype_2.save()
 
     def part_setup_customers(self):
@@ -157,13 +162,13 @@ class TestData:
         if article_1 + article_2 + othercost_1 + othercost_2 > 0:
             wish_combs = []
             if article_1 > 0:
-                wish_combs.append([self.articletype_1, self.CUSTORDERED_ARTICLE_1, self.price_eur_1])
+                wish_combs.append([self.articletype_1, self.CUSTORDERED_ARTICLE_1, self.price_system_currency_1])
             if article_2 > 0:
-                wish_combs.append([self.articletype_2, self.CUSTORDERED_ARTICLE_2, self.price_eur_2])
+                wish_combs.append([self.articletype_2, self.CUSTORDERED_ARTICLE_2, self.price_systen_currency_2])
             if othercost_1 > 0:
-                wish_combs.append([self.othercosttype_1, self.CUSTORDERED_OTHERCOST_1, self.price_eur_1])
+                wish_combs.append([self.othercosttype_1, self.CUSTORDERED_OTHERCOST_1, self.price_system_currency_1])
             if othercost_2 > 0:
-                wish_combs.append([self.othercosttype_2, self.CUSTORDERED_OTHERCOST_2, self.price_eur_2])
+                wish_combs.append([self.othercosttype_2, self.CUSTORDERED_OTHERCOST_2, self.price_systen_currency_2])
             Order.create_order_from_wishables_combinations(user=self.user_1, customer=self.customer_person_1,
                                                            wishable_type_number_price_combinations=wish_combs)
 
@@ -184,9 +189,9 @@ class TestData:
         if article_1 + article_2 > 0:
             arts_ordered = []
             if article_1 > 0:
-                arts_ordered.append([self.articletype_1, self.SUPPLIERORDERED_ARTICLE_1, self.cost_eur_1])
+                arts_ordered.append([self.articletype_1, self.SUPPLIERORDERED_ARTICLE_1, self.cost_system_currency_1])
             if article_2 > 0:
-                arts_ordered.append([self.articletype_2, self.SUPPLIERORDERED_ARTICLE_2, self.cost_eur_2])
+                arts_ordered.append([self.articletype_2, self.SUPPLIERORDERED_ARTICLE_2, self.cost_system_currency_2])
 
             SupplierOrder.create_supplier_order(user_modified=self.user_1, supplier=self.supplier_1,
                                                 articles_ordered=arts_ordered)
@@ -213,25 +218,25 @@ class TestData:
             if not self.register_3.is_open():
                 self.register_3.open(counted_amount=Decimal(0))
             if article_1 > 0:
-                tl_1 = SalesTransactionLine(price=self.price_eur_1, count=self.SOLD_ARTICLE_1, order=1,
+                tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=self.SOLD_ARTICLE_1, order=1,
                                             article=self.articletype_1)
-                money_1 = Money(amount=self.price_eur_1.amount*self.SOLD_ARTICLE_1, currency=self.price_eur_1.currency)
+                money_1 = Money(amount=self.price_system_currency_1.amount * self.SOLD_ARTICLE_1, currency=self.price_system_currency_1.currency)
                 pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
                 Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1],
                                                customer=None)
             if article_2 > 0:
-                tl_2 = SalesTransactionLine(price=self.price_eur_2, count=self.SOLD_ARTICLE_2, order=1,
+                tl_2 = SalesTransactionLine(price=self.price_systen_currency_2, count=self.SOLD_ARTICLE_2, order=1,
                                             article=self.articletype_2)
-                money_2 = Money(amount=self.price_eur_2.amount * self.SOLD_ARTICLE_2,
-                                currency=self.price_eur_2.currency)
+                money_2 = Money(amount=self.price_systen_currency_2.amount * self.SOLD_ARTICLE_2,
+                                currency=self.price_systen_currency_2.currency)
                 pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_maestro)
                 Transaction.create_transaction(user=self.user_2, transaction_lines=[tl_2], payments=[pymnt_2],
                                                customer=self.customer_person_1)
             if othercost_1 > 0:
-                octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=self.SOLD_OTHERCOST_1,
+                octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=self.SOLD_OTHERCOST_1,
                                                   other_cost_type=self.othercosttype_1, order=1)
-                money_3 = Money(amount=self.price_eur_1.amount*self.SOLD_OTHERCOST_1,
-                                currency=self.price_eur_1.currency)
+                money_3 = Money(amount=self.price_system_currency_1.amount * self.SOLD_OTHERCOST_1,
+                                currency=self.price_system_currency_1.currency)
                 pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
                 Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                                customer=self.customer_person_2)
