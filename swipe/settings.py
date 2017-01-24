@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     'customer_invoicing',
     'revaluation',
     'stock_count',
+    'pricing',
 )
 
 MIDDLEWARE_CLASSES = [
