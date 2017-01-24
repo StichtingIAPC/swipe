@@ -17,47 +17,6 @@ $col-iapc-blue-light: #2cb8ff;
 
 $dim-base: 8px;
 
-html, body {
-	margin: 0;
-	padding: 0;
-	font-family: "Open Sans", Arial, sans-serif;
-	background: $col-bg;
-	font-size: 12pt;
-}
-
-body, #app, .wrapper {
-	height: 100vh;
-}
-
-a {
-	color: $col-iapc-blue;
-	text-decoration: none;
-}
-
-h1, h2, h3, h4, h5, h6 {
-	font-weight: lighter;
-	display: block;
-	margin-top: 0;
-	font-family: "Montserrat";
-}
-
-h1 { font-size: 2em; }
-h2 { font-size: 1.6em; }
-h3 { font-size: 1.4em; }
-h4 { font-size: 1.2em; }
-
-.navbar-header h1 {
-	margin: 0;
-	margin-right: $dim-base * 2;
-	line-height: 50px;
-	font-size: 1.6em;
-	color: #fff;
-}
-
-.sidebar-menu > li.header.header {
-	color: #999faf;
-}
-
 .sidebar-menu li a i.fa {
 	margin-right: $dim-base;
 }
@@ -65,8 +24,16 @@ h4 { font-size: 1.2em; }
 .content-wrapper {
 	height: 100vh;
 	overflow: auto;
-//	padding-left: 230px;
 }
+
+/* MONEY / DENOMINATION LABEL */
+.label-denomination {
+	color: black;
+	font-size: inherit;
+	font-weight: inherit;
+	display: inline-block;
+}
+
 
 /* AUTHENTICATION */
 .page-authentication {

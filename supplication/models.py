@@ -8,7 +8,6 @@ from crm.models import User
 from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, \
     InsufficientDemandError, IndirectionError, UnimplementedError, SupplierOrderState
 from money.models import CostField, Cost
-from stock.enumeration import enum
 from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
 from supplier.models import Supplier, ArticleTypeSupplier
@@ -91,7 +90,8 @@ class PackingDocument(ImmutableBlame):
                                         indirect=True
                                         )
         pd = PackingDocument.objects.last()
-        StockChangeSet.construct("Stock supplication by {}".format(pd.pk), entries=changeset, enum=enum["supplication"])
+        StockChangeSet.construct("Stock supplication by {}".format(pd.pk), entries=changeset,
+                                 source=StockChangeSet.SOURCE_SUPPLICATION)
 
     @staticmethod
     def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
@@ -246,7 +246,7 @@ class PackingDocumentLine(Blame):
                     label = OrderLabel(self.supplier_order_line.order_line.order.pk)
                     entry[0]['label'] = label
                 StockChangeSet.construct(description="Stock supplication by {}".format(document_key), entries=entry,
-                                         enum=enum["supplication"])
+                                         source=StockChangeSet.SOURCE_SUPPLICATION)
         else:
             super(PackingDocumentLine, self).save()
 
