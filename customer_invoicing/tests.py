@@ -29,7 +29,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         self.assertEqual(len(CustInvoice.objects.all()), 1)
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertEqual(receipt_cust_invoice.receipt, trans)
-        self.assertEqual(receipt_cust_invoice.paid, Money(amount=Decimal(0), currency=self.currency_eur))
+        self.assertEqual(receipt_cust_invoice.paid, Money(amount=Decimal(0), currency=self.currency_current))
         self.assertEqual(receipt_cust_invoice.to_be_paid, money_1)
         self.assertFalse(receipt_cust_invoice.handled)
 
@@ -58,7 +58,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
         SOLD = 1
-        price = Price(amount=Decimal("3"), currency=self.currency_eur, vat=1)
+        price = Price(amount=Decimal("3"), currency=self.currency_current, vat=1)
 
         tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
                                     article=self.articletype_1)
@@ -74,8 +74,8 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         self.assertEqual(len(CustInvoice.objects.all()), 1)
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertEqual(receipt_cust_invoice.receipt, trans)
-        self.assertEqual(receipt_cust_invoice.paid, Money(amount=Decimal("1"), currency=self.currency_eur))
-        self.assertEqual(receipt_cust_invoice.to_be_paid, Money(amount=Decimal("3"), currency=self.currency_eur))
+        self.assertEqual(receipt_cust_invoice.paid, Money(amount=Decimal("1"), currency=self.currency_current))
+        self.assertEqual(receipt_cust_invoice.to_be_paid, Money(amount=Decimal("3"), currency=self.currency_current))
         self.assertFalse(receipt_cust_invoice.handled)
 
 
@@ -95,9 +95,9 @@ class CustInvoiceTestCustomInvoice(TestCase, TestData):
 
         self.assertEqual(len(CustInvoice.objects.all()), 1)
         custom_invoice = CustomCustInvoice.objects.get()
-        self.assertEqual(custom_invoice.paid, Money(amount=Decimal("0"), currency=self.currency_eur))
+        self.assertEqual(custom_invoice.paid, Money(amount=Decimal("0"), currency=self.currency_current))
         self.assertEqual(custom_invoice.to_be_paid, Money(amount=self.price_system_currency_1.amount + self.price_systen_currency_2.amount,
-                                                          currency=self.currency_eur))
+                                                          currency=self.currency_current))
         self.assertFalse(custom_invoice.handled)
         custom_invoice_lines = CustomInvoiceLine.objects.all()
 
@@ -195,7 +195,7 @@ class CustInvoicePayments(TestCase, TestData):
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
         SOLD = 1
-        price = Price(amount=Decimal("3"), currency=self.currency_eur, vat=1)
+        price = Price(amount=Decimal("3"), currency=self.currency_current, vat=1)
 
         tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
                                     article=self.articletype_1)
@@ -218,7 +218,7 @@ class CustInvoicePayments(TestCase, TestData):
         SOLD = 1
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
-        price = Price(amount=Decimal("2"), currency=self.currency_eur, vat=1)
+        price = Price(amount=Decimal("2"), currency=self.currency_current, vat=1)
         tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("2"), currency=self.price_system_currency_1.currency)
@@ -227,8 +227,8 @@ class CustInvoicePayments(TestCase, TestData):
 
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
-        receipt_cust_invoice.pay(Money(amount=Decimal("1"), currency=self.currency_eur), self.user_1)
+        receipt_cust_invoice.pay(Money(amount=Decimal("1"), currency=self.currency_current), self.user_1)
         self.assertFalse(receipt_cust_invoice.handled)
-        receipt_cust_invoice.pay(Money(amount=Decimal("1"), currency=self.currency_eur), self.user_1)
+        receipt_cust_invoice.pay(Money(amount=Decimal("1"), currency=self.currency_current), self.user_1)
         self.assertTrue(receipt_cust_invoice.handled)
         self.assertEqual(len(CustPayment.objects.all()), 2)

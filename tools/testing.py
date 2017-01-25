@@ -51,6 +51,7 @@ class TestData:
     def part_setup_currency(self):
         self.currency_eur = Currency(iso="EUR")
         self.currency_usd = Currency(iso="USD")
+        self.currency_current = Currency(iso=USED_CURRENCY)
 
     def part_setup_accounting_group(self):
         self.accounting_group_components = AccountingGroup(name="Components", vat_group=self.vat_group_high,

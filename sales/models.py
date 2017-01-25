@@ -217,6 +217,9 @@ class Transaction(Blame):
     # Customer. Null for anonymous customer
     customer = models.ForeignKey(Customer, null=True)
 
+    def __str__(self):
+        return "SalesPeriodId: {}, CustomerId: {}".format(self.salesperiod_id, self.customer_id)
+
     def save(self, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError("Please use the Transaction.create_transaction function.")
