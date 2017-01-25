@@ -21,7 +21,7 @@ class BasicTest(TestCase, TestData):
         self.eu = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
         self.usd = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
         self.reg1 = Register(currency=self.currency_data_used, is_cash_register=True, payment_type=self.cash, name="A")
-        self.reg2 = Register(currency=self.eu, is_cash_register=False, payment_type=self.pin, name='B')
+        self.reg2 = Register(currency=self.currency_data_used, is_cash_register=False, payment_type=self.pin, name='B')
         self.reg3 = Register(currency=self.usd, is_cash_register=False, payment_type=self.pin, name='C')
         self.denom1 = Denomination(currency=self.currency_data_used, amount=Decimal("2.20371"))
         self.denom1.save()

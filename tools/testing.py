@@ -37,10 +37,13 @@ class TestData:
         self.currency_data_eur.save()
         self.currency_data_usd = CurrencyData(iso="USD", name="US Dollar", symbol="$", digits=2)
         self.currency_data_usd.save()
-        if USED_CURRENCY not in ["EUR", "USD"]:
-            self.currency_data_used = CurrencyData(iso=USED_CURRENCY, name="Default Currency", symbol="?", digits=2)
-        else:
+        if USED_CURRENCY == "EUR":
             self.currency_data_used = self.currency_data_eur
+        elif USED_CURRENCY == "USD":
+            self.currency_data_used = self.currency_data_usd
+        else:
+            self.currency_data_used = CurrencyData(iso=USED_CURRENCY, name="Default Currency", symbol="?", digits=2)
+            self.currency_data_used.save()
 
     def part_setup_vat_group(self):
         self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
