@@ -150,7 +150,7 @@ class SupplierTypeArticle(models.Model):
     # The textual representation("name") of the article
     name = models.CharField(max_length=255)
     # Unique numerical identifier, is a 14 digit long number
-    ean = models.IntegerField(null=True)
+    ean = models.BigIntegerField(null=True)
     # The price for which we can buy the product
     cost = CostField(null=True)
     # The minimum number of articles you can order of this product

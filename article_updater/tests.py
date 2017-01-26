@@ -1,7 +1,7 @@
 from django.test import TestCase, SimpleTestCase
 from xml.etree.ElementTree import ParseError
 from article_updater.models import FileParser, XMLParser, CSVParser, \
-    SwipeParseError, CSVSupplierRelation, XMLSupplierRelation
+    SwipeParseError, CSVSupplierRelation, XMLSupplierRelation, SupplierTypeArticle
 import mimetypes
 from money.models import Cost
 from decimal import Decimal
@@ -143,3 +143,20 @@ class SupplierTests(SimpleTestCase):
         supplier_articles = XMLSupplierRelation.get_supplier_type_articles(parsed, self.copaco)
         # Checks if the extraction does not fail
 
+class DatabaseParserTests(TestCase):
+
+    def setUp(self):
+        wave_supplier = Supplier(pk=3)
+        self.wave = CSVSupplierRelation(supplier=wave_supplier, number=0, ean=5, name=2, cost=3, supply=4,
+                                        minimum_order=None,
+                                        packing_amount=None, separator="|", start_at=1)
+
+    def test_ean_has_full_precision(self):
+        file_location = "./article_updater/testing/wave-2017-01-02.csv"
+        parsed = CSVParser.parse(file_location, self.wave)
+        supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.wave)
+        for sa in supplier_articles:
+            sa.save()
+        retrieved = SupplierTypeArticle.objects.get(number="1N1AA006")
+        print(retrieved)
+        self.assertEqual(retrieved.ean, 8717774650172)
