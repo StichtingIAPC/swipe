@@ -48,7 +48,7 @@ class ArticleTypeSupplier(models.Model):
     Class for connecting the local ArticleType to its instance for the supplier. Provides info on cost and
     availability of products at the supplier
     """
-    AVAILABILITY_OPTIONS = ('A', 'S', 'L', 'U', 'D')
+    AVAILABILITY_OPTIONS = ('A', 'L', 'U', 'D')
     AVAILABILITY_OPTIONS_MEANINGS = {
         'A': 'Available at Supplier',
         'L': 'Later available',
