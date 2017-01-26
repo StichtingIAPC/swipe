@@ -12,7 +12,7 @@ class WishableType(models.Model):
     not exist as a type that our suppliers can provide. Ordering non-sellable types incurs significant logic in the
     system to resolve. Keep this in mind.
     """
-    labels = models.ManyToManyField(AssortmentLabel)
+    labels = models.ManyToManyField(AssortmentLabel, blank=True)
     name = models.CharField(max_length=255)
 
     # This abstract type can be ordered
