@@ -37,9 +37,9 @@ $dim-base: 8px;
 
 /* AUTHENTICATION */
 .page-authentication {
+	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
 }
 
 .page-authentication .auth-form {
