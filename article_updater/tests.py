@@ -158,5 +158,4 @@ class DatabaseParserTests(TestCase):
         for sa in supplier_articles:
             sa.save()
         retrieved = SupplierTypeArticle.objects.get(number="1N1AA006")
-        print(retrieved)
         self.assertEqual(retrieved.ean, 8717774650172)
