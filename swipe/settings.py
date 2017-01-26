@@ -66,6 +66,7 @@ INSTALLED_APPS = (
     'revaluation',
     'stock_count',
     'pricing',
+    'article_updater',
 )
 
 MIDDLEWARE_CLASSES = [

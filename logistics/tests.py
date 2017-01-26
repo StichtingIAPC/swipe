@@ -240,7 +240,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
         self.user_modified = User()
         self.user_modified.save()
 
-        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
+        self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
 
     def test_ics_strategy_orders_only(self):
         orderlines = []

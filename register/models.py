@@ -1,17 +1,15 @@
 from django.conf import settings
 from django.db import transaction, IntegrityError, models
+from django.db.models import Q
 from django.utils import timezone
 
 from article.models import ArticleType
 from money.models import Money, Decimal, Denomination, CurrencyData, Currency, MoneyField
 from sales.models import TransactionLine, Transaction
-from stock.stocklabel import StockLabeledLine
-
-# Stop PyCharm from seeing tools as a package.
-# noinspection PyPackageRequirements
-from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from stock.models import StockChange, StockChangeSet
+from stock.stocklabel import StockLabeledLine
 from swipe.settings import CASH_PAYMENT_TYPE_NAME
+from tools.management.commands.consistencycheck import consistency_check, CRITICAL
 from tools.util import raiseif
 
 
@@ -58,47 +56,44 @@ class Register(models.Model):
 
     def is_open(self):
         # Checks if the register is in an opened state
-        lst = RegisterPeriod.objects.filter(register=self, endTime__isnull=True)
-        if len(lst) > 1:
+        amt = self.registerperiod_set.filter(endTime__isnull=True).count()
+        if amt > 1:
             raise IntegrityError("Register had more than one register period open")
-        return len(lst) == 1
+        return amt == 1
 
     def get_prev_open_count(self):
         # Get this registers previous count when it was closed.
         # This shouldn't be used for Brief Registers; they should start at zero instead.
-        periods = RegisterPeriod.objects.filter(register=self)
-        if len(periods) != 0:
-            period = periods.last()
+        if self.registerperiod_set.exists():
+            period = self.registerperiod_set.last()
             count = RegisterCount.objects.get(register_period=period, is_opening_count=False)
             return Money(Decimal(count.amount), self.currency)
         else:  # Return zero. This prevents Swipe from crashing when a register is opened for the first time.
             return Money(Decimal("0.00000"), self.currency)
 
-    def previous_denomination_count(self):
-        # Retrieves the last set of denomination counts which were stored on the last register count
-        periods = RegisterPeriod.objects.filter(register=self)
-        if len(periods) != 0:
-            period = periods.last()
-            try:
-                count = RegisterCount.objects.get(register_period=period, is_opening_count=False)
-            except RegisterCount.DoesNotExist:
-                count = RegisterCount.objects.get(register_period=period, is_opening_count=True)
-            all_own_denoms = DenominationCount.objects.filter(register_count=count)
+    @property
+    def denomination_counts(self):
+        reg_period_set_count = self.registerperiod_set.count()
+        if reg_period_set_count != 0:
+            count = self.registerperiod_set.latest().registercount_set.get(
+                Q(register_period__endTime=None, is_opening_count=True) |
+                Q(register_period__endTime__isnull=False, is_opening_count=False)
+            )
+            denom_counts = count.denominationcount_set.all()
             counts = []
-            all_denoms = Denomination.objects.filter(currency=self.currency).order_by('amount')
-            for denom in all_denoms:
+            for denom in self.currency.denomination_set.all():
                 my_count = 0
-                for count in all_own_denoms:
-                    if count.denomination.amount == denom.amount:
+                for count in denom_counts:
+                    if count.denomination == denom:
                         my_count = count.amount
-                counts.append(DenominationCount(denomination=denom, amount=my_count))
+                        break
+                counts.append(DenominationCount(denomination=denom, number=my_count))
             return counts
-
         else:
-            denoms = Denomination.objects.filter(currency=self.currency)
+            denoms = self.currency.denomination_set.all()
             denom_list = []
             for denom in denoms:
-                denom_list.append(DenominationCount(denomination=denom, amount=0))
+                denom_list.append(DenominationCount(denomination=denom, number=0))
             return denom_list
 
     @transaction.atomic
@@ -143,7 +138,7 @@ class Register(models.Model):
                     reg_count.save(denominations=denominations)
 
                     for denomination in denominations:
-                        counted_amount -= denomination.amount * denomination.denomination.amount
+                        counted_amount -= denomination.number * denomination.denomination.amount
                         denomination.register_count = reg_count
 
                     raiseif(counted_amount != Decimal("0.00000"),
@@ -431,7 +426,12 @@ class SalesPeriod(models.Model):
             # Run all transactions
             for transation in Transaction.objects.filter(salesperiod=sales_period):
                 for line in TransactionLine.objects.filter(transaction=transation):
-                    totals[line.price.currency.iso] -= line.price.amount*line.count
+                    if not totals.get(line.price.currency.iso):
+                        raise InvalidOperationError("Currency {}"
+                                                    " is not found for "
+                                                    "transaction {}".format(line.price.currency, transation))
+                    else:
+                        totals[line.price.currency.iso] -= line.price.amount*line.count
 
             # Run all MoneyInOuts
             for register in open_registers:
@@ -531,7 +531,7 @@ class RegisterCount(models.Model):
         if len(denom_counts) > 0:
             self.amount = 0.0
             for count in denom_counts:
-                self.amount += count.amount
+                self.amount += count.get_money_value()
             self.save()
 
     @staticmethod
@@ -564,18 +564,17 @@ class DenominationCount(models.Model):
     # Denomination belonging to the currency of this register
     denomination = models.ForeignKey(Denomination)
     # Number of pieces of denomination
-    amount = models.IntegerField()
+    number = models.IntegerField()
 
     def get_money_value(self):
-
-        return Money(self.denomination.amount, self.denomination.currency) * int(self.amount)
+        return Money(self.denomination.amount, self.denomination.currency) * int(self.number)
 
     @classmethod
     def create(cls, *args, **kwargs):
         return cls(*args, **kwargs)
 
     def __str__(self):
-        return "{} {} x {}".format(self.denomination.currency, self.denomination.amount, self.amount)
+        return "{} {} x {}".format(self.denomination.currency, self.denomination.amount, self.number)
 
 
 class MoneyInOut(models.Model):

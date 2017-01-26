@@ -7,7 +7,7 @@ from blame.models import Blame, ImmutableBlame
 from article.models import ArticleType
 from money.models import CostField, Cost
 from crm.models import User
-from stock.models import StockChangeSet
+from stock.models import StockChangeSet, StockLock, LockError
 from tools.util import raiseif
 
 
@@ -33,6 +33,8 @@ class ExternaliseDocument(Blame):
         """
         raiseif(not isinstance(user, User), IncorrectClassError())
         raiseif(not isinstance(memo, str), IncorrectClassError())
+        raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
+
         counter = defaultdict(lambda: 0)
         for article, count, cost in article_information_list:
             raiseif(not isinstance(article, ArticleType), IncorrectClassError, "")

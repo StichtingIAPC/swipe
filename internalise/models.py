@@ -6,7 +6,7 @@ from money.models import CostField
 from crm.models import User
 from tools.util import raiseif
 from collections import defaultdict
-from stock.models import Stock, StockChangeSet
+from stock.models import Stock, StockChangeSet, StockLock, LockError
 
 
 class InternaliseDocument(Blame):
@@ -30,6 +30,7 @@ class InternaliseDocument(Blame):
         """
         raiseif(not isinstance(user, User), DataTypeError, "user is not a User")
         raiseif(not isinstance(memo, str), DataTypeError, "memo is not a str")
+        raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
 
         article_demand = defaultdict(lambda: 0)
         for article, count, label_type, label_key in articles_with_information:

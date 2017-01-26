@@ -71,7 +71,7 @@ class BasicTests(TestCase, TestData):
         price = stl.price  # type: Price
         rfl = RefundTransactionLine(user_modified=self.user_1, count=-1, sold_transaction_line=stl,
                                     creates_rma=True, price=price)
-        money = Money(amount=price.amount*-1, currency=self.currency_eur)
+        money = Money(amount=price.amount*-1, currency=self.currency_current)
         pymnt = Payment(amount=money, payment_type=self.paymenttype_maestro)
         Transaction.create_transaction(user=self.user_1, payments=[pymnt], transaction_lines=[rfl])
         drm = DirectRefundRMA.objects.get()

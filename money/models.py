@@ -108,6 +108,9 @@ class Money:
         else:
             return self == item2
 
+    def uses_system_currency(self):
+        return self.currency.iso == USED_CURRENCY
+
     def __add__(self, oth):
         if type(oth) != Money:
             raise TypeError("Cannot add Money to {}".format(type(oth)))
@@ -264,6 +267,11 @@ class Cost(Money):
     def __truediv__(self, oth):
         if isinstance(oth, int):
             return Cost(self.amount / oth, self.currency)
+        elif isinstance(oth, Cost):
+            if self.currency != oth.currency:
+                raise TypeError("Currencies of costs do not match")
+            else:
+                return self.amount/oth.amount
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 

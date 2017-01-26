@@ -7,7 +7,7 @@ from blame.models import Blame, ImmutableBlame
 from crm.models import User, Customer
 from money.models import MoneyField, PriceField, CostField, AccountingGroup
 from order.models import OrderLine
-from stock.models import StockChangeSet, Id10TError, Stock
+from stock.models import StockChangeSet, Id10TError, Stock, StockLock, LockError
 from stock.stocklabel import StockLabeledLine, OrderLabel
 from tools.util import raiseif
 import customer_invoicing.models
@@ -217,6 +217,9 @@ class Transaction(Blame):
     # Customer. Null for anonymous customer
     customer = models.ForeignKey(Customer, null=True)
 
+    def __str__(self):
+        return "SalesPeriodId: {}, CustomerId: {}".format(self.salesperiod_id, self.customer_id)
+
     def save(self, indirect=False, **kwargs):
         if not indirect:
             raise Id10TError("Please use the Transaction.create_transaction function.")
@@ -243,8 +246,11 @@ class Transaction(Blame):
         raiseif(not isinstance(user, User), InvalidDataException, "user is not a User")
         raiseif(customer is not None and not isinstance(customer, Customer),
                 InvalidDataException, "customer is not a Customer")
+        raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
+
         for payment in payments:
             raiseif(not isinstance(payment, Payment), "payment is not a Payment")
+            raiseif(not payment.amount.uses_system_currency(), InvalidDataException, "Payment currency should be system currency")
         types_supported = [SalesTransactionLine, OtherCostTransactionLine, OtherTransactionLine,
                            RefundTransactionLine]
         for tr_line in transaction_lines:

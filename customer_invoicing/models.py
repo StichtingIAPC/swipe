@@ -35,7 +35,7 @@ class CustInvoice(Blame):
             raiseif(not isinstance(amount, Money), IncorrectClassError, "amount should be a Money")
             used_currency = self.to_be_paid.currency
             if amount.currency != used_currency:
-                raise CurrencyError("Expected currency {} but received")
+                raise CurrencyError("Expected currency {} but received {}".format(used_currency, amount.currency))
             if self.handled:
                 raise IncorrectStateError("You cannot pay an invoice that is already handled")
             payment = CustPayment(cust_invoice=self, payment=amount, user_modified=user)

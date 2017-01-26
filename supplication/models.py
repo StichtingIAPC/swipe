@@ -8,7 +8,7 @@ from crm.models import User
 from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, \
     InsufficientDemandError, IndirectionError, UnimplementedError, SupplierOrderState
 from money.models import CostField, Cost
-from stock.models import StockChangeSet
+from stock.models import StockChangeSet, StockLock, LockError
 from stock.stocklabel import OrderLabel
 from supplier.models import Supplier, ArticleTypeSupplier
 from swipe.settings import USED_SUPPLICATION_STRATEGY
@@ -47,6 +47,7 @@ class PackingDocument(ImmutableBlame):
         raiseif(not isinstance(supplier, Supplier), InvalidDataError, "supplier must be a Supplier")
         raiseif(not isinstance(packing_document_name, str), InvalidDataError, "packing document name must be a string")
         raiseif(not isinstance(article_type_cost_combinations, list), InvalidDataError, "a28s must be a list")
+        raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
 
         ARTICLETYPE_LOCATION = 0
         NUMBER_LOCATION = 1
