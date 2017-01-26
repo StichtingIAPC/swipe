@@ -267,6 +267,11 @@ class Cost(Money):
     def __truediv__(self, oth):
         if isinstance(oth, int):
             return Cost(self.amount / oth, self.currency)
+        elif isinstance(oth, Cost):
+            if self.currency != oth.currency:
+                raise TypeError("Currencies of costs do not match")
+            else:
+                return self.amount/oth.amount
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 

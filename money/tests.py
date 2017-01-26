@@ -178,6 +178,12 @@ class CostMathTest(SimpleTestCase):
         with self.assertRaises(TypeError):
             self.m2 - self.num
 
+    def test_cost_div_by_int(self):
+        self.assertEqual(self.m1/2, self.m2)
+
+    def test_cost_div_by_cost(self):
+        self.assertEqual(self.m2/self.m1, Decimal("0.5"))
+
     def test_subtype_uses_system_currency(self):
         v1 = Cost(amount=Decimal("1"), currency=Currency(self.used))
         self.assertTrue(v1.uses_system_currency())
