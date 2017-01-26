@@ -108,6 +108,9 @@ class Money:
         else:
             return self == item2
 
+    def uses_system_currency(self):
+        return self.currency.iso == USED_CURRENCY
+
     def __add__(self, oth):
         if type(oth) != Money:
             raise TypeError("Cannot add Money to {}".format(type(oth)))

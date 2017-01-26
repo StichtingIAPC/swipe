@@ -8,24 +8,26 @@ from register import models
 from register.models import PaymentType, Register, RegisterMaster, SalesPeriod, DenominationCount, AlreadyOpenError, \
     ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
 from sales.models import Payment, OtherTransactionLine, Transaction
+from tools.testing import TestData
 
 
-class BasicTest(TestCase):
+class BasicTest(TestCase, TestData):
     def setUp(self):
+        self.part_setup_currency_data()
         self.cash = PaymentType(name="Cash")
         self.pin = PaymentType(name="PIN")
         self.cash.save()
         self.pin.save()
         self.eu = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
         self.usd = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
-        self.reg1 = Register(currency=self.eu, is_cash_register=True, payment_type=self.cash, name="A")
-        self.reg2 = Register(currency=self.eu, is_cash_register=False, payment_type=self.pin, name='B')
+        self.reg1 = Register(currency=self.currency_data_used, is_cash_register=True, payment_type=self.cash, name="A")
+        self.reg2 = Register(currency=self.currency_data_used, is_cash_register=False, payment_type=self.pin, name='B')
         self.reg3 = Register(currency=self.usd, is_cash_register=False, payment_type=self.pin, name='C')
-        self.denom1 = Denomination(currency=self.eu, amount=Decimal("2.20371"))
+        self.denom1 = Denomination(currency=self.currency_data_used, amount=Decimal("2.20371"))
         self.denom1.save()
-        self.denom2 = Denomination(currency=self.eu, amount=Decimal("2.00000"))
+        self.denom2 = Denomination(currency=self.currency_data_used, amount=Decimal("2.00000"))
         self.denom2.save()
-        self.denom3 = Denomination(currency=self.eu, amount=Decimal("0.02000"))
+        self.denom3 = Denomination(currency=self.currency_data_used, amount=Decimal("0.02000"))
         self.denom3.save()
         self.copro = User()
         self.copro.save()
@@ -118,9 +120,9 @@ class BasicTest(TestCase):
         c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, amount=1)
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
         denom_counts = [c1, c2, c3]
-        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.eu),
+        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.currency_data_used),
                                      num=1, text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
-        pay = Payment(amount=Money(Decimal("1.00000"), self.eu), payment_type=self.cash)
+        pay = Payment(amount=Money(Decimal("1.00000"), self.currency_data_used), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
                                   amount=Decimal("1.0000"))
         Transaction.create_transaction(user=self.copro, payments=[pay], transaction_lines=[trans])
@@ -131,7 +133,6 @@ class BasicTest(TestCase):
         ConsistencyChecker.full_check()
 
     def test_mult_open_close(self):
-        self.eu.save()
         self.reg1.save()
         c1 = DenominationCount(denomination=self.denom1, amount=1)
         c2 = DenominationCount(denomination=self.denom2, amount=1)
@@ -153,7 +154,6 @@ class BasicTest(TestCase):
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.24371"), denominations=denom_counts)
         self.assertEqual(len(OpeningCountDifference.objects.all()), 2)
-        Money(Decimal("0.02000"), self.eu)
 
     def test_mult_currency_registers(self):
         self.eu.save()

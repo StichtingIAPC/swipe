@@ -5,7 +5,7 @@ from article.models import ArticleType
 from money.models import CostField, Cost
 from crm.models import User
 from tools.util import raiseif, raiseifnot
-from stock.models import Stock, StockChangeSet
+from stock.models import Stock, StockChangeSet, StockLock, LockError
 from stock.stocklabel import StockLabel
 
 
@@ -41,6 +41,8 @@ class RevaluationDocument(Blame):
             raiseifnot(label_type is None or issubclass(label_type, StockLabel), TypeError, "labelType should be StockLabel")
             raiseifnot(isinstance(label_key, int) or label_key is None, TypeError, "labelKey should be int")
             raiseifnot(isinstance(memo, str), TypeError, "Memo should be a string")
+            raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
+
             if label_type is None:
                 sts = Stock.objects.filter(article=article, labeltype=None, labelkey=None)
             else:

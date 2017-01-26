@@ -936,7 +936,7 @@ class StockLockTest(TestCase, TestData):
 
     def test_blocking_criterium_and_effect(self):
         entries = [{'article': self.articletype_1,
-                    'book_value': self.cost_eur_1,
+                    'book_value': self.cost_system_currency_1,
                     'count': 1,
                     'is_in': True}]
         StockChangeSet.construct(description="Stocking",
@@ -950,7 +950,7 @@ class StockLockTest(TestCase, TestData):
     def test_block_override(self):
         StockLock.lock(self.user_1)
         entries = [{'article': self.articletype_1,
-                    'book_value': self.cost_eur_1,
+                    'book_value': self.cost_system_currency_1,
                     'count': 1,
                     'is_in': True}]
         StockChangeSet.construct(description="Stocking",
@@ -965,7 +965,7 @@ class StockStatisticFunctions(TestCase, TestData):
 
     def test_generalisation_one_article_one_line(self):
         entries = [{'article': self.articletype_1,
-                    'book_value': self.cost_eur_1,
+                    'book_value': self.cost_system_currency_1,
                     'count': 1,
                     'is_in': True}]
         StockChangeSet.construct(description="Stocking",
@@ -973,7 +973,7 @@ class StockStatisticFunctions(TestCase, TestData):
         test_set = Stock.get_all_average_prices_and_amounts()
         for key in test_set:
             result = test_set[key]
-            self.assertEqual(result, (1, self.cost_eur_1))
+            self.assertEqual(result, (1, self.cost_system_currency_1))
 
     def test_generalisation_one_article_two_lines(self):
         cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
@@ -1008,7 +1008,7 @@ class StockStatisticFunctions(TestCase, TestData):
                     'is_in': True,
                     'label': OrderLabel(3)},
                    {'article': self.articletype_2,
-                    'book_value': self.cost_eur_1,
+                    'book_value': self.cost_system_currency_1,
                     'count': 5,
                     'is_in': True,
                     'label': OrderLabel(1)}
@@ -1020,7 +1020,7 @@ class StockStatisticFunctions(TestCase, TestData):
         art_1 = test_set[self.articletype_1]
         art_2 = test_set[self.articletype_2]
         self.assertEqual(art_1, (3, cost_avg))
-        self.assertEqual(art_2, (5, self.cost_eur_1))
+        self.assertEqual(art_2, (5, self.cost_system_currency_1))
 
     def test_generalisation_fully_mixed(self):
         cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))

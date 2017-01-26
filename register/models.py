@@ -431,7 +431,12 @@ class SalesPeriod(models.Model):
             # Run all transactions
             for transation in Transaction.objects.filter(salesperiod=sales_period):
                 for line in TransactionLine.objects.filter(transaction=transation):
-                    totals[line.price.currency.iso] -= line.price.amount*line.count
+                    if not totals.get(line.price.currency.iso):
+                        raise InvalidOperationError("Currency {}"
+                                                    " is not found for "
+                                                    "transaction {}".format(line.price.currency, transation))
+                    else:
+                        totals[line.price.currency.iso] -= line.price.amount*line.count
 
             # Run all MoneyInOuts
             for register in open_registers:

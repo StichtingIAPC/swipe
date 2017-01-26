@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 from tools.testing import TestData
+from swipe.settings import USED_CURRENCY
 
 from article.models import ArticleType, OtherCostType
 from article.tests import INeedSettings
@@ -13,7 +14,7 @@ from register.models import PaymentType, Register
 from sales import models
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError, \
-    PaymentTypeError, RefundTransactionLine, RefundError
+    PaymentTypeError, RefundTransactionLine, RefundError, InvalidDataException
 from stock.models import Stock
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
@@ -29,7 +30,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.vat_group.vatrate = 1.12
         self.vat_group.save()
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
-        self.currency = Currency(iso="USD")
+        self.currency = Currency(iso=USED_CURRENCY)
 
         self.acc_group = AccountingGroup()
         self.acc_group.accounting_number = 2
@@ -68,13 +69,13 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         self.pt2 = PaymentType.objects.create(name="Baz")
         self.pt3 = PaymentType.objects.create(name="Quux")
 
-        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
-        self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
+        self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
+        self.cost2 = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.24))
 
         self.simplest = SalesTransactionLine(article=self.article_type, count=1, cost=self.cost,
                                              price=self.price, num=1)
         self.simple_payment_usd = Payment(amount=self.money, payment_type=self.pt)
-        self.simple_payment_eur = Payment(amount=Money(amount=Decimal(2.0), currency=Currency("EUR")),
+        self.simple_payment_eur = Payment(amount=Money(amount=Decimal(2.0), currency=Currency(USED_CURRENCY)),
                                           payment_type=self.pt)
 
         self.other_cost = OtherCostType(name="Oth1", branch=self.branch, accounting_group=self.acc_group,
@@ -172,7 +173,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
                                    count=count, article=self.article_type, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
         tls = TransactionLine.objects.all()
@@ -204,7 +205,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         stl = SalesTransactionLine(
             price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
             count=count, article=self.article_type, order=None)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
         st = Stock.objects.get(labeltype__isnull=True, article=self.article_type)
@@ -235,7 +236,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
             price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
             count=count_order, article=self.article_type, order=1)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * (count_stock+count_order),
-                          currency=Currency("EUR"))
+                          currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl, stl2])
         st = Stock.objects.get(labeltype__isnull=True, article=self.article_type)
@@ -260,7 +261,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
                                    count=count, article=self.article_type, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(NotEnoughStockError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
@@ -282,7 +283,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
                                    count=count, article=self.article_type, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
 
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
@@ -304,7 +305,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
                                    count=count, article=self.article_type, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count+Decimal(0.001), currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count+Decimal(0.001), currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
 
         with self.assertRaises(PaymentMisMatchError):
@@ -327,7 +328,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
                                    count=count, article=self.article_type, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count-Decimal(0.001), currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count-Decimal(0.001), currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(PaymentMisMatchError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
@@ -351,7 +352,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount,
                                                     use_system_currency=True, vat=1.23),
                                         count=count, other_cost_type=self.other_cost, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
         tls = TransactionLine.objects.all()
@@ -389,7 +390,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount,
                                                     use_system_currency=True, vat=1.23),
                                         count=count, other_cost_type=self.other_cost, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
         tls = TransactionLine.objects.all()
@@ -427,7 +428,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount,
                                                     use_system_currency=True, vat=1.23),
                                         count=count, other_cost_type=self.other_cost, order=1)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency(USED_CURRENCY))
         local_payment=Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(NotEnoughOrderLinesError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
@@ -450,7 +451,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 10
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
         tl = TransactionLine.objects.get()
@@ -480,7 +481,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount*count, currency=Currency("USD"))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
-        with self.assertRaises(PaymentMisMatchError):
+        with self.assertRaises(InvalidDataException):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
 
     def test_sales_transaction_two_payments(self):
@@ -501,9 +502,9 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 10
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count-Decimal(1), currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount*count-Decimal(1), currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
-        local_payment2 = Payment(amount=Money(amount=Decimal(1), currency=Currency("EUR")), payment_type=self.pt2)
+        local_payment2 = Payment(amount=Money(amount=Decimal(1), currency=Currency(USED_CURRENCY)), payment_type=self.pt2)
         Transaction.create_transaction(user=self.copro, payments=[local_payment, local_payment2],
                                        transaction_lines=[otl])
 
@@ -532,9 +533,9 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         stl_2 = SalesTransactionLine(count=count_2, price=p, article=self.at2, order=1)
         octl = OtherCostTransactionLine(count=count_3, price=p, other_cost_type=self.other_cost)
         otl = OtherTransactionLine(count=count_4, price=p, text="Rand", accounting_group=self.acc_group)
-        loc_money = Money(amount=Decimal(1)*total_count-Decimal(1), currency=Currency("EUR"))
+        loc_money = Money(amount=Decimal(1)*total_count-Decimal(1), currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
-        local_payment2 = Payment(amount=Money(amount=Decimal(1), currency=Currency("EUR")), payment_type=self.pt2)
+        local_payment2 = Payment(amount=Money(amount=Decimal(1), currency=Currency(USED_CURRENCY)), payment_type=self.pt2)
         Transaction.create_transaction(user=self.copro, payments=[local_payment, local_payment2],
                                        transaction_lines=[stl_1, stl_2, octl, otl])
         tls = TransactionLine.objects.all()
@@ -551,7 +552,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 2
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt3)
         with self.assertRaises(PaymentTypeError):
             Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
@@ -560,13 +561,13 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 5
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
         count_refund = -2
         trl = TransactionLine.objects.get()
         rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency(USED_CURRENCY))
         nega_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl])
         trls = TransactionLine.objects.all()
@@ -580,13 +581,13 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 5
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
         count_refund = -6
         trl = TransactionLine.objects.get()
         rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency(USED_CURRENCY))
         nega_payment = Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(RefundError):
             Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl])
@@ -595,13 +596,13 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 5
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
         count_refund = -5
         trl = TransactionLine.objects.get()
         rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund, currency=Currency(USED_CURRENCY))
         nega_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl])
 
@@ -609,7 +610,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 5
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
         count_refund_1 = -3
@@ -618,7 +619,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         trl = TransactionLine.objects.get()
         rfl = RefundTransactionLine(count=count_refund_1, price=p, sold_transaction_line=trl)
         rfl2 = RefundTransactionLine(count=count_refund_2, price=p, sold_transaction_line=trl)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund_total, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund_total, currency=Currency(USED_CURRENCY))
         nega_payment = Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(RefundError):
             Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl, rfl2])
@@ -627,7 +628,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         count = 5
         p = Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23)
         otl = OtherTransactionLine(count=count, price=p, text="Meh", accounting_group=self.acc_group)
-        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency("EUR"))
+        loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[otl])
 
@@ -638,12 +639,12 @@ class TestTransactionCreationFunction(INeedSettings, TestCase):
         rfl = RefundTransactionLine(count=count_refund, price=p, sold_transaction_line=trl)
         rfl2 = RefundTransactionLine(count=count_refund2, price=p, sold_transaction_line=trl)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * (count_refund + count_refund2),
-                          currency=Currency("EUR"))
+                          currency=Currency(USED_CURRENCY))
         nega_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[nega_payment], transaction_lines=[rfl, rfl2])
         rfl3 = RefundTransactionLine(count=count_refund_new, price=p, sold_transaction_line=trl)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count_refund_new,
-                          currency=Currency("EUR"))
+                          currency=Currency(USED_CURRENCY))
         last_payment = Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(RefundError):
             Transaction.create_transaction(user=self.copro, payments=[last_payment], transaction_lines=[rfl3])
@@ -660,15 +661,15 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
         self.create_suporders()
         self.create_packingdocuments()
         self.register_3.open(Decimal(0))
-        octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=oth_count,
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=oth_count,
                                           other_cost_type=self.othercosttype_1, order=1)
-        money_3 = Money(amount=self.price_eur_1.amount * oth_count, currency=self.price_eur_1.currency)
+        money_3 = Money(amount=self.price_system_currency_1.amount * oth_count, currency=self.price_system_currency_1.currency)
         pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
         Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                        customer=self.customer_person_2)
-        octl_1 = OtherCostTransactionLine(price=self.price_eur_1, count=1,
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=1,
                                           other_cost_type=self.othercosttype_1, order=1)
-        money_3 = Money(amount=self.price_eur_1.amount * 1, currency=self.price_eur_1.currency)
+        money_3 = Money(amount=self.price_system_currency_1.amount * 1, currency=self.price_system_currency_1.currency)
         pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
         with self.assertRaises(NotEnoughOrderLinesError):
             Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
@@ -680,8 +681,8 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
         self.create_packingdocuments(article_1=3)
         self.create_transactions_article_type_for_order(article_1=2)
         stl = SalesTransactionLine.objects.get(article=self.articletype_1)
-        rfl_1 = RefundTransactionLine(price=self.price_eur_1, count=-1, sold_transaction_line=stl)
-        money_1 = Money(amount=self.price_eur_1.amount * -1, currency=self.price_eur_1.currency)
+        rfl_1 = RefundTransactionLine(price=self.price_system_currency_1, count=-1, sold_transaction_line=stl)
+        money_1 = Money(amount=self.price_system_currency_1.amount * -1, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
         st_level = Stock.objects.get(article=self.articletype_1)
         self.assertEqual(st_level.count, 1)

@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.test import TestCase
+from swipe.settings import USED_CURRENCY
 
 from article.models import ArticleType
 from assortment.models import AssortmentArticleBranch
@@ -65,7 +66,7 @@ class SimpleClassTests(TestCase):
         self.copro = User()
         self.copro.save()
 
-        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
+        self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
 
     def test_simple_book_in_cost_from_supplier_order_line(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -325,8 +326,8 @@ class DistributionTests(TestCase):
         self.copro = User()
         self.copro.save()
 
-        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
-        self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
+        self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
+        self.cost2 = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.24))
 
     def test_distribution_simple_no_invoice(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -799,8 +800,8 @@ class PackingDocumentCreationTests(TestCase):
         self.copro = User()
         self.copro.save()
 
-        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
-        self.cost2 = Cost(currency=Currency('EUR'), amount=Decimal(1.24))
+        self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
+        self.cost2 = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.24))
 
     def test_verify_article_demand_pass_1(self):
         AMOUNT_1 = 6
