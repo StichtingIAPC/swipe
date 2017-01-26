@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import Form, BoundField
+
 from register.models import Register
 
 
@@ -26,7 +27,7 @@ class DenominationCountBoundField(BoundField):
 
 class DenominationCountField(forms.IntegerField):
     """
-        A field to count the amount of a certain denomination.
+        A field to count the number of a certain denomination.
     """
     def get_bound_field(self, form, field_name):
         return DenominationCountBoundField(form, self, field_name)
