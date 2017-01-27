@@ -2,13 +2,12 @@
 This file contains the models that are used to index, sort and model the assortment pages.
 """
 
-
 import math
 import re
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from assortment.config import labels as conf_labels
 
@@ -201,14 +200,14 @@ class AssortmentUnitType(models.Model):
             return _("AssortmentUnitType<{} ({}) [{} {}]>".format(
                 self.type_long,
                 self.type_short,
-                self.get_counting_type_display(),
+                self.get_incremental_type_display(),
                 self.incremental_type
             ))
         else:
             return _("AssortmentUnitType<{} ({}) [{}]>".format(
                 self.type_long,
                 self.type_short,
-                self.get_counting_type_display()
+                self.get_incremental_type_display()
             ))
 
     def parse(self, value):
