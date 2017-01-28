@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from article.models import SellableType
 from tools.util import raiseifnot
+from money.models import Price
 
 
 def validate_bigger_than_0(value):
@@ -34,24 +35,26 @@ class PricingModel(models.Model):
         """
         function_dict = {1: Functions.fixed_price}
 
-        return function_dict.get(self.id)
+        return function_dict.get(self.function_identifier)
 
     @staticmethod
-    def return_price(sellable_type: SellableType=None):
+    def return_price(sellable_type: SellableType=None) -> Price:
         pricing_models = PricingModel.objects.all().order_by('function_identifier')
         if len(pricing_models) == 0:
             raise PricingError("No pricing models found!")
         else:
-            price = None
-            i=0
+            price = None  # type: Price
+            i = 0
             while price is None and i < len(pricing_models):
                 pricing_function = pricing_models[i].return_pricing_function()
+                if not pricing_function:
+                    raise PricingError("Pricing function defined was not found")
                 price = pricing_function(sellable_type=sellable_type)
-                i+=1
+                i += 1
 
             if not price:
                 raise PricingError("Pricing models were applied and nothing appropriate was found. No price returned.")
-
+            raiseifnot(price.uses_system_currency(), PricingError, "Returned price was not of system currency.")
             return price
 
 
@@ -59,6 +62,7 @@ class Functions:
     """
     A container class for all the pricing functions. All function should have the same arguments to accomodate
     seamless insertion of new pricing functions.
+
     """
 
     @staticmethod
