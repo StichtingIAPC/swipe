@@ -20,15 +20,12 @@ from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
 
 
-class TestTransactionCreationFunction(INeedSettings, TestCase):
+class TestTransactionCreationFunction(INeedSettings, TestCase, TestData):
 
     def setUp(self):
         super().setUp()
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.part_setup_vat_group()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso=USED_CURRENCY)
 

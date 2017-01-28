@@ -1,4 +1,5 @@
 from django.test import TestCase
+from tools.testing import TestData
 
 from article.tests import INeedSettings
 from logistics.models import *
@@ -190,16 +191,13 @@ class StockWishTests(INeedSettings, TestCase):
             log.save()
 
 
-class SupplierOrderTests(INeedSettings, TestCase):
+class SupplierOrderTests(TestCase, TestData):
     def setUp(self):
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_vat_group()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
-        super().setUp()
 
         self.acc_group = AccountingGroup()
         self.acc_group.accounting_number = 2
@@ -207,15 +205,15 @@ class SupplierOrderTests(INeedSettings, TestCase):
         self.acc_group.save()
 
         self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo1", branch=self.branch)
+                                        name="Foo1", branch=self.branch_1)
         self.article_type.save()
 
         self.at2 = ArticleType(accounting_group=self.acc_group,
-                               name="Foo2", branch=self.branch)
+                               name="Foo2", branch=self.branch_1)
         self.at2.save()
 
         self.at3 = ArticleType(accounting_group=self.acc_group,
-                               name="Foo3", branch=self.branch)
+                               name="Foo3", branch=self.branch_1)
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)

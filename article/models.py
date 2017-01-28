@@ -43,7 +43,7 @@ class SellableType(WishableType):
         return self.accounting_group.vat_group
 
     def get_vat_rate(self):
-        return self.accounting_group.vat_group.vatrate
+        return self.get_vat_group().getvatrate()
 
 
 class ArticleType(SellableType):
