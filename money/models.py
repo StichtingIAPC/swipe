@@ -308,6 +308,13 @@ class Cost(Money):
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
+    def __lt__(self, other):
+        if not isinstance(other, Cost):
+            raise TypeError("other is not a Cost")
+        if other.currency != self.currency:
+            raise TypeError("Currencies do not match")
+        return self.amount < other.amount
+
     def __str__(self):
         return "{}: {}".format(self.currency.iso, self._amount)
 
@@ -375,6 +382,9 @@ class Price(Money):
             return Price(self.amount * oth, self.vat, self.currency)
         else:
             raise TypeError("Cannot multiply Price with {}".format(type(oth)))
+
+    def __str__(self):
+        return "{}:{}, vat: {}".format(self.currency, self.amount, self._vat)
 
 
 class PriceProxy:
