@@ -2,12 +2,14 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase, SimpleTestCase
+from tools.testing import TestData
+import datetime
 
 from money.models import Cost
 from money.models import Currency, TestSalesPriceType, SalesPrice
 from money.models import CurrencyData
 from money.models import Denomination
-from money.models import Money
+from money.models import Money, VAT, VATPeriod, VATError
 from money.models import Price
 from money.models import TestCostType
 from money.models import TestMoneyType
@@ -279,3 +281,96 @@ class CurrencyDenomTest(SimpleTestCase):
     def test_denom_srt(self):
         denom1 = Denomination(currency=self.euro, amount=2.2)
         self.assertEquals(str(denom1), "EUR 2.2")
+
+
+class VATTests(TestCase, TestData):
+
+    def test_no_period_is_incorrect(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        with self.assertRaises(VATError):
+            v1.getvatrate()
+
+    def test_period_overlap_is_incorrect(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        date_2 = datetime.datetime.strptime('01012030', "%d%m%Y").date()
+        date_3 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=1)
+        vp1.save()
+        vp2 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_3, vatrate=1)
+        vp2.save()
+        with self.assertRaises(VATError):
+            v1.getvatrate()
+
+    def test_one_period_bounded_works(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        rate = 1.1
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        date_2 = datetime.datetime.strptime('01012030', "%d%m%Y").date()
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate)
+        vp1.save()
+        r = v1.getvatrate()
+        self.assertAlmostEqual(r, Decimal(rate), 4)
+
+    def test_one_period_unbounded_works(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        rate = 1.1
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, vatrate=rate)
+        vp1.save()
+        r = v1.getvatrate()
+        self.assertAlmostEqual(r, Decimal(rate), 4)
+
+    def test_two_periods_work(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        date_2 = datetime.datetime.strptime('01012011', "%d%m%Y").date()
+        date_3 = datetime.datetime.strptime('02012011', "%d%m%Y").date()
+        date_4 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
+        rate_1 = 1.1
+        rate_2 = 1.2
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate_1)
+        vp1.save()
+        vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=date_4, vatrate=rate_2)
+        vp2.save()
+        r = v1.getvatrate()
+        self.assertAlmostEqual(r, Decimal(rate_2), 4)
+
+    def test_bounds_are_taken_exactly_at_end(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        date_2 = datetime.date.today()
+        date_3 = datetime.date.today() + datetime.timedelta(days=1)
+        date_4 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
+        rate_1 = 1.1
+        rate_2 = 1.2
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate_1)
+        vp1.save()
+        vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=date_4, vatrate=rate_2)
+        vp2.save()
+        r = v1.getvatrate()
+        self.assertAlmostEqual(r, Decimal(rate_1), 4)
+
+    def test_bounds_are_taken_exactly_at_beginning(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        date_2 = datetime.date.today() - datetime.timedelta(days=1)
+        date_3 = datetime.date.today()
+        date_4 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
+        rate_1 = 1.1
+        rate_2 = 1.2
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate_1)
+        vp1.save()
+        vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=date_4, vatrate=rate_2)
+        vp2.save()
+        r = v1.getvatrate()
+        self.assertAlmostEqual(r, Decimal(rate_2), 4)
+
+
