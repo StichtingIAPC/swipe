@@ -4,7 +4,7 @@ from money.models import MoneyField, Money, Price
 from sales.models import PriceField
 from tools.util import raiseif
 from decimal import Decimal
-from crm.models import User
+from crm.models import User, PersonTypeField, OrganisationTypeField, Customer
 
 
 class CustInvoice(Blame):
@@ -52,7 +52,27 @@ class CustInvoice(Blame):
     def determine_address_data(self):
         # There is not determined way to extract the needed information about a person from its context. Using a
         # placeholder will suffice for now
-        # TODO: Get correct invoicing customer data for invoices
+        if isinstance(self, ReceiptCustInvoice):
+            customer = self.receipt.customer  # type: Customer
+            retrieve_from_fields = True
+            if hasattr(customer, 'person'):
+                # Customer is a person. Retrieve PersonTypeFields
+                try:
+                    fields = InvoiceFieldPerson.objects.get(pk=1)
+                except InvoiceFieldPerson.DoesNotExist:
+                    InvoiceFieldPerson.objects.create()
+                    retrieve_from_fields = False
+                if retrieve_from_fields:
+                    pass
+            else:
+                try:
+                    fields = InvoiceFieldOrganisation.objects.get(pk=1)
+                except InvoiceFieldOrganisation.DoesNotExist:
+                    InvoiceFieldOrganisation.objects.create()
+                    retrieve_from_fields = False
+                if retrieve_from_fields:
+                    type_fields = customer.get_type_fields()
+
         if not self.invoice_name:
             self.invoice_name = "Placeholder_name"
         if not self.invoice_address:
@@ -84,6 +104,30 @@ class CustInvoice(Blame):
                "To be paid: {}, Paid: {}".format(self.invoice_name, self.invoice_address, self.invoice_zip_code,
                                                  self.invoice_city, self.invoice_country, self.invoice_email_address,
                                                  self.to_be_paid, self.paid)
+
+
+class InvoiceFieldPerson(models.Model):
+    """
+    Fields for invoicing. For persons.
+    """
+    name = models.ForeignKey(PersonTypeField, null=True, related_name="pers_name")
+    address = models.ForeignKey(PersonTypeField, null=True, related_name="address")
+    zip_code = models.ForeignKey(PersonTypeField, null=True, related_name="zip")
+    city = models.ForeignKey(PersonTypeField, null=True, related_name="city")
+    country = models.ForeignKey(PersonTypeField, null=True, related_name="country")
+    email_address = models.ForeignKey(PersonTypeField, null=True, related_name="email")
+
+
+class InvoiceFieldOrganisation(models.Model):
+    """
+    Fields for invoicing. For organisations.
+    """
+    name = models.ForeignKey(OrganisationTypeField, null=True, related_name="org_name")
+    address = models.ForeignKey(OrganisationTypeField, null=True, related_name="address")
+    zip_code = models.ForeignKey(OrganisationTypeField, null=True, related_name="zip")
+    city = models.ForeignKey(OrganisationTypeField, null=True, related_name="city")
+    country = models.ForeignKey(OrganisationTypeField, null=True, related_name="country")
+    email_address = models.ForeignKey(OrganisationTypeField, null=True, related_name="email")
 
 
 class CustPayment(Blame):
