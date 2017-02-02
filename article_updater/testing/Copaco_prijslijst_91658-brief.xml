@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><XMLOUT_pricelist_01>
+  <item>
+    <item_id>ATE-0AD6-1705-26EG</item_id>
+    <vendor_id>0AD6-1705-26EG</vendor_id>
+    <vendor>Aten</vendor>
+    <long_desc>Optionele Adapter voor UCE60-AT</long_desc>
+    <price currency="EUR">14,85</price>
+    <price_incl_levies currency="EUR">14,85</price_incl_levies>
+    <stock>0</stock>
+    <item_group>ATEUKM------</item_group>
+    <unspsc_code>99999999</unspsc_code>
+    <EAN_code>AD6-1705-26EG</EAN_code>
+    <status>00</status>
+    <levies>
+      <levy>
+        <code>ZBB1</code>
+        <description>Thuiskopie</description>
+        <amount>0,00</amount>
+      </levy>
+      <levy>
+        <code>ZBB3</code>
+        <description>Verwijderingsbijdrage</description>
+        <amount>0,00</amount>
+      </levy>
+      <levy>
+        <code>ZBB4</code>
+        <description>Stibat</description>
+        <amount>0,00</amount>
+      </levy>
+    </levies>
+  </item>
+  <item>
+    <item_id>ATE-2L-1005P</item_id>
+    <vendor_id>2L-1005P</vendor_id>
+    <vendor>Aten</vendor>
+    <long_desc>Cable For KVM Video Cable 5m</long_desc>
+    <price currency="EUR">20,16</price>
+    <price_incl_levies currency="EUR">20,16</price_incl_levies>
+    <stock>0</stock>
+    <item_group>ATEUKM------</item_group>
+    <unspsc_code>99999999</unspsc_code>
+    <EAN_code>4710423771369</EAN_code>
+    <status>00</status>
+    <levies>
+      <levy>
+        <code>ZBB1</code>
+        <description>Thuiskopie</description>
+        <amount>0,00</amount>
+      </levy>
+      <levy>
+        <code>ZBB3</code>
+        <description>Verwijderingsbijdrage</description>
+        <amount>0,00</amount>
+      </levy>
+      <levy>
+        <code>ZBB4</code>
+        <description>Stibat</description>
+        <amount>0,00</amount>
+      </levy>
+    </levies>
+  </item>
+  <item>
+    <item_id>ATE-2L-1010P</item_id>
+    <vendor_id>2L-1010P</vendor_id>
+    <vendor>Aten</vendor>
+    <long_desc>Cable For KVM Video Cable 10m</long_desc>
+    <price currency="EUR">37,09</price>
+    <price_incl_levies currency="EUR">37,09</price_incl_levies>
+    <stock>0</stock>
+    <item_group>ATEUKM------</item_group>
+    <unspsc_code>99999999</unspsc_code>
+    <EAN_code>4710423771857</EAN_code>
+    <status>00</status>
+    <levies>
+      <levy>
+        <code>ZBB1</code>
+        <description>Thuiskopie</description>
+        <amount>0,00</amount>
+      </levy>
+      <levy>
+        <code>ZBB3</code>
+        <description>Verwijderingsbijdrage</description>
+        <amount>0,00</amount>
+      </levy>
+      <levy>
+        <code>ZBB4</code>
+        <description>Stibat</description>
+        <amount>0,00</amount>
+      </levy>
+    </levies>
+  </item>
+</XMLOUT_pricelist_01>

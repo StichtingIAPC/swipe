@@ -22,7 +22,6 @@
     }
 
     .top-bar-right {
-
       ul li {
         .user-link {
           padding: 0 0 0 1rem;
@@ -52,7 +51,7 @@
         }
 
         .user-link:hover {
-          background-color: rgba(0,0,0,0.2);
+          background-color: rgba(0,0,0,0.1);
         }
       }
 
@@ -67,9 +66,6 @@
         line-height:44px;
         height:44px;
         font-size: 1.2rem;
-      }
-
-      .login a .side-bar-icon {
       }
     }
   }

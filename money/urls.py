@@ -13,17 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
-from django.contrib import admin
+from django.conf.urls import url
 
-import money
-from money.views import *
+from money import views
 
 urlpatterns = [
     # Standard page
-    url(r'^$', money.views.index, name="money_index"),
-    # Django internal documentation
-    url(r'^list/$', CurrencyDataList.as_view(), name="currencydata_list"),
-    url(r'^add$', CurrencyDataCreate.as_view(), name='currencydata_add'),
-    url(r'^(?P<pk>[A-Z]+.)$', CurrencyDataDetail.as_view(), name='currencydata_detail'),
+    url(r'^currency/$', views.CurrencyListView.as_view()),
+    url(r'^currency/(?P<pk>[a-zA-Z]{3})/', views.CurrencyView.as_view()),
+    url(r'^denomination/(?P<pk>\d+)/', views.DenominationDelete.as_view()),
 ]

@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, SimpleTestCase
 
 from money.models import Cost
 from money.models import Currency, TestSalesPriceType, SalesPrice
@@ -34,7 +34,7 @@ class MoneyTest(TestCase):
 
     def testCreateMoneyWithoutCurency(self):
         m = Money(Decimal("5.21"), None, use_system_currency=True)
-        self.assertEqual(m.currency,Currency(iso=USED_CURRENCY))
+        self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
 class CostTest(TestCase):
@@ -55,7 +55,7 @@ class CostTest(TestCase):
         self.assertEqual(i, 1)
 
     def testCreateCostWithoutCurrency(self):
-        m = Cost(Decimal("5.21"), None,use_system_currency=True)
+        m = Cost(Decimal("5.21"), None, use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
@@ -102,11 +102,12 @@ class SalesPriceTest(TestCase):
         self.assertEqual(i, 1)
 
     def testCreatePriceWithoutCurrency(self):
-        m = SalesPrice(amount=Decimal("5.21"), vat=Decimal("1.93"), currency=None, cost=Decimal("4"), use_system_currency=True)
+        m = SalesPrice(amount=Decimal("5.21"), vat=Decimal("1.93"), currency=None, cost=Decimal("4"),
+                       use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
-class MoneyMathTest(TestCase):
+class MoneyMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
@@ -114,6 +115,7 @@ class MoneyMathTest(TestCase):
         self.m2 = Money(amount=Decimal("0.50000"), currency=eur)
         self.m3 = Cost(amount=Decimal("3.00000"), currency=usd)
         self.num = 4
+        self.used = USED_CURRENCY
 
     def testMoneyAdd(self):
         self.assertEquals((self.m1 + self.m2).amount.__str__(), "1.50000")
@@ -136,9 +138,16 @@ class MoneyMathTest(TestCase):
         with self.assertRaises(TypeError):
             self.m2 - self.num
 
+    def test_uses_system_currency(self):
+        v1 = Money(amount=Decimal("1"), currency=Currency(self.used))
+        self.assertTrue(v1.uses_system_currency())
+        fake_currency = "XXX"
+        v2 = Money(amount=Decimal("1"), currency=Currency(fake_currency))
+        self.assertFalse(v2.uses_system_currency())
+
 
 # Copy of MoneyMathTest; they are not exactly the same
-class CostMathTest(TestCase):
+class CostMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
@@ -146,6 +155,7 @@ class CostMathTest(TestCase):
         self.m2 = Cost(amount=Decimal("0.50000"), currency=eur)
         self.m3 = Money(amount=Decimal("3.00000"), currency=usd)
         self.num = 4
+        self.used = USED_CURRENCY
 
     def testMoneyAdd(self):
         self.assertEquals((self.m1 + self.m2).amount.__str__(), "1.50000")
@@ -168,17 +178,29 @@ class CostMathTest(TestCase):
         with self.assertRaises(TypeError):
             self.m2 - self.num
 
+    def test_cost_div_by_int(self):
+        self.assertEqual(self.m1/2, self.m2)
+
+    def test_cost_div_by_cost(self):
+        self.assertEqual(self.m2/self.m1, Decimal("0.5"))
+
+    def test_subtype_uses_system_currency(self):
+        v1 = Cost(amount=Decimal("1"), currency=Currency(self.used))
+        self.assertTrue(v1.uses_system_currency())
+        fake_currency = "XXX"
+        v2 = Cost(amount=Decimal("1"), currency=Currency(fake_currency))
+        self.assertFalse(v2.uses_system_currency())
 
 # Copy of MoneyMathTest; they are not exactly the same
 
-class SalesPriceMathTest(TestCase):
+class SalesPriceMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
         usd = Currency("USD")
-        self.m1 = SalesPrice(amount=Decimal("1.00000"), vat=Decimal("1.21"), currency=eur, cost = Decimal("2.00000"))
-        self.m2 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.21"), currency=eur, cost = Decimal("1.00000"))
-        self.m3 = SalesPrice(amount=Decimal("2.00000"), vat=Decimal("1.21"), currency=usd, cost = Decimal("0.00000"))
-        self.m4 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.06"), currency=eur, cost = Decimal("0.00000"))
+        self.m1 = SalesPrice(amount=Decimal("1.00000"), vat=Decimal("1.21"), currency=eur, cost=Decimal("2.00000"))
+        self.m2 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.21"), currency=eur, cost=Decimal("1.00000"))
+        self.m3 = SalesPrice(amount=Decimal("2.00000"), vat=Decimal("1.21"), currency=usd, cost=Decimal("0.00000"))
+        self.m4 = SalesPrice(amount=Decimal("0.50000"), vat=Decimal("1.06"), currency=eur, cost=Decimal("0.00000"))
         self.num = 4
 
     def testMoneyAdd(self):
@@ -213,16 +235,12 @@ class SalesPriceMathTest(TestCase):
                 self.m1 * w
 
     def testSalesPriceMargin(self):
-        t = SalesPrice(amount=Decimal("4.00000"), vat=Decimal("2"), currency=Currency("EUR"),cost=Decimal("0.5"))
+        t = SalesPrice(amount=Decimal("4.00000"), vat=Decimal("2"), currency=Currency("EUR"), cost=Decimal("0.5"))
         self.assertEquals(t.get_profit(), 1.5)
         self.assertEquals(t.get_margin(), 3)
 
 
-class CurrencyDenomTest(TestCase):
-
-    def setUp(self):
-        self.euro = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
-        self.dollar = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
+class CurrencyDenomDBTest(TestCase):
 
     def test_currency_iso(self):
         with self.assertRaises(ValidationError):
@@ -233,6 +251,13 @@ class CurrencyDenomTest(TestCase):
         with self.assertRaises(ValidationError):
             foo = CurrencyData(iso="EDD", name="Estonian Drak", digits=4, symbol="D&aaaa")
             foo.full_clean()
+
+
+class CurrencyDenomTest(SimpleTestCase):
+
+    def setUp(self):
+        self.euro = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
+        self.dollar = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
 
     def test_currency_equals(self):
         self.assertNotEquals(self.euro, self.dollar)

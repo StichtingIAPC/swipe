@@ -5,27 +5,29 @@ from django.test import TestCase
 from crm.models import User
 from money.models import CurrencyData, Denomination, Price, Money, AccountingGroup, VAT, Currency
 from register import models
-from register.models import PaymentType, Register, RegisterMaster, \
-    SalesPeriod, DenominationCount, AlreadyOpenError, ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
+from register.models import PaymentType, Register, RegisterMaster, SalesPeriod, DenominationCount, AlreadyOpenError, \
+    ConsistencyChecker, RegisterCount, MoneyInOut, OpeningCountDifference
 from sales.models import Payment, OtherTransactionLine, Transaction
+from tools.testing import TestData
 
 
-class BasicTest(TestCase):
+class BasicTest(TestCase, TestData):
     def setUp(self):
+        self.part_setup_currency_data()
         self.cash = PaymentType(name="Cash")
         self.pin = PaymentType(name="PIN")
         self.cash.save()
         self.pin.save()
         self.eu = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
         self.usd = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
-        self.reg1 = Register(currency=self.eu, is_cash_register=True, payment_type=self.cash)
-        self.reg2 = Register(currency=self.eu, is_cash_register=False, payment_type=self.pin)
-        self.reg3 = Register(currency=self.usd, is_cash_register=False, payment_type=self.pin)
-        self.denom1 = Denomination(currency=self.eu, amount=Decimal("2.20371"))
+        self.reg1 = Register(currency=self.currency_data_used, is_cash_register=True, payment_type=self.cash, name="A")
+        self.reg2 = Register(currency=self.currency_data_used, is_cash_register=False, payment_type=self.pin, name='B')
+        self.reg3 = Register(currency=self.usd, is_cash_register=False, payment_type=self.pin, name='C')
+        self.denom1 = Denomination(currency=self.currency_data_used, amount=Decimal("2.20371"))
         self.denom1.save()
-        self.denom2 = Denomination(currency=self.eu, amount=Decimal("2.00000"))
+        self.denom2 = Denomination(currency=self.currency_data_used, amount=Decimal("2.00000"))
         self.denom2.save()
-        self.denom3 = Denomination(currency=self.eu, amount=Decimal("0.02000"))
+        self.denom3 = Denomination(currency=self.currency_data_used, amount=Decimal("0.02000"))
         self.denom3.save()
         self.copro = User()
         self.copro.save()
@@ -72,9 +74,9 @@ class BasicTest(TestCase):
         self.assertEquals(RegisterMaster.number_of_open_registers(), 0)
         self.assertEquals(len(RegisterMaster.get_open_registers()), 0)
         self.assertFalse(self.reg1.is_open())
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         self.assertTrue(self.reg1.is_open())
@@ -96,9 +98,9 @@ class BasicTest(TestCase):
         self.assertEquals(RegisterMaster.number_of_open_registers(), 0)
         self.assertFalse(RegisterMaster.sales_period_is_open())
         self.reg1.save()
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         self.assertTrue(RegisterMaster.sales_period_is_open())
@@ -114,13 +116,13 @@ class BasicTest(TestCase):
         reg_count_2.register_period = self.reg2.get_current_open_register_period()
         reg_count_2.amount = Decimal("10.22371")
         reg_counts = [reg_count_1, reg_count_2]
-        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, amount=1)
-        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, amount=1)
-        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
+        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, number=1)
+        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, number=1)
+        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
-        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.eu), num=1,
-                                     text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
-        pay = Payment(amount=Money(Decimal("1.00000"), self.eu), payment_type=self.cash)
+        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.currency_data_used),
+                                     num=1, text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
+        pay = Payment(amount=Money(Decimal("1.00000"), self.currency_data_used), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
                                   amount=Decimal("1.0000"))
         Transaction.create_transaction(user=self.copro, payments=[pay], transaction_lines=[trans])
@@ -131,29 +133,27 @@ class BasicTest(TestCase):
         ConsistencyChecker.full_check()
 
     def test_mult_open_close(self):
-        self.eu.save()
         self.reg1.save()
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         reg_count_1 = RegisterCount()
         reg_count_1.register_period = self.reg1.get_current_open_register_period()
         reg_count_1.amount = Decimal("4.22371")
         reg_counts = [reg_count_1]
-        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, amount=1)
-        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, amount=1)
-        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, amount=1)
+        c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, number=1)
+        c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, number=1)
+        c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=2)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=2)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.24371"), denominations=denom_counts)
         self.assertEqual(len(OpeningCountDifference.objects.all()), 2)
-        Money(Decimal("0.02000"), self.eu)
 
     def test_mult_currency_registers(self):
         self.eu.save()
@@ -162,9 +162,9 @@ class BasicTest(TestCase):
         self.assertFalse(RegisterMaster.sales_period_is_open())
         self.reg1.save()
 
-        c1 = DenominationCount(denomination=self.denom1, amount=1)
-        c2 = DenominationCount(denomination=self.denom2, amount=1)
-        c3 = DenominationCount(denomination=self.denom3, amount=1)
+        c1 = DenominationCount(denomination=self.denom1, number=1)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         self.assertTrue(RegisterMaster.sales_period_is_open())
@@ -192,9 +192,9 @@ class BasicTest(TestCase):
         self.reg3.save()
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         self.assertEquals(len(payment_types), 0)
-        self.reg1.open(Decimal("4.22371"), denominations=[DenominationCount(denomination=self.denom1, amount=1),
-                                                          DenominationCount(denomination=self.denom2, amount=1),
-                                                          DenominationCount(denomination=self.denom3, amount=1)])
+        self.reg1.open(Decimal("4.22371"), denominations=[DenominationCount(denomination=self.denom1, number=1),
+                                                          DenominationCount(denomination=self.denom2, number=1),
+                                                          DenominationCount(denomination=self.denom3, number=1)])
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         self.assertEquals(len(payment_types), 1)
         self.reg2.open(Decimal("1.21"))
@@ -204,6 +204,3 @@ class BasicTest(TestCase):
         payment_types = RegisterMaster.get_payment_types_for_open_registers()
         self.assertEquals(len(payment_types), 2)
         ConsistencyChecker.full_check()
-
-
-

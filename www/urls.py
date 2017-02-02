@@ -3,7 +3,9 @@ WWW URL Configuration
 """
 
 from django.conf.urls import url, include
+
 from www.views import home
+
 
 urlpatterns = [
     # Home page
@@ -26,4 +28,9 @@ urlpatterns = [
 
     url(r'^barcode/', include('barcode.urls')),
 
+    url(r'^tools/', include('tools.urls')),
+
+    url(r'^public/', include('public_info.urls')),
+
+    url(r'^auth/', include('authorization.urls')),
 ]

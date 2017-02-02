@@ -1,11 +1,16 @@
 from django.db import models
 from django.db import transaction
+from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
+
 from article.models import ArticleType
 from money.models import CostField
 from stock.exceptions import StockSmallerThanZeroError, Id10TError
 from money.exceptions import CurrencyInconsistencyError
 from stock.stocklabel import StockLabeledLine, StockLabel
-from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST
+from swipe.settings import DELETE_STOCK_ZERO_LINES, FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST, DECIMAL_PLACES
+from crm.models import User
+from tools.util import raiseif
 # Stop PyCharm from seeing tools as a package.
 # noinspection PyPackageRequirements
 from tools.management.commands.consistencycheck import consistency_check, HIGH
@@ -140,7 +145,9 @@ class Stock(StockLabeledLine):
                 raise CurrencyInconsistencyError("GOT {} instead of {}".format(
                     merge_line.book_value.currency, stock_mod.book_value.currency))
 
-            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST \
+                    and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** DECIMAL_PLACES) != 0 \
+                    and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
                                  "from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
 
@@ -150,7 +157,9 @@ class Stock(StockLabeledLine):
                     merge_line.book_value * merge_line.count + stock_mod.book_value * stock_mod.get_count()
                 )
                 merge_line.book_value = merge_cost_total / (stock_mod.get_count() + merge_line.count)
-            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST and int((merge_line.book_value.amount - old_cost.amount) * 10 ** 5) != 0 and stock_mod.get_count() < 0:
+            if FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST \
+                    and int((merge_line.book_value.amount - old_cost.amount) * 10 ** DECIMAL_PLACES) != 0 \
+                    and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
                                  "from: {} to: {} ".format(old_cost.amount, merge_line.book_value.amount))
             # Update stockmod count
@@ -171,6 +180,26 @@ class Stock(StockLabeledLine):
     def __str__(self):
         return "{}| {}: {} @ {} {}".format(self.pk, self.article, self.count, self.book_value, self.label)
 
+    @staticmethod
+    def get_all_average_prices_and_amounts():
+        sts = Stock.objects.all()
+        result = {}
+        for st in sts:
+            elem = result.get(st.article, None)
+            if not elem:
+                result[st.article] = (st.count, st.book_value)
+            else:
+                old_count = elem[0]
+                old_value = elem[1]
+                extra_count = st.count
+                added_value_per_item = st.book_value
+                new_count = old_count+extra_count
+                # NB: The order matters as Cost * int is defined whereas int * Cost is not
+                new_average_value = (old_value*old_count + (added_value_per_item*extra_count)) / new_count
+                result[st.article] = (new_count, new_average_value)
+
+        return result
+
     class Meta:
         # This check  is only partly valid, because most databases don't enforce null uniqueness.
         unique_together = ('labeltype', 'labelkey', 'article',)
@@ -181,12 +210,41 @@ class StockChangeSet(models.Model):
     A log of one or multiple stockchanges
     """
 
+    # The possible sources for a StockChange. If you change this, please only ADD new sources,
+    # and only remove or edit them if you are absolutely sure what you are doing!
+    # If you change this you will need to create a new migration, and
+    # possibly a data migration if you change the existing strings!
+    SOURCE_TEST_DO_NOT_USE = "test_do_not_use"  # This is a value to use in tests and should never be used in actual code.
+    SOURCE_CASHREGISTER = "cash_register"
+    SOURCE_SUPPLICATION = "supplication"
+    SOURCE_RMA = "rma"
+    SOURCE_INTERNALISE = "internalise"
+    SOURCE_EXTERNALISE = "externalise"
+    SOURCE_REVALUATION = "revaluation"
+    SOURCE_STOCKCOUNT = "stock_count"
+
+    # The choices for the source field, using the keys specified above.
+    # The keys are separate variables so you can use them in other models (e.g. StockChangeSet.SOURCE_CASHREGISTER)
+    # If you change this you will need to create a new migration.
+    STOCKCHANGE_SOURCES = (
+        (SOURCE_TEST_DO_NOT_USE, _("Test (DO NOT USE)")),
+        (SOURCE_CASHREGISTER, _("Cash register")),
+        (SOURCE_SUPPLICATION, _("Supplication")),
+        (SOURCE_RMA, _("RMA")),
+        (SOURCE_INTERNALISE, _("Internalise")),
+        (SOURCE_EXTERNALISE, _("Externalise")),
+        (SOURCE_REVALUATION, _("Revaluation")),
+        (SOURCE_STOCKCOUNT, _("Stock count")),
+    )
+
+    # Date the changes were done
     date = models.DateTimeField(auto_now_add=True)
 
     # Description of what happened
     memo = models.CharField(max_length=255, null=True)
-    # Number to describe what caused this change
-    enum = models.IntegerField()
+
+    # The source of these changes, from the possible sources in the settings.
+    source = models.CharField(max_length=50, choices=STOCKCHANGE_SOURCES)
 
     def save(self, *args, indirect=False, **kwargs):
         if not indirect:
@@ -196,7 +254,7 @@ class StockChangeSet(models.Model):
 
     @classmethod
     @transaction.atomic()
-    def construct(cls, description, entries, enum):
+    def construct(cls, description, entries, source, force_ignore_lock=False):
         """
         Construct a modification to the stock, and log it to the StockChangeSet.
         :param description: A description of what happened
@@ -204,11 +262,24 @@ class StockChangeSet(models.Model):
         :param entries: A list of dictionaries with the data for the stock modifications. Each dictionary should have
                         at least the keys "article", "count", "book_value" and "is_in". See StockChange.
         :type entries: list(dict)
-        :param enum: Number to describe what caused this change
-        :type enum: int
+        :param source: The source of these changes, from one of StockChangeSet.STOCKCHANGE_SOURCES.
+        :type source: str
+        :param force_ignore_lock: Ignore the stock lock. This is almost never a good idea.
+        :type force_ignore_lock: bool
         :return: A completed StockChangeSet of the modification
         :rtype: StockChangeSet
         """
+        # Check if stock is locked
+        if StockLock.is_locked() and not force_ignore_lock:
+            raise LockError("Stock is locked. Unlock first")
+
+        # Check if source is correct
+        valid_sources = [x[0] for x in StockChangeSet.STOCKCHANGE_SOURCES]
+        if source not in valid_sources:
+            raise ValueError("Source given for this StockChangeSet ({}) is not in the valid sources list: {}".format(
+                source, valid_sources
+            ))
+
         # Check if the entry dictionaries are complete
         for entry in entries:
             stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
@@ -220,7 +291,7 @@ class StockChangeSet(models.Model):
                                  "StockChangeSet description: {}".format(stock_modification_keys, entry, description))
 
         # Create the StockChangeSet instance to use as a foreign key in the Stockchanges
-        sl = StockChangeSet(memo=description, enum=enum)
+        sl = StockChangeSet(memo=description, source=source)
         sl.save(indirect=True)
 
         # Create the Stockchanges and set the StockChangeSet in them.
@@ -275,3 +346,67 @@ class StockChange(StockLabeledLine):
 
     def __str__(self):
         return "{}| {} x {} {}".format(self.pk, self.count, self.article, self.label)
+
+
+class StockLock(models.Model):
+    """
+    A locker for the stock
+    """
+
+    # Indicates if the stock is locked
+    locked = models.BooleanField(default=False)
+
+    def delete(self, using=None, keep_parents=False):
+        # No deletion
+        pass
+
+    @staticmethod
+    def is_locked() -> bool:
+        try:
+            stl = StockLock.objects.get(id=1)
+            return stl.locked
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=False)
+            return False
+
+    @staticmethod
+    def is_unlocked() -> bool:
+        return not StockLock.is_locked()
+
+    @staticmethod
+    def lock(user: User):
+        raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
+        try:
+            sl = StockLock.objects.get(id=1)
+            sl.locked = True
+            sl.save()
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=True)
+
+        StockLockLog.objects.create(locked=True, user=user)
+
+    @staticmethod
+    def unlock(user: User):
+        raiseif(not user or not isinstance(user, User), TypeError, "Expected a user")
+        try:
+            sl = StockLock.objects.get(id=1)
+            sl.locked = False
+            sl.save()
+        except StockLock.DoesNotExist:
+            StockLock.objects.create(id=1, locked=False)
+
+        StockLockLog.objects.create(locked=False, user=user)
+
+
+class StockLockLog(models.Model):
+    """
+    A log of the state of the stock with user
+    """
+
+    locked = models.BooleanField()
+
+    user = models.ForeignKey(User)
+
+
+class LockError(Exception):
+    pass

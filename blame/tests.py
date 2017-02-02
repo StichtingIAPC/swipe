@@ -11,7 +11,7 @@ from blame.models import ImmutableBlameTest, BlameTest, BlameLog, \
 class OrderTest(TestCase):
     def test_immutable(self):
         u = User.objects.create()
-        ib = ImmutableBlameTest.objects.create(data=1,user_created=u)
+        ib = ImmutableBlameTest.objects.create(data=1, user_created=u)
         ib.data = 2
 
         self.assertEqual(len(BlameLog.objects.all()), 1)
@@ -33,4 +33,3 @@ class OrderTest(TestCase):
         self.assertNotEqual(ib.user_created, ib.user_modified)
         self.assertNotEqual(ib.date_created, ib.date_modified)
         self.assertEqual(len(BlameLog.objects.all()), 2)
-

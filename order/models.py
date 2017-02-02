@@ -8,17 +8,18 @@ from article.models import *
 from blame.models import Blame, ImmutableBlame
 from crm.models import *
 from money.models import *
+from public_info.models import Shared
 from swipe.settings import USED_CURRENCY
 from tools.management.commands.consistencycheck import consistency_check, CRITICAL
+from stock.stocklabel import OrderLabel
+from stock.models import Stock
 
 
-# Create your models here.
-
-
-class Order(Blame):
+class Order(Blame, Shared):
     # A collection of orders of a customer ordered together
     # Customer that originates the order
     customer = models.ForeignKey(Customer)
+    notes = models.TextField(default="")
 
     @staticmethod
     def create_order_from_wishables_combinations(user, customer, wishable_type_number_price_combinations):
@@ -26,8 +27,8 @@ class Order(Blame):
         Creates orders from the combination of a customer and wishables with prices attached to them.
         :param user: The user who is responsible for the order
         :param customer: Customer of the order
-        :param wishable_type_number_price_combinations: List[List[WishableType, number, Price]] A list of lists of size 3
-        that contain all the neccesary implements in creating orderLines
+        :param wishable_type_number_price_combinations: List[List[WishableType, number, Price]] A list of lists of
+        size 3 that contain all the neccesary implements in creating orderLines
         :return:
         """
         raiseif(not isinstance(user, User), InvalidDataError, "user must be a User")
@@ -55,6 +56,7 @@ class Order(Blame):
         The orderlines need to be valid unsaved orderlines.
         :param order: The order that needs to be saved
         :param orderlines: The orderlines that need to be connected to the order and saved
+        :param user
         """
         raiseif(not type(order) == Order, InvalidDataError, "order must be an Order")
         for ol in orderlines:
@@ -73,6 +75,8 @@ class Order(Blame):
         Makes sure a number of othercosts is transitioned to sold from sellable.
         :param othercost_tuples:
         :type othercost_tuples: list(tuple(OtherCostType, int))
+        :param order_id
+        :param user
         :return:
         """
         total_othercosts = defaultdict(lambda: 0)
@@ -80,10 +84,16 @@ class Order(Blame):
             total_othercosts[othercost] += number
         for key in total_othercosts.keys():
             othercost_lines = OrderLine.objects.filter(order_id=order_id, wishable_id=key.pk)
-            raiseif(len(othercost_lines) < total_othercosts[key], IncorrectDataError, "Not enough orderlines for order {}, othercost {}".format(order_id, key))
+            raiseif(len(othercost_lines) < total_othercosts[key], IncorrectDataError,
+                    "Not enough orderlines for order {}, othercost {}".format(order_id, key))
             for i in range(total_othercosts[key]):
                 othercost_lines[i].sell(user)
 
+    def unarrived_products(self):
+        return self.orderline_set.filter(state__in=['O', 'L'])
+
+    def arrived_products(self):
+        return self.orderline_set.filter(state=['A'])
 
     def __str__(self):
         return "Customer: {}, Copro: {}, Date: {} ".format(self.customer, self.user_created, self.date_created)
@@ -93,6 +103,13 @@ class Order(Blame):
         print("{:<7}{:14}{:10}{:12}".format("Number", "Name", "Exp.Price", "State"))
         for ocl in ocls:
             print(ocl)
+
+    def get_stock(self):
+        """
+        Gets all the stock associated with this order.
+        :return: A QuerySet with Stock's of this order
+        """
+        return Stock.objects.filter(labeltype=OrderLabel.labeltype, labelkey=self.pk)
 
 
 class OrderLineState(ImmutableBlame):
@@ -109,7 +126,7 @@ class OrderLineState(ImmutableBlame):
     VALID_NEXT_STATES = {
         'O': ('C', 'L'),
         'L': ('A', 'O', 'C'),
-        'A': ('S', 'I')
+        'A': ('S', 'I', 'O', 'C')
     }
     # Mirrors the transition of the state of an OrderLine
     state = models.CharField(max_length=3, choices=sorted(STATE_MEANING.items()))
@@ -139,7 +156,6 @@ class OrderLine(Blame):
     # Final sales price. Set when products arrive at the store
     final_sales_price = PriceField(null=True, default=None)
 
-
     @staticmethod
     def create_orderline(order=Order(), wishable=None, state=None, expected_sales_price=None, user=None):
         """
@@ -147,16 +163,19 @@ class OrderLine(Blame):
         is handled by the save function of orderlines.
         """
         raiseif(wishable is None, InvalidDataError, "wishable may not be None")
-        ol = OrderLine(order=order, wishable=wishable, state=state, expected_sales_price=expected_sales_price, user_modified=user)
+        ol = OrderLine(order=order, wishable=wishable, state=state, expected_sales_price=expected_sales_price,
+                       user_modified=user)
 
         return ol
 
     def save(self):
         raiseif(not hasattr(self, 'order'), IncorrectDataError, "OrderLine must have an order")  # Order must exist
         raiseif(not hasattr(self, 'wishable'), IncorrectDataError, "How?")  # Type must exist
-        raiseif(not hasattr(self.wishable, 'sellabletype'), IncorrectDataError, "How?")  # Temporary measure until complexities get worked out
+        # Temporary measure until complexities get worked out
+        raiseif(not hasattr(self.wishable, 'sellabletype'), IncorrectDataError, "How?")
         raiseif(not hasattr(self, 'expected_sales_price'), IncorrectDataError, "How?")
-        raiseif(not isinstance(self.expected_sales_price, Price), IncorrectDataError, "How?")  # Temporary measure until complexities get worked out
+        # Temporary measure until complexities get worked out
+        raiseif(not isinstance(self.expected_sales_price, Price), IncorrectDataError, "How?")
 
         if self.pk is None:
 
@@ -170,9 +189,10 @@ class OrderLine(Blame):
             else:
                 ol_state = OrderLineState(state=self.state, user_created=self.user_modified)
 
-            curr = Currency(iso=USED_CURRENCY)
-
-            self.expected_sales_price =  Price(amount=self.expected_sales_price._amount, currency=self.expected_sales_price._currency, vat=self.wishable.get_vat_rate())
+            # noinspection PyProtectedMember
+            self.expected_sales_price = Price(amount=self.expected_sales_price._amount,
+                                              currency=self.expected_sales_price._currency,
+                                              vat=self.wishable.get_vat_rate())
 
             raiseif(self.state not in OrderLineState.STATE_CHOICES, IncorrectOrderLineStateError, "Invalid state")
             super(OrderLine, self).save()
@@ -183,7 +203,7 @@ class OrderLine(Blame):
             super(OrderLine, self).save()
 
     @transaction.atomic
-    def transition(self, new_state,user_created):
+    def transition(self, new_state, user_created):
         """
         Transitions an orderline from one state to another. This is the only safe means of transitioning, as data
         integrity can not be guaranteed otherwise. Transitioning is only possible with objects stored in the database.
@@ -194,28 +214,32 @@ class OrderLine(Blame):
             raise IncorrectOrderLineStateError("State of orderline is not valid. Database is corrupted at Orderline",
                                                self.pk, " with state ", self.state)
         else:
-            if new_state in OrderLineState.VALID_NEXT_STATES[self.state]:
+            if new_state in OrderLineState.VALID_NEXT_STATES.get(self.state, []):
                 self.state = new_state
                 ols = OrderLineState(state=new_state, orderline=self, user_created=user_created)
                 ols.save()
                 self.save()
             else:
-                raise IncorrectTransitionError("This transaction is not legal: {state} -> {new_state}".format(state=self.state, new_state=new_state))
+                raise IncorrectTransitionError("This transaction is not legal: {state} -> "
+                                               "{new_state}".format(state=self.state, new_state=new_state))
 
-    def order_at_supplier(self,user_created):
-        self.transition('L',user_created)
+    def order_at_supplier(self, user_created):
+        self.transition('L', user_created)
 
-    def arrive_at_store(self,user_created):
-        self.transition('A',user_created)
+    def arrive_at_store(self, user_created):
+        self.transition('A', user_created)
 
-    def sell(self,user_created):
-        self.transition('S',user_created)
+    def sell(self, user_created):
+        self.transition('S', user_created)
 
-    def cancel(self,user_created):
-        self.transition('C',user_created)
+    def cancel(self, user_created):
+        self.transition('C', user_created)
 
     def return_back_to_ordered_by_customer(self, user_created):
         self.transition('O', user_created)
+
+    def use_for_internal_purposes(self, user_created):
+        self.transition('I', user_created)
 
     def __str__(self):
         if not hasattr(self, 'order'):
@@ -239,6 +263,7 @@ class OrderLine(Blame):
         :param wishable_type: a wishabletype
         :param number: number of orderlines to add
         :param price: Value as a Price
+        :param user
         """
         raiseif(type(number) is not int, IncorrectDataError, "number must be an integer")
         raiseif(number < 1, InvalidDataError, "At least 1 of wishable_type must be ordered to add it to an order")
@@ -247,12 +272,18 @@ class OrderLine(Blame):
             ol = OrderLine.create_orderline(wishable=wishable_type, expected_sales_price=price, user=user)
             orderlinelist.append(ol)
 
+    class Meta:
+        ordering = [
+            'state',
+            'wishable',
+        ]
+
 
 class OrderCombinationLine:
     """
-    Line that combines similar orderlines into one to reduce overal size. This can be used to display data in an orderly fashion
-    but is also very usefull as a way to retrieve data about large collections of OrderLines. Use this in stead of combining
-    database lines directly!
+    Line that combines similar orderlines into one to reduce overal size. This can be used to display data in an
+    orderly fashion but is also very usefull as a way to retrieve data about large collections of OrderLines.
+    Use this in stead of combining database lines directly!
     """
     # The number of a certain wishable in this OrderCombinationLine
     number = 0
@@ -277,6 +308,7 @@ class OrderCombinationLine:
 
     @staticmethod
     def prefix_field_names(model, prefix):
+        # noinspection PyProtectedMember
         fields = model._meta.get_fields()
         ret = []
         for field in fields:
@@ -297,7 +329,7 @@ class OrderCombinationLine:
 
         price_fields = []
         if include_price_field:
-            price_fields = ['expected_sales_price','expected_sales_price_currency','expected_sales_price_vat']
+            price_fields = ['expected_sales_price', 'expected_sales_price_currency', 'expected_sales_price_vat']
 
         flds = price_fields + OrderCombinationLine.prefix_field_names(WishableType, 'wishable__')
 
@@ -316,8 +348,7 @@ class OrderCombinationLine:
                 vat = o['expected_sales_price_vat']
             price = Price(amount=amount, vat=vat, currency=currency)
             ocl = OrderCombinationLine(number=number, wishable=WishableType(name=o['wishable__name'],
-                                       pk=o['wishable__id']), price=price,
-                                       state=state)
+                                       pk=o['wishable__id']), price=price, state=state)
             result.append(ocl)
         return result
 

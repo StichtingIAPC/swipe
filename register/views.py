@@ -1,25 +1,134 @@
 from decimal import Decimal
 
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+from django.core.urlresolvers import reverse_lazy
+from django.db.models import F
+from django.db.models import Prefetch, Count
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
-from django.core.urlresolvers import reverse_lazy
-
-# Create your views here.
-from django.views.generic import View, ListView, CreateView, DetailView
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic import View, ListView, CreateView, DetailView, UpdateView
+from rest_framework import mixins, generics
 
 from money.models import Denomination, Price, VAT
 from register.forms import CloseForm, OpenForm
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
-    RegisterPeriod
+    RegisterPeriod, PaymentType
+from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer
 from sales.models import Transaction
+from tools.templatetags.tools.breadcrumbs import crumb
 
 
+class RegisterListView(mixins.ListModelMixin,
+                       mixins.CreateModelMixin,
+                       generics.GenericAPIView):
+    queryset = Register.objects.select_related(
+        'payment_type'
+    ).annotate(
+        Count('registerperiod')
+    ).prefetch_related(
+        Prefetch(
+            'registerperiod_set',
+            queryset=RegisterPeriod.objects.prefetch_related(
+                Prefetch(
+                    'registercount_set',
+                    queryset=RegisterCount.objects.filter(
+                        register_period__endTime__isnull=F('is_opening_count')
+                    ).prefetch_related(
+                        Prefetch(
+                            'denominationcount_set',
+                            queryset=DenominationCount.objects.select_related(
+                                'denomination'
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    ).prefetch_related(
+        'currency__denomination_set'
+    ) # Heavy prefetch query to optimize loading of objects, and prevent optional O(n) behaviour on the DB
+    serializer_class = RegisterSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class RegisterView(mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   generics.GenericAPIView):
+    queryset = Register.objects.all()
+    serializer_class = RegisterSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class PaymentTypeListView(mixins.ListModelMixin,
+                          mixins.CreateModelMixin,
+                          generics.GenericAPIView):
+    queryset = PaymentType.objects.all()
+    serializer_class = PaymentTypeSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class PaymentTypeView(mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      generics.GenericAPIView):
+    queryset = PaymentType.objects.all()
+    serializer_class = PaymentTypeSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class RegisterCountListView(mixins.ListModelMixin,
+                            mixins.CreateModelMixin,
+                            generics.GenericAPIView):
+    queryset = RegisterCount.objects.prefetch_related(
+        'denominationcount_set__denomination'
+    ).prefetch_related(
+        'register_period__register__currency__denomination_set'
+    )
+    serializer_class = RegisterCountSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        # TODO: insert register count check/validation on creation.
+        return self.create(request, *args, **kwargs)
+
+
+class RegisterCountView(mixins.RetrieveModelMixin,
+                        generics.GenericAPIView):
+    queryset = RegisterCount.objects.all()
+    serializer_class = RegisterCountSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+@crumb(_('Open registers'), 'register_state')
 class OpenFormView(PermissionRequiredMixin, View):
     permission_required = 'register.open_register'
     form_class = OpenForm
     initial = {'key': 'value'}
-    template_name = 'open_count.html'
+    template_name = "register/open_count.html"
 
     def get(self, request):
         if RegisterMaster.sales_period_is_open():
@@ -44,7 +153,8 @@ class OpenFormView(PermissionRequiredMixin, View):
                 cnt = Decimal(0)
                 for denomination in Denomination.objects.filter(currency=reg.currency):
                     denomination_counts.append(DenominationCount(denomination=denomination,
-                                                                 amount=int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])))
+                                                                 amount=int(request.POST["reg_{}_{}"
+                                                                            .format(col.name, denomination.amount)])))
 
                     cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
 
@@ -55,18 +165,20 @@ class OpenFormView(PermissionRequiredMixin, View):
         return render(request, self.template_name, {'form': form})
 
 
+@crumb(_('Open check'), 'register_index')
 class IsOpenStateView(LoginRequiredMixin, View):
-    template_name = 'is_open_view.html'
+    template_name = "register/is_open_view.html"
 
     def get(self, request):
         return render(request, self.template_name, {"is_open": RegisterMaster.sales_period_is_open()})
 
 
+@crumb(_('Close registers'), 'register_state')
 class CloseFormView(PermissionRequiredMixin, View):
     permission_required = 'register.close_register'
     form_class = CloseForm
     initial = {'key': 'value'}
-    template_name = 'open_count.html'
+    template_name = "register/close_count.html"
 
     def get_or_post_from_form(self, request, form):
         transactions = {}
@@ -118,7 +230,8 @@ class CloseFormView(PermissionRequiredMixin, View):
                 register_counts.append(rc)
                 for denomination in Denomination.objects.filter(currency=reg.currency):
                     denomination_counts.append(DenominationCount(register_count=rc, denomination=denomination,
-                                                                 amount=int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])))
+                                                                 amount=int(request.POST["reg_{}_{}"
+                                                                            .format(col.name, denomination.amount)])))
 
             SalesPeriod.close(register_counts, denomination_counts, request.POST["MEMO"])
             # <process form cleaned data>
@@ -128,37 +241,69 @@ class CloseFormView(PermissionRequiredMixin, View):
         return self.get_or_post_from_form(request, form)
 
 
-class RegisterList(LoginRequiredMixin,ListView):
+@crumb(_('Register list'), 'register_index')
+class RegisterList(LoginRequiredMixin, ListView):
     model = Register
+    template_name = "register/register_list.html"
 
 
-class DenominationList(LoginRequiredMixin,ListView):
-    model = Denomination
+@crumb(_('Detail'), 'register_list')
+class RegisterDetail(LoginRequiredMixin, DetailView):
+    model = Register
+    template_name = "register/register_detail.html"
 
 
-class RegisterPeriodList(LoginRequiredMixin,ListView):
+@crumb(_('Edit'), 'register_detail', ['pk'])
+class RegisterEdit(PermissionRequiredMixin, UpdateView):
+    model = Register
+    template_name = 'register/register_form.html'
+    fields = ['name', 'is_active']
+    permission_required = 'register.edit_register'
+
+    def get_success_url(self):
+        return reverse_lazy('register_detail', kwargs=self.kwargs)
+
+
+@crumb(_('Register period list'), 'register_index')
+class RegisterPeriodList(LoginRequiredMixin, ListView):
     model = RegisterPeriod
 
 
-class DenominationCreate(PermissionRequiredMixin, CreateView):
-    permission_required = 'register.create_denomination'
-
-    model = Denomination
-    fields = ['currency', 'amount']
-    success_url = reverse_lazy('register_list_denomination')
-
-
+@crumb(_('Create'), 'register_list')
 class RegisterCreate(PermissionRequiredMixin, CreateView):
     permission_required = 'register.create_register'
+    template_name = "register/register_form.html"
 
     model = Register
     fields = ['name', 'currency', 'is_cash_register', 'is_active', 'payment_type']
-    success_url = reverse_lazy('list_register')
+
+    def get_success_url(self):
+        return reverse_lazy('register_detail', kwargs={'pk': self.object.pk})
 
 
-class DenominationDetail(LoginRequiredMixin,DetailView):
-    model = Denomination
-
-
+@crumb(_('Register index'))
 def index(request):
-    return render(request, 'index.html')
+    return render(request, 'register/index.html')
+
+
+@crumb(_('Payment type list'), 'register_index')
+class PaymentTypeList(LoginRequiredMixin, ListView):
+    model = PaymentType
+    template_name = 'register/paymenttype_list.html'
+
+
+@crumb(_('Create'), 'paymenttype_list')
+class PaymentTypeCreate(PermissionRequiredMixin, CreateView):
+    model = PaymentType
+    fields = ['name']
+    permission_required = 'register.create_paymenttype'
+    template_name = 'register/paymenttype_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('paymenttype_detail', kwargs={'pk': self.object.pk})
+
+
+@crumb(_('Detail'), 'paymenttype_list')
+class PaymentTypeDetail(LoginRequiredMixin, DetailView):
+    model = PaymentType
+    template_name = 'register/paymenttype_detail.html'

@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
+{% load tools.breadcrumbs %}
 
 {% block module_content %}
     <div class="small-6 columns">
         <div class="card">
+            <div class="row">
+                <div class="small-12">
+                    {% breadcrumbs %}
+                </div>
+            </div>
             {% block content %}
             {% endblock content %}
         </div>

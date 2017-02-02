@@ -8,8 +8,7 @@ from crm.models import User
 from logistics.models import SupplierOrderLine, SupplierOrderCombinationLine, \
     InsufficientDemandError, IndirectionError, UnimplementedError, SupplierOrderState
 from money.models import CostField, Cost
-from stock.enumeration import enum
-from stock.models import StockChangeSet
+from stock.models import StockChangeSet, StockLock, LockError
 from stock.stocklabel import OrderLabel
 from supplier.models import Supplier, ArticleTypeSupplier
 from swipe.settings import USED_SUPPLICATION_STRATEGY
@@ -24,16 +23,20 @@ class PackingDocument(ImmutableBlame):
 
     @staticmethod
     @transaction.atomic
-    def create_packing_document(user, supplier, packing_document_name, article_type_cost_combinations, invoice_name=None):
+    def create_packing_document(user, supplier, packing_document_name,
+                                article_type_cost_combinations, invoice_name=None, serial_numbers=None):
         """
-        Creates a packing document from the supplied information. This registers that the products have arrived at the store.
-        It is linked to a single supplier, since that is the way you process packing documents.
+        Creates a packing document from the supplied information. This registers that the products have arrived
+        at the store. It is linked to a single supplier, since that is the way you process packing documents.
         :param user: Blamed user
         :param supplier: Supplier for this packing document
         :param packing_document_name: Name of the packing document. Obligatory
-        :param article_type_cost_combinations: List[Tuple[ArticleType, number, [Cost]]]. A list containing lists containing
-        A combination of an ArticleType, a number of those ArticleTypes, and potentially a cost if provided by an invoice.
+        :param article_type_cost_combinations: A list containing lists containing a combination of an ArticleType,
+                a number of those ArticleTypes, and potentially a cost if provided by an invoice.
+        :type article_type_cost_combinations: list[tuple[ArticleType, number, [Cost]]]
         :param invoice_name: Name of an invoice. If None, no invoice is to be expected
+        :param serial_numbers: A list of serial number strings packed together by article
+        :type serial_numbers: dict(articleType,list[SerialNumberStrings])
         :return:
         """
         use_invoice = False
@@ -44,12 +47,14 @@ class PackingDocument(ImmutableBlame):
         raiseif(not isinstance(supplier, Supplier), InvalidDataError, "supplier must be a Supplier")
         raiseif(not isinstance(packing_document_name, str), InvalidDataError, "packing document name must be a string")
         raiseif(not isinstance(article_type_cost_combinations, list), InvalidDataError, "a28s must be a list")
+        raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
 
         ARTICLETYPE_LOCATION = 0
         NUMBER_LOCATION = 1
         COST_LOCATION = 2
         for atcc in article_type_cost_combinations:
-            raiseif(not isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType), InvalidDataError, "a28s[n] is not an ArticleType")
+            raiseif(not isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType), InvalidDataError,
+                    "a28s[n] is not an ArticleType")
             raiseif(not isinstance(atcc[NUMBER_LOCATION], int), InvalidDataError, "a28s[n] is not a number")
             if use_invoice:
                 raiseif(len(atcc) != 2 and atcc[COST_LOCATION] is not None and
@@ -69,21 +74,25 @@ class PackingDocument(ImmutableBlame):
                 err_msg += "\n"
             raise InsufficientDemandError(err_msg)
 
-        distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY).get_distribution(supplier=supplier, article_type_number_combos=article_type_cost_combinations)
-        changeset = DistributionStrategy.build_changeset(distribution)
+        if serial_numbers:
+            PackingDocument.verify_serial_numbers(article_type_cost_combinations, serial_numbers)
 
+        distribution_strategy = DistributionStrategy.get_strategy_from_string(USED_SUPPLICATION_STRATEGY)
+        distribution = distribution_strategy.get_distribution(supplier=supplier,
+                                                              article_type_number_combos=article_type_cost_combinations)
+        changeset = DistributionStrategy.build_changeset(distribution)
 
         DistributionStrategy.distribute(user=user, supplier=supplier,
                                         distribution=distribution,
                                         document_identifier=packing_document_name,
                                         invoice_identifier=invoice_name,
                                         mod_stock=False,
+                                        serial_numbers=serial_numbers,
                                         indirect=True
                                         )
         pd = PackingDocument.objects.last()
-        StockChangeSet.construct("Stock supplication by {}".format(pd.pk), entries=changeset, enum=enum["supplication"])
-
-
+        StockChangeSet.construct("Stock supplication by {}".format(pd.pk), entries=changeset,
+                                 source=StockChangeSet.SOURCE_SUPPLICATION)
 
     @staticmethod
     def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
@@ -112,6 +121,43 @@ class PackingDocument(ImmutableBlame):
             if supplied_articles[article] > supplier_ordered_articles[article]:
                 errors.append((article, supplied_articles[article] - supplier_ordered_articles[article]))
         return errors
+
+    @staticmethod
+    def verify_serial_numbers(article_type_cost_combinations, serial_numbers):
+        ARTICLETYPE_LOCATION = 0
+        NUMBER_LOCATION = 1
+        article_type_counter = defaultdict(lambda: 0)
+        for atcc in article_type_cost_combinations:
+            article_type_counter[atcc[ARTICLETYPE_LOCATION]] += atcc[NUMBER_LOCATION]
+        for article in serial_numbers:
+            if len(serial_numbers[article]) > article_type_counter.get(article, 0):
+                raise IncorrectDataError("More serial number for articleType {} "
+                                         "than there are articles in the packing document".format(article.name))
+
+
+class SerialNumber(models.Model):
+    """
+    Since individual products are not registered, when they enter the system they do so as a group of products and then
+    they move to stock. In order to still facilitate serial numbers, they are registered in the only place logical to
+    the system, that is the packing document.
+    """
+    # The serial number itself
+    identifier = models.CharField(max_length=255)
+    # The articleType to which the serial number is connected
+    article_type = models.ForeignKey(ArticleType)
+    # The packing document where the serial number is registered
+    packing_document = models.ForeignKey(PackingDocument)
+
+    def __str__(self):
+        if not hasattr(self, 'article_type') or self.article_type is None:
+            at = "None"
+        else:
+            at = self.article_type
+        if not hasattr(self, 'packing_document') or self.packing_document is None:
+            pd = "None"
+        else:
+            pd = self.packing_document.id
+        return "Identifier: {}, ArticleType: {}, Packing Document: {}".format(self.identifier, at, pd)
 
 
 class Invoice(ImmutableBlame):
@@ -188,7 +234,6 @@ class PackingDocumentLine(Blame):
             self.supplier_order_line.mark_as_arrived(self.packing_document.user_created)
             document_key = self.packing_document.pk
 
-        if self.pk is None:
             super(PackingDocumentLine, self).save()
             if mod_stock:
                 # Modify stock
@@ -201,7 +246,8 @@ class PackingDocumentLine(Blame):
                 if hasattr(self.supplier_order_line, 'order_line') and self.supplier_order_line.order_line is not None:
                     label = OrderLabel(self.supplier_order_line.order_line.order.pk)
                     entry[0]['label'] = label
-                StockChangeSet.construct(description="Stock supplication by {}".format(document_key), entries=entry, enum=enum["supplication"])
+                StockChangeSet.construct(description="Stock supplication by {}".format(document_key), entries=entry,
+                                         source=StockChangeSet.SOURCE_SUPPLICATION)
         else:
             super(PackingDocumentLine, self).save()
 
@@ -226,35 +272,36 @@ class PackingDocumentLine(Blame):
             sol = "None"
         else:
             sol = self.supplier_order_line.pk
-        return "Packing Document: {}, SupplierOrderLine: {}, ArticleType: {}, SupOrdCost: {}, InvoiceCost: {}, Invoice: {}".format(
-            packing_doc, sol, self.article_type, cost, final_cost, invoice
-        )
+        return "Packing Document: {}, SupplierOrderLine: {}, ArticleType: {}, SupOrdCost: {}, InvoiceCost: {}, " \
+               "Invoice: {}".format(packing_doc, sol, self.article_type, cost, final_cost, invoice)
 
 
 class DistributionStrategy:
     """
-    The interface for strategies for distributing the arrived products. DistributionStrategy allows for a standardised way
-    of asking for a way of distribution and there is also a function to handle the actual act of distribution.
+    The interface for strategies for distributing the arrived products. DistributionStrategy allows for a standardised
+    way of asking for a way of distribution and there is also a function to handle the actual act of distribution.
     """
 
     @staticmethod
     @transaction.atomic
-    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False,
+    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False, serial_numbers=None,
                    indirect=False, mod_stock=True):
         """
-        Distributes the actual packing document. A line_cost_after invoice should never be used if there is not direct invoice
-        possible, indicated by the invoice_identifier. Distribution will refuse to execute in this case.
+        Distributes the actual packing document. A line_cost_after invoice should never be used if there is not direct
+        invoice possible, indicated by the invoice_identifier. Distribution will refuse to execute in this case.
         :param user: The user that caused this distribution
         :param supplier: The supplier that ships the products
         :param distribution: List[PackingDocumentLine], with each PackingDocumentLine
         :param document_identifier: String, name of the packing document
         :param invoice_identifier: String, can be empty if there is no invoice
+        :param serial_numbers
         :param indirect: Indirection flag. Function is only meant to be called indirectly. Change at your own peril.
         :param mod_stock: Indicates whether the function actually
         :return:
         """
         if not indirect:
             raise IndirectionError("Distribute must be called indirectly")
+
         raiseif(not (user and isinstance(user, User)), IncorrectDataError, "user is not of type User")
         raiseif(not (supplier and isinstance(supplier, Supplier)), IncorrectDataError, "")
         raiseif(not (distribution and isinstance(distribution, list)), IncorrectDataError)
@@ -270,8 +317,10 @@ class DistributionStrategy:
             # Asserts correct article type and supplier consistency
             raiseif(not pac_doc_line.supplier_order_line,
                     InvalidDataError, "pac_doc_line must have an supplier_order_line")
-            raiseif(pac_doc_line.article_type != pac_doc_line.supplier_order_line.article_type, IncorrectDataError, "Article types are not matching")
-            raiseif(supplier != pac_doc_line.supplier_order_line.supplier_order.supplier, IncorrectDataError, "suppliers are not matching")
+            raiseif(pac_doc_line.article_type != pac_doc_line.supplier_order_line.article_type, IncorrectDataError,
+                    "Article types are not matching")
+            raiseif(supplier != pac_doc_line.supplier_order_line.supplier_order.supplier, IncorrectDataError,
+                    "suppliers are not matching")
             # There cannot be a final cost without an invoice
             if not invoice_identifier:
                 raiseif(hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice,
@@ -279,17 +328,29 @@ class DistributionStrategy:
             if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice is not None:
                 found_final_cost = True
 
+        invoice = None
         if invoice_identifier:
             # Checks if there is an actual final_line_cost for a pac_doc_line to create an invoice for
             raiseif(not found_final_cost, IncorrectDataError, "The invoice specified does not have this one's cost")
             invoice = Invoice(supplier=supplier, supplier_identifier=invoice_identifier, user_modified=user)
 
+        serial_number_list = []
+        if serial_numbers:
+            for article_type in serial_numbers:
+                for ser in serial_numbers[article_type]:
+                    serial_number_list.append(SerialNumber(identifier=ser, article_type=article_type))
+
         # Below here are the actual saves
         # First, saves of related documents
-        packing_document = PackingDocument(supplier=supplier, supplier_identifier=document_identifier, user_modified=user)
+        packing_document = PackingDocument(supplier=supplier, supplier_identifier=document_identifier,
+                                           user_modified=user)
         packing_document.save()
         if invoice_identifier:
             invoice.save()
+        if serial_numbers:
+            for sn in serial_number_list:
+                sn.packing_document = packing_document
+                sn.save()
         # Saves and final parameter settings of packing document lines
         for pac_doc_line in distribution:
             pac_doc_line.packing_document = packing_document
@@ -302,9 +363,9 @@ class DistributionStrategy:
     def get_distribution(article_type_number_combos, supplier):
         """
         Creates a distribution
-        :param article_type_number_combos: List[ArticleType, number, [Cost]]. A list containing articletypes, a multiplicity of thos
-        article types, and a cost if the packing document line is connected to an invoice.
-        :return:
+        :param article_type_number_combos: List[ArticleType, number, [Cost]]. A list containing articletypes, a
+        multiplicity of those article types, and a cost if the packing document line is connected to an invoice.
+        :param supplier
         """
         raise UnimplementedError("Function does not exist at the super level. Call actual strategies")
 
@@ -390,10 +451,10 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
         # Viability assertions
         raiseif(not isinstance(supplier, Supplier), InvalidDataError, "supplier is not a Supplier")
         articletype_dict = defaultdict(lambda: 0)
-        use_cost = False # Indicates that invoice, provided costs are used
-        ARTICLE_TYPE_LOCATION=0
-        NUMBER_LOCATION=1
-        COST_LOCATION=2
+        use_cost = False  # Indicates that invoice, provided costs are used
+        ARTICLE_TYPE_LOCATION = 0
+        NUMBER_LOCATION = 1
+        COST_LOCATION = 2
         for elem in article_type_number_combos:
             articletype_dict[elem[0]] += elem[1]
             if len(elem) > 2 and elem[2] is not None and isinstance(elem[2], Cost):
@@ -417,8 +478,8 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
         for sol in relevant_supplier_orderline:
             if article_supply[sol.article_type] > 0:
                 pac_doc_line = PackingDocumentLine(article_type=sol.article_type,
-                                              line_cost=sol.line_cost
-                                              ,supplier_order_line=sol)
+                                                   line_cost=sol.line_cost,
+                                                   supplier_order_line=sol)
                 distribution.append(pac_doc_line)
                 article_supply[sol.article_type] -= 1
 
@@ -460,8 +521,7 @@ class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
         articletypes = articletype_dict.keys()
         relevant_supplier_orderline = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
                                                                        article_type__in=articletypes,
-                                                                       supplier_order__supplier=supplier,
-                                                                       )
+                                                                       supplier_order__supplier=supplier)
         article_demand = defaultdict(lambda: 0)
         article_supply = articletype_dict.copy()
 
@@ -475,9 +535,9 @@ class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
                     IncorrectDataError, "You cannot order more than there is demand")
 
         relevant_supplier_orderline_orders_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
-                                                                       article_type__in=articletypes,
-                                                                       supplier_order__supplier=supplier,
-                                                                       order_line__isnull=False)
+                                                                                   article_type__in=articletypes,
+                                                                                   supplier_order__supplier=supplier,
+                                                                                   order_line__isnull=False)
         # Create the packing_document_lines for orders
         for sol in relevant_supplier_orderline_orders_only:
             if article_supply[sol.article_type] > 0:
@@ -488,9 +548,9 @@ class FirstCustomersDateTimeThenStockDateTime(DistributionStrategy):
                 article_supply[sol.article_type] -= 1
 
         relevant_supplier_orderline_stock_only = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
-                                                                       article_type__in=articletypes,
-                                                                       supplier_order__supplier=supplier,
-                                                                       order_line__isnull=True)
+                                                                                  article_type__in=articletypes,
+                                                                                  supplier_order__supplier=supplier,
+                                                                                  order_line__isnull=True)
 
         # Create the packing_document_lines
         for sol in relevant_supplier_orderline_stock_only:

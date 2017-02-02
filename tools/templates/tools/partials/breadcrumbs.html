@@ -1,0 +1,12 @@
+<ul class="breadcrumbs">
+{% for crumb in crumbs %}{% if not crumb.url %}
+    <li class="disabled">
+        <span class="crumb">{{ crumb.text }}</span>
+    </li>{% else %}
+    <li>
+        <a href="{{ crumb.url }}">
+            <span class="crumb">{{ crumb.text }}</span>
+        </a>
+    </li>{% endif %}
+{% endfor %}
+</ul>

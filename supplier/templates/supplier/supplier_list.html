@@ -6,10 +6,25 @@
 
 {% block content %}
     {% url "supplier_add" as supplier_add %}
-    <h2>{% trans 'List of suppliers' %} (<a href="{{ supplier_add }}">{% trans 'add' %}</a>)</h2>
+    <h3>
+        {% trans 'List of suppliers' %}
+        <a class="small button success pull-right" href="{{ supplier_add }}">{% trans 'add' %}</a>
+    </h3>
     <ul>
     {% for supplier in object_list %}
-        <li><a href="{% url 'supplier_detail' supplier.pk %}">{{ supplier }}</a>{% if supplier.is_deleted %} (deleted){% endif %}</li>
+        <li class="row">
+            <div class="small-12">
+                <a href="{% url 'supplier_detail' supplier.pk %}">{{ supplier }}</a>
+                {% if supplier.is_deleted %} (deleted){% endif %}
+                <a class="tiny button float-right" href="{% url 'supplier_edit' supplier.pk %}">{% trans 'Edit' %}</a>
+            </div>
+        </li>
+    {% empty %}
+        <li class="row">
+            <div class="small-12">
+                {% trans 'No suppliers' %}
+            </div>
+        </li>
     {% endfor %}
     </ul>
 {% endblock %}

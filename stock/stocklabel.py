@@ -43,20 +43,36 @@ class StockLabelManager(models.Manager):
         return StockLabelQuerySet(self.model).filter(labeltype=None)
 
 
-class StockLabel:
+class StockLabelMeta(type):
+    """Makes sure the labeltype of a StockLabel cannot be modified"""
+    def __setattr__(self, key, value):
+        if key == "labeltype":
+            raise AttributeError("Cannot modify LabelType. Create a new StockLabel subclass.")
+        else:
+            return super(StockLabelMeta, self).__setattr__(key, value)
+
+    def __delattr__(self, item):
+        if item == "labeltype":
+            raise AttributeError("Cannot delete LabelType.")
+        else:
+            return super(StockLabelMeta, self).__delattr__(item)
+
+
+class StockLabel(metaclass=StockLabelMeta):
     labeltypes = {}
-    _labeltype = None
+    labeltype = None
 
     # Adds labeltype to reverse lookup table (labeltypes)
+    # noinspection PyProtectedMember
     @classmethod
     def register(cls, label_type):
 
-        if label_type._labeltype == "":
+        if label_type.labeltype == "":
             raise ValueError("Please use a more descriptive labeltype than '' (emptystring). "
                              "Use NoStockLabel when you want no stock label, "
                              "and search for None if you want to look for no label.")
 
-        name = label_type._labeltype
+        name = label_type.labeltype
         if cls.labeltypes is None:
             cls.labeltypes = {}
         if name in cls.labeltypes.keys():
@@ -74,17 +90,13 @@ class StockLabel:
             raise StockLabelNotFoundError("Stock label {} not found".format(labeltype))
         return lt(key)
 
-    @property
-    def labeltype(self):
-        return self._labeltype
-
     def __init__(self, key=0):
         self._key = key
-        if self._labeltype is None:
+        if self.labeltype is None:
             raise ValueError("StockLabel's can't be created without a labeltype, "
                              "please create your own subclass of StockLabel")
 
-        if self._labeltype == "":
+        if self.labeltype == "":
             raise ValueError("Please use a more descriptive labeltype than '' (emptystring). "
                              "Use NoStockLabel when you want no stock label, "
                              "and search for None if you want to look for no label.")
@@ -96,6 +108,7 @@ class StockLabel:
     def __eq__(self, other):
         if other is None and (self.labeltype is None or self.labeltype == ""):
             return True
+        # noinspection PyBroadException
         try:
             return other.key == self.key and other.labeltype == self.labeltype
         except Exception:
@@ -103,6 +116,9 @@ class StockLabel:
 
     def __str__(self):
         return "[{} : {}]".format(self.labeltype, self.key)
+
+    def __hash__(self):
+        return hash(self.labeltype)
 
 
 class StockLabeledLine(models.Model):
@@ -135,4 +151,4 @@ class StockLabeledLine(models.Model):
 
 @StockLabel.register
 class OrderLabel(StockLabel):
-    _labeltype = "Order"
+    labeltype = "Order"

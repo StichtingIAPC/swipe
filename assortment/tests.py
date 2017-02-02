@@ -127,6 +127,7 @@ class BasicTest(TestCase):
         self.assertRaises(AssertionError, AssortmentLabel.get, value=6, label_type=self.labelType)
         self.assertRaises(IntegrityError, self.make_label, value='5', label_type=self.labelType)
 
+    # noinspection PyMethodMayBeStatic
     def make_label(self, value, label_type):
         AssortmentLabel.objects.create(value=value, label_type=label_type)
         AssortmentLabel.objects.create(value=value, label_type=label_type)

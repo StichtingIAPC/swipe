@@ -7,11 +7,21 @@ from money.models import VAT
 
 
 class INeedSettings:
+    # noinspection PyUnusedLocal
+    def __init__(self, *args, **kwargs):
+        # noinspection PyArgumentList
+        super(INeedSettings, self).__init__(*args, **kwargs)
+        self.vat_group = None
+        self.acc_group = None
+        self.branch = None
+        self._base_article_settings = None
+
+    # noinspection PyPep8Naming
     def setUp(self):
         self.vat_group = VAT()
-        self.vat_group.name="Bar"
-        self.vat_group.active=True
-        self.vat_group.vatrate=1.12
+        self.vat_group.name = "Bar"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
         self.vat_group.save()
         self.acc_group = AccountingGroup()
         self.acc_group.accounting_number = 2
@@ -33,9 +43,9 @@ class ArticleBasicTests(INeedSettings, TestCase):
     def setUp(self):
         super().setUp()
         self.vat_group = VAT()
-        self.vat_group.name="Bar"
-        self.vat_group.active=True
-        self.vat_group.vatrate=1.12
+        self.vat_group.name = "Bar"
+        self.vat_group.active = True
+        self.vat_group.vatrate = 1.12
         self.vat_group.save()
         self.acc_group = AccountingGroup()
         self.acc_group.accounting_number = 2
@@ -80,24 +90,25 @@ class ArticleBasicTests(INeedSettings, TestCase):
         results = WishableType.objects.select_related().all()
         for result in results:
             self.assertEqual(result.sellabletype.articletype.name, "Foo")
-            if hasattr(result,"sellabletype"):
-                if hasattr(result.sellabletype,"articletype"):
+            if hasattr(result, "sellabletype"):
+                if hasattr(result.sellabletype, "articletype"):
                     self.assertEqual(result.sellabletype.articletype.accounting_group.accounting_number, 2)
             else:
                 raise Exception("Typing error: Abstract class is given while implementing type expected")
 
     def test_subclassing(self):
         andproduct_type = AndProductType(branch=self.branch)
-        andproduct_type.name="Test"
+        andproduct_type.name = "Test"
         andproduct_type.save()
         orproduct_type = OrProductType(branch=self.branch)
-        orproduct_type.name="Bar"
+        orproduct_type.name = "Bar"
         orproduct_type.save()
         article_type = ArticleType(branch=self.branch)
         article_type.name = "Foo"
         article_type.accounting_group = self.acc_group
         article_type.save()
-        results = WishableType.objects.select_related('sellabletype','orproducttype','sellabletype__articletype').all()
+        results = WishableType.objects.select_related('sellabletype', 'orproducttype',
+                                                      'sellabletype__articletype').all()
         self.assertEqual(results.count(), 3)
         results2 = AndProductType.objects.all()
         self.assertEqual(results2.count(), 1)
@@ -105,5 +116,3 @@ class ArticleBasicTests(INeedSettings, TestCase):
         self.assertEqual(results3.count(), 1)
         results4 = ArticleType.objects.all()
         self.assertEqual(results4.count(), 1)
-
-

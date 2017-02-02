@@ -10,17 +10,11 @@ Copy the settings you want to change to your local.py file and change them there
 import os
 import sys
 
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from django.urls import reverse_lazy
 
 
-
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '(&-^3hx6os!h^sxu(v2py(78zuqtp8pxtu_3f=jh$+c4hw1taw'
@@ -29,9 +23,7 @@ SECRET_KEY = '(&-^3hx6os!h^sxu(v2py(78zuqtp8pxtu_3f=jh$+c4hw1taw'
 DEBUG = False
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-
 # Application definition
-
 INSTALLED_APPS = (
     # django stuff
     'django.contrib.admin',
@@ -43,9 +35,10 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
 
     # utilities
-    'compressor',
-    'compressor_toolkit',
     'django_gravatar',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',  # to enable the frontend to be hosted on another machine than the API.
 
     # our apps
     'core',
@@ -64,12 +57,21 @@ INSTALLED_APPS = (
     'supplication',
     'barcode',
     'sales',
-
+    'public_info',
+    'rma',
+    'internalise',
+    'externalise',
+    'authorization',
+    'customer_invoicing',
+    'revaluation',
+    'stock_count',
+    'article_updater',
 )
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -77,6 +79,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_WHITELIST = []
 
 ROOT_URLCONF = 'swipe.urls'
 
@@ -101,7 +105,6 @@ WSGI_APPLICATION = 'swipe.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -179,7 +182,6 @@ AUTHENTICATION_BACKENDS = (
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -198,19 +200,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Login paths
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
-BASE_URL = "https://swipe.iapc.utwente.nl/"
+
+# Email backend
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'tmp', 'mail')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 # How to generate locale files:
@@ -221,13 +221,9 @@ LOCALE_PATHS = (
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
-
 STATIC_URL = '/static/'
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
 STATICFILES_DIRS = []
-
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -274,14 +270,18 @@ COMPRESS_ES6_COMPILER_CMD = (
 # Add new settings for swipe modules here.
 ##
 
+# Base URL to Swipe application
+BASE_URL = "https://swipe.iapc.utwente.nl/"
+
 # Monetary precision. Don't change unless you know what you're doing.
 DECIMAL_PLACES = 5
 MAX_DIGITS = 28
 
-#Should swipe delete stocklines at count zero?
+# Should swipe delete stocklines at count zero?
 DELETE_STOCK_ZERO_LINES = True
 
-# Should swipe's stock model throw an error when the software attempts to remove stock at a different price from the stock on stock? Sensible: True
+# Should swipe's stock model throw an error when the software attempts to remove stock
+# at a different price from the stock on stock? Sensible: True
 FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 
 # Name of cash payment type
@@ -290,11 +290,19 @@ CASH_PAYMENT_TYPE_NAME = "Cash"
 # Current currency. Transactions are only possible with this currency
 USED_CURRENCY = "EUR"
 
+# Class name of current strategy for supplier orders.
 USED_SUPPLIERORDER_STRATEGY = "IndiscriminateCustomerStockStrategy"
+
+# Class name of current strategy for supplication.
 USED_SUPPLICATION_STRATEGY = "FirstCustomersDateTimeThenStockDateTime"
 
+# Global variables for swipe's JavaScript
 SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')
+}
+
+# TODO: Explanation needed
+REST_FRAMEWORK = {
 }
 
 ##

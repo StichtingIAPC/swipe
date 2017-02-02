@@ -2,16 +2,9 @@ from decimal import Decimal
 
 from django.core.validators import RegexValidator
 from django.db import models
-
-# Based on https://git.iapc.utwente.nl/swipe/swipe-design/issues/22
-# Global money representation parameters
-
 from django.utils.translation import ugettext_lazy
 
 from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
-
-
-# VAT : Pay the government, alas, we have to do this.
 from tools.util import raiseif
 
 
@@ -39,7 +32,7 @@ class AccountingGroup(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return "{}({})".format(self.name,self.vat_group.to_rate_string())
+        return "{}({})".format(self.name, self.vat_group.to_rate_string())
 
 
 class VATLevelField(models.DecimalField):
@@ -89,7 +82,7 @@ def price_field_name(name):
 
 
 class Money:
-    def __init__(self, amount, currency=None, use_system_currency=False):
+    def __init__(self, amount: Decimal, currency: Currency=None, use_system_currency: bool=False):
         if use_system_currency:
             currency = Currency(iso=USED_CURRENCY)
         self._amount = amount.quantize(Decimal(10)**(-DECIMAL_PLACES))
@@ -114,6 +107,9 @@ class Money:
             raise TypeError("Cannot compare objects of type {} and {}".format(type(self), type(item2)))
         else:
             return self == item2
+
+    def uses_system_currency(self):
+        return self.currency.iso == USED_CURRENCY
 
     def __add__(self, oth):
         if type(oth) != Money:
@@ -271,6 +267,11 @@ class Cost(Money):
     def __truediv__(self, oth):
         if isinstance(oth, int):
             return Cost(self.amount / oth, self.currency)
+        elif isinstance(oth, Cost):
+            if self.currency != oth.currency:
+                raise TypeError("Currencies of costs do not match")
+            else:
+                return self.amount/oth.amount
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
@@ -289,8 +290,8 @@ class CostField(MoneyField):
 
 # A price describes a monetary value which is intended to be used on the sales side
 class Price(Money):
-    #TODO: SAVE CHECK?``
-    def __init__(self, amount, vat=None, currency=None, use_system_currency=False):
+    # TODO: SAVE CHECK?
+    def __init__(self, amount: Decimal, vat=None, currency: Currency=None, use_system_currency: bool=False):
         if use_system_currency:
             currency = Currency(iso=USED_CURRENCY)
         super().__init__(amount, currency)
@@ -434,7 +435,7 @@ class SalesPrice(Price):
     """
         The SalesPrice is the price of an object, for which a cost is known.
     """
-    def __init__(self, amount, vat, currency, cost, use_system_currency=False):
+    def __init__(self, amount: Decimal, vat, currency: Currency, cost: Cost, use_system_currency: bool=False):
         if use_system_currency:
             currency = Currency(iso=USED_CURRENCY)
         super().__init__(amount, vat, currency)
@@ -625,7 +626,6 @@ class Denomination(models.Model):
     The currency bundles that a currency has. A cash register can pay cash with only these means
     """
     currency = models.ForeignKey(CurrencyData)
-
     amount = models.DecimalField(decimal_places=DECIMAL_PLACES, max_digits=MAX_DIGITS)
 
     @classmethod
@@ -678,11 +678,12 @@ class TestPriceType(models.Model):
     price = PriceField(type="cost")
 
 
-# Define monetary types here
-money_types = {"cost": Cost, "money": Money}
-
 class InvalidISOError(Exception):
     pass
 
+
 class InvalidDataError(Exception):
     pass
+
+# Define monetary types here
+money_types = {"cost": Cost, "money": Money}

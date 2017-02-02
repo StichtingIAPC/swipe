@@ -8,11 +8,12 @@ from unittest import skip
 from article.tests import INeedSettings
 from money.exceptions import CurrencyInconsistencyError
 from stock.exceptions import Id10TError, StockSmallerThanZeroError
-from stock.stocklabel import StockLabel, StockLabelNotFoundError
-from stock.models import Stock, StockChange, StockChangeSet
+from stock.stocklabel import StockLabel, StockLabelNotFoundError, OrderLabel
+from stock.models import Stock, StockChange, StockChangeSet, StockLock, LockError, StockLockLog
 from article.models import ArticleType
-from money.models import Currency, VAT, Cost, AccountingGroup, SalesPriceField
+from money.models import Currency, VAT, Cost, AccountingGroup
 from swipe.settings import DELETE_STOCK_ZERO_LINES
+from tools.testing import TestData
 
 
 class StockTest(INeedSettings, TestCase):
@@ -70,7 +71,7 @@ class StockTest(INeedSettings, TestCase):
 
         i = 0
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
 
         try:
             Cost(amount=Decimal("1.00000"), currency=cur)
@@ -90,7 +91,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
@@ -104,9 +105,9 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         # Re-using entries for test.
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -138,7 +139,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("1.50000"), currency=cur)
@@ -152,7 +153,7 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
 
         entries = [{
@@ -162,7 +163,7 @@ class StockTest(INeedSettings, TestCase):
             'is_in': True
         }]
         # Re-using entries for test.
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -194,7 +195,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
@@ -208,9 +209,9 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute two stock modifications, creating two StockLogs
-        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         # Re-using entries for test.
-        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, enum=1)
+        log_2 = StockChangeSet.construct(description="AddToStockTest2", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -254,7 +255,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         sp = Cost(amount=Decimal("2.00000"), currency=cur)
@@ -270,7 +271,7 @@ class StockTest(INeedSettings, TestCase):
         # Execute two stock modifications, creating two StockLogs
         start = time.clock()
         for i in range(1, 100000):
-            StockChangeSet.construct(description="AddToStockTest1", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddToStockTest1", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         print("Time elapsed during generation: {}".format(time.clock() - start))
 
         print("Generated")
@@ -295,7 +296,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         sp2 = Cost(amount=Decimal("1.00000"), currency=cur)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
@@ -315,7 +316,7 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute the stock modification, creating a StockChangeSet
-        log_1 = StockChangeSet.construct(description="MultipleProductsTest", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="MultipleProductsTest", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we only added one type of article to the stock
         self.assertEquals(len(Stock.objects.all()), 1)
@@ -345,7 +346,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
@@ -366,7 +367,7 @@ class StockTest(INeedSettings, TestCase):
         }]
 
         # Execute the stock modification, creating a StockChangeSet
-        log_1 = StockChangeSet.construct(description="MultipleArticlesTest", entries=entries, enum=1)
+        log_1 = StockChangeSet.construct(description="MultipleArticlesTest", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check that we added two types of article to the stock
         self.assertEquals(len(Stock.objects.all()), 2)
@@ -396,7 +397,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         sp = Cost(amount=Decimal("1.00000"), currency=cur)
         sp2 = Cost(amount=Decimal("1.00000"), currency=cur)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
@@ -425,11 +426,13 @@ class StockTest(INeedSettings, TestCase):
         }
 
         # Execute the needed modifications
-        log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
-        log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2], enum=1)
+        log_1 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2],
+                                         source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        log_2 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2", entries=[entry_1, entry_2],
+                                         source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         log_3 = StockChangeSet.construct(description="Get 2xProduct1 3xProduct2 2xProduct1",
-                                         entries=[entry_1, entry_2, entry_1], enum=1)
-        log_4 = StockChangeSet.construct(description="Sell 1xProduct2", entries=[entry_3], enum=1)
+                                         entries=[entry_1, entry_2, entry_1], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        log_4 = StockChangeSet.construct(description="Sell 1xProduct2", entries=[entry_3], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Get resulting stocks
         art_stock = Stock.objects.get(article=art)
@@ -460,7 +463,7 @@ class StockTest(INeedSettings, TestCase):
 
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
 
@@ -477,7 +480,7 @@ class StockTest(INeedSettings, TestCase):
             }]
 
             # Do stock modification
-            StockChangeSet.construct(description="AverageTest{}".format(i), entries=entries, enum=1)
+            StockChangeSet.construct(description="AverageTest{}".format(i), entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Get stock for article
         st = Stock.objects.get(article=art)
@@ -495,7 +498,7 @@ class StockTest(INeedSettings, TestCase):
         # Create some objects to use in the tests
         i = 0
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
 
@@ -513,7 +516,8 @@ class StockTest(INeedSettings, TestCase):
                 }]
 
                 # Do stock modification
-                StockChangeSet.construct(description="NegativeStockTest{}".format(i), entries=entries, enum=1)
+                StockChangeSet.construct(description="NegativeStockTest{}".format(i), entries=entries,
+                                         source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         except StockSmallerThanZeroError:
             i = 1
@@ -529,7 +533,7 @@ class StockTest(INeedSettings, TestCase):
         i = 0
         eur = Currency("EUR")
         usd = Currency("USD")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
         cost_usd = Cost(amount=Decimal(str(1)), currency=usd)  # 1 dollar
         art = ArticleType.objects.create(name="P1", branch=self.branch,
@@ -542,7 +546,7 @@ class StockTest(INeedSettings, TestCase):
             'count': 1,
             'is_in': True
         }]
-        StockChangeSet.construct(description="AddEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         # Check if the product was successfully added to the stock
         self.assertEqual(len(Stock.objects.all()), 1)
@@ -557,7 +561,7 @@ class StockTest(INeedSettings, TestCase):
             'is_in': True
         }]
         try:
-            StockChangeSet.construct(description="AddDollarStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddDollarStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         except CurrencyInconsistencyError:
             i = 1
 
@@ -579,7 +583,7 @@ class StockTest(INeedSettings, TestCase):
         i = 0
 
         try:
-            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         except CurrencyInconsistencyError:
             i = 1
 
@@ -596,7 +600,7 @@ class StockTest(INeedSettings, TestCase):
         """
         # Create some objects to use in the tests
         cur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
         book_value = None
@@ -613,7 +617,7 @@ class StockTest(INeedSettings, TestCase):
                 'is_in': True
             }]
 
-            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         for i in range(1, 7):  # 1 to 6. Average should be 3.5
             # Define book value, only remove for average cost.
             book_value = Cost(amount=Decimal(3.5000), currency=cur)
@@ -623,7 +627,7 @@ class StockTest(INeedSettings, TestCase):
                     'count': 1,
                     'is_in': False
             }]
-            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+            StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         entries = [{
             'article': art,
@@ -632,7 +636,7 @@ class StockTest(INeedSettings, TestCase):
             'is_in': False
         }]
 
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.assertEqual(len(StockChange.objects.all_without_label()), 13)
         self.assertEqual(len(StockChange.objects.all_without_label()), 13)
 
@@ -643,19 +647,44 @@ class StockTest(INeedSettings, TestCase):
         else:
             self.assertEqual(st.__len__(), 1)
 
+    def testInvalidSource(self):
+        i = 0
+        # Create some objects to use in the tests
+        eur = Currency("EUR")
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
+        art = ArticleType.objects.create(name="P1", branch=self.branch,
+                                         accounting_group=self.accountinggroup)
+
+        # Sample article
+        entries = [{
+            'article': art,
+            'book_value': cost_eur,
+            'count': 1,
+            'is_in': True
+        }]
+        try:
+            StockChangeSet.construct(description="AddInvalidSource", entries=entries,
+                                     source="some_nonexisting_source_is_nonexisting")
+        except ValueError:
+            i = 1
+
+        # This should have failed, so i should be 1
+        self.assertEqual(i, 1)
+
 
 @StockLabel.register
 class ZStockLabel(StockLabel):
-    _labeltype = "Zz"
+    labeltype = "Zz"
 
 
 @StockLabel.register
 class TestStockLabel(StockLabel):
-    _labeltype = "test"
+    labeltype = "test"
 
 
 class ForgottenStockLabel(StockLabel):
-    _labeltype = "forgotten"
+    labeltype = "forgotten"
 
 
 class LabelTest(INeedSettings, TestCase):
@@ -686,7 +715,7 @@ class LabelTest(INeedSettings, TestCase):
 
     def testBasicLabel(self):
         eur = Currency("EUR")
-        vat = VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
+        VAT.objects.create(vatrate=Decimal("1.21"), name="HIGH", active=True)
         cost_eur = Cost(amount=Decimal(str(1)), currency=eur)  # 1 euro
         art = ArticleType.objects.create(name="P1", branch=self.branch,
                                          accounting_group=self.accountinggroup)
@@ -699,8 +728,8 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
         self.assertEqual(len(StockChange.objects.filter(label=self.label1a)), 2)
         self.assertEqual(len(StockChange.objects.all_without_label()), 0)
@@ -709,12 +738,12 @@ class LabelTest(INeedSettings, TestCase):
         t = TestStockLabel(4)
 
         entries[0]["label"] = t
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         entries[0]["label"] = None
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
     def raisesTest(self):
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=self.entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=self.entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
 
     def testLabelFailBecauseNoLabel(self):
         eur = Currency("EUR")
@@ -730,7 +759,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.entries = [{
             'article': art,
             'book_value': cost_eur,
@@ -741,7 +770,7 @@ class LabelTest(INeedSettings, TestCase):
         self.assertEqual(Stock.objects.get(label=self.label1a).count, 1)
         self.assertEqual(StockChange.objects.all().__len__(), 1)
         entries[0]['is_in'] = False
-        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondEuroStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         if DELETE_STOCK_ZERO_LINES:
             self.assertEqual(Stock.objects.filter(label=self.label1a).__len__(), 0)
         else:
@@ -760,7 +789,7 @@ class LabelTest(INeedSettings, TestCase):
 
     def testTestLabelWithoutName(self):
         class InValidLabel(StockLabel):
-            _labeltype = ""
+            labeltype = ""
 
         self.labeltype = InValidLabel
         self.assertRaises(ValueError, self.raise_Invalid_Label_type_added)
@@ -772,7 +801,7 @@ class LabelTest(INeedSettings, TestCase):
         # Add 1 article with cost 1 euro
         entries = self.def_entries
 
-        StockChangeSet.construct(description="AddFirstStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddFirstStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.assertEqual(StockChange.objects.all().__len__(), 1)
         self.assertEqual(Stock.objects.all().__len__(), 1)
         self.assertEqual(Stock.objects.all_without_label().__len__(), 0)
@@ -789,7 +818,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': False,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.assertEqual(StockChange.objects.all().__len__(), 3)
         if DELETE_STOCK_ZERO_LINES:
             self.assertEqual(Stock.objects.all().__len__(), 1)
@@ -818,7 +847,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         self.cost_eur = self.cost_eur + self.cost_eur
         entries = [{
             'article': self.def_art,
@@ -833,7 +862,7 @@ class LabelTest(INeedSettings, TestCase):
             'is_in': True,
             'label': self.label1a
         }]
-        StockChangeSet.construct(description="AddSecondStock", entries=entries, enum=1)
+        StockChangeSet.construct(description="AddSecondStock", entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         without_label = Stock.objects.all_without_label()
         without_line = without_label[0]
         self.assertEqual(without_label.__len__(), 1)
@@ -871,5 +900,159 @@ class LabelTest(INeedSettings, TestCase):
 
     def testStockLabelNotRegistred(self):
         self.assertRaises(StockLabelNotFoundError, self.create_forgotten_stock)
+
+    # noinspection PyMethodMayBeStatic
     def testEmptyStockChangeSet(self):
-        StockChangeSet.construct(description="!",entries=[],enum=0)
+        StockChangeSet.construct(description="!", entries=[], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+
+
+class StockLockTest(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_lock_get(self):
+        self.assertTrue(StockLock.is_unlocked())
+        # After creation
+        self.assertTrue(StockLock.is_unlocked())
+
+    def test_lock_set(self):
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.unlock(self.user_1)
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        StockLock.unlock(self.user_1)
+        self.assertTrue(StockLock.is_unlocked())
+        StockLock.unlock(self.user_1)
+        self.assertTrue(StockLock.is_unlocked())
+        self.assertEqual(StockLockLog.objects.all().count(), 7)
+
+    def test_blocking_criterium_and_effect(self):
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_system_currency_1,
+                    'count': 1,
+                    'is_in': True}]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockLock.lock(self.user_1)
+        self.assertTrue(StockLock.is_locked())
+        with self.assertRaises(LockError):
+            StockChangeSet.construct(description="Stocking",
+                                     entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+
+    def test_block_override(self):
+        StockLock.lock(self.user_1)
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_system_currency_1,
+                    'count': 1,
+                    'is_in': True}]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE,
+                                 force_ignore_lock=True)
+
+
+class StockStatisticFunctions(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_generalisation_one_article_one_line(self):
+        entries = [{'article': self.articletype_1,
+                    'book_value': self.cost_system_currency_1,
+                    'count': 1,
+                    'is_in': True}]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        test_set = Stock.get_all_average_prices_and_amounts()
+        for key in test_set:
+            result = test_set[key]
+            self.assertEqual(result, (1, self.cost_system_currency_1))
+
+    def test_generalisation_one_article_two_lines(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        cost_2 = Cost(amount=Decimal(4), currency=Currency("EUR"))
+        entries = [{'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 1,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': cost_2,
+                    'count': 2,
+                    'is_in': True,
+                    'label': OrderLabel(3)}
+                   ]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        test_set = Stock.get_all_average_prices_and_amounts()
+        result = test_set[self.articletype_1]
+        cost_avg = Cost(amount=Decimal(3), currency=Currency("EUR"))
+        self.assertEqual(result, (3, cost_avg))
+
+    def test_generalisation_two_articles_mixed_amount_of_lines(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        cost_2 = Cost(amount=Decimal(4), currency=Currency("EUR"))
+        entries = [{'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 1,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': cost_2,
+                    'count': 2,
+                    'is_in': True,
+                    'label': OrderLabel(3)},
+                   {'article': self.articletype_2,
+                    'book_value': self.cost_system_currency_1,
+                    'count': 5,
+                    'is_in': True,
+                    'label': OrderLabel(1)}
+                   ]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        cost_avg = Cost(amount=Decimal(3), currency=Currency("EUR"))
+        test_set = Stock.get_all_average_prices_and_amounts()
+        art_1 = test_set[self.articletype_1]
+        art_2 = test_set[self.articletype_2]
+        self.assertEqual(art_1, (3, cost_avg))
+        self.assertEqual(art_2, (5, self.cost_system_currency_1))
+
+    def test_generalisation_fully_mixed(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        cost_2 = Cost(amount=Decimal(4), currency=Currency("EUR"))
+        cost_3 = Cost(amount=Decimal(6), currency=Currency("EUR"))
+        cost_4 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        entries = [{'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 1,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': cost_2,
+                    'count': 2,
+                    'is_in': True,
+                    'label': OrderLabel(3)},
+                   {'article': self.articletype_2,
+                    'book_value': cost_3,
+                    'count': 4,
+                    'is_in': True,
+                    'label': OrderLabel(1)},
+                   {'article': self.articletype_2,
+                    'book_value': cost_4,
+                    'count': 1,
+                    'is_in': True,
+                    'label': OrderLabel(1)}
+                   ]
+        StockChangeSet.construct(description="Stocking",
+                                 entries=entries, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        cost_avg_1 = Cost(amount=Decimal(3), currency=Currency("EUR"))
+        cost_avg_2 = Cost(amount=Decimal(5), currency=Currency("EUR"))
+        test_set = Stock.get_all_average_prices_and_amounts()
+        art_1 = test_set[self.articletype_1]
+        art_2 = test_set[self.articletype_2]
+        self.assertEqual(art_1, (3, cost_avg_1))
+        self.assertEqual(art_2, (5, cost_avg_2))

@@ -6,9 +6,14 @@ from compressor_toolkit.precompilers import SCSSCompiler, ES6Compiler, \
 
 
 class OnceHelper(CachedCompilerFilter):
+    def output(self, **kwargs):
+        super(OnceHelper, self).output(**kwargs)
+
     def __init__(self, content, **kwargs):
         kwargs['mimetype'] = type(self).mimetype  # nessesary for mimetype checks in CachedCompiler
-        super().__init__(content=content, **kwargs)  # Content has to be given to CompilerFilter, but it doesn't do anything
+
+        # Content has to be given to CompilerFilter, but it doesn't do anything
+        super().__init__(content=content, **kwargs)
 
 
 class CachedHelperFilter(OnceHelper):

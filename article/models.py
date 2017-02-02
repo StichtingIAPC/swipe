@@ -9,8 +9,8 @@ from money.models import MoneyField, AccountingGroup, SalesPrice
 class WishableType(models.Model):
     """
     General product type that can be desired by a customer. This type is product is not neccesarily sellable and does
-    not exist as a type that our suppliers can provide. Ordering non-sellable types incurs significant logic in the system
-    to resolve. Keep this in mind.
+    not exist as a type that our suppliers can provide. Ordering non-sellable types incurs significant logic in the
+    system to resolve. Keep this in mind.
     """
     labels = models.ManyToManyField(AssortmentLabel)
     branch = models.ForeignKey(AssortmentArticleBranch)
@@ -29,6 +29,11 @@ class WishableType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = [
+            'name',
+        ]
+
 
 class SellableType(WishableType):
     # This abstract type can be sold. Handling of these types in the system is quite easy.
@@ -44,12 +49,12 @@ class SellableType(WishableType):
 class ArticleType(SellableType):
     # The type of an article you can put on a shelf
     fixed_price = MoneyField(null=True)
-
-
+    # The unique identifier around the world for this product. May also be an ISBN.
+    ean = models.BigIntegerField(null=True)
 
     def calculate_sales_price(self, cost):
         return SalesPrice(amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085),
-                          vat=self.accounting_group.vat_group.vatrate, currency=cost.currency)
+                          vat=self.accounting_group.vat_group.vatrate, currency=cost.currency, cost=cost.amount)
 
     def get_expected_sales_price(self):
         return None

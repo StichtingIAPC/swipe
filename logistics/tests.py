@@ -6,7 +6,6 @@ from order.models import *
 
 
 class StockWishTests(INeedSettings, TestCase):
-
     def setUp(self):
         self.vat_group = VAT()
         self.vat_group.name = "AccGrpFoo"
@@ -40,7 +39,7 @@ class StockWishTests(INeedSettings, TestCase):
         self.customer = Person()
         self.customer.save()
 
-        self.user_modified = User(username= "HENK")
+        self.user_modified = User(username="HENK")
         self.user_modified.save()
 
     def test_primitive_wish_save(self):
@@ -53,12 +52,12 @@ class StockWishTests(INeedSettings, TestCase):
 
         self.assertEqual(len(StockWish.objects.all()), 1)
         swtl = StockWishTableLog.objects.get()
-        self.assertEquals(swtl.stock_wish , sw)
+        self.assertEquals(swtl.stock_wish, sw)
 
         swtl = StockWishTableLine.objects.all()
-        self.assertEquals(len(swtl) , 1)
-        self.assertEquals(swtl[0].article_type , self.article_type)
-        self.assertEquals(swtl[0].number , NUMBER)
+        self.assertEquals(len(swtl), 1)
+        self.assertEquals(swtl[0].article_type, self.article_type)
+        self.assertEquals(swtl[0].number, NUMBER)
 
     def test_addition_wish(self):
         NUMBER = 1
@@ -94,7 +93,7 @@ class StockWishTests(INeedSettings, TestCase):
         NUMBER = 2
         NUMBER2 = 3
 
-        sw = StockWish.create_stock_wish(
+        StockWish.create_stock_wish(
             user_modified=self.user_modified,
             articles_ordered=[
                 (self.article_type, NUMBER),
@@ -114,9 +113,7 @@ class StockWishTests(INeedSettings, TestCase):
         self.assertEqual(len(StockWishTableLog.objects.all()), 2)
 
     def test_mass_storage_simple(self):
-
-        article_number_list = []
-        article_number_list.append([self.article_type, 2])
+        article_number_list = [[self.article_type, 2]]
         StockWish.create_stock_wish(self.user_modified, article_number_list)
 
         stockwish_list = StockWish.objects.all()
@@ -151,11 +148,7 @@ class StockWishTests(INeedSettings, TestCase):
 
     def test_mass_storage_differentiated(self):
 
-        atcs = []
-        atcs.append([self.article_type, 2])
-        atcs.append([self.article_type, 2])
-        atcs.append([self.at2, 3])
-        atcs.append([self.at3, 5])
+        atcs = [[self.article_type, 2], [self.article_type, 2], [self.at2, 3], [self.at3, 5]]
         StockWish.create_stock_wish(self.user_modified, atcs)
 
         stockwish_list = StockWish.objects.all()
@@ -169,26 +162,21 @@ class StockWishTests(INeedSettings, TestCase):
         self.assertEqual(len(stock_wish_table_lines), 3)
 
     def test_deletion_of_lines(self):
-        atcs = []
-        atcs.append([self.article_type, 2])
+        atcs = [[self.article_type, 2]]
         StockWish.create_stock_wish(self.user_modified, atcs)
         self.assertEqual(len(StockWishTableLog.objects.all()), 1)
         swtl = StockWishTableLine.objects.all()
         self.assertEqual(len(swtl), 1)
         self.assertEqual(swtl[0].number, 2)
 
-
-        atcs = []
-        atcs.append([self.article_type, -1])
+        atcs = [[self.article_type, -1]]
         StockWish.create_stock_wish(self.user_modified, atcs)
         self.assertEqual(len(StockWishTableLog.objects.all()), 2)
         swtl = StockWishTableLine.objects.all()
         self.assertEqual(len(swtl), 1)
         self.assertEqual(swtl[0].number, 1)
 
-
-        atcs = []
-        atcs.append([self.article_type, -1])
+        atcs = [[self.article_type, -1]]
         StockWish.create_stock_wish(self.user_modified, atcs)
         self.assertEqual(len(StockWishTableLog.objects.all()), 3)
         swtl = StockWishTableLine.objects.all()
@@ -196,14 +184,13 @@ class StockWishTests(INeedSettings, TestCase):
 
     def test_indirection(self):
 
-        log = StockWishTableLog(number=3, article_type=self.article_type,user_modified=self.user_modified)
+        log = StockWishTableLog(number=3, article_type=self.article_type, user_modified=self.user_modified)
 
         with self.assertRaises(IndirectionError):
             log.save()
 
 
 class SupplierOrderTests(INeedSettings, TestCase):
-
     def setUp(self):
         self.vat_group = VAT()
         self.vat_group.name = "AccGrpFoo"
@@ -253,12 +240,12 @@ class SupplierOrderTests(INeedSettings, TestCase):
         self.user_modified = User()
         self.user_modified.save()
 
-        self.cost = Cost(currency=Currency('EUR'), amount=Decimal(1.23))
+        self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
 
     def test_ics_strategy_orders_only(self):
         orderlines = []
-        DEMAND_1=6
-        DEMAND_2=3
+        DEMAND_1 = 6
+        DEMAND_2 = 3
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, DEMAND_1, self.price, self.user_modified)
         OrderLine.add_orderlines_to_list(orderlines, self.at2, DEMAND_2, self.price, self.user_modified)
         order = Order(user_modified=self.user_modified, customer=self.customer)
@@ -312,9 +299,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
 
         ORDER_DEMAND_1 = 2
         ORDER_DEMAND_2 = 2
-        atcs = []
-        atcs.append((self.article_type, STOCK_DEMAND_1))
-        atcs.append((self.at2, STOCK_DEMAND_2))
+        atcs = [(self.article_type, STOCK_DEMAND_1), (self.at2, STOCK_DEMAND_2)]
         StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
 
         orderlines = []
@@ -327,9 +312,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SUPPLY_1 = 3
         SUPPLY_2 = 3
 
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
-        atcs.append([self.at2, SUPPLY_2, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost], [self.at2, SUPPLY_2, self.cost]]
         distribution = IndiscriminateCustomerStockStrategy.get_distribution(atcs)
         counted_orders = 0
         for d in distribution:
@@ -345,11 +328,8 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SUPPLY_1 = 5
         SUPPLY_2 = 3
 
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
-        atcs.append([self.at2, SUPPLY_2, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost], [self.at2, SUPPLY_2, self.cost]]
 
-        ats = ArticleTypeSupplier(supplier=self.supplier, article_type=self.article_type)
         # Orders
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, self.article_type, ORDER_1, self.price, self.user_modified)
@@ -358,7 +338,8 @@ class SupplierOrderTests(INeedSettings, TestCase):
         order = Order(user_modified=self.user_modified, customer=self.customer)
         Order.make_order(order, orderlines, self.user_modified)
 
-        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()
 
         FOUND_1 = 0
@@ -378,21 +359,17 @@ class SupplierOrderTests(INeedSettings, TestCase):
         STOCK_1 = 6
         STOCK_2 = 3
 
-        atcs = []
-        atcs.append((self.article_type, STOCK_1))
-        atcs.append((self.at2, STOCK_2))
+        atcs = [(self.article_type, STOCK_1), (self.at2, STOCK_2)]
 
         StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
-
 
         SUPPLY_1 = 5
         SUPPLY_2 = 3
 
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
-        atcs.append([self.at2, SUPPLY_2, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost], [self.at2, SUPPLY_2, self.cost]]
 
-        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
 
         sols = SupplierOrderLine.objects.all()
 
@@ -416,9 +393,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
 
         ORDER_DEMAND_1 = 2
         ORDER_DEMAND_2 = 2
-        atcs = []
-        atcs.append((self.article_type, STOCK_DEMAND_1))
-        atcs.append((self.at2, STOCK_DEMAND_2))
+        atcs = [(self.article_type, STOCK_DEMAND_1), (self.at2, STOCK_DEMAND_2)]
         StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
 
         orderlines = []
@@ -431,11 +406,10 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SUPPLY_1 = 3
         SUPPLY_2 = 3
 
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
-        atcs.append([self.at2, SUPPLY_2, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost], [self.at2, SUPPLY_2, self.cost]]
 
-        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
         sols = SupplierOrderLine.objects.all()
 
         ORDERS = 0
@@ -443,7 +417,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
         for sol in sols:
             if sol.order_line is not None:
                 ORDERS += 1
-        self.assertEqual(ORDERS, ORDER_DEMAND_1+ORDER_DEMAND_2)
+        self.assertEqual(ORDERS, ORDER_DEMAND_1 + ORDER_DEMAND_2)
 
     def test_cancel_order_with_full_cancel(self):
         ORDER_1 = 1
@@ -452,8 +426,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
         order = Order(user_modified=self.user_modified, customer=self.customer)
         Order.make_order(order, orderlines, self.user_modified)
         SUPPLY_1 = 1
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost]]
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         ol = OrderLine.objects.get()
@@ -472,8 +445,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
         order = Order(user_modified=self.user_modified, customer=self.customer)
         Order.make_order(order, orderlines, self.user_modified)
         SUPPLY_1 = 1
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost]]
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         ol = OrderLine.objects.get()
@@ -486,14 +458,11 @@ class SupplierOrderTests(INeedSettings, TestCase):
         self.assertEqual(sol.state, 'C')
 
     def test_cancel_stock_wish_with_full_cancel(self):
-
         STOCK_DEMAND_1 = 1
-        atcs = []
-        atcs.append((self.article_type, STOCK_DEMAND_1))
+        atcs = [(self.article_type, STOCK_DEMAND_1)]
         StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
         SUPPLY_1 = 1
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost]]
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         stw = StockWishTableLine.objects.all()
@@ -509,12 +478,10 @@ class SupplierOrderTests(INeedSettings, TestCase):
     def test_cancel_stock_wish_with_return_to_stockwish(self):
 
         STOCK_DEMAND_1 = 1
-        atcs = []
-        atcs.append((self.article_type, STOCK_DEMAND_1))
+        atcs = [(self.article_type, STOCK_DEMAND_1)]
         StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
         SUPPLY_1 = 1
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost]]
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         stw = StockWishTableLine.objects.all()
@@ -537,9 +504,7 @@ class SupplierOrderTests(INeedSettings, TestCase):
 
         ORDER_DEMAND_1 = 2
         ORDER_DEMAND_2 = 2
-        atcs = []
-        atcs.append((self.article_type, STOCK_DEMAND_1))
-        atcs.append((self.at2, STOCK_DEMAND_2))
+        atcs = [(self.article_type, STOCK_DEMAND_1), (self.at2, STOCK_DEMAND_2)]
         StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
 
         orderlines = []
@@ -552,41 +517,26 @@ class SupplierOrderTests(INeedSettings, TestCase):
         SUPPLY_1 = 3
         SUPPLY_2 = 3
 
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
-        atcs.append([self.at2, SUPPLY_2, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost], [self.at2, SUPPLY_2, self.cost]]
 
-        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier, articles_ordered=atcs)
-        sols = SupplierOrderLine.objects.all()
+        SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
+                                            articles_ordered=atcs)
         socls = SupplierOrderCombinationLine.get_sol_combinations()
         self.assertEqual(len(socls), 2)
-        # If the below broke, the functionality of the system might have changed a bit(especially distribution). It might be OK.
+        # If the below broke, the functionality of the system might have changed a bit(especially distribution).
+        # It might be OK.
         self.assertEqual(socls[0].number, 3)
         self.assertEqual(socls[1].number, 3)
 
     def test_supplier_order_combination_line_with_supplier(self):
-
         STOCK_DEMAND_1 = 2
-        atcs = []
-        atcs.append((self.article_type, STOCK_DEMAND_1))
+        atcs = [(self.article_type, STOCK_DEMAND_1)]
         StockWish.create_stock_wish(user_modified=self.user_modified, articles_ordered=atcs)
         SUPPLY_1 = 2
-        atcs = []
-        atcs.append([self.article_type, SUPPLY_1, self.cost])
+        atcs = [[self.article_type, SUPPLY_1, self.cost]]
         SupplierOrder.create_supplier_order(user_modified=self.user_modified, supplier=self.supplier,
                                             articles_ordered=atcs)
         socls = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier2)
         self.assertEqual(len(socls), 0)
         socls2 = SupplierOrderCombinationLine.get_sol_combinations(supplier=self.supplier)
         self.assertEqual(len(socls2), 1)
-
-
-
-
-
-
-
-
-
-
-

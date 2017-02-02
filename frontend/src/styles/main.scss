@@ -1,0 +1,63 @@
+$col-dark: #222;
+$col-bg: #e5e2e2;
+$col-light: #FEFCFC;
+
+$col-iapc-dark: #921311;
+$col-iapc-regular: #B01815;
+$col-iapc-bright: #DB1D1A;
+$col-iapc-white-accent: #FBDBDA;
+
+$col-iapc-anti-dark: #56800F;
+$col-iapc-anti: #77b015;
+$col-iapc-anti-light: #A6E736;
+
+$col-iapc-blue-dark: #1178cc;
+$col-iapc-blue: #1198ff;
+$col-iapc-blue-light: #2cb8ff;
+
+$dim-base: 8px;
+
+.sidebar-menu li a i.fa {
+	margin-right: $dim-base;
+}
+
+.content-wrapper {
+	height: 100vh;
+	overflow: auto;
+}
+
+/* MONEY / DENOMINATION LABEL */
+.label-denomination {
+	color: black;
+	font-size: inherit;
+	font-weight: inherit;
+	display: inline-block;
+}
+
+
+/* AUTHENTICATION */
+.page-authentication {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.page-authentication .auth-form {
+	display: block;
+	width: 300px;
+	max-width: 90vh;
+	margin: 0 auto;
+	background: #fff;
+	box-shadow: 0 0 8px #333;
+	padding: 8px 16px;
+	padding-top: 0;
+}
+
+.page-authentication .auth-form label {
+	display: block;
+}
+
+.page-authentication .auth-form input {
+	display: block;
+	width: 100%;
+}
