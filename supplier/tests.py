@@ -209,8 +209,7 @@ class ArticleTypeSupplierTests(TestCase, TestData):
         self.assertEqual(at_updated.availability, 'D')
 
     def test_extra_sta_has_no_effect(self):
-        self.articletype_3 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
-                                         branch=self.branch_2)
+        self.articletype_3 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
         ArticleTypeSupplier.update_article_type_suppliers(self.supplier_1)
         self.assertEqual(ArticleTypeSupplier.objects.count(), 2)
 
