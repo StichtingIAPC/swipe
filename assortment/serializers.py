@@ -4,6 +4,14 @@ from assortment.models import AssortmentLabel, AssortmentLabelType, AssortmentUn
 
 
 class LabelSerializer(serializers.ModelSerializer):
+    """
+    shape:
+    {
+      "id": Number,
+      "value": String,
+      "label_type": Number,
+    }
+    """
     class Meta:
         model = AssortmentLabel
         fields = (
@@ -14,8 +22,15 @@ class LabelSerializer(serializers.ModelSerializer):
 
 
 class LabelSerializerWithEdit(LabelSerializer):
+    """
+    shape:
+    {
+      "id": Number,
+      "value": String,
+      "label_type": Number,
+    }
+    """
     class Meta(LabelSerializer.Meta):
-
         extra_kwargs = {
             'value': {'read_only': False},
             'label_type': {'read_only': False, 'queryset': AssortmentLabelType.objects.all()}
@@ -23,6 +38,15 @@ class LabelSerializerWithEdit(LabelSerializer):
 
 
 class LabelTypeSerializer(serializers.ModelSerializer):
+    """
+    shape:
+    {
+      "id": Number,
+      "description": String,
+      "name": String,
+      "unit_type": Number,
+    }
+    """
     class Meta:
         model = AssortmentLabelType
         fields = (
@@ -34,6 +58,16 @@ class LabelTypeSerializer(serializers.ModelSerializer):
 
 
 class LabelTypeSerializerWithEdit(LabelTypeSerializer):
+    """
+    shape:
+    {
+      "id": Number,
+      "description": String,
+      "name": String,
+      "unit_type": Number,
+    }
+    """
+
     class Meta(LabelTypeSerializer.Meta):
         extra_kwargs = {
             'name': {'read_only': False},
@@ -42,6 +76,15 @@ class LabelTypeSerializerWithEdit(LabelTypeSerializer):
 
 
 class UnitTypeSerializer(serializers.ModelSerializer):
+    """
+    shape:
+    {
+      "id": Number,
+      "type_long": String,
+      "type_short": String,
+      "value_type": String,
+      "incremental_type": String,
+    """
     class Meta:
         model = AssortmentUnitType
         fields = (
@@ -54,6 +97,15 @@ class UnitTypeSerializer(serializers.ModelSerializer):
 
 
 class UnitTypeSerializerWithEdit(UnitTypeSerializer):
+    """
+    shape:
+    {
+      "id": Number,
+      "type_long": String,
+      "type_short": String,
+      "value_type": String,
+      "incremental_type": String,
+    """
     class Meta(UnitTypeSerializer.Meta):
         extra_kwargs = {
             'type_long': {'read_only': False},
