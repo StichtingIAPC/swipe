@@ -1,4 +1,4 @@
-from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money
+from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money, VATPeriod
 from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
 from register.models import PaymentType, Register
 from decimal import Decimal
@@ -10,6 +10,7 @@ from supplication.models import PackingDocument
 from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
 from django.test import TestCase
 from swipe.settings import USED_CURRENCY
+import datetime
 
 
 class TestData:
@@ -46,10 +47,16 @@ class TestData:
             self.currency_data_used.save()
 
     def part_setup_vat_group(self):
-        self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
+        self.vat_group_high = VAT(name="High", active=True)
         self.vat_group_high.save()
-        self.vat_group_low = VAT(vatrate=1.06, name="Low", active=True)
+        self.vat_group_low = VAT(name="Low", active=True)
         self.vat_group_low.save()
+        self.vat_group_high_period = VATPeriod(vat=self.vat_group_high, begin_date=datetime.date.fromtimestamp(1000000),
+                                               vatrate=Decimal("1.21"))
+        self.vat_group_high_period.save()
+        self.vat_group_low_period = VATPeriod(vat=self.vat_group_low, begin_date=datetime.date.fromtimestamp(1000000),
+                                              vatrate=Decimal("1.06"))
+        self.vat_group_low_period.save()
 
     def part_setup_currency(self):
         self.currency_eur = Currency(iso="EUR")

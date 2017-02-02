@@ -1,13 +1,14 @@
 from decimal import Decimal
 
 from django.test import TestCase
+from tools.testing import TestData
 from swipe.settings import USED_CURRENCY
 
 from article.models import ArticleType
 from assortment.models import AssortmentArticleBranch
 from crm.models import Person, User
 from logistics.models import SupplierOrder, StockWish
-from money.models import VAT, AccountingGroup, Price, Currency, Cost, Money
+from money.models import VAT, AccountingGroup, Price, Currency, Cost, Money, VATPeriod
 from order.models import OrderLine, Order
 from stock.models import Stock, StockChange
 from supplication import models
@@ -18,14 +19,11 @@ from supplier.models import Supplier, ArticleTypeSupplier
 
 
 # Create your tests here.
-class SimpleClassTests(TestCase):
+class SimpleClassTests(TestCase, TestData):
 
     def setUp(self):
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.part_setup_vat_group()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
@@ -278,14 +276,11 @@ class SimpleClassTests(TestCase):
 
 
 # noinspection PyPackageRequirements,PyPackageRequirements
-class DistributionTests(TestCase):
+class DistributionTests(TestCase, TestData):
 
     def setUp(self):
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.part_setup_vat_group()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
@@ -754,14 +749,11 @@ class DistributionTests(TestCase):
                                             document_identifier="Dloa")
 
 
-class PackingDocumentCreationTests(TestCase):
+class PackingDocumentCreationTests(TestCase, TestData):
 
     def setUp(self):
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.part_setup_vat_group()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
