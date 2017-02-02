@@ -1,6 +1,6 @@
-import React, {PropTypes} from "react";
+import React, { PropTypes } from "react";
 import { Link } from "react-router";
-import {connect} from "react-redux";
+import { connect } from "react-redux";
 import FontAwesome from "../tools/icons/FontAwesome";
 
 class SupplierDetail extends React.Component {
@@ -21,7 +21,8 @@ class SupplierDetail extends React.Component {
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
-								<Link to={`/supplier/${supplier.id}/edit`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
+								<Link to="/supplier/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
+								<Link to={`/supplier/${supplier.id}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
 								<Link onClick={this.trash.bind(this)} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
 							</div>
 						</div>
