@@ -46,7 +46,6 @@ export function* createSupplier({ supplier }) {
 			redirectTo: `/supplier/${data.id}/`,
 		}));
 	} catch (e) {
-		console.log(e);
 		let msg;
 		if (e instanceof Error)
 			msg = e.message;
@@ -72,7 +71,6 @@ export function* updateSupplier({ supplier }) {
 			redirectTo: `/supplier/${data.id}/`,
 		}));
 	} catch (e) {
-		console.log(e);
 		let msg;
 		if (e instanceof Error)
 			msg = e.message;
