@@ -25,6 +25,10 @@ class PricingModel(models.Model):
     # The priority of execution of the function. Lower number is higher priority. Number is bigger than 0 and unique.
     position = models.IntegerField(unique=True, null=False, validators=[validate_bigger_than_0])
 
+    # Add numerical properties of pricing models like the margin below.
+    margin = models.DecimalField(null=True, blank=True, decimal_places=10, max_digits=16)
+
+
     def __str__(self):
         return "Id: {}, Name: {}, Position: {}".format(self.id, self.name, self.position)
     
@@ -55,7 +59,7 @@ class PricingModel(models.Model):
                 pricing_function = pricing_models[i].return_pricing_function()
                 if not pricing_function:
                     raise PricingError("Pricing function defined was not found")
-                price = pricing_function(sellable_type, margin, customer, stock)
+                price = pricing_function(sellable_type, pricing_models[i], customer, stock)
                 i += 1
 
             if not price:
@@ -71,7 +75,7 @@ class Functions:
     """
 
     @staticmethod
-    def fixed_price(sellable_type: SellableType=None, margin: Decimal=Decimal("0"), customer: Customer=None,
+    def fixed_price(sellable_type: SellableType=None, pricing_model: PricingModel=None, customer: Customer=None,
                     stock: Stock=None):
         raiseifnot(isinstance(sellable_type, SellableType), TypeError, "sellableType should be sellableType")
         if hasattr(sellable_type, 'fixed_price'):
@@ -82,16 +86,17 @@ class Functions:
             return None
 
     @staticmethod
-    def fixed_margin(sellable_type: SellableType=None, margin: Decimal=None, customer: Customer=None,
+    def fixed_margin(sellable_type: SellableType=None, pricing_model: PricingModel=None, customer: Customer=None,
                      stock: Stock=None):
         """
         Adds a desired margin and then rounds. Can either choose an articleType or a stock.
         :param sellable_type:
-        :param margin:
+        :param pricing_model:
         :param customer:
         :param stock:
         :return:
         """
+        margin = pricing_model.margin
         # If no margin is fed or margin is 0, we assume this does not process
         if not margin or margin == Decimal(0):
             return None

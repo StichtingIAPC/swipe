@@ -15,7 +15,7 @@ class PriorityTests(TestCase, TestData):
 
     def test_uniqueness(self):
         p1 = PricingModel(function_identifier=1, name="Foo", position=1)
-        p2 = PricingModel(function_identifier=2, name="Bar", position=1)
+        p2 = PricingModel(function_identifier=2, name="Bar", position=1, margin=Decimal("1.085"))
         p1.save()
         with self.assertRaises(IntegrityError):
             p2.save()
@@ -27,7 +27,7 @@ class PriorityTests(TestCase, TestData):
 
     def test_priority_is_followed_margin_first(self):
         pm1 = PricingModel(function_identifier=1, name="Fixed Price", position=2)
-        pm2 = PricingModel(function_identifier=2, name="Fixed Margin", position=1)
+        pm2 = PricingModel(function_identifier=2, name="Fixed Margin", position=1, margin=Decimal(1))
         pm1.save()
         pm2.save()
 
@@ -35,10 +35,10 @@ class PriorityTests(TestCase, TestData):
         self.articletype_1.fixed_price = price
         self.articletype_1.save()
 
-        price_found = PricingModel.return_price(self.articletype_1, margin=Decimal(1))
+        price_found = PricingModel.return_price(self.articletype_1)
         price_expected = Price(amount=Rounding.round_up(self.cost_system_currency_1.amount*self.articletype_1.get_vat_rate()), currency=self.cost_system_currency_1.currency,
                                vat=self.articletype_1.get_vat_rate())
-        self.assertEqual(price_found, price_expected)
+        self.assertEqual(price_found.amount, price_expected.amount)
 
     def test_priority_is_followed_fixed_first(self):
         pm1 = PricingModel(function_identifier=1, name="Fixed Price", position=1)
@@ -113,9 +113,9 @@ class PricingTests(TestCase, TestData):
         self.assertEqual(price, price_found)
 
     def test_fixed_margin_stockless_article(self):
-        pm1 = PricingModel(function_identifier=2, name="Fixed Margin", position=1)
+        pm1 = PricingModel(function_identifier=2, name="Fixed Margin", position=1, margin=Decimal(2))
         pm1.save()
-        price_found = PricingModel.return_price(self.articletype_1, margin=Decimal(2))
+        price_found = PricingModel.return_price(self.articletype_1)
         price_expected = Price(
             amount=Rounding.round_up(self.cost_system_currency_1.amount * Decimal(2) *
                                      self.articletype_1.get_vat_rate()),
@@ -124,7 +124,7 @@ class PricingTests(TestCase, TestData):
         self.assertEqual(price_found, price_expected)
 
     def test_fixed_margin_stock_article(self):
-        pm1 = PricingModel(function_identifier=2, name="Fixed Margin", position=1)
+        pm1 = PricingModel(function_identifier=2, name="Fixed Margin", position=1, margin=Decimal(2))
         pm1.save()
         cst = Cost(amount=Decimal(10), use_system_currency=True)
         StockChangeSet.construct(description="None", entries=[
@@ -135,15 +135,15 @@ class PricingTests(TestCase, TestData):
         ], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         st = Stock.objects.get()
 
-        price_found = PricingModel.return_price(stock=st, margin=Decimal(2))
+        price_found = PricingModel.return_price(stock=st)
         price_expected = Price(amount=Rounding.round_up(Decimal(10)*Decimal(2)*self.articletype_1.get_vat_rate()),
                                use_system_currency=True, vat=self.articletype_1.get_vat_rate())
         self.assertEqual(price_expected, price_found)
 
     def test_fixed_margin_othercost(self):
-        pm1 = PricingModel(function_identifier=2, name="Fixed Margin", position=1)
+        pm1 = PricingModel(function_identifier=2, name="Fixed Margin", position=1, margin=Decimal(2))
         pm1.save()
-        price_found = PricingModel.return_price(sellable_type=self.othercosttype_1, margin=Decimal(2))
+        price_found = PricingModel.return_price(sellable_type=self.othercosttype_1)
         price_expect = self.price_system_currency_1
         self.assertEqual(price_found.amount, price_expect.amount)
         self.assertAlmostEqual(price_found.vat, Decimal(price_expect.vat), 4)
