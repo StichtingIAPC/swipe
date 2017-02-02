@@ -96,7 +96,7 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
             number = elem.find(supplier_relation.number).text
             name = elem.find(supplier_relation.name).text
             price_prep = elem.find(supplier_relation.cost).text # type: str
-            price_prep = price_prep.replace(",",".")
+            price_prep = price_prep.replace(",", ".")
             cost = Cost(amount=Decimal(price_prep), use_system_currency=True)
             supply = elem.find(supplier_relation.supply).text
             if supplier_relation.ean:
@@ -168,7 +168,9 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
         for line in csv_data:
             number = line[supplier_relation.number]
             name = line[supplier_relation.name]
-            cost = Cost(amount=Decimal(supplier_relation.cost), use_system_currency=True)
+            cost_data = line[supplier_relation.cost]
+            cost_data = cost_data.replace(",", ".")
+            cost = Cost(amount=Decimal(cost_data), use_system_currency=True)
             supply = int(line[supplier_relation.supply])
 
             if supplier_relation.ean:

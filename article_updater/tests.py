@@ -143,6 +143,7 @@ class SupplierTests(SimpleTestCase):
         supplier_articles = XMLSupplierRelation.get_supplier_type_articles(parsed, self.copaco)
         # Checks if the extraction does not fail
 
+
 class DatabaseParserTests(TestCase):
 
     def setUp(self):
@@ -159,3 +160,4 @@ class DatabaseParserTests(TestCase):
             sa.save()
         retrieved = SupplierTypeArticle.objects.get(number="1N1AA006")
         self.assertEqual(retrieved.ean, 8717774650172)
+        self.assertEqual(retrieved.cost, Cost(amount=Decimal("5.1"), use_system_currency=True))
