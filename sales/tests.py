@@ -14,8 +14,10 @@ from register.models import PaymentType, Register
 from sales import models
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError, \
-    PaymentTypeError, RefundTransactionLine, RefundError, InvalidDataException
-from stock.models import Stock
+    PaymentTypeError, RefundTransactionLine, RefundError, InvalidDataException, StockCollections
+from stock.models import Stock, StockChangeSet
+from stock.stocklabel import OrderLabel
+from pricing.models import PricingModel
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
 
@@ -687,3 +689,66 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
                                        customer=self.customer_person_2)
         st_level = Stock.objects.get(article=self.articletype_1, labeltype__isnull=True)
         self.assertEqual(st_level.count, 1)
+
+
+class StockTests(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+        self.articletype_1.fixed_price = self.price_system_currency_1
+        self.articletype_1.save()
+        self.articletype_2.fixed_price = self.price_systen_currency_2
+        self.articletype_2.save()
+        prm = PricingModel(function_identifier=1, name="Fixed", position=1)
+        prm.save()
+
+    def test_get_stock_for_customer(self):
+        changeset = [{
+            'article': self.articletype_1,
+            'book_value': self.cost_system_currency_1,
+            'count': 3,
+            'is_in': True,
+            'label': OrderLabel(1)
+        },
+            {
+                'article': self.articletype_1,
+                'book_value': self.cost_system_currency_1,
+                'count': 5,
+                'is_in': True,
+            },
+            {
+                'article': self.articletype_2,
+                'book_value': self.cost_system_currency_1,
+                'count': 6,
+                'is_in': True,
+            },
+            {
+                'article': self.articletype_2,
+                'book_value': self.cost_system_currency_1,
+                'count': 7,
+                'is_in': True,
+                'label': OrderLabel(2)
+            }
+        ]
+
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        result = StockCollections.get_stock_with_prices(self.customer_person_1)
+        self.assertEqual(len(result), 2)
+        for line in result:
+            if line[0].article == self.articletype_1:
+                self.assertEqual(line[0].count, 5)
+                self.assertEqual(line[1].amount, self.price_system_currency_1.amount)
+            else:
+                self.assertEqual(line[0].count, 6)
+                self.assertEqual(line[1].amount, self.price_systen_currency_2.amount)
+
+    def test_get_order_stock_for_customers(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        #print(Stock.objects.all())
+        result = StockCollections.get_stock_for_customer_with_prices(customer=self.customer_person_1)
+        #print(result)
+
+
+

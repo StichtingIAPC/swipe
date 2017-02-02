@@ -337,6 +337,12 @@ class Price(Money):
         super().__init__(amount, currency)
         self._vat = vat
 
+    def __str__(self):
+        return "<{}:{}, vat: {}>".format(self.currency.iso, self.amount, self._vat)
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def vat(self):
         return self._vat
@@ -383,8 +389,7 @@ class Price(Money):
         else:
             raise TypeError("Cannot multiply Price with {}".format(type(oth)))
 
-    def __str__(self):
-        return "{}:{}, vat: {}".format(self.currency, self.amount, self._vat)
+
 
 
 class PriceProxy:

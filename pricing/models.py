@@ -77,6 +77,8 @@ class Functions:
     @staticmethod
     def fixed_price(sellable_type: SellableType=None, pricing_model: PricingModel=None, customer: Customer=None,
                     stock: Stock=None):
+        if stock is not None and sellable_type is None:
+            sellable_type = stock.article
         raiseifnot(isinstance(sellable_type, SellableType), TypeError, "sellableType should be sellableType")
         if hasattr(sellable_type, 'fixed_price'):
             fixed = sellable_type.fixed_price  # type: Money
