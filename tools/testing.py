@@ -2,8 +2,6 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from swipe.settings import USED_CURRENCY
-
 from article.models import ArticleType, OtherCostType
 from crm.models import User, Person
 from logistics.models import SupplierOrder, StockWish
@@ -13,7 +11,24 @@ from register.models import PaymentType, Register
 from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
+from swipe.settings import USED_CURRENCY
 
+
+def allowFailure(arg):
+    exception = arg if issubclass(arg, BaseException) else BaseException
+
+    def wrapper(wrapped):
+        def result(*args, **kwargs):
+            try:
+                return wrapped(*args, **kwargs)
+            except exception as e:
+                return
+        return result
+
+    if issubclass(arg, BaseException):
+        return wrapper
+    else:
+        return wrapper(arg)
 
 class TestData:
 
