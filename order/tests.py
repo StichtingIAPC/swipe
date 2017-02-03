@@ -18,37 +18,34 @@ from tools.testing import TestData
 # Create your tests here.
 
 
-class OrderTest(INeedSettings, TestCase, TestData):
+class OrderTest(TestCase, TestData):
 
     def setUp(self):
-        super().setUp()
+
         self.part_setup_vat_group()
         self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
+        self.part_setup_accounting_group()
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo", branch=self.branch)
-        self.article_type.save()
-
-        self.at2 = ArticleType(accounting_group=self.acc_group,
-                               name="Bar", branch=self.branch)
-        self.at2.save()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_article_types()
+        self.article_type = self.articletype_1
+        self.at2 = self.articletype_2
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
-        self.oc = OtherCostType(name="Baz", branch=self.branch, accounting_group=self.acc_group, fixed_price=self.money)
-        self.oc.save()
 
-        self.customer = Person()
-        self.customer.save()
+        self.part_setup_prices()
+        self.part_setup_othercosts()
+        self.oc = self.othercosttype_1
 
-        self.copro = User()
-        self.copro.save()
+        self.part_setup_customers()
+        self.customer = self.customer_person_1
+
+        self.part_setup_users()
+        self.copro = self.user_1
 
         self.order = Order(user_modified=self.copro, customer=self.customer)
         self.order.save()
@@ -227,34 +224,27 @@ class OrderTest(INeedSettings, TestCase, TestData):
         self.assertEquals(tally_art2, 6)
 
 
-class TestStockChangeSetFiltering(TestCase, INeedSettings, TestData):
+class TestStockChangeSetFiltering(TestCase, TestData):
 
     def setUp(self):
-        super().setUp()
-        self.part_setup_vat_group()
+        self.setup_base_data()
+
         self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
-        self.branch = AssortmentArticleBranch.objects.create(
-            name='hoi',
-            parent_tag=None)
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo", branch=self.branch)
-        self.article_type.save()
+        self.branch = self.branch_1
+
+        self.article_type = self.articletype_1
+
         self.eur = Currency(iso="EUR")
         self.cost = Cost(amount=Decimal(3), currency=self.eur)
 
-        self.customer = Person()
-        self.customer.save()
+        self.customer = self.customer_person_1
 
-        self.copro = User()
-        self.copro.save()
+        self.copro = self.user_1
 
         self.order = Order(user_modified=self.copro, customer=self.customer)
         self.order.save()
