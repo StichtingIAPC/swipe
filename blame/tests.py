@@ -1,4 +1,5 @@
 from time import sleep
+from tools.testing import TestData
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -8,9 +9,14 @@ from blame.models import ImmutableBlameTest, BlameTest, BlameLog, \
     ImmutableBlameEditException
 
 
-class OrderTest(TestCase):
+class OrderTest(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+
     def test_immutable(self):
-        u = User.objects.create()
+        u = self.user_1
         ib = ImmutableBlameTest.objects.create(data=1, user_created=u)
         ib.data = 2
 
@@ -21,9 +27,9 @@ class OrderTest(TestCase):
             ib.save()
 
     def test_create_update(self):
-        u = User.objects.create(username="HARRY")
+        u = self.user_1
         ib = BlameTest.objects.create(data=1, user_modified=u)
-        u = User.objects.create(username="AAAAAA")
+        u = self.user_2
         sleep(0.01)  # Force date_modified to change
 
         ib.user_modified = u
