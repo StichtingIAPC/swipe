@@ -14,8 +14,10 @@ from register.models import PaymentType, Register
 from sales import models
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError, \
-    PaymentTypeError, RefundTransactionLine, RefundError, InvalidDataException
-from stock.models import Stock
+    PaymentTypeError, RefundTransactionLine, RefundError, InvalidDataException, StockCollections
+from stock.models import Stock, StockChangeSet
+from stock.stocklabel import OrderLabel
+from pricing.models import PricingModel
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
 
@@ -678,3 +680,96 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
                                        customer=self.customer_person_2)
         st_level = Stock.objects.get(article=self.articletype_1, labeltype__isnull=True)
         self.assertEqual(st_level.count, 1)
+
+
+class StockTests(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+        self.articletype_1.fixed_price = self.price_system_currency_1
+        self.articletype_1.save()
+        self.articletype_2.fixed_price = self.price_systen_currency_2
+        self.articletype_2.save()
+        prm = PricingModel(function_identifier=1, name="Fixed", position=1)
+        prm.save()
+
+    def test_get_stock_for_customer(self):
+        changeset = [{
+            'article': self.articletype_1,
+            'book_value': self.cost_system_currency_1,
+            'count': 3,
+            'is_in': True,
+            'label': OrderLabel(1)
+        },
+            {
+                'article': self.articletype_1,
+                'book_value': self.cost_system_currency_1,
+                'count': 5,
+                'is_in': True,
+            },
+            {
+                'article': self.articletype_2,
+                'book_value': self.cost_system_currency_1,
+                'count': 6,
+                'is_in': True,
+            },
+            {
+                'article': self.articletype_2,
+                'book_value': self.cost_system_currency_1,
+                'count': 7,
+                'is_in': True,
+                'label': OrderLabel(2)
+            }
+        ]
+
+        StockChangeSet.construct(description="Bla", entries=changeset, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        result = StockCollections.get_stock_with_prices(self.customer_person_1)
+        self.assertEqual(len(result), 2)
+        for line in result:
+            if line[0].article == self.articletype_1:
+                self.assertEqual(line[0].count, 5)
+                self.assertEqual(line[1].amount, self.price_system_currency_1.amount)
+            else:
+                self.assertEqual(line[0].count, 6)
+                self.assertEqual(line[1].amount, self.price_systen_currency_2.amount)
+
+    def test_get_order_stock_for_customers(self):
+        self.create_custorders()
+        self.create_suporders()
+        PACK_ART_1 = 3
+        PACK_ART_2 = 4
+        self.create_packingdocuments(article_1=PACK_ART_1, article_2=PACK_ART_2)
+        result = StockCollections.get_stock_for_customer_with_prices(customer=self.customer_person_1)
+        correct_price = {self.articletype_1: self.price_system_currency_1,
+                         self.articletype_2: self.price_systen_currency_2}
+        correct_amount = {self.articletype_1: PACK_ART_1,
+                          self.articletype_2: PACK_ART_2}
+        for line in result:
+            self.assertEqual(line[1], correct_price.get(line[0].article))
+            self.assertEqual(line[0].count, correct_amount.get(line[0].article))
+
+    def test_get_mixed_orders_only_get_correct_ones(self):
+        self.create_custorders(article_1=5,article_2=7, customer=self.customer_person_1)
+        self.create_custorders(article_1=2, article_2=3, customer=self.customer_person_2)
+        self.create_suporders(article_1=7, article_2=10)
+        self.create_packingdocuments(article_1=7, article_2=10)
+        result = StockCollections.get_stock_for_customer_with_prices(customer=self.customer_person_1)
+        for line in result:
+            self.assertTrue(line[0].count in [5, 7])
+        result2 = StockCollections.get_stock_for_customer_with_prices(customer=self.customer_person_2)
+        for line in result2:
+            self.assertTrue(line[0].count in [2, 3])
+
+    def test_get_only_stock_mixed(self):
+        self.create_custorders(article_1=5, article_2=7, customer=self.customer_person_1)
+        self.create_stockwish(article_1=1, article_2=0)
+        self.create_suporders(article_1=6, article_2=7)
+        self.create_packingdocuments(article_1=6, article_2=7)
+        result = StockCollections.get_stock_with_prices(customer=self.customer_person_1)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0].count, 1)
+        self.assertEqual(result[0][0].article, self.articletype_1)
+
+
+
+
