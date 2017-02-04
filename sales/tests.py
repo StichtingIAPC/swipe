@@ -730,10 +730,40 @@ class StockTests(TestCase, TestData):
     def test_get_order_stock_for_customers(self):
         self.create_custorders()
         self.create_suporders()
-        self.create_packingdocuments()
-        #print(Stock.objects.all())
+        PACK_ART_1 = 3
+        PACK_ART_2 = 4
+        self.create_packingdocuments(article_1=PACK_ART_1, article_2=PACK_ART_2)
         result = StockCollections.get_stock_for_customer_with_prices(customer=self.customer_person_1)
-        #print(result)
+        correct_price = {self.articletype_1: self.price_system_currency_1,
+                         self.articletype_2: self.price_systen_currency_2}
+        correct_amount = {self.articletype_1: PACK_ART_1,
+                          self.articletype_2: PACK_ART_2}
+        for line in result:
+            self.assertEqual(line[1], correct_price.get(line[0].article))
+            self.assertEqual(line[0].count, correct_amount.get(line[0].article))
+
+    def test_get_mixed_orders_only_get_correct_ones(self):
+        self.create_custorders(article_1=5,article_2=7, customer=self.customer_person_1)
+        self.create_custorders(article_1=2, article_2=3, customer=self.customer_person_2)
+        self.create_suporders(article_1=7, article_2=10)
+        self.create_packingdocuments(article_1=7, article_2=10)
+        result = StockCollections.get_stock_for_customer_with_prices(customer=self.customer_person_1)
+        for line in result:
+            self.assertTrue(line[0].count in [5, 7])
+        result2 = StockCollections.get_stock_for_customer_with_prices(customer=self.customer_person_2)
+        for line in result2:
+            self.assertTrue(line[0].count in [2, 3])
+
+    def test_get_only_stock_mixed(self):
+        self.create_custorders(article_1=5, article_2=7, customer=self.customer_person_1)
+        self.create_stockwish(article_1=1, article_2=0)
+        self.create_suporders(article_1=6, article_2=7)
+        self.create_packingdocuments(article_1=6, article_2=7)
+        result = StockCollections.get_stock_with_prices(customer=self.customer_person_1)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0].count, 1)
+        self.assertEqual(result[0][0].article, self.articletype_1)
+
 
 
 

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from fractions import Fraction
 
 from django.core.validators import RegexValidator
 from django.db import models
@@ -349,7 +350,9 @@ class Price(Money):
 
     def __eq__(self, other):
         return type(other) == Price and self.amount == other.amount \
-               and self.currency == other.currency and self.vat == other.vat
+               and self.currency == other.currency and \
+               isinstance(self.vat, Decimal) and isinstance(other.vat, Decimal) \
+               and self.vat == other.vat
 
     def compare(self, item2):
         if type(self) != type(item2):

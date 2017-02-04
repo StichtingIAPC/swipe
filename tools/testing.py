@@ -1,5 +1,5 @@
 from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
-from crm.models import User, Person
+from crm.models import User, Person, Customer
 from externalise.models import ExternaliseDocument
 from logistics.models import SupplierOrder, StockWish
 from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money, VATPeriod
@@ -116,8 +116,8 @@ class TestData:
         self.denomination_eur_0_01.save()
 
     def part_setup_prices(self):
-        self.price_system_currency_1 = Price(amount=Decimal(1.23), use_system_currency=True, vat=1.21)
-        self.price_systen_currency_2 = Price(amount=Decimal(2.10), use_system_currency=True, vat=1.06)
+        self.price_system_currency_1 = Price(amount=Decimal(1.23), use_system_currency=True, vat=Decimal("1.21"))
+        self.price_systen_currency_2 = Price(amount=Decimal(2.10), use_system_currency=True, vat=Decimal("1.06"))
 
     def part_setup_costs(self):
         self.cost_system_currency_1 = Cost(amount=Decimal(1.23), use_system_currency=True)
@@ -184,11 +184,13 @@ class TestData:
         pm1 = PricingModel(function_identifier=1, name="Fixed Price", position=1)
         pm1.save()
 
-    def create_custorders(self, article_1=6, article_2=7, othercost_1=5, othercost_2=8):
+    def create_custorders(self, article_1=6, article_2=7, othercost_1=5, othercost_2=8, customer: Customer=None):
         self.CUSTORDERED_ARTICLE_1 = article_1
         self.CUSTORDERED_ARTICLE_2 = article_2
         self.CUSTORDERED_OTHERCOST_1 = othercost_1
         self.CUSTORDERED_OTHERCOST_2 = othercost_2
+        if not customer:
+            customer = self.customer_person_1
         if article_1 + article_2 + othercost_1 + othercost_2 > 0:
             wish_combs = []
             if article_1 > 0:
@@ -199,7 +201,7 @@ class TestData:
                 wish_combs.append([self.othercosttype_1, self.CUSTORDERED_OTHERCOST_1, self.price_system_currency_1])
             if othercost_2 > 0:
                 wish_combs.append([self.othercosttype_2, self.CUSTORDERED_OTHERCOST_2, self.price_systen_currency_2])
-            Order.create_order_from_wishables_combinations(user=self.user_1, customer=self.customer_person_1,
+            Order.create_order_from_wishables_combinations(user=self.user_1, customer=customer,
                                                            wishable_type_number_price_combinations=wish_combs)
 
     def create_stockwish(self, article_1=6, article_2=7):
