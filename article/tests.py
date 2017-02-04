@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from tools.testing import TestData
 from article.models import *
 from money.models import VAT
 
@@ -39,18 +40,16 @@ class INeedSettings:
         }
 
 
-class ArticleBasicTests(INeedSettings, TestCase):
+class ArticleBasicTests(INeedSettings, TestCase, TestData):
     def setUp(self):
-        super().setUp()
-        self.vat_group = VAT()
-        self.vat_group.name = "Bar"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
+
+        self.part_setup_vat_group()
+        self.part_setup_accounting_group()
+        self.part_setup_assortment_article_branch()
+
+        self.vat_group = self.vat_group_high
+        self.acc_group = self.accounting_group_components
+        self.branch = self.branch_1
 
     def test_illegal_save(self):
         generic_wishable_type = WishableType()
@@ -92,7 +91,8 @@ class ArticleBasicTests(INeedSettings, TestCase):
             self.assertEqual(result.sellabletype.articletype.name, "Foo")
             if hasattr(result, "sellabletype"):
                 if hasattr(result.sellabletype, "articletype"):
-                    self.assertEqual(result.sellabletype.articletype.accounting_group.accounting_number, 2)
+                    self.assertEqual(result.sellabletype.articletype.accounting_group.accounting_number,
+                                     self.acc_group.accounting_number)
             else:
                 raise Exception("Typing error: Abstract class is given while implementing type expected")
 
