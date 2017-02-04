@@ -22,47 +22,32 @@ from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
 
 
-class TestTransactionCreationFunction(INeedSettings, TestCase, TestData):
+class TestTransactionCreationFunction(TestCase, TestData):
 
     def setUp(self):
-        super().setUp()
-        self.part_setup_vat_group()
+        self.setup_base_data()
         self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso=USED_CURRENCY)
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", branch=self.branch)
-        self.article_type.save()
-
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", branch=self.branch)
-        self.at2.save()
-
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.article_type = self.articletype_1
+        self.at2 = self.articletype_2
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch_1)
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
 
-        self.supplier = Supplier(name="Nepacove")
-        self.supplier.save()
+        self.supplier = self.supplier_1
 
-        ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
-                                  cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
-        ats.save()
-        ats2 = ArticleTypeSupplier(supplier=self.supplier, article_type=self.at2,
-                                   cost=cost, minimum_number_to_order=1, supplier_string="At2", availability='A')
-        ats2.save()
+        ats = self.articletypesupplier_article_1
+        ats2 = self.articletypesupplier_article_2
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
 
-        self.customer = Person()
-        self.customer.save()
+        self.customer = self.customer_person_1
 
-        self.copro = User()
-        self.copro.save()
+        self.copro = self.user_1
 
         self.pt = PaymentType.objects.create(name="Bla")
         self.pt2 = PaymentType.objects.create(name="Baz")
@@ -77,7 +62,7 @@ class TestTransactionCreationFunction(INeedSettings, TestCase, TestData):
         self.simple_payment_eur = Payment(amount=Money(amount=Decimal(2.0), currency=Currency(USED_CURRENCY)),
                                           payment_type=self.pt)
 
-        self.other_cost = OtherCostType(name="Oth1", branch=self.branch, accounting_group=self.acc_group,
+        self.other_cost = OtherCostType(name="Oth1", branch=self.branch_1, accounting_group=self.acc_group,
                                         fixed_price=self.price
                                         )
         self.other_cost.save()

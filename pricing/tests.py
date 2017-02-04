@@ -159,3 +159,18 @@ class PricingTests(TestCase, TestData):
         pm1.save()
         with self.assertRaises(PricingError):
             PricingModel.return_price(sellable_type=self.articletype_1)
+
+    def test_fixed_price_analyze_stock(self):
+        pm1 = PricingModel(function_identifier=1, name="Fixed Price", position=1)
+        pm1.save()
+        price = Price(amount=Decimal("1"), use_system_currency=True, vat=self.articletype_1.get_vat_rate())
+        self.articletype_1.fixed_price = price
+        self.articletype_1.save()
+        StockChangeSet.construct(description="None", entries=[
+            {'article': self.articletype_1,
+             'book_value': self.cost_system_currency_1,
+             'count': 3,
+             'is_in': True}
+        ], source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        price_found = PricingModel.return_price(stock=Stock.objects.get())
+        self.assertEqual(price_found, price)
