@@ -14,6 +14,7 @@ def validate_bigger_than_0(value):
         raise ValidationError("Value of pricingmodel should be bigger than 0")
 
 
+# noinspection PyUnusedLocal
 class PricingModel(models.Model):
     """
     This is a translater from row to actual processing function
@@ -28,10 +29,9 @@ class PricingModel(models.Model):
     # Add numerical properties of pricing models like the margin below.
     margin = models.DecimalField(null=True, blank=True, decimal_places=10, max_digits=16)
 
-
     def __str__(self):
         return "Id: {}, Name: {}, Position: {}".format(self.id, self.name, self.position)
-    
+
     def save(self, *args, **kwargs):
         validate_bigger_than_0(self.position)
         super(PricingModel, self).save()
@@ -47,8 +47,8 @@ class PricingModel(models.Model):
         return function_dict.get(self.function_identifier)
 
     @staticmethod
-    def return_price(sellable_type: SellableType=None, margin: Decimal=Decimal("0"), customer: Customer=None,
-                     stock: Stock=None) -> Price:
+    def return_price(sellable_type: SellableType = None, margin: Decimal = Decimal("0"), customer: Customer = None,
+                     stock: Stock = None) -> Price:
         pricing_models = PricingModel.objects.all().order_by('position')
         if len(pricing_models) == 0:
             raise PricingError("No pricing models found!")
@@ -68,6 +68,7 @@ class PricingModel(models.Model):
             return price
 
 
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 class Functions:
     """
     A container class for all the pricing functions. All function should have the same arguments to accomodate
@@ -75,8 +76,8 @@ class Functions:
     """
 
     @staticmethod
-    def fixed_price(sellable_type: SellableType=None, pricing_model: PricingModel=None, customer: Customer=None,
-                    stock: Stock=None):
+    def fixed_price(sellable_type: SellableType = None, pricing_model: PricingModel = None, customer: Customer = None,
+                    stock: Stock = None):
         if stock is not None and sellable_type is None:
             sellable_type = stock.article
         raiseifnot(isinstance(sellable_type, SellableType), TypeError, "sellableType should be sellableType")
@@ -88,8 +89,8 @@ class Functions:
             return None
 
     @staticmethod
-    def fixed_margin(sellable_type: SellableType=None, pricing_model: PricingModel=None, customer: Customer=None,
-                     stock: Stock=None):
+    def fixed_margin(sellable_type: SellableType = None, pricing_model: PricingModel = None, customer: Customer = None,
+                     stock: Stock = None):
         """
         Adds a desired margin and then rounds. Can either choose an articleType or a stock.
         :param sellable_type:
@@ -106,7 +107,7 @@ class Functions:
         if stock:
             cst = stock.book_value  # type:Cost
             amt = cst.amount
-            calcd = Rounding.round_up(amt*margin*stock.article.get_vat_rate())
+            calcd = Rounding.round_up(amt * margin * stock.article.get_vat_rate())
             return Price(amount=calcd, currency=cst.currency, vat=stock.article.get_vat_rate())
         # If not stock, then we check the sellableType at the supplier side
         if sellable_type:
@@ -124,7 +125,7 @@ class Functions:
                 if att.cost < lowest_price:
                     lowest_price = att.cost
 
-            calcd = Rounding.round_up(lowest_price.amount*margin*sellable_type.get_vat_rate())
+            calcd = Rounding.round_up(lowest_price.amount * margin * sellable_type.get_vat_rate())
             return Price(amount=calcd, currency=lowest_price.currency, vat=sellable_type.get_vat_rate())
 
 
@@ -148,9 +149,9 @@ class Rounding:
         while i < len(Rounding.ROUNDING_BRACKETS):
             if amount <= Rounding.ROUNDING_BRACKETS[i]:
                 am = amount
-                divved = am/Rounding.ROUNDING[i]
+                divved = am / Rounding.ROUNDING[i]
                 divved_rounded = round(divved, 0)
-                am_new = divved_rounded*Rounding.ROUNDING[i]
+                am_new = divved_rounded * Rounding.ROUNDING[i]
                 if divved > divved_rounded:
                     am_new += Rounding.ROUNDING[i]
                 # noinspection PyTypeChecker

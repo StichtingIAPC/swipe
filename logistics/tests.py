@@ -177,6 +177,7 @@ class StockWishTests(TestCase, TestData):
             log.save()
 
 
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 class SupplierOrderTests(TestCase, TestData):
     def setUp(self):
         self.setup_base_data()

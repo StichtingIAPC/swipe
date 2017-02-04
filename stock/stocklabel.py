@@ -121,6 +121,7 @@ class StockLabel(metaclass=StockLabelMeta):
         return hash(self.labeltype)
 
 
+# noinspection PyUnresolvedReferences,PyUnresolvedReferences
 class StockLabeledLine(models.Model):
     labeltype = models.CharField(max_length=255, null=True, blank=True, validators=[
         RegexValidator(regex='^.+$',

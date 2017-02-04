@@ -7,6 +7,7 @@ import django.db.models.deletion
 import money.models
 
 
+# noinspection PySetFunctionToLiteral,PySetFunctionToLiteral
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,6 +15,7 @@ class Migration(migrations.Migration):
         ('supplier', '0001_initial'),
     ]
 
+    # noinspection PySetFunctionToLiteral,PySetFunctionToLiteral
     operations = [
         migrations.CreateModel(
             name='ArticleTypeSupplier',

@@ -5,6 +5,7 @@ from compressor_toolkit.precompilers import SCSSCompiler, ES6Compiler, \
     get_all_static
 
 
+# noinspection PyUnresolvedReferences
 class OnceHelper(CachedCompilerFilter):
     def output(self, **kwargs):
         super(OnceHelper, self).output(**kwargs)
@@ -16,6 +17,7 @@ class OnceHelper(CachedCompilerFilter):
         super().__init__(content=content, **kwargs)
 
 
+# noinspection PyUnresolvedReferences
 class CachedHelperFilter(OnceHelper):
     def input(self, **kwargs):
         return (

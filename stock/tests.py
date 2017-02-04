@@ -16,6 +16,7 @@ from swipe.settings import DELETE_STOCK_ZERO_LINES
 from tools.testing import TestData
 
 
+# noinspection PyUnusedLocal
 class StockTest(TestCase, TestData):
     def setUp(self):
         self.setup_base_data()

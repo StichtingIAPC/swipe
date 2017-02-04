@@ -9,7 +9,6 @@ from stock.models import StockChangeSet, Stock
 
 
 class PriorityTests(TestCase, TestData):
-
     def setUp(self):
         self.setup_base_data()
 
@@ -36,8 +35,10 @@ class PriorityTests(TestCase, TestData):
         self.articletype_1.save()
 
         price_found = PricingModel.return_price(self.articletype_1)
-        price_expected = Price(amount=Rounding.round_up(self.cost_system_currency_1.amount*self.articletype_1.get_vat_rate()), currency=self.cost_system_currency_1.currency,
-                               vat=self.articletype_1.get_vat_rate())
+        price_expected = Price(
+            amount=Rounding.round_up(self.cost_system_currency_1.amount * self.articletype_1.get_vat_rate()),
+            currency=self.cost_system_currency_1.currency,
+            vat=self.articletype_1.get_vat_rate())
         self.assertEqual(price_found.amount, price_expected.amount)
 
     def test_priority_is_followed_fixed_first(self):
@@ -51,13 +52,12 @@ class PriorityTests(TestCase, TestData):
         self.articletype_1.save()
 
         price_found = PricingModel.return_price(self.articletype_1, margin=Decimal(1))
-        price_expected = Price(amount= Decimal("100"), currency=self.cost_system_currency_1.currency,
+        price_expected = Price(amount=Decimal("100"), currency=self.cost_system_currency_1.currency,
                                vat=self.articletype_1.get_vat_rate())
         self.assertEqual(price_found, price_expected)
 
 
 class RoundingTests(SimpleTestCase):
-
     def test_round_smaller_than_1_does_round_up(self):
         unrounded = Decimal("0.96")
         rounded = Rounding.round_up(unrounded)
@@ -95,7 +95,6 @@ class RoundingTests(SimpleTestCase):
 
 
 class PricingTests(TestCase, TestData):
-
     def setUp(self):
         self.setup_base_data()
 
@@ -136,7 +135,7 @@ class PricingTests(TestCase, TestData):
         st = Stock.objects.get()
 
         price_found = PricingModel.return_price(stock=st)
-        price_expected = Price(amount=Rounding.round_up(Decimal(10)*Decimal(2)*self.articletype_1.get_vat_rate()),
+        price_expected = Price(amount=Rounding.round_up(Decimal(10) * Decimal(2) * self.articletype_1.get_vat_rate()),
                                use_system_currency=True, vat=self.articletype_1.get_vat_rate())
         self.assertEqual(price_expected, price_found)
 

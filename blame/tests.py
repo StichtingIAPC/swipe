@@ -10,10 +10,8 @@ from blame.models import ImmutableBlameTest, BlameTest, BlameLog, \
 
 
 class OrderTest(TestCase, TestData):
-
     def setUp(self):
         self.setup_base_data()
-
 
     def test_immutable(self):
         u = self.user_1

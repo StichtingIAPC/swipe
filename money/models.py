@@ -173,6 +173,7 @@ class Money:
             raise TypeError("Cannot divide Money by {}".format(type(oth)))
 
 
+# noinspection PyUnresolvedReferences
 class MoneyProxy:
     # sets the correct column names for this field.
     def __init__(self, field, name, money_type):

@@ -13,7 +13,7 @@ from tools.templatetags.tools.breadcrumbs import crumb
 class CurrencyListView(mixins.ListModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
-    queryset = CurrencyData.objects.all()\
+    queryset = CurrencyData.objects.all() \
         .prefetch_related('denomination_set')
     serializer_class = CurrencySerializer
 
@@ -27,7 +27,7 @@ class CurrencyListView(mixins.ListModelMixin,
 class CurrencyView(mixins.UpdateModelMixin,
                    mixins.RetrieveModelMixin,
                    generics.GenericAPIView):
-    queryset = CurrencyData.objects.all()\
+    queryset = CurrencyData.objects.all() \
         .prefetch_related('denomination_set')
     serializer_class = CurrencySerializer
 

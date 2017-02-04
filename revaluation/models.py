@@ -37,8 +37,9 @@ class RevaluationDocument(Blame):
         for article, cost, label_type, label_key in article_type_cost_label_combinations:
             raiseifnot(isinstance(article, ArticleType), TypeError, "article should be ArticleType")
             raiseifnot(isinstance(cost, Cost), TypeError, "cost should be Cost")
-            raiseif(cost._amount<0, CostError, "New cost is negative value. This is not possible")
-            raiseifnot(label_type is None or issubclass(label_type, StockLabel), TypeError, "labelType should be StockLabel")
+            raiseif(cost.amount < 0, CostError, "New cost is negative value. This is not possible")
+            raiseifnot(label_type is None or issubclass(label_type, StockLabel), TypeError,
+                       "labelType should be StockLabel")
             raiseifnot(isinstance(label_key, int) or label_key is None, TypeError, "labelKey should be int")
             raiseifnot(isinstance(memo, str), TypeError, "Memo should be a string")
             raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
@@ -133,7 +134,6 @@ class NoStockExistsError(Exception):
 
 
 class FatalStockException(Exception):
-
     def __init__(self, article: ArticleType, label_type: StockLabel, label_key: int, text: str):
         self.article = article
         self.label_type = label_type

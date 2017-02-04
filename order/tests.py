@@ -15,11 +15,11 @@ from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
 from tools.testing import TestData
 
+
 # Create your tests here.
 
 
 class OrderTest(TestCase, TestData):
-
     def setUp(self):
 
         self.part_setup_vat_group()
@@ -107,7 +107,7 @@ class OrderTest(TestCase, TestData):
         self.assertEquals(ol.state, 'A')
         self.assertEquals(len(orderlinestates), 3)
         ol.sell(user_created=self.copro)
-        orderlinestates = OrderLineState.objects.filter(orderline=ol,)
+        orderlinestates = OrderLineState.objects.filter(orderline=ol, )
         self.assertEquals(ol.state, 'S')
         self.assertEquals(len(orderlinestates), 4)
 
@@ -213,7 +213,7 @@ class OrderTest(TestCase, TestData):
         c = OrderLine.objects.all()
 
         self.assertEquals(len(b), len(c))
-        self.assertEquals(len(b), 5+6)
+        self.assertEquals(len(b), 5 + 6)
         tally_art1, tally_art2 = 0, 0
         for ol in b:
             if ol.wishable.sellabletype.articletype == self.article_type:
@@ -225,7 +225,6 @@ class OrderTest(TestCase, TestData):
 
 
 class TestStockChangeSetFiltering(TestCase, TestData):
-
     def setUp(self):
         self.setup_base_data()
 
@@ -327,13 +326,13 @@ class TestStockChangeSetFiltering(TestCase, TestData):
             'is_in': True,
             'label': OrderLabel(pk)
         },
-        {
-            'article': self.article_type,
-            'book_value': self.cost,
-            'count': READIED_ORDERLINES_2,
-            'is_in': True,
-            'label': OrderLabel(order_2.pk)
-        }]
+            {
+                'article': self.article_type,
+                'book_value': self.cost,
+                'count': READIED_ORDERLINES_2,
+                'is_in': True,
+                'label': OrderLabel(order_2.pk)
+            }]
 
         SOLD_PRODUCTS_1 = 4
         SOLD_PRODUCTS_2 = 2
@@ -370,7 +369,6 @@ class TestStockChangeSetFiltering(TestCase, TestData):
 
 
 class TestGetStock(TestCase, TestData):
-
     def setUp(self):
         self.setup_base_data()
 

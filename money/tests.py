@@ -109,6 +109,7 @@ class SalesPriceTest(TestCase):
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
 
 
+# noinspection PyUnresolvedReferences
 class MoneyMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
@@ -149,6 +150,7 @@ class MoneyMathTest(SimpleTestCase):
 
 
 # Copy of MoneyMathTest; they are not exactly the same
+# noinspection PyUnresolvedReferences
 class CostMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
@@ -181,10 +183,10 @@ class CostMathTest(SimpleTestCase):
             self.m2 - self.num
 
     def test_cost_div_by_int(self):
-        self.assertEqual(self.m1/2, self.m2)
+        self.assertEqual(self.m1 / 2, self.m2)
 
     def test_cost_div_by_cost(self):
-        self.assertEqual(self.m2/self.m1, Decimal("0.5"))
+        self.assertEqual(self.m2 / self.m1, Decimal("0.5"))
 
     def test_subtype_uses_system_currency(self):
         v1 = Cost(amount=Decimal("1"), currency=Currency(self.used))
@@ -193,8 +195,10 @@ class CostMathTest(SimpleTestCase):
         v2 = Cost(amount=Decimal("1"), currency=Currency(fake_currency))
         self.assertFalse(v2.uses_system_currency())
 
+
 # Copy of MoneyMathTest; they are not exactly the same
 
+# noinspection PyUnresolvedReferences,PyUnresolvedReferences
 class SalesPriceMathTest(SimpleTestCase):
     def setUp(self):
         eur = Currency("EUR")
@@ -243,7 +247,6 @@ class SalesPriceMathTest(SimpleTestCase):
 
 
 class CurrencyDenomDBTest(TestCase):
-
     def test_currency_iso(self):
         with self.assertRaises(ValidationError):
             foo = CurrencyData(iso="EADD", name="Estonian Drak", digits=4, symbol="D&")
@@ -256,7 +259,6 @@ class CurrencyDenomDBTest(TestCase):
 
 
 class CurrencyDenomTest(SimpleTestCase):
-
     def setUp(self):
         self.euro = CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€")
         self.dollar = CurrencyData(iso="USD", name="United States Dollar", digits=2, symbol="$")
@@ -284,7 +286,6 @@ class CurrencyDenomTest(SimpleTestCase):
 
 
 class VATTests(TestCase, TestData):
-
     def test_no_period_is_incorrect(self):
         v1 = VAT(name="VATFoo", active=True)
         v1.save()
@@ -372,5 +373,3 @@ class VATTests(TestCase, TestData):
         vp2.save()
         r = v1.getvatrate()
         self.assertAlmostEqual(r, Decimal(rate_2), 4)
-
-
