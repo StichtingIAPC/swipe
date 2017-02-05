@@ -280,6 +280,8 @@ class Transaction(Blame):
             if payment.payment_type.is_invoicing:
                 transaction_has_invoiced_payment = True
 
+        if transaction_has_invoiced_payment and customer is None:
+            raise IncorrectDataException("Invoicing payments were chosen but customer is none")
         ILLEGAL_ORDER_REFERENCE = -1  # Primary key chosen in such a way that it is never chosen
 
         # Now some general checks, including stock checks

@@ -1,6 +1,6 @@
 from django.test import TestCase
 from tools.testing import TestData
-from sales.models import Transaction, SalesTransactionLine, Payment
+from sales.models import Transaction, SalesTransactionLine, Payment, IncorrectDataException
 from money.models import Money, Price, Currency
 from customer_invoicing.models import ReceiptCustInvoice, CustInvoice, CustomCustInvoice, CustomInvoiceLine, \
     CustPayment, InvoiceFieldPerson, InvoiceFieldOrganisation
@@ -17,6 +17,21 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
     def setUp(self):
         self.setup_base_data()
 
+    def test_create_invoice_without_customer(self):
+        self.create_custorders()
+        self.create_suporders()
+        self.create_packingdocuments()
+        SOLD = 3
+        # Invoice register
+        self.register_4.open(counted_amount=Decimal(0))
+        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=1,
+                                    article=self.articletype_1)
+        money_1 = Money(amount=self.price_system_currency_1.amount * SOLD,
+                        currency=self.price_system_currency_1.currency)
+        pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
+        with self.assertRaises(IncorrectDataException):
+            Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+
     def test_create_invoice_from_transaction_all_invoiced(self):
         self.create_custorders()
         self.create_suporders()
@@ -28,7 +43,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=self.customer_person_1)
 
         trans = Transaction.objects.get()
         self.assertEqual(len(CustInvoice.objects.all()), 1)
@@ -51,7 +66,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=self.customer_person_1)
         self.assertFalse(CustInvoice.objects.exists())
 
     def test_create_invoice_mixed_invoice_and_straight_payment(self):
@@ -73,7 +88,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_invoice)
 
         Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1],
-                                       payments=[pymnt_1, pymnt_2], customer=None)
+                                       payments=[pymnt_1, pymnt_2], customer=self.customer_person_1)
 
         trans = Transaction.objects.get()
         self.assertEqual(len(CustInvoice.objects.all()), 1)
@@ -149,7 +164,7 @@ class CustInvoicePayments(TestCase, TestData):
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=self.customer_person_1)
 
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
@@ -167,7 +182,7 @@ class CustInvoicePayments(TestCase, TestData):
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=self.customer_person_1)
 
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
@@ -185,7 +200,7 @@ class CustInvoicePayments(TestCase, TestData):
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=self.customer_person_1)
 
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
@@ -211,7 +226,7 @@ class CustInvoicePayments(TestCase, TestData):
         pymnt_2 = Payment(amount=money_2, payment_type=self.paymenttype_invoice)
 
         Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1, pymnt_2],
-                                       customer=None)
+                                       customer=self.customer_person_1)
         receipt_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_invoice.handled)
         receipt_invoice.pay(money_2, self.user_1)
@@ -229,7 +244,7 @@ class CustInvoicePayments(TestCase, TestData):
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("2"), currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
-        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
+        Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=self.customer_person_1)
 
         receipt_cust_invoice = ReceiptCustInvoice.objects.get()
         self.assertFalse(receipt_cust_invoice.handled)
