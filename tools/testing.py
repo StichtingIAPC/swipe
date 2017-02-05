@@ -1,5 +1,5 @@
 from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
-from crm.models import User, Person, Customer
+from crm.models import User, Person, Customer, Organisation, ContactOrganisation
 from externalise.models import ExternaliseDocument
 from logistics.models import SupplierOrder, StockWish
 from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money, VATPeriod
@@ -169,6 +169,15 @@ class TestData:
                                         email="schaduwbestuur@iapc.utwente.nl", name="Gerda Steenhuizen",
                                         phone="0534894260", zip_code="7522NB")
         self.customer_person_2.save()
+        self.organisation = Organisation(
+                                        address="Drienerlolaan 5", city="Enschede",
+                                        email="schaduwbestuur@iapc.utwente.nl", name="Gerda Steenhuizen",
+                                        phone="0534894260", zip_code="7522NB")
+        self.organisation.save()
+        self.customer_contact_organisation = ContactOrganisation(contact=self.customer_person_1,
+                                                                 organisation=self.organisation)
+        self.customer_contact_organisation.save()
+
 
     def part_setup_users(self):
         self.user_1 = User(username="jsteen")

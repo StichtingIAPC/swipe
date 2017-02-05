@@ -4,7 +4,8 @@ from money.models import MoneyField, Money, Price
 from sales.models import PriceField
 from tools.util import raiseif
 from decimal import Decimal
-from crm.models import User, PersonTypeField, OrganisationTypeField, Customer
+from crm.models import User, PersonTypeField, OrganisationTypeField, Customer, PersonTypeFieldValue, \
+    OrganisationTypeFieldValue, Person
 
 
 class CustInvoice(Blame):
@@ -50,11 +51,16 @@ class CustInvoice(Blame):
             raise IncorrectStateError("You cannot pay an invoice which is not yet saved")
 
     def determine_address_data(self):
-        # There is not determined way to extract the needed information about a person from its context. Using a
-        # placeholder will suffice for now
         if isinstance(self, ReceiptCustInvoice):
-            customer = self.receipt.customer  # type: Customer
+
+            if isinstance(self.receipt.customer, Person):
+                customer = self.receipt.customer  # type: Customer
+            else:
+                # Contact organisation is a customer but not a queryable organisation
+                customer = self.receipt.customer.organisation
             retrieve_from_fields = True
+            fields = None
+            # Try to see if invoicing data can be pulled from TypeField(Value)s.
             if hasattr(customer, 'person'):
                 # Customer is a person. Retrieve PersonTypeFields
                 try:
@@ -63,7 +69,8 @@ class CustInvoice(Blame):
                     InvoiceFieldPerson.objects.create()
                     retrieve_from_fields = False
                 if retrieve_from_fields:
-                    pass
+                    id_array = fields.to_int_array()
+                    vals = PersonTypeFieldValue.objects.filter(object=customer, typefield_id__in=id_array)
             else:
                 try:
                     fields = InvoiceFieldOrganisation.objects.get(pk=1)
@@ -71,20 +78,36 @@ class CustInvoice(Blame):
                     InvoiceFieldOrganisation.objects.create()
                     retrieve_from_fields = False
                 if retrieve_from_fields:
-                    type_fields = customer.get_type_fields()
+                    id_array = fields.to_int_array()
+                    vals = OrganisationTypeFieldValue.objects.filter(object=customer, typefield_id__in=id_array)
+
+            if retrieve_from_fields:
+                # Store found values in dict with key the PersonTypeFields that link it to InvoiceField*
+                values_dict = {}
+                # noinspection PyUnboundLocalVariable
+                for elem in vals:
+                    values_dict[elem.typefield] = elem
+
+                # Try to set the values of the invoicing data. Get defaults to None if nothing is found in the dict.
+                self.invoice_name = values_dict.get(fields.name)
+                self.invoice_address = values_dict.get(fields.address)
+                self.invoice_zip_code = values_dict.get(fields.zip_code)
+                self.invoice_city = values_dict.get(fields.city)
+                self.invoice_country = values_dict.get(fields.country)
+                self.invoice_email_address = values_dict.get(fields.email_address)
 
         if not self.invoice_name:
             self.invoice_name = "Placeholder_name"
         if not self.invoice_address:
-            self.invoice_address = "Brinkstraat 1"
+            self.invoice_address = "Placeholder_address"
         if not self.invoice_zip_code:
-            self.invoice_zip_code = "1234AB"
+            self.invoice_zip_code = "Placeholder_zipcode"
         if not self.invoice_city:
-            self.invoice_city = "Enschede"
+            self.invoice_city = "Placeholder_city"
         if not self.invoice_country:
-            self.invoice_country = "Taiwan"
+            self.invoice_country = "Placeholder_country"
         if not self.invoice_email_address:
-            self.invoice_email_address = "placeholder@inner-mongolia.com"
+            self.invoice_email_address = "Placeholder_email"
         
     def save(self, **kwargs):
         if not self.pk:
@@ -117,6 +140,18 @@ class InvoiceFieldPerson(models.Model):
     country = models.ForeignKey(PersonTypeField, null=True, related_name="country")
     email_address = models.ForeignKey(PersonTypeField, null=True, related_name="email")
 
+    def to_int_array(self):
+        return [self.name_id, self.address_id, self.zip_code_id, self.city_id, self.country_id, self.email_address_id]
+
+    def is_dummy(self):
+        return self.name is None and self.address is None and self.zip_code is None and \
+               self.city is None and self.country is None and self.email_address is None
+
+    def __str__(self):
+        return "Name_id: {}, Address_id: {}, Zip_id: {}, City_id: {}, Country_id: {}, Email_id: {}".format(
+            self.name_id, self.address_id, self.zip_code_id, self.city_id, self.country_id, self.email_address_id
+        )
+        
 
 class InvoiceFieldOrganisation(models.Model):
     """
@@ -128,6 +163,13 @@ class InvoiceFieldOrganisation(models.Model):
     city = models.ForeignKey(OrganisationTypeField, null=True, related_name="city")
     country = models.ForeignKey(OrganisationTypeField, null=True, related_name="country")
     email_address = models.ForeignKey(OrganisationTypeField, null=True, related_name="email")
+
+    def to_int_array(self):
+        return [self.name_id, self.address_id, self.zip_code_id, self.city_id, self.country_id, self.email_address_id]
+
+    def is_dummy(self):
+        return self.name is None and self.address is None and self.zip_code is None and \
+               self.city is None and self.country is None and self.email_address is None
 
 
 class CustPayment(Blame):
