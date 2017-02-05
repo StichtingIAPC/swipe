@@ -7,6 +7,7 @@ import django.db.models.deletion
 import money.models
 
 
+# noinspection PySetFunctionToLiteral
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,6 +15,7 @@ class Migration(migrations.Migration):
         ('article', '0001_squashed_0002_auto_20160811_1947'),
     ]
 
+    # noinspection PySetFunctionToLiteral
     operations = [
         migrations.RemoveField(
             model_name='articletype',

@@ -15,43 +15,37 @@ from stock.models import StockChangeSet
 from stock.stocklabel import OrderLabel
 from tools.testing import TestData
 
+
 # Create your tests here.
 
 
-class OrderTest(INeedSettings, TestCase):
-
+class OrderTest(TestCase, TestData):
     def setUp(self):
-        super().setUp()
-        self.vat_group = VAT()
-        self.vat_group.name = "Bar"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+
+        self.part_setup_vat_group()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
+        self.part_setup_accounting_group()
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo", branch=self.branch)
-        self.article_type.save()
-
-        self.at2 = ArticleType(accounting_group=self.acc_group,
-                               name="Bar", branch=self.branch)
-        self.at2.save()
+        self.part_setup_assortment_article_branch()
+        self.part_setup_article_types()
+        self.article_type = self.articletype_1
+        self.at2 = self.articletype_2
 
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
-        self.oc = OtherCostType(name="Baz", branch=self.branch, accounting_group=self.acc_group, fixed_price=self.money)
-        self.oc.save()
 
-        self.customer = Person()
-        self.customer.save()
+        self.part_setup_prices()
+        self.part_setup_othercosts()
+        self.oc = self.othercosttype_1
 
-        self.copro = User()
-        self.copro.save()
+        self.part_setup_customers()
+        self.customer = self.customer_person_1
+
+        self.part_setup_users()
+        self.copro = self.user_1
 
         self.order = Order(user_modified=self.copro, customer=self.customer)
         self.order.save()
@@ -113,7 +107,7 @@ class OrderTest(INeedSettings, TestCase):
         self.assertEquals(ol.state, 'A')
         self.assertEquals(len(orderlinestates), 3)
         ol.sell(user_created=self.copro)
-        orderlinestates = OrderLineState.objects.filter(orderline=ol,)
+        orderlinestates = OrderLineState.objects.filter(orderline=ol, )
         self.assertEquals(ol.state, 'S')
         self.assertEquals(len(orderlinestates), 4)
 
@@ -219,7 +213,7 @@ class OrderTest(INeedSettings, TestCase):
         c = OrderLine.objects.all()
 
         self.assertEquals(len(b), len(c))
-        self.assertEquals(len(b), 5+6)
+        self.assertEquals(len(b), 5 + 6)
         tally_art1, tally_art2 = 0, 0
         for ol in b:
             if ol.wishable.sellabletype.articletype == self.article_type:
@@ -230,37 +224,26 @@ class OrderTest(INeedSettings, TestCase):
         self.assertEquals(tally_art2, 6)
 
 
-class TestStockChangeSetFiltering(TestCase, INeedSettings):
-
+class TestStockChangeSetFiltering(TestCase, TestData):
     def setUp(self):
-        super().setUp()
-        self.vat_group = VAT()
-        self.vat_group.name = "Bar"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.setup_base_data()
+
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
-        self.branch = AssortmentArticleBranch.objects.create(
-            name='hoi',
-            parent_tag=None)
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group,
-                                        name="Foo", branch=self.branch)
-        self.article_type.save()
+        self.branch = self.branch_1
+
+        self.article_type = self.articletype_1
+
         self.eur = Currency(iso="EUR")
         self.cost = Cost(amount=Decimal(3), currency=self.eur)
 
-        self.customer = Person()
-        self.customer.save()
+        self.customer = self.customer_person_1
 
-        self.copro = User()
-        self.copro.save()
+        self.copro = self.user_1
 
         self.order = Order(user_modified=self.copro, customer=self.customer)
         self.order.save()
@@ -343,13 +326,13 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
             'is_in': True,
             'label': OrderLabel(pk)
         },
-        {
-            'article': self.article_type,
-            'book_value': self.cost,
-            'count': READIED_ORDERLINES_2,
-            'is_in': True,
-            'label': OrderLabel(order_2.pk)
-        }]
+            {
+                'article': self.article_type,
+                'book_value': self.cost,
+                'count': READIED_ORDERLINES_2,
+                'is_in': True,
+                'label': OrderLabel(order_2.pk)
+            }]
 
         SOLD_PRODUCTS_1 = 4
         SOLD_PRODUCTS_2 = 2
@@ -386,7 +369,6 @@ class TestStockChangeSetFiltering(TestCase, INeedSettings):
 
 
 class TestGetStock(TestCase, TestData):
-
     def setUp(self):
         self.setup_base_data()
 

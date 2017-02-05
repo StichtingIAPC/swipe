@@ -11,10 +11,6 @@ class SupplierList extends React.Component {
 		return false;
 	}
 
-	componentDidMount() {
-		this.props.update();
-	}
-
 	renderEntry({ supplierID, supplier }) {
 		return (
 			<tr className={Number(supplierID) == supplier.id ? 'active' : null}>
@@ -53,7 +49,7 @@ class SupplierList extends React.Component {
 
 	render() {
 		return (
-			<div className="box">
+			<div className={`box${this.props.errorMsg ? ' box-danger box-solid' : ''}`}>
 				<div className="box-header with-border">
 					<h3 className="box-title">Supplier list</h3>
 					<div className="box-tools">
@@ -97,13 +93,22 @@ class SupplierList extends React.Component {
 						</tbody>
 					</table>
 				</div>
+				{
+					this.props.errorMsg ? (
+						<div className="box-footer">
+							<FontAwesome icon="warning" />
+							<span>{this.props.errorMsg}</span>
+						</div>
+					) : null
+				}
 			</div>
 		)
 	}
-};
+}
 
 export default connect(
 	state => ({
+		errorMsg: state.suppliers.fetchError,
 		suppliers: state.suppliers.suppliers,
 		fetching: state.suppliers.fetching,
 	}),

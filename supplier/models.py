@@ -228,10 +228,8 @@ class SupplierTypeArticle(models.Model):
         old_arts_to_be_deleted = []  # type: list[SupplierTypeArticle]
         new_arts_to_be_added = []  # type: list[SupplierTypeArticle]
 
-
-
         for sta in supplier_type_articles:
-            old_ver = old_art_dict.get(sta.number) # type: SupplierTypeArticle
+            old_ver = old_art_dict.get(sta.number)  # type: SupplierTypeArticle
             if not old_ver:
                 sta.date_updated = timezone.now()
                 new_arts_to_be_added.append(sta)
@@ -243,14 +241,15 @@ class SupplierTypeArticle(models.Model):
                 # Creates a cost ratio that's bigger than 1
                 cost_ratio = old_ver.cost / sta.cost
                 if cost_ratio < 1:
-                    cost_ratio = 1/cost_ratio
+                    cost_ratio = 1 / cost_ratio
                 # Creates a minimum order ratio that's bigger than 1
-                min_order_ratio = sta.minimum_number_to_order/old_ver.minimum_number_to_order
+                min_order_ratio = sta.minimum_number_to_order / old_ver.minimum_number_to_order
                 if min_order_ratio < 1:
-                    min_order_ratio = 1/min_order_ratio
+                    min_order_ratio = 1 / min_order_ratio
                 # Now we do all the checks
                 if old_ver.ean != sta.ean:
-                    logger.info("EAN does not match for SupplierArticleTypes with supplier ID {}".format(old_ver.number))
+                    logger.info(
+                        "EAN does not match for SupplierArticleTypes with supplier ID {}".format(old_ver.number))
                 elif cost_ratio > SupplierTypeArticle.VALID_COST_RATIO_BOUND:
                     logger.info("Old price was {} and new price was {} for {}. "
                                 "Skipping".format(old_ver.cost, sta.cost, old_ver.number))

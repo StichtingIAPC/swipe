@@ -41,11 +41,13 @@ class ParserTests(SimpleTestCase):
     @staticmethod
     def test_parsing_csv_does_not_error():
         file_location = "./article_updater/testing/nedis_csv_brief.csv"
+        # noinspection PyUnusedLocal
         result = CSVParser.parse(file_location, CSVSupplierRelation(separator=",", start_at=1))
 
     def test_parsing_csv_from_xml_does_error(self):
         file_location = "./article_updater/testing/Copaco_prijslijst_91658-brief.xml"
         with self.assertRaises(SwipeParseError):
+            # noinspection PyUnusedLocal
             result = CSVParser.parse(file_location, CSVSupplierRelation(separator=",", start_at=1))
 
     def test_parsing_headless_file(self):
@@ -134,14 +136,17 @@ class SupplierTests(SimpleTestCase):
     def test_process_nedis_full(self):
         file_location = "./article_updater/testing/nedis_csv_full.csv"
         parsed = CSVParser.parse(file_location, self.nedis)
+        # noinspection PyUnusedLocal
         supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.nedis)
         # Checks if the extraction does not fail
 
     def test_process_copaco_full(self):
         file_location = "./article_updater/testing/Copaco_prijslijst_91658.xml"
         parsed = XMLParser.parse(file_location, self.copaco)
+        # noinspection PyUnusedLocal
         supplier_articles = XMLSupplierRelation.get_supplier_type_articles(parsed, self.copaco)
         # Checks if the extraction does not fail
+
 
 class DatabaseParserTests(TestCase):
 
@@ -159,3 +164,4 @@ class DatabaseParserTests(TestCase):
             sa.save()
         retrieved = SupplierTypeArticle.objects.get(number="1N1AA006")
         self.assertEqual(retrieved.ean, 8717774650172)
+        self.assertEqual(retrieved.cost, Cost(amount=Decimal("5.1"), use_system_currency=True))

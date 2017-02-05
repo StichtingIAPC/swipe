@@ -13,23 +13,21 @@ class RevaluationTests(TestCase, TestData):
         self.setup_base_data()
 
     def test_revaluation_of_non_existent_general_stock(self):
-        stock_addition = []
-        stock_addition.append({"article": self.articletype_2,
-                               "book_value": self.cost_system_currency_1,
-                               "count": 5,
-                               "is_in": True})
+        stock_addition = [{"article": self.articletype_2,
+                           "book_value": self.cost_system_currency_1,
+                           "count": 5,
+                           "is_in": True}]
         StockChangeSet.construct(description="Test", entries=stock_addition, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         with self.assertRaises(NoStockExistsError):
             RevaluationDocument.create_revaluation_document(user=self.user_1, article_type_cost_label_combinations=[
                 (self.articletype_1, self.cost_system_currency_1, None, None)], memo="")
 
     def test_revaluation_of_wrong_label_stock(self):
-        stock_addition = []
-        stock_addition.append({"article": self.articletype_2,
-                               "book_value": self.cost_system_currency_1,
-                               "count": 5,
-                               "is_in": True,
-                               "label": OrderLabel(1)})
+        stock_addition = [{"article": self.articletype_2,
+                           "book_value": self.cost_system_currency_1,
+                           "count": 5,
+                           "is_in": True,
+                           "label": OrderLabel(1)}]
         StockChangeSet.construct(description="Test", entries=stock_addition, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         with self.assertRaises(NoStockExistsError):
             RevaluationDocument.create_revaluation_document(user=self.user_1, article_type_cost_label_combinations=[
@@ -147,11 +145,10 @@ class RevaluationTests(TestCase, TestData):
         self.assertEqual(reval_line.article_type, self.articletype_1)
 
     def test_negative_price(self):
-        stock_addition = []
-        stock_addition.append({"article": self.articletype_2,
-                               "book_value": self.cost_system_currency_1,
-                               "count": 5,
-                               "is_in": True})
+        stock_addition = [{"article": self.articletype_2,
+                           "book_value": self.cost_system_currency_1,
+                           "count": 5,
+                           "is_in": True}]
         StockChangeSet.construct(description="Test", entries=stock_addition, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         with self.assertRaises(CostError):
             RevaluationDocument.create_revaluation_document(user=self.user_1, article_type_cost_label_combinations=[

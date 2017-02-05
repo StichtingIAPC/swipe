@@ -7,6 +7,7 @@ import django.db.models.deletion
 import money.models
 
 
+# noinspection PySetFunctionToLiteral
 class Migration(migrations.Migration):
 
     initial = True
@@ -16,6 +17,7 @@ class Migration(migrations.Migration):
         ('money', '0001_squashed_0006_accountinggroup')
     ]
 
+    # noinspection PySetFunctionToLiteral
     operations = [
         migrations.CreateModel(
             name='ArticleType',

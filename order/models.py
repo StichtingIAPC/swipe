@@ -128,6 +128,9 @@ class OrderLineState(ImmutableBlame):
         'L': ('A', 'O', 'C'),
         'A': ('S', 'I', 'O', 'C')
     }
+    OPEN_STATES = ('O', 'L', 'A')
+    CLOSED_STATES = ('C', 'S', 'I')
+
     # Mirrors the transition of the state of an OrderLine
     state = models.CharField(max_length=3, choices=sorted(STATE_MEANING.items()))
     # When did the transition happen?

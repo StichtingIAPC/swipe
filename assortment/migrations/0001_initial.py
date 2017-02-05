@@ -6,6 +6,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+# noinspection PySetFunctionToLiteral,PySetFunctionToLiteral
 class Migration(migrations.Migration):
 
     initial = True
@@ -13,6 +14,7 @@ class Migration(migrations.Migration):
     dependencies = [
     ]
 
+    # noinspection PySetFunctionToLiteral,PySetFunctionToLiteral
     operations = [
         migrations.CreateModel(
             name='AssortmentArticleBranch',

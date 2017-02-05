@@ -7,6 +7,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+# noinspection PySetFunctionToLiteral,PySetFunctionToLiteral,PySetFunctionToLiteral,PySetFunctionToLiteral
 class Migration(migrations.Migration):
 
     initial = True
@@ -15,6 +16,7 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
+    # noinspection PySetFunctionToLiteral,PySetFunctionToLiteral,PySetFunctionToLiteral,PySetFunctionToLiteral
     operations = [
         migrations.CreateModel(
             name='Customer',

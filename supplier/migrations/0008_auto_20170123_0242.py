@@ -5,12 +5,14 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 
 
+# noinspection PySetFunctionToLiteral
 class Migration(migrations.Migration):
 
     dependencies = [
         ('supplier', '0007_auto_20170122_1903'),
     ]
 
+    # noinspection PySetFunctionToLiteral
     operations = [
         migrations.AlterField(
             model_name='articletypesupplier',

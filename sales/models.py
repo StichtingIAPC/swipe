@@ -6,9 +6,10 @@ from article.models import ArticleType, OtherCostType, SellableType
 from blame.models import Blame, ImmutableBlame
 from crm.models import User, Customer
 from money.models import MoneyField, PriceField, CostField, AccountingGroup
-from order.models import OrderLine
+from order.models import OrderLine, Order, OrderLineState
 from stock.models import StockChangeSet, Id10TError, Stock, StockLock, LockError
 from stock.stocklabel import StockLabeledLine, OrderLabel
+from pricing.models import PricingModel
 from tools.util import raiseif
 import customer_invoicing.models
 
@@ -482,6 +483,31 @@ class Transaction(Blame):
             if transaction_has_invoiced_payment:
                 customer_invoicing.models.ReceiptCustInvoiceHelper.create_customer_invoice_from_transaction(user, trans,
                                                                                                             payments)
+
+
+class StockCollections:
+
+    @staticmethod
+    def get_stock_with_prices(customer: Customer):
+        stock_lines = Stock.objects.filter(labeltype__isnull=True)
+        result = []
+        for line in stock_lines:
+            price = PricingModel.return_price(stock=line, customer=customer)
+            result.append((line, price))
+
+        return result
+
+    @staticmethod
+    def get_stock_for_customer_with_prices(customer: Customer):
+        customer_orders = Order.objects.filter(customer=customer,
+                                               orderline__orderlinestate__state__in=OrderLineState.OPEN_STATES).values('id')
+        stock_lines = Stock.objects.filter(labeltype__exact="Order", labelkey__in=customer_orders)
+        result = []
+        for line in stock_lines:
+            price = PricingModel.return_price(stock=line, customer=customer)
+            result.append((line, price))
+
+        return result
 
 
 class UnimplementedError(Exception):
