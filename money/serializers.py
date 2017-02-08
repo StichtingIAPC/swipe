@@ -1,6 +1,26 @@
-from rest_framework import serializers
+from decimal import Decimal
 
-from money.models import CurrencyData as Currency, Denomination, AccountingGroup
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+from money.models import CurrencyData as Currency, Denomination, AccountingGroup, Money
+
+
+class MoneySerializerField(serializers.Field):
+    def to_internal_value(self, data):
+        if data is None:
+            return None
+        try:
+            return Money(amount=Decimal(data['amount']),
+                         currency=Currency(data['currency']))
+        except Exception as e:
+            raise ValidationError from e
+
+    def to_representation(self, obj: Money):
+        return {
+            'amount': str(obj.amount),
+            'currency': obj.currency.iso
+        }
 
 
 class DenominationSerializer(serializers.ModelSerializer):

@@ -13,6 +13,8 @@ urlpatterns = [
 
     url(r'^auth/', include('authorization.urls')),
 
+    url(r'^article/', include('article.urls')),
+
     url(r'^assortment/', include('assortment.urls')),
 
     url(r'^barcode/', include('barcode.urls')),
@@ -32,4 +34,6 @@ urlpatterns = [
     url(r'^tools/', include('tools.urls')),
 
     url(r'^public/', include('public_info.urls')),
+
+    url(r'^auth/', include('authorization.urls')),
 ]
