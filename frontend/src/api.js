@@ -13,15 +13,15 @@ export function setToken(token) {
 }
 
 export function getToken() {
-	return Promise(
+	return new Promise(
 		accept => {
-			if (TOKEN == null) {
+			if (TOKEN === null) {
 				listeners.append(accept);
 			} else {
-				accept(TOKEN)
+				accept(TOKEN);
 			}
 		}
-	)
+	);
 }
 
 
@@ -101,8 +101,9 @@ export async function del(url, object, {headers = {}, ...rest} = {}) {
 	throw result;
 }
 
-export function patch(url, object, {headers = {}, ...rest} = {}) {
-	return fetch(
+export async function patch(url, object, {headers = {}, ...rest} = {}) {
+	const token = await getToken();
+	const result = fetch(
 		config.baseurl + url,
 		{
 			method: 'PATCH',
@@ -114,5 +115,7 @@ export function patch(url, object, {headers = {}, ...rest} = {}) {
 			body: JSON.stringify(object),
 			...rest,
 		}
-	).then((response) => response.ok ? response : Promise.reject(response));
+	)
+	if (result.ok) return result;
+	throw result;
 }
