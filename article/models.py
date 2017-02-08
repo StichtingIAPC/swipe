@@ -52,6 +52,8 @@ class ArticleType(SellableType):
     fixed_price = MoneyField(null=True)
     # The unique identifier around the world for this product. May also be an ISBN.
     ean = models.BigIntegerField(null=True)
+    #
+    serial_number = models.BooleanField(default=True)
 
     def calculate_sales_price(self, cost):
         return SalesPrice(amount=cost.amount * self.accounting_group.vat_group.vatrate * Decimal(1.085),

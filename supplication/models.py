@@ -133,6 +133,8 @@ class PackingDocument(ImmutableBlame):
             if len(serial_numbers[article]) > article_type_counter.get(article, 0):
                 raise IncorrectDataError("More serial number for articleType {} "
                                          "than there are articles in the packing document".format(article.name))
+            elif article.serial_number and len(serial_numbers[article]) < article_type_counter.get(article, 0):
+                raise IncorrectDataError("Not enough serial numbers for article {}".format(article.name))
 
 
 class SerialNumber(models.Model):
