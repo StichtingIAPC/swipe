@@ -1,10 +1,11 @@
-from django.test import TestCase
-from tools.testing import TestData
-from supplier.models import SupplierTypeArticle, SupplierTypeArticleProcessingError, ArticleTypeSupplier, ArticleType
-from money.models import Cost, Currency
+import datetime
 from decimal import Decimal
 
-import datetime
+from django.test import TestCase
+
+from money.models import Cost
+from supplier.models import SupplierTypeArticle, SupplierTypeArticleProcessingError, ArticleTypeSupplier, ArticleType
+from tools.testing import TestData
 
 
 class SupplierTypeArticleUpdaterTests(TestCase, TestData):
@@ -164,7 +165,6 @@ class ArticleTypeSupplierTests(TestCase, TestData):
         self.part_setup_vat_group()
         self.part_setup_currency()
         self.part_setup_accounting_group()
-        self.part_setup_assortment_article_branch()
         self.part_setup_payment_types()
         self.part_setup_registers()
         self.part_setup_denominations()
@@ -213,8 +213,7 @@ class ArticleTypeSupplierTests(TestCase, TestData):
         self.assertEqual(at_updated.availability, 'D')
 
     def test_extra_sta_has_no_effect(self):
-        self.articletype_3 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food,
-                                         branch=self.branch_2)
+        self.articletype_3 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
         ArticleTypeSupplier.update_article_type_suppliers(self.supplier_1)
         self.assertEqual(ArticleTypeSupplier.objects.count(), 2)
 

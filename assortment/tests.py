@@ -139,25 +139,3 @@ class BasicTest(TestCase):
                          AssortmentLabel.get('1.20', self.labelType))
         self.assertEqual(self.labelType.label('1.2'),
                          self.labelType.label('1.20'))
-
-
-class BranchTests(TestCase):
-    def setUp(self):
-        self.assortment_branches = list()
-        a = self.assortment_branches
-        a.append(AssortmentArticleBranch(name="root", parent_tag=None))
-        a.append(AssortmentArticleBranch(name="cables", parent_tag=a[0]))
-        a.append(AssortmentArticleBranch(name="root2", parent_tag=None))
-        a.append(AssortmentArticleBranch(name="cycle", parent_tag=None))
-        a[3].parent_tag = a[3]
-
-    def test_branch_creation(self):
-        self.assortment_branches[0].save()
-        self.assortment_branches[1].save()
-
-    def test_branch_cycles(self):
-        self.assertRaises(ValidationError, self.assortment_branches[3].save)
-
-    def test_branch_double_root(self):
-        self.assortment_branches[0].save()
-        self.assertRaises(ValidationError, self.assortment_branches[2].save)

@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 from django.test import TestCase
-from tools.testing import TestData
 from swipe.settings import USED_CURRENCY
 
 from article.models import ArticleType, OtherCostType
@@ -20,6 +19,7 @@ from stock.stocklabel import OrderLabel
 from pricing.models import PricingModel
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
+from tools.testing import TestData
 
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
@@ -34,7 +34,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
 
         self.article_type = self.articletype_1
         self.at2 = self.articletype_2
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch_1)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
@@ -62,7 +62,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         self.simple_payment_eur = Payment(amount=Money(amount=Decimal(2.0), currency=Currency(USED_CURRENCY)),
                                           payment_type=self.pt)
 
-        self.other_cost = OtherCostType(name="Oth1", branch=self.branch_1, accounting_group=self.acc_group,
+        self.other_cost = OtherCostType(name="Oth1", accounting_group=self.acc_group,
                                         fixed_price=self.price
                                         )
         self.other_cost.save()

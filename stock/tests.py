@@ -1,17 +1,16 @@
-from decimal import Decimal
-
-# Create your tests here.
 import time
-from django.test import TestCase
+from decimal import Decimal
 from unittest import skip
 
+from django.test import TestCase
+
+from article.models import ArticleType
 from article.tests import INeedSettings
 from money.exceptions import CurrencyInconsistencyError
-from stock.exceptions import Id10TError, StockSmallerThanZeroError
-from stock.stocklabel import StockLabel, StockLabelNotFoundError, OrderLabel
-from stock.models import Stock, StockChange, StockChangeSet, StockLock, LockError, StockLockLog
-from article.models import ArticleType
 from money.models import Currency, VAT, Cost, AccountingGroup
+from stock.exceptions import Id10TError, StockSmallerThanZeroError
+from stock.models import Stock, StockChange, StockChangeSet, StockLock, LockError, StockLockLog
+from stock.stocklabel import StockLabel, StockLabelNotFoundError, OrderLabel
 from swipe.settings import DELETE_STOCK_ZERO_LINES
 from tools.testing import TestData
 

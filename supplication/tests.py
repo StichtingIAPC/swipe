@@ -5,7 +5,6 @@ from tools.testing import TestData
 from swipe.settings import USED_CURRENCY
 
 from article.models import ArticleType
-from assortment.models import AssortmentArticleBranch
 from crm.models import Person, User
 from logistics.models import SupplierOrder, StockWish
 from money.models import VAT, AccountingGroup, Price, Currency, Cost, Money, VATPeriod
@@ -29,11 +28,9 @@ class SimpleClassTests(TestCase, TestData):
 
         self.acc_group = self.accounting_group_components
 
-        self.branch = self.branch_1
-
         self.article_type = self.articletype_1
         self.at2 = self.articletype_2
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
@@ -268,11 +265,9 @@ class DistributionTests(TestCase, TestData):
 
         self.acc_group = self.accounting_group_components
 
-        self.branch = self.branch_1
-
         self.article_type = self.articletype_1
         self.at2 = self.articletype_2
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
@@ -726,11 +721,9 @@ class PackingDocumentCreationTests(TestCase, TestData):
 
         self.acc_group = self.accounting_group_components
 
-        self.branch = self.branch_1
-
         self.article_type = self.articletype_1
         self.at2 = self.articletype_2
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", branch=self.branch)
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
