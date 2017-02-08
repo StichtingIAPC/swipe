@@ -1,26 +1,60 @@
 from decimal import Decimal
+from fractions import Fraction
 
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy
 
 from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
 from tools.util import raiseif
+import datetime
 
 
 class VAT(models.Model):
-    # What's the Rate of this VAT (percentage)? This is the multiplication factor.
-    vatrate = models.DecimalField(decimal_places=6, max_digits=8)
+    """
+    A vat group. A collection of products fall into the same vat tariff. This model represents
+    one such tariff. The actual VAT value is stored into a VATPeriod since it is based on the date
+    the government decides a VAT tariff is valid.
+    """
     # What's this VAT level called?
     name = models.CharField(max_length=255)
     # Is this VAT level in use?
     active = models.BooleanField()
 
+    def getvatrate(self):
+        now = datetime.date.today()
+        current_period = VATPeriod.objects.filter(Q(begin_date__lte=now, end_date__isnull=True, vat=self) |
+                                                  Q(begin_date__lte=now, end_date__gte=now, vat=self))
+        if len(current_period) == 0:
+            raise VATError("No Vat period found! Aborting.")
+        elif len(current_period) > 1:
+            raise VATError("Current date falls into multiple VAT periods. This shouldn't happen. Aborting.")
+        else:
+            return current_period[0].vatrate
+
     def __str__(self):
-        return "{}:{}".format(self.name, self.vatrate)
+        return "{}:{}".format(self.name, self.getvatrate())
 
     def to_rate_string(self):
-        return "{}%".format((self.vatrate - 1) * 100)
+        num = (self.getvatrate() - 1) * 100
+        return "{}%".format(num)
+
+
+class VATPeriod(models.Model):
+    """
+    Government can change the vat rates of vat levels. Here, the current(and for archival purposes the historic) rate
+    can be queried.
+    """
+    # The vat tariff group
+    vat = models.ForeignKey(VAT)
+    # The date this vat rate is used.
+    # NOTE: Date windows should not overlap as the current vate rate calculation becomes impossible
+    begin_date = models.DateField()
+    # The date this vate rate is ceased. Null for indefinite usage as for now.
+    end_date = models.DateField(null=True)
+    # What's the Rate of this VAT (percentage)? This is the multiplication factor.
+    vatrate = models.DecimalField(decimal_places=6, max_digits=8)
 
 
 class AccountingGroup(models.Model):
@@ -32,7 +66,7 @@ class AccountingGroup(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return "{}({})".format(self.name, self.vat_group.to_rate_string())
+        return "{}({})".format(self.name, self.vat_group.name)
 
 
 class VATLevelField(models.DecimalField):
@@ -140,6 +174,7 @@ class Money:
             raise TypeError("Cannot divide Money by {}".format(type(oth)))
 
 
+# noinspection PyUnresolvedReferences
 class MoneyProxy:
     # sets the correct column names for this field.
     def __init__(self, field, name, money_type):
@@ -275,6 +310,13 @@ class Cost(Money):
         else:
             raise TypeError("Cannot divide Cost by {}".format(type(oth)))
 
+    def __lt__(self, other):
+        if not isinstance(other, Cost):
+            raise TypeError("other is not a Cost")
+        if other.currency != self.currency:
+            raise TypeError("Currencies do not match")
+        return self.amount < other.amount
+
     def __str__(self):
         return "{}: {}".format(self.currency.iso, self._amount)
 
@@ -297,13 +339,21 @@ class Price(Money):
         super().__init__(amount, currency)
         self._vat = vat
 
+    def __str__(self):
+        return "<{}:{}, vat: {}>".format(self.currency.iso, self.amount, self._vat)
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def vat(self):
         return self._vat
 
     def __eq__(self, other):
         return type(other) == Price and self.amount == other.amount \
-               and self.currency == other.currency and self.vat == other.vat
+               and self.currency == other.currency and \
+               isinstance(self.vat, Decimal) and isinstance(other.vat, Decimal) \
+               and self.vat == other.vat
 
     def compare(self, item2):
         if type(self) != type(item2):
@@ -342,6 +392,8 @@ class Price(Money):
             return Price(self.amount * oth, self.vat, self.currency)
         else:
             raise TypeError("Cannot multiply Price with {}".format(type(oth)))
+
+
 
 
 class PriceProxy:
@@ -606,7 +658,7 @@ class CurrencyData(models.Model):
                            validators=[RegexValidator(regex='^.{3}$', message='ISO length should be 3.')])
     # English name
     name = models.CharField(max_length=255)
-    # Max digits for transaction
+    # Max amount of digits after the decimal separator. Determines rounding.
     digits = models.IntegerField()
     # Currency symbol
     symbol = models.CharField(max_length=5)
@@ -683,6 +735,10 @@ class InvalidISOError(Exception):
 
 
 class InvalidDataError(Exception):
+    pass
+
+
+class VATError(Exception):
     pass
 
 # Define monetary types here

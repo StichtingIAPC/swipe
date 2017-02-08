@@ -71,7 +71,6 @@ class CurrencySerializer(serializers.ModelSerializer):
 
 
 class AccountingGroupSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = AccountingGroup
         fields = (

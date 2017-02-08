@@ -14,7 +14,6 @@ from tools.testing import TestData
 
 
 class PreparationTests(TestCase, TestData):
-
     def setUp(self):
         # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
         # are saved in a fixed manner
@@ -97,10 +96,10 @@ class PreparationTests(TestCase, TestData):
                   'book_value': self.cost_system_currency_1,
                   'count': 7,
                   'is_in': True}
-                 , {'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 3,
-                  'is_in': False},
+            , {'article': self.articletype_1,
+               'book_value': self.cost_system_currency_1,
+               'count': 3,
+               'is_in': False},
                  {'article': self.articletype_2,
                   'book_value': self.cost_system_currency_2,
                   'count': 11,
@@ -140,16 +139,17 @@ class PreparationTests(TestCase, TestData):
                   'book_value': self.cost_system_currency_1,
                   'count': IN_2,
                   'is_in': True},
-                  {'article': self.articletype_1,
-                   'book_value': self.cost_system_currency_1,
-                   'count': OUT_1,
-                   'is_in': False},
+                 {'article': self.articletype_1,
+                  'book_value': self.cost_system_currency_1,
+                  'count': OUT_1,
+                  'is_in': False},
                  ]
         StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
-                             out_count=3, physical_count=9, average_value=self.cost_system_currency_1, text="Foo", accounting_group_id=1)
+                             out_count=3, physical_count=9, average_value=self.cost_system_currency_1, text="Foo",
+                             accounting_group_id=1)
         scl.save()
         NEW_IN_1 = 1
         NEW_IN_2 = 2
@@ -172,8 +172,9 @@ class PreparationTests(TestCase, TestData):
         StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
-        correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL-OUT_1, NEW_IN_TOTAL, NEW_OUT_1),
-                   self.articletype_2: TemporaryCounterLine(self.articletype_2, 0, 0, 0)}
+        correct = {
+            self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL - OUT_1, NEW_IN_TOTAL, NEW_OUT_1),
+            self.articletype_2: TemporaryCounterLine(self.articletype_2, 0, 0, 0)}
         for mod in mods:
             self.assertEqual(mod, correct.get(mod.article_type))
 
@@ -199,7 +200,8 @@ class PreparationTests(TestCase, TestData):
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
-                             out_count=3, physical_count=9, average_value=self.cost_system_currency_1, text="Foo", accounting_group_id=1)
+                             out_count=3, physical_count=9, average_value=self.cost_system_currency_1, text="Foo",
+                             accounting_group_id=1)
         scl.save()
         NEW_IN_1 = 1
         NEW_IN_2 = 2
@@ -216,12 +218,11 @@ class PreparationTests(TestCase, TestData):
         StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
-        correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL-OUT_1,
-                                                            NEW_IN_1, 0,),
+        correct = {self.articletype_1: TemporaryCounterLine(self.articletype_1, IN_TOTAL - OUT_1,
+                                                            NEW_IN_1, 0, ),
                    self.articletype_2: TemporaryCounterLine(self.articletype_2, 0, NEW_IN_2, 0)}
         for mod in mods:
             self.assertEqual(mod, correct.get(mod.article_type))
-
 
     def test_keep_previous_count_no_stock_change(self):
         entry = [{'article': self.articletype_1,
@@ -233,7 +234,8 @@ class PreparationTests(TestCase, TestData):
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
-                             out_count=0, physical_count=2, average_value=self.cost_system_currency_1, text="Foo", accounting_group_id=1)
+                             out_count=0, physical_count=2, average_value=self.cost_system_currency_1, text="Foo",
+                             accounting_group_id=1)
         scl.save()
         entry = [{'article': self.articletype_2,
                   'book_value': self.cost_system_currency_1,
@@ -251,7 +253,6 @@ class PreparationTests(TestCase, TestData):
 
 
 class IntermediaryTests(TestCase, TestData):
-
     def setUp(self):
         # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
         # are saved in a fixed manner
@@ -309,7 +310,6 @@ class IntermediaryTests(TestCase, TestData):
 
 
 class EndingTests(TestCase, TestData):
-
     def setUp(self):
         # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
         # are saved in a fixed manner
@@ -411,7 +411,8 @@ class EndingTests(TestCase, TestData):
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
-                             out_count=0, physical_count=2, average_value=self.cost_system_currency_1, text="Foo", accounting_group_id=1)
+                             out_count=0, physical_count=2, average_value=self.cost_system_currency_1, text="Foo",
+                             accounting_group_id=1)
         scl.save()
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
@@ -428,7 +429,8 @@ class EndingTests(TestCase, TestData):
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
-                             out_count=0, physical_count=3, average_value=self.cost_system_currency_1, text="Foo", accounting_group_id=1)
+                             out_count=0, physical_count=3, average_value=self.cost_system_currency_1, text="Foo",
+                             accounting_group_id=1)
         scl.save()
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
@@ -437,7 +439,6 @@ class EndingTests(TestCase, TestData):
 
 
 class StockCountDocumentTests(TestCase, TestData):
-
     def setUp(self):
         # It is essential that the number of articleTypes does not diverge. Because of this, articleTypes
         # are saved in a fixed manner
@@ -470,11 +471,13 @@ class StockCountDocumentTests(TestCase, TestData):
         doc = StockCountDocument.objects.get()
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=2, out_count=0, physical_count=2,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=3, out_count=0, physical_count=3,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_2.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_2.name,
                                                       accounting_group_id=self.articletype_2.accounting_group_id)}
         scls = StockCountLine.objects.all()
         for scl in scls:
@@ -497,7 +500,8 @@ class StockCountDocumentTests(TestCase, TestData):
         zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=5, out_count=0, physical_count=5,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=0, out_count=0, physical_count=0,
@@ -525,7 +529,8 @@ class StockCountDocumentTests(TestCase, TestData):
         zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=5, out_count=0, physical_count=5,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=0, out_count=0, physical_count=0,
@@ -553,7 +558,8 @@ class StockCountDocumentTests(TestCase, TestData):
         zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=5, out_count=0, physical_count=6,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=0, out_count=0, physical_count=0,
@@ -580,7 +586,8 @@ class StockCountDocumentTests(TestCase, TestData):
         zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=3, out_count=0, physical_count=5,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=0, out_count=0, physical_count=0,
@@ -611,11 +618,13 @@ class StockCountDocumentTests(TestCase, TestData):
         doc = StockCountDocument.objects.get()
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=3, out_count=0, physical_count=7,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=1, out_count=0, physical_count=4,
-                                                      average_value=self.cost_system_currency_2, text=self.articletype_2.name,
+                                                      average_value=self.cost_system_currency_2,
+                                                      text=self.articletype_2.name,
                                                       accounting_group_id=self.articletype_2.accounting_group_id)}
         scls = StockCountLine.objects.all()
         for scl in scls:
@@ -700,7 +709,8 @@ class StockCountDocumentTests(TestCase, TestData):
         zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=3, out_count=0, physical_count=2,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=0, out_count=0, physical_count=0,
@@ -789,7 +799,8 @@ class StockCountDocumentTests(TestCase, TestData):
         zero_cost = Cost(amount=Decimal(0), use_system_currency=True)
         correct = {self.articletype_1: StockCountLine(document=doc, article_type_id=1, previous_count=0,
                                                       in_count=5, out_count=2, physical_count=3,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc, article_type_id=2, previous_count=0,
                                                       in_count=0, out_count=0, physical_count=0,
@@ -826,11 +837,13 @@ class StockCountDocumentTests(TestCase, TestData):
         count_lines = StockCountLine.objects.filter(document=doc_2)
         correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
                                                       in_count=1, out_count=0, physical_count=4,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
                                                       in_count=4, out_count=0, physical_count=9,
-                                                      average_value=self.cost_system_currency_2, text=self.articletype_2.name,
+                                                      average_value=self.cost_system_currency_2,
+                                                      text=self.articletype_2.name,
                                                       accounting_group_id=self.articletype_2.accounting_group_id)}
         for line in count_lines:
             self.assertEqual(line, correct.get(line.article_type))
@@ -862,11 +875,13 @@ class StockCountDocumentTests(TestCase, TestData):
         count_lines = StockCountLine.objects.filter(document=doc_2)
         correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
                                                       in_count=3, out_count=0, physical_count=6,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
                                                       in_count=4, out_count=0, physical_count=9,
-                                                      average_value=self.cost_system_currency_2, text=self.articletype_2.name,
+                                                      average_value=self.cost_system_currency_2,
+                                                      text=self.articletype_2.name,
                                                       accounting_group_id=self.articletype_2.accounting_group_id)}
         for line in count_lines:
             self.assertEqual(line, correct.get(line.article_type))
@@ -898,11 +913,13 @@ class StockCountDocumentTests(TestCase, TestData):
         count_lines = StockCountLine.objects.filter(document=doc_2)
         correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
                                                       in_count=3, out_count=0, physical_count=7,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
                                                       in_count=4, out_count=0, physical_count=9,
-                                                      average_value=self.cost_system_currency_2, text=self.articletype_2.name,
+                                                      average_value=self.cost_system_currency_2,
+                                                      text=self.articletype_2.name,
                                                       accounting_group_id=self.articletype_2.accounting_group_id)}
         for line in count_lines:
             self.assertEqual(line, correct.get(line.article_type))
@@ -935,11 +952,13 @@ class StockCountDocumentTests(TestCase, TestData):
         count_lines = StockCountLine.objects.filter(document=doc_2)
         correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
                                                       in_count=2, out_count=1, physical_count=4,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
                                                       in_count=4, out_count=0, physical_count=9,
-                                                      average_value=self.cost_system_currency_2, text=self.articletype_2.name,
+                                                      average_value=self.cost_system_currency_2,
+                                                      text=self.articletype_2.name,
                                                       accounting_group_id=self.articletype_2.accounting_group_id)}
         for line in count_lines:
             self.assertEqual(line, correct.get(line.article_type))
@@ -976,14 +995,13 @@ class StockCountDocumentTests(TestCase, TestData):
         count_lines = StockCountLine.objects.filter(document=doc_2)
         correct = {self.articletype_1: StockCountLine(document=doc_2, article_type_id=1, previous_count=3,
                                                       in_count=3, out_count=2, physical_count=4,
-                                                      average_value=self.cost_system_currency_1, text=self.articletype_1.name,
+                                                      average_value=self.cost_system_currency_1,
+                                                      text=self.articletype_1.name,
                                                       accounting_group_id=self.articletype_1.accounting_group_id),
                    self.articletype_2: StockCountLine(document=doc_2, article_type_id=2, previous_count=5,
                                                       in_count=4, out_count=0, physical_count=9,
-                                                      average_value=self.cost_system_currency_2, text=self.articletype_2.name,
+                                                      average_value=self.cost_system_currency_2,
+                                                      text=self.articletype_2.name,
                                                       accounting_group_id=self.articletype_2.accounting_group_id)}
         for line in count_lines:
             self.assertEqual(line, correct.get(line.article_type))
-
-
-

@@ -1,12 +1,13 @@
 from decimal import Decimal
 
 from django.test import TestCase
+from tools.testing import TestData
 from swipe.settings import USED_CURRENCY
 
 from article.models import ArticleType
 from crm.models import Person, User
 from logistics.models import SupplierOrder, StockWish
-from money.models import VAT, AccountingGroup, Price, Currency, Cost, Money
+from money.models import VAT, AccountingGroup, Price, Currency, Cost, Money, VATPeriod
 from order.models import OrderLine, Order
 from stock.models import Stock, StockChange
 from supplication import models
@@ -17,49 +18,31 @@ from supplier.models import Supplier, ArticleTypeSupplier
 
 
 # Create your tests here.
-class SimpleClassTests(TestCase):
-
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
+class SimpleClassTests(TestCase, TestData):
     def setUp(self):
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.setup_base_data()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", )
-        self.article_type.save()
-
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", )
-        self.at2.save()
-
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", )
+        self.article_type = self.articletype_1
+        self.at2 = self.articletype_2
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
 
-        self.supplier = Supplier(name="Nepacove")
-        self.supplier.save()
+        self.supplier = self.supplier_1
 
-        ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
-                                  cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
-        ats.save()
-        ats2 = ArticleTypeSupplier(supplier=self.supplier, article_type=self.at2,
-                                   cost=cost, minimum_number_to_order=1, supplier_string="At2", availability='A')
-        ats2.save()
-        self.money = Money(amount=Decimal(3.32), currency=self.currency)
+        ats = self.articletypesupplier_article_1
+        ats2 = self.articletypesupplier_article_2
 
-        self.customer = Person()
-        self.customer.save()
+        self.customer = self.customer_person_1
 
-        self.copro = User()
-        self.copro.save()
+        self.copro = self.user_1
 
         self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
 
@@ -272,50 +255,31 @@ class SimpleClassTests(TestCase):
         self.assertEquals(len(st), 0)
 
 
-# noinspection PyPackageRequirements,PyPackageRequirements
-class DistributionTests(TestCase):
-
+# noinspection PyPackageRequirements,PyPackageRequirements,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
+class DistributionTests(TestCase, TestData):
     def setUp(self):
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.setup_base_data()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", )
-        self.article_type.save()
-
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", )
-        self.at2.save()
-
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", )
+        self.article_type = self.articletype_1
+        self.at2 = self.articletype_2
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
 
-        self.supplier = Supplier(name="Nepacove")
-        self.supplier.save()
-
-        ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
-                                  cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
-        ats.save()
-        ats2 = ArticleTypeSupplier(supplier=self.supplier, article_type=self.at2,
-                                   cost=cost, minimum_number_to_order=1, supplier_string="At2", availability='A')
-        ats2.save()
+        self.supplier = self.supplier_1
+        ats = self.articletypesupplier_article_1
+        ats2 = self.articletypesupplier_article_2
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
 
-        self.customer = Person()
-        self.customer.save()
+        self.customer = self.customer_person_1
 
-        self.copro = User()
-        self.copro.save()
+        self.copro = self.user_1
 
         self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
         self.cost2 = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.24))
@@ -471,7 +435,7 @@ class DistributionTests(TestCase):
         supply = [[self.article_type, 8]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for i in range(0, len(dist)):
-            self.assertEquals(dist[i].supplier_order_line.pk, i+1)
+            self.assertEquals(dist[i].supplier_order_line.pk, i + 1)
             self.assertEquals(dist[i].line_cost, self.cost)
             self.assertIsNone(dist[i].invoice)
             self.assertIsNone(dist[i].line_cost_after_invoice)
@@ -494,13 +458,13 @@ class DistributionTests(TestCase):
         supply = [[self.article_type, 8]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for i in range(0, STOCK_WISH):
-            self.assertEquals(dist[i].supplier_order_line.pk, i+1)
+            self.assertEquals(dist[i].supplier_order_line.pk, i + 1)
             self.assertEquals(dist[i].line_cost, self.cost)
             self.assertIsNone(dist[i].invoice)
             self.assertIsNone(dist[i].line_cost_after_invoice)
             self.assertEquals(dist[i].article_type, self.article_type)
             self.assertIsNone(dist[i].supplier_order_line.order_line)
-        for i in range(STOCK_WISH+1, len(dist)):
+        for i in range(STOCK_WISH + 1, len(dist)):
             self.assertEquals(dist[i].supplier_order_line.pk, i + 1)
             self.assertEquals(dist[i].line_cost, self.cost)
             self.assertIsNone(dist[i].invoice)
@@ -538,13 +502,13 @@ class DistributionTests(TestCase):
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
         a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10]], self.supplier)
-        for i in range(0,len(a)):
+        for i in range(0, len(a)):
             self.assertEquals(a[i].line_cost, self.cost)
-            self.assertEquals(a[i].supplier_order_line.pk, i+1)
+            self.assertEquals(a[i].supplier_order_line.pk, i + 1)
             self.assertEquals(a[i].article_type, self.article_type)
             self.assertIsNone(a[i].line_cost_after_invoice)
             self.assertIsNone(a[i].invoice)
-            self.assertTrue(not hasattr(a[i], 'packing_document' ) or a[i].packing_document)
+            self.assertTrue(not hasattr(a[i], 'packing_document') or a[i].packing_document)
 
     def test_second_strategy_orders_only_with_cost(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -555,10 +519,11 @@ class DistributionTests(TestCase):
         Order.make_order(order_1, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_ORDERED_1, self.cost]])
-        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]], self.supplier)
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]],
+                                                                     self.supplier)
         for i in range(0, len(a)):
             self.assertEquals(a[i].line_cost, self.cost)
-            self.assertEquals(a[i].supplier_order_line.pk, i+1)
+            self.assertEquals(a[i].supplier_order_line.pk, i + 1)
             self.assertEquals(a[i].article_type, self.article_type)
             self.assertEquals(a[i].line_cost_after_invoice, self.cost2)
             self.assertIsNone(a[i].invoice)
@@ -576,15 +541,16 @@ class DistributionTests(TestCase):
         Order.make_order(order_1, orderlines, self.copro)
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, TOTAL_ORDERED, self.cost]])
-        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]], self.supplier)
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10, self.cost2]],
+                                                                     self.supplier)
         for i in range(0, len(a)):
-            if i< STOCK_WISH:
+            if i < STOCK_WISH:
                 self.assertIsNotNone(a[i].supplier_order_line.order_line)
             else:
                 self.assertIsNone(a[i].supplier_order_line.order_line)
                 self.assertEquals(a[i].line_cost, self.cost)
 
-            self.assertEquals(a[i].supplier_order_line.pk, i+1)
+            self.assertEquals(a[i].supplier_order_line.pk, i + 1)
             self.assertEquals(a[i].article_type, self.article_type)
             self.assertEquals(a[i].line_cost_after_invoice, self.cost2)
             self.assertIsNone(a[i].invoice)
@@ -596,7 +562,7 @@ class DistributionTests(TestCase):
         NUMBER_ORDERED_1 = 5
         NUMBER_ORDERED_ARTICLE_2 = 5
         TOTAL_ORDERED = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, NUMBER_ORDERED_1, self.price],
                                                         [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
@@ -637,17 +603,17 @@ class DistributionTests(TestCase):
     def test_stock_change_set_generation_orders_only(self):
         NUMBER_ORDERED_1 = 5
         NUMBER_ORDERED_ARTICLE_2 = 5
-        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, NUMBER_ORDERED_1, self.price],
                                                         [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
         Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, NUMBER_ORDERED_1, self.price],
                                                         [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
-                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1*2, self.cost],
-                                                              [self.at2, NUMBER_ORDERED_ARTICLE_2*2, self.cost]])
-        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, NUMBER_ORDERED_1*2],
-                                                                      [self.at2, NUMBER_ORDERED_ARTICLE_2*2]],
+                                            articles_ordered=[[self.article_type, NUMBER_ORDERED_1 * 2, self.cost],
+                                                              [self.at2, NUMBER_ORDERED_ARTICLE_2 * 2, self.cost]])
+        a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, NUMBER_ORDERED_1 * 2],
+                                                                      [self.at2, NUMBER_ORDERED_ARTICLE_2 * 2]],
                                                                      self.supplier)
         b = DistributionStrategy.build_changeset(a)
         self.assertEquals(len(b), 4)
@@ -664,7 +630,7 @@ class DistributionTests(TestCase):
         NUMBER_ORDERED_1 = 5
         NUMBER_ORDERED_ARTICLE_2 = 5
         TOTAL_ORDERED = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, NUMBER_ORDERED_1, self.price],
                                                         [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
@@ -697,7 +663,7 @@ class DistributionTests(TestCase):
         NUMBER_ORDERED_1 = 5
         NUMBER_ORDERED_ARTICLE_2 = 5
         TOTAL_ORDERED = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, NUMBER_ORDERED_1, self.price],
                                                         [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
@@ -731,7 +697,7 @@ class DistributionTests(TestCase):
         NUMBER_ORDERED_1 = 5
         NUMBER_ORDERED_ARTICLE_2 = 5
         TOTAL_ORDERED = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer ,
+        Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, NUMBER_ORDERED_1, self.price],
                                                         [self.at2, NUMBER_ORDERED_ARTICLE_2, self.price]])
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
@@ -745,49 +711,32 @@ class DistributionTests(TestCase):
                                             document_identifier="Dloa")
 
 
-class PackingDocumentCreationTests(TestCase):
-
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
+class PackingDocumentCreationTests(TestCase, TestData):
     def setUp(self):
-        self.vat_group = VAT()
-        self.vat_group.name = "AccGrpFoo"
-        self.vat_group.active = True
-        self.vat_group.vatrate = 1.12
-        self.vat_group.save()
+        self.setup_base_data()
+        self.vat_group = self.vat_group_high
         self.price = Price(amount=Decimal("1.00"), use_system_currency=True)
         self.currency = Currency(iso="USD")
 
-        self.acc_group = AccountingGroup()
-        self.acc_group.accounting_number = 2
-        self.acc_group.vat_group = self.vat_group
-        self.acc_group.save()
+        self.acc_group = self.accounting_group_components
 
-        self.article_type = ArticleType(accounting_group=self.acc_group, name="Foo1", )
-        self.article_type.save()
-
-        self.at2 = ArticleType(accounting_group=self.acc_group, name="Foo2", )
-        self.at2.save()
-
-        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3", )
+        self.article_type = self.articletype_1
+        self.at2 = self.articletype_2
+        self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
         self.at3.save()
 
         cost = Cost(amount=Decimal(1), use_system_currency=True)
 
-        self.supplier = Supplier(name="Nepacove")
-        self.supplier.save()
+        self.supplier = self.supplier_1
 
-        ats = ArticleTypeSupplier(article_type=self.article_type, supplier=self.supplier,
-                                  cost=cost, minimum_number_to_order=1, supplier_string="At1", availability='A')
-        ats.save()
-        ats2 = ArticleTypeSupplier(supplier=self.supplier, article_type=self.at2,
-                                   cost=cost, minimum_number_to_order=1, supplier_string="At2", availability='A')
-        ats2.save()
+        ats = self.articletypesupplier_article_1
+        ats2 = self.articletypesupplier_article_2
         self.money = Money(amount=Decimal(3.32), currency=self.currency)
 
-        self.customer = Person()
-        self.customer.save()
+        self.customer = self.customer_person_1
 
-        self.copro = User()
-        self.copro.save()
+        self.copro = self.user_1
 
         self.cost = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.23))
         self.cost2 = Cost(currency=Currency(USED_CURRENCY), amount=Decimal(1.24))
@@ -796,16 +745,17 @@ class PackingDocumentCreationTests(TestCase):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
         Order.create_order_from_wishables_combinations(self.copro, self.customer,
-                                                       [[self.article_type, AMOUNT_1-1, self.price]])
+                                                       [[self.article_type, AMOUNT_1 - 1, self.price]])
         Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, 1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
-                                            articles_ordered=[[self.article_type, AMOUNT_1-2, self.cost],
+                                            articles_ordered=[[self.article_type, AMOUNT_1 - 2, self.cost],
                                                               [self.at2, AMOUNT_2, self.cost]])
         result = PackingDocument.verify_article_demand(supplier=self.supplier,
-                                                       article_type_cost_combinations=[[self.article_type, AMOUNT_1-2],
-                                                                                       [self.at2, AMOUNT_2]],
+                                                       article_type_cost_combinations=[
+                                                           [self.article_type, AMOUNT_1 - 2],
+                                                           [self.at2, AMOUNT_2]],
                                                        use_invoice=False)
         self.assertEquals(len(result), 0)
 
@@ -813,16 +763,17 @@ class PackingDocumentCreationTests(TestCase):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
         Order.create_order_from_wishables_combinations(self.copro, self.customer,
-                                                       [[self.article_type, AMOUNT_1-1, self.price]])
+                                                       [[self.article_type, AMOUNT_1 - 1, self.price]])
         Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, 1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
-                                            articles_ordered=[[self.article_type, AMOUNT_1-2, self.cost],
+                                            articles_ordered=[[self.article_type, AMOUNT_1 - 2, self.cost],
                                                               [self.at2, AMOUNT_2, self.cost]])
         result = PackingDocument.verify_article_demand(supplier=self.supplier,
-                                                       article_type_cost_combinations=[[self.article_type, AMOUNT_1-1],
-                                                                                       [self.at2, AMOUNT_2]],
+                                                       article_type_cost_combinations=[
+                                                           [self.article_type, AMOUNT_1 - 1],
+                                                           [self.at2, AMOUNT_2]],
                                                        use_invoice=False)
         self.assertEquals(len(result), 1)
         self.assertEquals(result[0][1], 1)
@@ -852,8 +803,9 @@ class PackingDocumentCreationTests(TestCase):
                                             articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
                                                               [self.at2, AMOUNT_2, self.cost]])
         result = PackingDocument.verify_article_demand(supplier=self.supplier,
-                                                       article_type_cost_combinations=[[self.article_type, AMOUNT_1+2],
-                                                                                       [self.at2, AMOUNT_2+3]],
+                                                       article_type_cost_combinations=[
+                                                           [self.article_type, AMOUNT_1 + 2],
+                                                           [self.at2, AMOUNT_2 + 3]],
                                                        use_invoice=False)
         self.assertEquals(len(result), 2)
         self.assertEquals(result[0][1], 2)
@@ -933,7 +885,7 @@ class PackingDocumentCreationTests(TestCase):
         with self.assertRaises(models.InvalidDataError):
             PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
                                                     article_type_cost_combinations=[[self.article_type, AMOUNT_1,
-                                                                                     self.cost2],[self.at2, AMOUNT_2]],
+                                                                                     self.cost2], [self.at2, AMOUNT_2]],
                                                     packing_document_name="Foo")
 
     def test_big_creation_function_stock_only_no_invoice(self):
@@ -975,7 +927,7 @@ class PackingDocumentCreationTests(TestCase):
                                                               [self.at2, AMOUNT_2, self.cost]])
         PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
                                                 article_type_cost_combinations=[[self.article_type, AMOUNT_1,
-                                                                                 self.cost2],[self.at2, AMOUNT_2]],
+                                                                                 self.cost2], [self.at2, AMOUNT_2]],
                                                 packing_document_name="Foo", invoice_name="Bar")
         st = Stock.objects.all()
         art_1 = 0
@@ -997,8 +949,8 @@ class PackingDocumentCreationTests(TestCase):
     def test_big_creation_function_mixed_no_invoice(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1-2],
-                                                                                [self.at2, AMOUNT_2-2]])
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1 - 2],
+                                                                                [self.at2, AMOUNT_2 - 2]])
         Order.create_order_from_wishables_combinations(user=self.copro, customer=self.customer,
                                                        wishable_type_number_price_combinations=[[self.article_type, 2,
                                                                                                  self.price],
@@ -1030,8 +982,8 @@ class PackingDocumentCreationTests(TestCase):
     def test_big_creation_function_mixed_with_invoice(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1-2],
-                                                                                [self.at2, AMOUNT_2-2]])
+        StockWish.create_stock_wish(user_modified=self.copro, articles_ordered=[[self.article_type, AMOUNT_1 - 2],
+                                                                                [self.at2, AMOUNT_2 - 2]])
         Order.create_order_from_wishables_combinations(user=self.copro, customer=self.customer,
                                                        wishable_type_number_price_combinations=[[self.article_type, 2,
                                                                                                  self.price],

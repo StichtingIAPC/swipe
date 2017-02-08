@@ -1,16 +1,20 @@
+import datetime
 from decimal import Decimal
 
 from django.test import TestCase
 
-from article.models import ArticleType, OtherCostType
-from crm.models import User, Person
+from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
+from crm.models import User, Person, Customer, Organisation, ContactOrganisation
+from externalise.models import ExternaliseDocument
 from logistics.models import SupplierOrder, StockWish
-from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money
+from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money, VATPeriod
 from order.models import Order
+from pricing.models import PricingModel
 from register.models import PaymentType, Register
 from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
+
 from swipe.settings import USED_CURRENCY
 
 
@@ -30,7 +34,15 @@ def allowFailure(arg):
     else:
         return wrapper(arg)
 
+
+# noinspection PyAttributeOutsideInit
 class TestData:
+    """
+    Test data for usage in unit and integrations tests. For most use cases it is enough to let a testclass extend
+    TestData and then call 'setup_base_data()' on self. For fine grained testing, use the part setup functions and the
+    dd setup functions to inject just that bit of data you need. Things like customer and supplier orders can also be
+    done with these functions to generate some 'real' data for usage. Can also be used in manual testing situations.
+    """
 
     def setup_base_data(self):
         self.part_setup_currency_data()
@@ -63,10 +75,16 @@ class TestData:
             self.currency_data_used.save()
 
     def part_setup_vat_group(self):
-        self.vat_group_high = VAT(vatrate=1.21, name="High", active=True)
+        self.vat_group_high = VAT(name="High", active=True)
         self.vat_group_high.save()
-        self.vat_group_low = VAT(vatrate=1.06, name="Low", active=True)
+        self.vat_group_low = VAT(name="Low", active=True)
         self.vat_group_low.save()
+        self.vat_group_high_period = VATPeriod(vat=self.vat_group_high, begin_date=datetime.date.fromtimestamp(1000000),
+                                               vatrate=Decimal("1.21"))
+        self.vat_group_high_period.save()
+        self.vat_group_low_period = VATPeriod(vat=self.vat_group_low, begin_date=datetime.date.fromtimestamp(1000000),
+                                              vatrate=Decimal("1.06"))
+        self.vat_group_low_period.save()
 
     def part_setup_currency(self):
         self.currency_eur = Currency(iso="EUR")
@@ -109,8 +127,8 @@ class TestData:
         self.denomination_eur_0_01.save()
 
     def part_setup_prices(self):
-        self.price_system_currency_1 = Price(amount=Decimal(1.23), use_system_currency=True, vat=1.21)
-        self.price_systen_currency_2 = Price(amount=Decimal(2.10), use_system_currency=True, vat=1.06)
+        self.price_system_currency_1 = Price(amount=Decimal(1.23), use_system_currency=True, vat=Decimal("1.21"))
+        self.price_systen_currency_2 = Price(amount=Decimal(2.10), use_system_currency=True, vat=Decimal("1.06"))
 
     def part_setup_costs(self):
         self.cost_system_currency_1 = Cost(amount=Decimal(1.23), use_system_currency=True)
@@ -160,6 +178,15 @@ class TestData:
                                         email="schaduwbestuur@iapc.utwente.nl", name="Gerda Steenhuizen",
                                         phone="0534894260", zip_code="7522NB")
         self.customer_person_2.save()
+        self.organisation = Organisation(
+                                        address="Drienerlolaan 5", city="Enschede",
+                                        email="schaduwbestuur@iapc.utwente.nl", name="Gerda Steenhuizen",
+                                        phone="0534894260", zip_code="7522NB")
+        self.organisation.save()
+        self.customer_contact_organisation = ContactOrganisation(contact=self.customer_person_1,
+                                                                 organisation=self.organisation)
+        self.customer_contact_organisation.save()
+
 
     def part_setup_users(self):
         self.user_1 = User(username="jsteen")
@@ -167,11 +194,21 @@ class TestData:
         self.user_2 = User(username="ghuis")
         self.user_2.save()
 
-    def create_custorders(self, article_1=6, article_2=7, othercost_1=5, othercost_2=8):
+    def add_setup_pricing(self):
+        self.articletype_1.fixed_price = self.price_system_currency_1
+        self.articletype_2.fixed_price = self.price_systen_currency_2
+        self.articletype_1.save()
+        self.articletype_2.save()
+        pm1 = PricingModel(function_identifier=1, name="Fixed Price", position=1)
+        pm1.save()
+
+    def create_custorders(self, article_1=6, article_2=7, othercost_1=5, othercost_2=8, customer: Customer=None):
         self.CUSTORDERED_ARTICLE_1 = article_1
         self.CUSTORDERED_ARTICLE_2 = article_2
         self.CUSTORDERED_OTHERCOST_1 = othercost_1
         self.CUSTORDERED_OTHERCOST_2 = othercost_2
+        if not customer:
+            customer = self.customer_person_1
         if article_1 + article_2 + othercost_1 + othercost_2 > 0:
             wish_combs = []
             if article_1 > 0:
@@ -182,7 +219,7 @@ class TestData:
                 wish_combs.append([self.othercosttype_1, self.CUSTORDERED_OTHERCOST_1, self.price_system_currency_1])
             if othercost_2 > 0:
                 wish_combs.append([self.othercosttype_2, self.CUSTORDERED_OTHERCOST_2, self.price_systen_currency_2])
-            Order.create_order_from_wishables_combinations(user=self.user_1, customer=self.customer_person_1,
+            Order.create_order_from_wishables_combinations(user=self.user_1, customer=customer,
                                                            wishable_type_number_price_combinations=wish_combs)
 
     def create_stockwish(self, article_1=6, article_2=7):
@@ -254,13 +291,28 @@ class TestData:
                 Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                                customer=self.customer_person_2)
 
+    def create_externalisation(self, article_1=5, article_2=7):
+        self.INTERNALISED_ARTICLE_1 = article_1
+        self.INTERNALISED_ARTICLE_2 = article_2
+        if article_1 + article_2 > 0:
+            art_list = []
+            if article_1 > 0:
+                art_list.append((self.articletype_1, article_1, self.cost_system_currency_1))
+            if article_2 > 0:
+                art_list.append((self.articletype_2, article_2, self.cost_system_currency_2))
+
+            ExternaliseDocument.create_external_products_document(user=self.user_1, article_information_list=art_list,
+                                                                  memo="Testing tool externalisation")
+
 
 class TestMixins(TestCase, TestData):
 
     def test_all_in_sequence(self):
         self.setup_base_data()
+        self.add_setup_pricing()
         self.create_custorders()
         self.create_suporders()
         self.create_stockwish()
         self.create_packingdocuments()
         self.create_transactions_article_type_for_order()
+        self.create_externalisation()

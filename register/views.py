@@ -47,7 +47,7 @@ class RegisterListView(mixins.ListModelMixin,
         )
     ).prefetch_related(
         'currency__denomination_set'
-    ) # Heavy prefetch query to optimize loading of objects, and prevent optional O(n) behaviour on the DB
+    )  # Heavy prefetch query to optimize loading of objects, and prevent optional O(n) behaviour on the DB
     serializer_class = RegisterSerializer
 
     def get(self, request, *args, **kwargs):

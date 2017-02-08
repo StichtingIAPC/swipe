@@ -34,7 +34,8 @@ class StockCountDocument(Blame):
 
         """
         # In practice, the system should be more automatic and lenient. It will suffice for now.
-        raiseif(ArticleType.objects.count() != TemporaryArticleCount.objects.filter(checked=True).count(), UncountedError,
+        raiseif(ArticleType.objects.count() != TemporaryArticleCount.objects.filter(checked=True).count(),
+                UncountedError,
                 "The number of ArticleTypes is not equal to the number of counted ArticleTypes")
         tacs = TemporaryArticleCount.objects.all()
         article_counts = {}
@@ -42,7 +43,7 @@ class StockCountDocument(Blame):
             article_counts[tac.article_type] = tac.count
 
         changes, stock_count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
-        counter_lines = TemporaryCounterLine.\
+        counter_lines = TemporaryCounterLine. \
             get_all_temporary_counterlines_since_last_stock_count(stock_changes=changes,
                                                                   last_stock_count=stock_count)
         discrepancies = []
@@ -109,7 +110,7 @@ class StockCountDocument(Blame):
             elif difference < 0:
                 matchings = solution_dict.get(article, None)  # type: list[DiscrepancySolution]
                 if matchings:
-                    to_be_solved = difference*-1
+                    to_be_solved = difference * -1
                     no_of_matchings = len(matchings)
                     i = 0
                     while to_be_solved > 0 and i < no_of_matchings:
@@ -118,7 +119,7 @@ class StockCountDocument(Blame):
                             st = Stock.objects.get(article=match.article_type, labeltype=match.stock_label,
                                                    labelkey=match.stock_key)
                             if st.count <= to_be_solved:
-                                stock_change= {'article': article,
+                                stock_change = {'article': article,
                                                 'book_value': st.book_value,
                                                 'count': st.count,
                                                 'is_in': False}
@@ -163,7 +164,7 @@ class StockCountDocument(Blame):
                 if not avg_tuple:
                     avg = Cost(amount=Decimal(0), use_system_currency=True)
                 else:
-                    avg=avg_tuple[1]
+                    avg = avg_tuple[1]
                 scl = StockCountLine(document=doc, article_type=mod.article_type, previous_count=mod.previous_count,
                                      in_count=mod.in_count, out_count=mod.out_count,
                                      physical_count=physical, average_value=avg, text=mod.article_type.name,
@@ -182,7 +183,7 @@ class StockCountDocument(Blame):
 
             # Essential timing issue. Neglecting this, this change set will not fall in the correct period
             # This guarantees that it will be registered as created just after the stock count
-            change_set.date = doc.date_created+timedelta(milliseconds=10)
+            change_set.date = doc.date_created + timedelta(milliseconds=10)
             change_set.save(indirect=True)
 
             return doc
@@ -238,10 +239,10 @@ class StockCountLine(models.Model):
             return False
         else:
             return self.document_id == other.document_id and self.article_type_id == other.article_type_id and \
-                self.previous_count == other.previous_count and self.in_count == other.in_count \
-                and self.out_count == other.out_count and self.physical_count == other.physical_count and \
-                self.average_value == other.average_value and self.text == other.text and \
-                self.accounting_group_id == other.accounting_group_id
+                   self.previous_count == other.previous_count and self.in_count == other.in_count \
+                   and self.out_count == other.out_count and self.physical_count == other.physical_count and \
+                   self.average_value == other.average_value and self.text == other.text and \
+                   self.accounting_group_id == other.accounting_group_id
 
 
 class DiscrepancySolution(models.Model):
@@ -318,7 +319,7 @@ class TemporaryCounterLine:
             return False
         else:
             return (self.article_type == other.article_type and self.previous_count == other.previous_count
-            and self.in_count == other.in_count and self.out_count == other.out_count and self.expected_count ==
+                    and self.in_count == other.in_count and self.out_count == other.out_count and self.expected_count ==
                     other.expected_count)
 
     @staticmethod
@@ -466,4 +467,3 @@ class FunctionError(Exception):
 
 class SolutionError(Exception):
     pass
-

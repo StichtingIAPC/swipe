@@ -41,11 +41,12 @@ class SellableType(WishableType):
         return self.accounting_group.vat_group
 
     def get_vat_rate(self):
-        return self.accounting_group.vat_group.vatrate
+        return self.get_vat_group().getvatrate()
 
 
 class ArticleType(SellableType):
     # The type of an article you can put on a shelf
+    # A fixed price for the article. This is a sort of 'default' price.
     fixed_price = MoneyField(null=True)
     # The unique identifier around the world for this product. May also be an ISBN.
     ean = models.BigIntegerField(null=True)
@@ -93,7 +94,10 @@ class ProductCombination(models.Model):
 
 
 class OtherCostType(SellableType):
-    # Product that does not enter stock. This product is rarely physical.
+    # Product that does not enter stock. This product is rarely physical and usually a service.
+
+    # Fixed price. Similar to the fixed price of ArticleType but mandatory as
+    # there is no other indicator of value for the product.
     fixed_price = MoneyField()
 
     def get_sales_price(self):

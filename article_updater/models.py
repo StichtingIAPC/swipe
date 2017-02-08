@@ -12,8 +12,8 @@ import mimetypes
 
 import xml.etree.ElementTree as ET
 
-class FileParser:
 
+class FileParser:
     @staticmethod
     def verify_file_exists(file_location: str) -> bool:
         """
@@ -46,7 +46,6 @@ class FileParser:
 
 
 class DataTypeSupplierRelation(models.Model):
-
     supplier = models.ForeignKey(Supplier)
 
     def verify_supplier_relation_integrity(self):
@@ -54,7 +53,6 @@ class DataTypeSupplierRelation(models.Model):
 
 
 class XMLSupplierRelation(DataTypeSupplierRelation):
-
     # The xml identifier for a product
     item_name = models.CharField(max_length=30)
     # Unique product identifier for supplier. Unique referer per supplier.
@@ -95,8 +93,8 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
         for elem in xml_data.iter(supplier_relation.item_name):
             number = elem.find(supplier_relation.number).text
             name = elem.find(supplier_relation.name).text
-            price_prep = elem.find(supplier_relation.cost).text # type: str
-            price_prep = price_prep.replace(",",".")
+            price_prep = elem.find(supplier_relation.cost).text  # type: str
+            price_prep = price_prep.replace(",", ".")
             cost = Cost(amount=Decimal(price_prep), use_system_currency=True)
             supply = elem.find(supplier_relation.supply).text
             if supplier_relation.ean:
@@ -124,7 +122,6 @@ class XMLSupplierRelation(DataTypeSupplierRelation):
 
 
 class CSVSupplierRelation(DataTypeSupplierRelation):
-
     # The element separator
     separator = models.CharField(max_length=5)
     # The first line(s) can be CSV-metadata. The first line of a file is considered to be line 0.
@@ -145,7 +142,8 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
     packing_amount = models.IntegerField(null=True)
 
     def verify_supplier_relation_integrity(self):
-        attrs = [self.separator, self.start_at, self.number, self.name, self.cost, self.supply, self.ean, self.minimum_order,
+        attrs = [self.separator, self.start_at, self.number, self.name, self.cost, self.supply, self.ean,
+                 self.minimum_order,
                  self.packing_amount]
         name_set = set()
         for att in attrs:
@@ -168,7 +166,9 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
         for line in csv_data:
             number = line[supplier_relation.number]
             name = line[supplier_relation.name]
-            cost = Cost(amount=Decimal(supplier_relation.cost), use_system_currency=True)
+            cost_data = line[supplier_relation.cost]
+            cost_data = cost_data.replace(",", ".")
+            cost = Cost(amount=Decimal(cost_data), use_system_currency=True)
             supply = int(line[supplier_relation.supply])
 
             if supplier_relation.ean:
@@ -196,16 +196,13 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
         return supplier_type_articles
 
 
-
 class SupplierDataParser:
-
     @staticmethod
     def parse(file_location, supplier_data: DataTypeSupplierRelation):
         pass
 
 
 class XMLParser(SupplierDataParser):
-
     @staticmethod
     def parse(file_location, supplier_data: XMLSupplierRelation) -> ET.ElementTree:
         raiseifnot(FileParser.verify_file_exists(file_location) and FileParser.verify_file_is_plain_text(file_location),
@@ -216,7 +213,6 @@ class XMLParser(SupplierDataParser):
 
 
 class CSVParser(SupplierDataParser):
-
     @staticmethod
     def parse(file_location, supplier_data: CSVSupplierRelation):
         raiseifnot(FileParser.verify_file_exists(file_location) and FileParser.verify_file_is_plain_text(file_location),
@@ -227,7 +223,7 @@ class CSVParser(SupplierDataParser):
     def parse_csv(file_location, supplier_data: CSVSupplierRelation):
         if not FileParser.verify_file_exists(file_location) or not FileParser.verify_file_is_plain_text(file_location) \
                 or mimetypes.guess_type(file_location)[0] in ['text/xml', 'application/xml']:
-                    raise SwipeParseError("File is not a CSV file")
+            raise SwipeParseError("File is not a CSV file")
         file = open(file_location, 'r', encoding='utf-8')
         lines = file.readlines()
 
@@ -236,7 +232,7 @@ class CSVParser(SupplierDataParser):
         # if this is the case, the parser needs to use a different separater(that is, with quotes)
         mode = 0
         first_line = lines[0]
-        separators = [supplier_data.separator, "\""+supplier_data.separator+"\"",
+        separators = [supplier_data.separator, "\"" + supplier_data.separator + "\"",
                       "'" + supplier_data.separator + "'"]
         separated = [0, 0, 0]
         for i in range(len(separators)):
