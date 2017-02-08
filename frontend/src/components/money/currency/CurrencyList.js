@@ -104,11 +104,11 @@ class CurrencyList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.currencies.map(
+							{this.props.currencies !== null ? this.props.currencies.map(
 								(item) => (
 									<this.renderEntry activeID={this.props.currencyID} key={item.iso} currency={item} />
 								)
-							)}
+							) : null}
 						</tbody>
 					</table>
 				</div>
