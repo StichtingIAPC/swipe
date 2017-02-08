@@ -33,6 +33,8 @@ class TransactionLine(Blame):
     text = models.CharField(max_length=128)
     # Reference to order, null if stock
     order = models.IntegerField(null=True)
+    # The accounting group to indicate where the money flow should be booked.
+    accounting_group = models.ForeignKey(AccountingGroup)
 
     def save(self, **kwargs):
         if type(self) == TransactionLine:
@@ -65,8 +67,8 @@ class TransactionLine(Blame):
         else:
             ordr = self.order
         return "Transaction: {}, Item_number: {}, " \
-               "Count: {}, PricePP: {}, Refunded: {}, Order: {}, Text: {}".format(trans, num, count, price, refun,
-                                                                                  ordr, self.text)
+               "Count: {}, PricePP: {}, Refunded: {}, Order: {}, Text: {}, AccGroup: {}".format(trans, num, count, price, refun,
+                                                                                  ordr, self.text, self.accounting_group)
 
 
 # noinspection PyShadowingBuiltins
@@ -112,8 +114,6 @@ class OtherTransactionLine(TransactionLine):
     """
         One transaction-line for a text-specified reason.
     """
-    # The accounting group to indicate where the money flow should be booked.
-    accounting_group = models.ForeignKey(AccountingGroup)
 
     def __str__(self):
         prep = super(OtherTransactionLine, self).__str__()
@@ -443,15 +443,18 @@ class Transaction(Blame):
                     change_set.append(change)
                 # Set rest of relevant properties for SalesTransactionLine
                 tr_line.num = tr_line.article.pk
+                tr_line.accounting_group = tr_line.article.accounting_group
                 tr_line.text = str(tr_line.article)
             elif type(tr_line) == OtherCostTransactionLine:
                 tr_line.num = tr_line.other_cost_type.pk
+                tr_line.accounting_group = tr_line.other_cost_type.accounting_group
                 tr_line.text = str(tr_line.other_cost_type)
             elif type(tr_line) == OtherTransactionLine:
                 # Symbolic number indicating no related database object
                 tr_line.num = -1
             elif type(tr_line) == RefundTransactionLine:
                 tr_line.text = tr_line.sold_transaction_line.text
+                tr_line.accounting_group = tr_line.sold_transaction_line.accounting_group
                 tr_line.num = -1
             # Don't forget the user
             tr_line.user_modified = user
