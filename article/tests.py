@@ -1,8 +1,8 @@
 from django.test import TestCase
 
-from tools.testing import TestData
 from article.models import *
 from money.models import VAT
+from tools.testing import TestData
 
 # Base class, so all test-classes can use a base set of test-data.
 
@@ -39,11 +39,9 @@ class ArticleBasicTests(INeedSettings, TestCase, TestData):
 
         self.part_setup_vat_group()
         self.part_setup_accounting_group()
-        self.part_setup_assortment_article_branch()
 
         self.vat_group = self.vat_group_high
         self.acc_group = self.accounting_group_components
-        self.branch = self.branch_1
 
     def test_illegal_save(self):
         generic_wishable_type = WishableType()

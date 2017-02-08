@@ -1,12 +1,8 @@
 from decimal import Decimal
 
-from django.contrib.auth.models import User
 from django.test import TestCase
 
-from article.models import ArticleType, OtherCostType
-from article.tests import INeedSettings
-from crm.models import Person
-from money.models import VAT, Price, Currency, AccountingGroup, Money, Cost
+from money.models import Price, Currency, Money, Cost
 from order import models
 from order.models import Order, OrderLine, OrderLineState, OrderCombinationLine
 from register.models import ConsistencyChecker
@@ -29,7 +25,6 @@ class OrderTest(TestCase, TestData):
         self.part_setup_accounting_group()
         self.acc_group = self.accounting_group_components
 
-        self.part_setup_assortment_article_branch()
         self.part_setup_article_types()
         self.article_type = self.articletype_1
         self.at2 = self.articletype_2

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from article.models import AssortmentArticleBranch, ArticleType, OtherCostType
+from article.models import ArticleType, OtherCostType
 from crm.models import User, Person, Customer, Organisation, ContactOrganisation
 from externalise.models import ExternaliseDocument
 from logistics.models import SupplierOrder, StockWish
@@ -14,7 +14,6 @@ from register.models import PaymentType, Register
 from sales.models import Transaction, SalesTransactionLine, Payment, OtherCostTransactionLine
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
-
 from swipe.settings import USED_CURRENCY
 
 

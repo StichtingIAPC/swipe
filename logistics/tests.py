@@ -15,8 +15,6 @@ class StockWishTests(TestCase, TestData):
 
         self.acc_group = self.accounting_group_components
 
-        self.branch = self.branch_1
-
         self.article_type = self.articletype_1
         self.at2 = self.articletype_2
         self.at3 = ArticleType(accounting_group=self.acc_group, name="Foo3")
