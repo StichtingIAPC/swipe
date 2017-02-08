@@ -1055,7 +1055,7 @@ class PackingDocumentCreationTests(TestCase, TestData):
 
 
     def test_not_enough_serial_numbers_no_serials_for_article(self):
-        art3 = ArticleType(name="Baz", branch=self.branch_1, accounting_group=self.accounting_group_components,
+        art3 = ArticleType(name="Baz", accounting_group=self.accounting_group_components,
                            serial_number=True)
         art3.save()
         art3_supplier = ArticleTypeSupplier(supplier=self.supplier_1,
@@ -1081,7 +1081,7 @@ class PackingDocumentCreationTests(TestCase, TestData):
                                                     packing_document_name="Foo", serial_numbers=sers)
 
     def test_not_enough_serial_numbers_too_little_serials_for_article(self):
-        art3 = ArticleType(name="Baz", branch=self.branch_1, accounting_group=self.accounting_group_components,
+        art3 = ArticleType(name="Baz", accounting_group=self.accounting_group_components,
                            serial_number=True)
         art3.save()
         art3_supplier = ArticleTypeSupplier(supplier=self.supplier_1,
