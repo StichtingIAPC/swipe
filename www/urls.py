@@ -11,28 +11,29 @@ urlpatterns = [
     # Home page
     url(r'^$', home, name='home'),
 
-    # Include Supplier URLs
-    url(r'^supplier/', include('supplier.urls')),
+    url(r'^auth/', include('authorization.urls')),
 
-    # Include CRM URLs
+    url(r'^article/', include('article.urls')),
+
+    url(r'^assortment/', include('assortment.urls')),
+
+    url(r'^barcode/', include('barcode.urls')),
+
     url(r'^crm/', include('crm.urls')),
-
-    # Include Register URLs
-    url(r'^register/', include("register.urls")),
 
     # Include Money URLs
     url(r'^money/', include("money.urls")),
 
-    # Include API URLs
-    url(r'^api/', include('api.urls')),
+    # Include Supplier URLs
+    url(r'^supplier/', include('supplier.urls')),
 
-    url(r'^barcode/', include('barcode.urls')),
+    # Include CRM URLs
+    # Include Register URLs
+    url(r'^register/', include("register.urls")),
 
     url(r'^tools/', include('tools.urls')),
 
     url(r'^public/', include('public_info.urls')),
 
     url(r'^auth/', include('authorization.urls')),
-
-    url(r'^article/', include('article.urls')),
 ]

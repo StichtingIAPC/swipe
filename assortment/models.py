@@ -158,14 +158,14 @@ class AssortmentUnitType(models.Model):
             return _("AssortmentUnitType<{} ({}) [{} {}]>".format(
                 self.type_long,
                 self.type_short,
-                self.get_counting_type_display(),
+                self.get_incremental_type_display(),
                 self.incremental_type
             ))
         else:
             return _("AssortmentUnitType<{} ({}) [{}]>".format(
                 self.type_long,
                 self.type_short,
-                self.get_counting_type_display()
+                self.get_incremental_type_display()
             ))
 
     def parse(self, value):
