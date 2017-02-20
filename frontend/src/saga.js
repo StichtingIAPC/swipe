@@ -2,6 +2,7 @@ import { takeEvery, takeLatest } from "redux-saga";
 import { login, saveLoginDetails } from "./sagas/auth.js";
 import { fetchCurrencies, createCurrency, updateCurrency } from "./sagas/money/currencies";
 import { fetchSuppliers, createSupplier, updateSupplier } from "./sagas/suppliers";
+import { fetchArticles, createArticle, updateArticle } from "./sagas/articles";
 
 export default function* rootSaga() {
 	yield takeLatest('CURRENCY_FETCH_START', fetchCurrencies);
@@ -15,4 +16,10 @@ export default function* rootSaga() {
 	yield takeEvery('SUPPLIER_CREATE', createSupplier);
 	yield takeEvery('SUPPLIER_UPDATE', updateSupplier);
 	yield takeEvery('SUPPLIER_DELETE', updateSupplier);
+
+	// Article sagas
+	yield takeLatest('ARTICLE_FETCH_START', fetchArticles);
+	yield takeEvery('ARTICLE_CREATE', createArticle);
+	yield takeEvery('ARTICLE_UPDATE', updateArticle);
+	yield takeEvery('ARTICLE_DELETE', updateArticle);
 };
