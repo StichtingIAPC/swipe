@@ -1038,6 +1038,7 @@ class PackingDocumentCreationTests(TestCase, TestData):
         self.assertEquals(counted_art_2, 1)
 
     def test_serial_numbers_fail(self):
+        # Too many serials for art 1
         AMOUNT_1 = 6
         AMOUNT_2 = 10
         StockWish.create_stock_wish(user_modified=self.copro,
@@ -1050,4 +1051,59 @@ class PackingDocumentCreationTests(TestCase, TestData):
             PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
                                                     article_type_cost_combinations=[[self.article_type, AMOUNT_1],
                                                                                     [self.at2, AMOUNT_2]],
+                                                    packing_document_name="Foo", serial_numbers=sers)
+
+
+    def test_not_enough_serial_numbers_no_serials_for_article(self):
+        art3 = ArticleType(name="Baz", accounting_group=self.accounting_group_components,
+                           serial_number=True)
+        art3.save()
+        art3_supplier = ArticleTypeSupplier(supplier=self.supplier_1,
+                                                                 article_type=art3,
+                                                                 cost=self.cost_system_currency_2, availability='A',
+                                                                 supplier_string="SupplierArticleType 3",
+                                                                 minimum_number_to_order=1)
+        art3_supplier.save()
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 2
+        StockWish.create_stock_wish(user_modified=self.copro,
+                                    articles_ordered=[[self.article_type, AMOUNT_1], [self.at2, AMOUNT_2],
+                                                      [art3, AMOUNT_3]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost], [art3, AMOUNT_3,self.cost]])
+        sers = {self.article_type: ["ASD", "FD", "FDd", "FD", "GF", "Ga", "d"], self.at2: ["Baz"]}
+        with self.assertRaises(IncorrectDataError):
+            PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                    article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                    [self.at2, AMOUNT_2], [art3, AMOUNT_3]],
+                                                    packing_document_name="Foo", serial_numbers=sers)
+
+    def test_not_enough_serial_numbers_too_little_serials_for_article(self):
+        art3 = ArticleType(name="Baz", accounting_group=self.accounting_group_components,
+                           serial_number=True)
+        art3.save()
+        art3_supplier = ArticleTypeSupplier(supplier=self.supplier_1,
+                                            article_type=art3,
+                                            cost=self.cost_system_currency_2, availability='A',
+                                            supplier_string="SupplierArticleType 3",
+                                            minimum_number_to_order=1)
+        art3_supplier.save()
+        AMOUNT_1 = 6
+        AMOUNT_2 = 10
+        AMOUNT_3 = 2
+        StockWish.create_stock_wish(user_modified=self.copro,
+                                    articles_ordered=[[self.article_type, AMOUNT_1], [self.at2, AMOUNT_2],
+                                                      [art3, AMOUNT_3]])
+        SupplierOrder.create_supplier_order(self.copro, self.supplier,
+                                            articles_ordered=[[self.article_type, AMOUNT_1, self.cost],
+                                                              [self.at2, AMOUNT_2, self.cost],
+                                                              [art3, AMOUNT_3, self.cost]])
+        sers = {self.article_type: ["ASD", "FD", "FDd", "FD", "GF", "Ga", "d"], self.at2: ["Baz"], art3: ["Foo"]}
+        with self.assertRaises(IncorrectDataError):
+            PackingDocument.create_packing_document(user=self.copro, supplier=self.supplier,
+                                                    article_type_cost_combinations=[[self.article_type, AMOUNT_1],
+                                                                                    [self.at2, AMOUNT_2],
+                                                                                    [art3, AMOUNT_3]],
                                                     packing_document_name="Foo", serial_numbers=sers)

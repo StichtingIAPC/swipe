@@ -142,9 +142,9 @@ class TestData:
         self.supplier_2.save()
 
     def part_setup_article_types(self):
-        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components)
+        self.articletype_1 = ArticleType(name="ArticleType 1", accounting_group=self.accounting_group_components, serial_number=False)
         self.articletype_1.save()
-        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food)
+        self.articletype_2 = ArticleType(name="ArticleType 2", accounting_group=self.accounting_group_food, serial_number=False)
         self.articletype_2.save()
 
     def part_setup_article_type_supplier(self):
