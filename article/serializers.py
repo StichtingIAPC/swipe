@@ -6,7 +6,7 @@ from money.serializers import MoneySerializerField
 
 
 class ArticleTypeSerializer(serializers.ModelSerializer):
-    fixed_price = MoneySerializerField()
+    fixed_price = MoneySerializerField(allow_null=True)
 
     class Meta:
         model = ArticleType
@@ -16,6 +16,8 @@ class ArticleTypeSerializer(serializers.ModelSerializer):
             'accounting_group',
             'name',
             'labels',
+            'ean',
+            'serial_number',
         )
         depth = 0
 
