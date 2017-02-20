@@ -17,6 +17,13 @@ $col-iapc-blue-light: #2cb8ff;
 
 $dim-base: 8px;
 
+.label:not(:first-of-type) {
+	margin-left: .3em;
+}
+.label:not(:last-of-type) {
+	margin-right: .3em;
+}
+
 .sidebar-menu li a i.fa {
 	margin-right: $dim-base;
 }

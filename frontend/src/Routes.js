@@ -17,6 +17,9 @@ import SupplierDetail from "components/supplier/SupplierDetail";
 import MoneyBase from "./components/money/MoneyBase";
 import CurrencyDetail from "./components/money/currency/CurrencyDetail";
 import CurrencyEdit from "./components/money/currency/CurrencyEdit";
+// Article components
+import ArticleEdit from "./components/article/ArticleEdit";
+import ArticleManager from "./components/article/ArticleManager";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -42,6 +45,10 @@ class Routes extends React.Component {
 					<Route path="currency/create/" component={CurrencyEdit} />
 					<Route path="currency/:currencyID/edit/" component={CurrencyEdit} />
 					<Route path="currency/:currencyID/" component={CurrencyDetail} />
+				</Route>
+				<Route path="articlemanager/" component={ArticleManager}>
+					<Route path="create/" component={ArticleEdit} />
+					<Route path=":articleID/" component={ArticleEdit} />
 				</Route>
 
 				<Route path="pos">
