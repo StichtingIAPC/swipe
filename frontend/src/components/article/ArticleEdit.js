@@ -9,7 +9,6 @@ class ArticleEdit extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = this.getResetState();
-		this.fixedPriceInput = this.fixedPriceInput.bind(this);
 	}
 
 	componentWillMount() {
@@ -65,7 +64,7 @@ class ArticleEdit extends React.Component {
 				<div className="box-body">
 					<div className="form-horizontal">
 						<StringField value={this.state.name} name="Name" onChange={evt => this.setState({name: evt.target.value})} />
-						<IntegerField value={this.state.ean} name="EAN" onChange={evt => this.setState({ean: Number(evt.target.value)})} min={0} step={1} />
+						<IntegerField value={this.state.ean || ''} name="EAN" onChange={evt => this.setState({ean: Number(evt.target.value)})} min={0} step={1} />
 						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState({serial_number: evt.target.value})} />
 					</div>
 					<p>Tag/label add/remove here</p>
@@ -76,7 +75,7 @@ class ArticleEdit extends React.Component {
 				<div className="box-body">
 					<div className="form-horizontal">
 						<SelectField
-							value={this.state.accounting_group || 2}
+							value={this.state.accounting_group || ''}
 							name="Accounting group"
 							onChange={(evt) => this.setState({accounting_group: evt.target.value})}
 							options={[
