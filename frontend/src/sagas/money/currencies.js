@@ -6,7 +6,7 @@ import {
 	currencyInputError,
 	currencyFetchError
 } from "../../actions/money/currencies";
-import { get, post, put as api_put } from "../../api";
+import { get, post } from "../../api";
 
 export function* fetchCurrencies({ redirectTo }) {
 	try {
@@ -26,7 +26,7 @@ export function* createCurrency({ curr }) {
 	const currency = {...curr};
 	try {
 		const data = yield (yield call(
-			api_put,
+			post,
 			'/money/currency/',
 			currency,
 		)).json();
