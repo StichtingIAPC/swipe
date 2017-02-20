@@ -68,3 +68,8 @@ $dim-base: 8px;
 	display: block;
 	width: 100%;
 }
+
+.products-list > .item:hover,
+.products-list > .item.selected {
+	background: #eee;
+}
