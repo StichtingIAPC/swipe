@@ -3,7 +3,7 @@ from decimal import Decimal
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from money.models import CurrencyData as Currency, Denomination, AccountingGroup, Money
+from money.models import CurrencyData as Currency, Denomination, AccountingGroup, Money, VAT, VATPeriod
 
 
 class MoneySerializerField(serializers.Field):
@@ -74,5 +74,31 @@ class AccountingGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccountingGroup
         fields = (
+            'id',
+            'accounting_number',
+            'vat_group',
+            'name',
+        )
 
+
+class VATSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VAT
+        fields = (
+            'id',
+            'name',
+            'active',
+            'vatperiod_set'
+        )
+
+
+class VATPeriodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VATPeriod
+        fields = (
+            'id',
+            'vat',
+            'begin_date',
+            'end_date',
+            'vatrate',
         )
