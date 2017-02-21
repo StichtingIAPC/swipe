@@ -1,5 +1,5 @@
-import React, {PropTypes} from "react";
-import {Link} from "react-router";
+import React, { PropTypes } from "react";
+import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome.js";
 
 export default class SidebarLink extends React.Component {
