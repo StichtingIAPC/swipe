@@ -305,13 +305,12 @@ class OrderLine(Blame):
             ol.expected_sales_price = Price(amount=ol.expected_sales_price._amount,
                                               currency=ol.expected_sales_price._currency,
                                               vat=ol.wishable.get_vat_rate())
-
-        OrderLine.objects.bulk_create(ols)
-        nw_ols = OrderLine.objects.filter(order=order)
-        for ol in nw_ols:
-            ol_logs.append(OrderLineState(state=ol.state, user_created=ol.user_modified, orderline=ol))
-
-        OrderLineState.objects.bulk_create(ol_logs)
+        with transaction.atomic():
+            OrderLine.objects.bulk_create(ols)
+            nw_ols = OrderLine.objects.filter(order=order)
+            for ol in nw_ols:
+                ol_logs.append(OrderLineState(state=ol.state, user_created=ol.user_modified, orderline=ol))
+            OrderLineState.objects.bulk_create(ol_logs)
 
 
 
