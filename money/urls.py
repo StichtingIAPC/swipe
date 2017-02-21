@@ -22,4 +22,8 @@ urlpatterns = [
     url(r'^currency/$', views.CurrencyListView.as_view()),
     url(r'^currency/(?P<pk>[a-zA-Z]{3})/', views.CurrencyView.as_view()),
     url(r'^denomination/(?P<pk>\d+)/', views.DenominationDelete.as_view()),
+    url(r'^vat/$', views.VATListView.as_view()),
+    url(r'^vat/(?P<pk>\d+)/$', views.VATView.as_view()),
+    url(r'^vatgroup/$', views.VATPeriodListView.as_view()),
+    url(r'^vatgroup/$', views.VATPeriodView.as_view()),
 ]
