@@ -58,7 +58,7 @@ class ArticleEdit extends React.Component {
 		return (
 			<form className="box">
 				<div className="box-header with-border">
-					<h3 className="box-title">{`${this.props.id instanceof Number ? this.props.name : 'New article'} - Properties`}</h3>
+					<h3 className="box-title">{`${this.state.id ? this.state.name : 'New article'} - Properties`}</h3>
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
