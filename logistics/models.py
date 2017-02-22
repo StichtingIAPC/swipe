@@ -25,7 +25,6 @@ class SupplierOrder(ImmutableBlame):
         return "Supplier: {}, User: {}".format(self.supplier, self.user_created)
 
     @staticmethod
-    @transaction.atomic()
     def create_supplier_order(user_modified, supplier, articles_ordered=None, allow_different_currency=False):
         """
         Checks if supplier order information is correct and orders it at the correct supplier
@@ -267,6 +266,48 @@ class SupplierOrderLine(Blame):
                 raise IncorrectTransitionError(
                        "This transaction is not legal: {state} -> {new_state}".format(state=self.state,
                                                                                       new_state=new_state))
+    @staticmethod
+    def bulk_create_supplierorders(supplier_orderlines, supplier_order: SupplierOrder, user: User):
+        """
+        Creates supplierOrderLines in bulk with one transaction. This should not be called directly as it contains
+        no checks for speed purposes. These checks are done in the main creation function so use that one for
+        the creation of supplierOrderLines.
+        :param supplier_orderlines:
+        :type supplier_orderlines: list[SupplierOrderLine]
+        :param supplier_order:
+        :param user:
+        :return:
+        """
+        sol_states = []
+        ol_transitions = []  # type: list[OrderLine]
+        remove_from_stock_wishes = defaultdict(lambda: 0)
+        for sol in supplier_orderlines:
+            sol.supplier_order = supplier_order
+            sol.user_created = user
+            sol.user_modified = user
+            sol.state = 'O'
+            # Explicitly do not check if the articleType matches the articleType of the OrderLine
+            # Explicitly do not check if the supplierArticleType is set and matches the articleType
+            # Explicity do not check if the supplier can supply the article
+            if not sol.order_line:
+                remove_from_stock_wishes[sol.article_type] += 1
+            else:
+                ol_transitions.append(sol.order_line)
+
+        with transaction.atomic():
+            for art in remove_from_stock_wishes:
+                # Remove all products from table one by one
+                StockWishTable.remove_products_from_table(user, article_type=art, number=remove_from_stock_wishes[art],
+                                                          supplier_order=supplier_order, stock_wish=None,
+                                                          indirect=True)
+            SupplierOrderLine.objects.bulk_create(supplier_orderlines)
+            sols_nw = SupplierOrderLine.objects.filter(supplier_order=supplier_order)
+            for sol in sols_nw:
+               sol_states.append(SupplierOrderState(supplier_order_line=sol, state=sol.state,
+                                                         user_modified=user, user_created=user))
+            SupplierOrderState.objects.bulk_create(sol_states)
+            for ol in ol_transitions:
+                ol.order_at_supplier(user)
 
     def send_to_backorder(self, user_modified):
         self.transition('B', user_modified)
@@ -604,10 +645,7 @@ class DistributionStrategy:
 
         # We've checked everyting, now we start saving
         supplier_order.save()
-        for supplier_order_line in distribution:
-            supplier_order_line.supplier_order = supplier_order
-            supplier_order_line.user_modified = user
-            supplier_order_line.save()
+        SupplierOrderLine.bulk_create_supplierorders(distribution, supplier_order, user)
 
     @staticmethod
     def get_distribution(article_type_number_combos):
