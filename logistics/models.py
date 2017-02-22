@@ -639,8 +639,8 @@ class DistributionStrategy:
             articles.add(supplier_order_line.article_type)
             if supplier_order_line.order_line is not None:
                 # Discount the possibility of OrProducts for now
-                raiseif(supplier_order_line.article_type !=
-                        supplier_order_line.order_line.wishable.sellabletype.articletype,
+                raiseif(supplier_order_line.article_type_id !=
+                        supplier_order_line.order_line.wishable_id,
                         IncorrectDataError, "SupplierOrderLine's article type is not the same type as it's linked"
                                             "OrderLine")
         art_sup_types = ArticleTypeSupplier.objects.filter(article_type__in=articles, supplier=supplier)
