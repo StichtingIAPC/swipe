@@ -611,7 +611,6 @@ class DistributionStrategy:
             raise UnimplementedError("Strategy not implemented")
 
     @staticmethod
-    @transaction.atomic()
     def distribute(user, supplier, distribution, indirect=False):
         """
         Creates the supplier order and distributes the SupplierOrderLines to any orders
@@ -626,6 +625,9 @@ class DistributionStrategy:
         raiseif(not distribution, IncorrectDataError, "distribution is not supplied")
 
         supplier_order = SupplierOrder(user_modified=user, supplier=supplier)
+        articles = set()
+        article_type_suppliers = {}
+
         for supplier_order_line in distribution:
             raiseif(
                 not isinstance(supplier_order_line, SupplierOrderLine),
@@ -634,18 +636,29 @@ class DistributionStrategy:
                          isinstance(supplier_order_line.order_line, OrderLine)),
                     IncorrectDataError, "supplier order line's order line link is not instance of OrderLine")
 
-            supplier_order_line.supplier_article_type = ArticleTypeSupplier.objects\
-                .get(article_type=supplier_order_line.article_type, supplier=supplier)
+            articles.add(supplier_order_line.article_type)
             if supplier_order_line.order_line is not None:
                 # Discount the possibility of OrProducts for now
                 raiseif(supplier_order_line.article_type !=
                         supplier_order_line.order_line.wishable.sellabletype.articletype,
                         IncorrectDataError, "SupplierOrderLine's article type is not the same type as it's linked"
                                             "OrderLine")
+        art_sup_types = ArticleTypeSupplier.objects.filter(article_type__in=articles, supplier=supplier)
+        for ats in art_sup_types:
+            article_type_suppliers[ats.article_type] = ats
+
+        # Add articleTypeSuppliers all at once
+        for supplier_order_line in distribution:
+            ats = article_type_suppliers.get(supplier_order_line.article_type)
+            if ats is None:
+                raise IncorrectDataError("Article {} does not "
+                                         "have an ArticleTypeSupplier".format(supplier_order_line.article_type))
+            supplier_order_line.supplier_article_type = ats
 
         # We've checked everyting, now we start saving
-        supplier_order.save()
-        SupplierOrderLine.bulk_create_supplierorders(distribution, supplier_order, user)
+        with transaction.atomic():
+            supplier_order.save()
+            SupplierOrderLine.bulk_create_supplierorders(distribution, supplier_order, user)
 
     @staticmethod
     def get_distribution(article_type_number_combos):
