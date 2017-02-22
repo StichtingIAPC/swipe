@@ -319,9 +319,9 @@ class DistributionStrategy:
             # Asserts correct article type and supplier consistency
             raiseif(not pac_doc_line.supplier_order_line,
                     InvalidDataError, "pac_doc_line must have an supplier_order_line")
-            raiseif(pac_doc_line.article_type != pac_doc_line.supplier_order_line.article_type, IncorrectDataError,
+            raiseif(pac_doc_line.article_type_id != pac_doc_line.supplier_order_line.article_type_id, IncorrectDataError,
                     "Article types are not matching")
-            raiseif(supplier != pac_doc_line.supplier_order_line.supplier_order.supplier, IncorrectDataError,
+            raiseif(supplier.id != pac_doc_line.supplier_order_line.supplier_order.supplier_id, IncorrectDataError,
                     "suppliers are not matching")
             # There cannot be a final cost without an invoice
             if not invoice_identifier:
@@ -347,19 +347,25 @@ class DistributionStrategy:
         packing_document = PackingDocument(supplier=supplier, supplier_identifier=document_identifier,
                                            user_modified=user)
         packing_document.save()
+
         if invoice_identifier:
             invoice.save()
-        if serial_numbers:
-            for sn in serial_number_list:
-                sn.packing_document = packing_document
-                sn.save()
-        # Saves and final parameter settings of packing document lines
-        for pac_doc_line in distribution:
-            pac_doc_line.packing_document = packing_document
-            if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
-                pac_doc_line.invoice = invoice
-            pac_doc_line.user_modified = user
-            pac_doc_line.save(mod_stock=mod_stock)
+        else:
+            invoice = None
+
+        DistributionStrategy.bulk_create_for_packing_document(serial_number_list, distribution, user,
+                                                              packing_document, invoice, mod_stock)
+        # if serial_numbers:
+        #     for sn in serial_number_list:
+        #         sn.packing_document = packing_document
+        #         sn.save()
+        # # Saves and final parameter settings of packing document lines
+        # for pac_doc_line in distribution:
+        #     pac_doc_line.packing_document = packing_document
+        #     if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
+        #         pac_doc_line.invoice = invoice
+        #     pac_doc_line.user_modified = user
+        #     pac_doc_line.save(mod_stock=mod_stock)
 
     @staticmethod
     def get_distribution(article_type_number_combos, supplier):
@@ -441,6 +447,53 @@ class DistributionStrategy:
                     })
         return stock_change_set
 
+    @staticmethod
+    def bulk_create_for_packing_document(serial_number_list, packing_document_lines, user: User,
+                                         packing_document: PackingDocument, invoice: Invoice, mod_stock: bool=False):
+        """
+        Stores the packing document lines for the packing document in one go. This should be faster than separate
+        insertion. There is no checks done, so don't run unchecked dqtq through this function.
+        :param serial_number_list:
+        :type serial_number_list: list[SerialNumber]
+        :param packing_document_lines:
+        :type packing_document_lines: list[PackingDocumentLine]
+        :param user:
+        :param packing_document:
+        :return:
+        """
+        if serial_number_list and len(serial_number_list) > 0:
+            for sn in serial_number_list:
+                sn.packing_document = packing_document
+
+        for pac_doc_line in packing_document_lines:
+            pac_doc_line.packing_document = packing_document
+            if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
+                pac_doc_line.invoice = invoice
+
+            pac_doc_line.user_modified = user
+            pac_doc_line.user_created = user
+            pac_doc_line.line_cost = pac_doc_line.supplier_order_line.line_cost
+            pac_doc_line.supplier_order_line.mark_as_arrived(user)
+            if mod_stock:
+                # Modify stock
+                document_key = packing_document.pk
+                entry = [{
+                    'article': pac_doc_line.supplier_order_line.article_type,
+                    'book_value': pac_doc_line.line_cost,
+                    'count': 1,
+                    'is_in': True
+                }]
+                if hasattr(pac_doc_line.supplier_order_line, 'order_line') and pac_doc_line.supplier_order_line.order_line is not None:
+                    label = OrderLabel(pac_doc_line.supplier_order_line.order_line.order.pk)
+                    entry[0]['label'] = label
+                StockChangeSet.construct(description="Stock supplication by {}".format(document_key), entries=entry,
+                                         source=StockChangeSet.SOURCE_SUPPLICATION)
+
+        with transaction.atomic():
+            if serial_number_list and len(serial_number_list) > 0:
+                SerialNumber.objects.bulk_create(serial_number_list)
+            PackingDocumentLine.objects.bulk_create(packing_document_lines)
+
 
 class FirstSupplierOrderStrategy(DistributionStrategy):
     """
@@ -464,7 +517,7 @@ class FirstSupplierOrderStrategy(DistributionStrategy):
         articletypes = articletype_dict.keys()
         relevant_supplier_orderline = SupplierOrderLine.objects.filter(state__in=SupplierOrderState.OPEN_STATES,
                                                                        article_type__in=articletypes,
-                                                                       supplier_order__supplier=supplier)
+                                                                       supplier_order__supplier=supplier).select_related('article_type','supplier_order')
         article_demand = defaultdict(lambda: 0)
         article_supply = articletype_dict.copy()
 
