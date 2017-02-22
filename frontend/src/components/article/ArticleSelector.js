@@ -1,28 +1,41 @@
 import React from "react";
+import { Link } from "react-router";
 import { connect } from "react-redux";
 import { articles } from "../../actions/articles";
 import { labels } from "../../actions/assortment/labels";
 import { labelTypes } from "../../actions/assortment/labelTypes";
 import { connectMixin, fetchStateRequirementsFor } from "../../core/StateRequirements";
 import Label from "../assortment/AssortmentLabel";
+import FontAwesome from "../tools/icons/FontAwesome";
 
 class ArticleSelector extends React.Component {
+	constructor(props) {
+		super(props);
+		this.renderArticle = this.renderArticle.bind(this);
+	}
+
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
 	}
 
+	select(article) {
+		this.props.onSelect(article);
+	}
+
 	renderArticle({ article }) {
-		return (<li className="item">
-			<div className="product-info">
-				<a className="product-title">
-					{article.name}
-					<span className="label label-danger pull-right">{article.price}</span>
-				</a>
-				<span className="product-description">
-					{article.labels.map((id) => <Label key={id} labelID={id} />)}
-				</span>
-			</div>
-		</li>)
+		return (
+			<li className="item" onClick={() => this.select(article)}>
+				<div className="product-info">
+					<a className="product-title">
+						{article.name}
+						<span className="label label-danger pull-right">{article.price}</span>
+					</a>
+					<span className="product-description">
+						{article.labels.map((id) => <Label key={id} labelID={id} />)}
+					</span>
+				</div>
+			</li>
+		)
 	}
 
 	render() {
@@ -30,17 +43,23 @@ class ArticleSelector extends React.Component {
 			<div className="box">
 				<div className="box-header with-border">
 					<h3 className="box-title">Search Articles</h3>
-					{
-						this.props.toolButtons ? (
-							<div className="box-tools">
-								<div className="input-group">
-									<div className="btn-group">
-										{this.props.toolButtons}
-									</div>
-								</div>
+					<div className="box-tools">
+						<div className="input-group">
+							<div className="btn-group">
+								<Link
+									onClick={this.props.updateList}
+									className="btn btn-default btn-sm"
+									title="Reload">
+									<FontAwesome icon="repeat" />
+								</Link>
+								{
+									this.props.toolButtons ? (
+										this.props.toolButtons
+									) : null
+								}
 							</div>
-						) : null
-					}
+						</div>
+					</div>
 				</div>
 				<div
 					style={{
@@ -66,4 +85,7 @@ export default connect(
 		}, state),
 		articles: state.articles.articles || [],
 	}),
+	dispatch => ({
+		updateList: () => dispatch(articles()),
+	})
 )(ArticleSelector)

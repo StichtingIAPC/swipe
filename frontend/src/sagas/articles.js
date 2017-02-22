@@ -29,7 +29,7 @@ export function* createArticle({ article } = {}) {
 		)).json();
 
 		yield put(startFetchingArticles({
-			redirectTo: `/article/${data.id}/`,
+			redirectTo: `/articlemanager/${data.id}/`,
 		}));
 	} catch (e) {
 		let msg;
@@ -52,7 +52,7 @@ export function* updateArticle({ article } = {}) {
 		)).json();
 
 		yield put(startFetchingArticles({
-			redirectTo: `/article/${data.id}/`,
+			redirectTo: `/articlemanager/${data.id}/`,
 		}));
 	} catch (e) {
 		let msg;

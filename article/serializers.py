@@ -25,6 +25,7 @@ class ArticleTypeSerializer(serializers.ModelSerializer):
         labels = validated_data.pop('labels')
         art = ArticleType.objects.create(**validated_data)
         art.labels.set(AssortmentLabel.objects.filter(pk__in=labels))
+        return art
 
     def update(self, instance, validated_data):
         instance.fixed_price = validated_data.get('fixed_price', instance.fixed_price)

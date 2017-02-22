@@ -28,6 +28,14 @@ class ArticleEdit extends React.Component {
 		};
 	}
 
+	save() {
+		if (this.state.id) {
+			this.props.editArticle(this.state);
+		} else {
+			this.props.addArticle(this.state);
+		}
+	}
+
 	reset(evt, props) {
 		if (evt) evt.preventDefault();
 		this.setState(this.getResetState(props));
@@ -43,7 +51,7 @@ class ArticleEdit extends React.Component {
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.supplier != props.supplier) this.reset(undefined, props);
+		if (this.props.article != props.article) this.reset(undefined, props);
 	}
 
 	render() {
