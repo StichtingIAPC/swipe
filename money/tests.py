@@ -298,9 +298,9 @@ class VATTests(TestCase, TestData):
         date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
         date_2 = datetime.datetime.strptime('01012030', "%d%m%Y").date()
         date_3 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
-        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=1)
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=Decimal("1"))
         vp1.save()
-        vp2 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_3, vatrate=1)
+        vp2 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_3, vatrate=Decimal("1"))
         vp2.save()
         with self.assertRaises(VATError):
             v1.getvatrate()
@@ -308,23 +308,23 @@ class VATTests(TestCase, TestData):
     def test_one_period_bounded_works(self):
         v1 = VAT(name="VATFoo", active=True)
         v1.save()
-        rate = 1.1
+        rate = Decimal("1.1")
         date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
         date_2 = datetime.datetime.strptime('01012030', "%d%m%Y").date()
         vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate)
         vp1.save()
         r = v1.getvatrate()
-        self.assertAlmostEqual(r, Decimal(rate), 4)
+        self.assertAlmostEqual(r, rate)
 
     def test_one_period_unbounded_works(self):
         v1 = VAT(name="VATFoo", active=True)
         v1.save()
-        rate = 1.1
+        rate = Decimal("1.1")
         date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
         vp1 = VATPeriod(vat=v1, begin_date=date_1, vatrate=rate)
         vp1.save()
         r = v1.getvatrate()
-        self.assertAlmostEqual(r, Decimal(rate), 4)
+        self.assertEqual(r, rate)
 
     def test_two_periods_work(self):
         v1 = VAT(name="VATFoo", active=True)
@@ -333,14 +333,14 @@ class VATTests(TestCase, TestData):
         date_2 = datetime.datetime.strptime('01012011', "%d%m%Y").date()
         date_3 = datetime.datetime.strptime('02012011', "%d%m%Y").date()
         date_4 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
-        rate_1 = 1.1
-        rate_2 = 1.2
+        rate_1 = Decimal("1.1")
+        rate_2 = Decimal("1.2")
         vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate_1)
         vp1.save()
         vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=date_4, vatrate=rate_2)
         vp2.save()
         r = v1.getvatrate()
-        self.assertAlmostEqual(r, Decimal(rate_2), 4)
+        self.assertEqual(r, rate_2)
 
     def test_bounds_are_taken_exactly_at_end(self):
         v1 = VAT(name="VATFoo", active=True)
@@ -349,14 +349,14 @@ class VATTests(TestCase, TestData):
         date_2 = datetime.date.today()
         date_3 = datetime.date.today() + datetime.timedelta(days=1)
         date_4 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
-        rate_1 = 1.1
-        rate_2 = 1.2
+        rate_1 = Decimal("1.1")
+        rate_2 = Decimal("1.2")
         vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate_1)
         vp1.save()
         vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=date_4, vatrate=rate_2)
         vp2.save()
         r = v1.getvatrate()
-        self.assertAlmostEqual(r, Decimal(rate_1), 4)
+        self.assertEqual(r, rate_1)
 
     def test_bounds_are_taken_exactly_at_beginning(self):
         v1 = VAT(name="VATFoo", active=True)
@@ -365,11 +365,11 @@ class VATTests(TestCase, TestData):
         date_2 = datetime.date.today() - datetime.timedelta(days=1)
         date_3 = datetime.date.today()
         date_4 = datetime.datetime.strptime('01012031', "%d%m%Y").date()
-        rate_1 = 1.1
-        rate_2 = 1.2
+        rate_1 = Decimal("1.1")
+        rate_2 = Decimal("1.2")
         vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=rate_1)
         vp1.save()
         vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=date_4, vatrate=rate_2)
         vp2.save()
         r = v1.getvatrate()
-        self.assertAlmostEqual(r, Decimal(rate_2), 4)
+        self.assertEqual(r, rate_2)
