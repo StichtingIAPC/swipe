@@ -17,7 +17,7 @@ class CurrencyList extends React.Component {
 
 	renderEntry({activeID, currency}) {
 		return (
-			<tr className={Number(activeID) == currency.iso ? 'active' : null}>
+			<tr className={activeID == currency.iso ? 'active' : null}>
 				<td>
 					{`${currency.name} (${currency.iso})`}
 				</td>
@@ -133,7 +133,7 @@ export default connect(
 	(state, ownProps) => ({
 		...ownProps,
 		errorMsg: state.currencies.fetchError,
-		currencies: state.currencies.currencies,
+		currencies: state.currencies.currencies || [],
 		fetching: state.currencies.fetching,
 	}),
 	(dispatch) => ({
