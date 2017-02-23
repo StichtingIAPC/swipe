@@ -1,6 +1,3 @@
-/**
- * Created by Matthias on 26/11/2016.
- */
 export function startFetchingCurrencies({ redirectTo } = {}) {
 	return { type: 'CURRENCY_FETCH_START', redirectTo };
 }

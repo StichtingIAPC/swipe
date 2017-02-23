@@ -1,6 +1,3 @@
-/**
- * Created by Matthias on 26/11/2016.
- */
 export function startFetchingVATs({ redirectTo } = {}) {
 	return { type: 'VAT_FETCH_START', redirectTo };
 }
