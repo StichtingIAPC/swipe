@@ -5,7 +5,6 @@ import auth from "./auth";
 import sidebar from "./sidebar";
 import currencies from "./money/currencies";
 import VATs from "./money/VATs";
-import VATPeriods from "./money/VATPeriods";
 
 export default combineReducers({
 	suppliers,
@@ -14,5 +13,4 @@ export default combineReducers({
 	sidebar,
 	currencies,
 	VATs,
-	VATPeriods,
 });
