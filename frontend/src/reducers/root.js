@@ -1,9 +1,11 @@
-import {combineReducers} from "redux";
-import {routerReducer} from "react-router-redux";
+import { combineReducers } from "redux";
+import { routerReducer } from "react-router-redux";
 import suppliers from "./suppliers";
 import auth from "./auth";
 import sidebar from "./sidebar";
 import currencies from "./money/currencies";
+import VATs from "./money/VATs";
+import VATPeriods from "./money/VATPeriods";
 
 export default combineReducers({
 	suppliers,
@@ -11,4 +13,6 @@ export default combineReducers({
 	routing: routerReducer,
 	sidebar,
 	currencies,
+	VATs,
+	VATPeriods,
 });

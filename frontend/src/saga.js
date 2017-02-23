@@ -3,7 +3,6 @@ import { login, saveLoginDetails } from "./sagas/auth.js";
 import { fetchCurrencies, createCurrency, updateCurrency } from "./sagas/money/currencies";
 import { fetchSuppliers, createSupplier, updateSupplier } from "./sagas/suppliers";
 import { fetchVATs, createVAT, updateVAT } from "./sagas/money/VATs";
-import { fetchVATPeriods, createVATPeriod, updateVATPeriod } from "./sagas/money/VATPeriods";
 
 export default function* rootSaga() {
 	// Auth sagas
@@ -24,8 +23,4 @@ export default function* rootSaga() {
 	yield takeLatest('VAT_FETCH_START', fetchVATs);
 	yield takeEvery('VAT_CREATE', createVAT);
 	yield takeEvery('VAT_UPDATE', updateVAT);
-	// Money Sagas - VATPeriod
-	yield takeLatest('VAT_PERIOD_FETCH_START', fetchVATPeriods);
-	yield takeEvery('VAT_PERIOD_CREATE', createVATPeriod);
-	yield takeEvery('VAT_PERIOD_UPDATE', updateVATPeriod);
 };

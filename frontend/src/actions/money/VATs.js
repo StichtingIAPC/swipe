@@ -10,15 +10,15 @@ export function doneFetchingVATs(VATs) {
 }
 
 export function createVAT(VAT) {
-	return { type: 'VAT_CREATE', curr: VAT };
+	return { type: 'VAT_CREATE', vat: VAT };
 }
 
 export function updateVAT(VAT) {
-	return {	type: 'VAT_UPDATE', curr: VAT };
+	return {	type: 'VAT_UPDATE', vat: VAT };
 }
 
 export function deleteVAT(VAT) {
-	return { type: 'VAT_DELETE', curr: VAT };
+	return { type: 'VAT_DELETE', vat: VAT };
 }
 
 export function VATInputError(error) {

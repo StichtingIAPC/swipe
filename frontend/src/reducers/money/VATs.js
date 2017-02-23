@@ -1,5 +1,5 @@
 const initialState = {
-	VATs: [],
+	VATs: null,
 	fetching: false,
 	inputError: null,
 	fetchError: null,
