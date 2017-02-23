@@ -24,6 +24,4 @@ urlpatterns = [
     url(r'^denomination/(?P<pk>\d+)/', views.DenominationDelete.as_view()),
     url(r'^vat/$', views.VATListView.as_view()),
     url(r'^vat/(?P<pk>\d+)/$', views.VATView.as_view()),
-    url(r'^vatgroup/$', views.VATPeriodListView.as_view()),
-    url(r'^vatgroup/$', views.VATPeriodView.as_view()),
 ]

@@ -81,7 +81,20 @@ class AccountingGroupSerializer(serializers.ModelSerializer):
         )
 
 
+class VATPeriodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VATPeriod
+        fields = (
+            'id',
+            'begin_date',
+            'end_date',
+            'vatrate',
+        )
+
+
 class VATSerializer(serializers.ModelSerializer):
+    vatperiod_set = VATPeriodSerializer(many=True)
+
     class Meta:
         model = VAT
         fields = (
@@ -91,14 +104,29 @@ class VATSerializer(serializers.ModelSerializer):
             'vatperiod_set'
         )
 
+    def create(self, validated_data):
+        vatperiods = validated_data.pop('vatperiod_set')
+        vat = VAT.objects.create(**validated_data)
+        vperiods = []
+        for vp_data in vatperiods:
+            vperiods.append(VATPeriod(**vp_data))
+        vat.vatperiod_set.set(vperiods)
+        return super().create(validated_data)
 
-class VATPeriodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VATPeriod
-        fields = (
-            'id',
-            'vat',
-            'begin_date',
-            'end_date',
-            'vatrate',
-        )
+    def update(self, instance: VAT, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.active = validated_data.get('active', instance.active)
+        try:
+            updateable = instance.vatperiod_set.get(end_date__isnull=True)
+        except Exception:
+            updateable = {'id': object()}
+        new_vps = []
+        for vp in validated_data['vatperiod_set']:
+            if getattr(updateable, 'id', object()) == vp.get('id'):
+                updateable.end_date = vp['end_date']
+                updateable.save()
+            elif vp.get('id') is not None:
+                new_vps.append(VATPeriod(**vp))
+        instance.vatperiod_set.add(*new_vps, bulk=False)
+        instance.save()
+        return instance
