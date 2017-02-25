@@ -162,33 +162,42 @@ class CSVSupplierRelation(DataTypeSupplierRelation):
         :return:
         :rtype List[SupplierTypeArticle]
         """
+        # Prevent indexes that go out of bounds
+        max_col = -1
+        positions = [supplier_relation.number, supplier_relation.name,
+                     supplier_relation.cost, supplier_relation.supply, supplier_relation.ean,
+                     supplier_relation.minimum_order, supplier_relation.packing_amount]
+        for pos in positions:
+            if pos is not None:
+                max_col = max(max_col, pos)
         supplier_type_articles = []
         for line in csv_data:
-            number = line[supplier_relation.number]
-            name = line[supplier_relation.name]
-            cost_data = line[supplier_relation.cost]
-            cost_data = cost_data.replace(",", ".")
-            cost = Cost(amount=Decimal(cost_data), use_system_currency=True)
-            supply = int(line[supplier_relation.supply])
+            if len(line) >= max_col+1:
+                number = line[supplier_relation.number]
+                name = line[supplier_relation.name]
+                cost_data = line[supplier_relation.cost]
+                cost_data = cost_data.replace(",", ".")
+                cost = Cost(amount=Decimal(cost_data), use_system_currency=True)
+                supply = int(line[supplier_relation.supply])
 
-            if supplier_relation.ean:
-                ean = line[supplier_relation.ean]
-                try:
-                    ean = int(ean)
-                except ValueError:
+                if supplier_relation.ean:
+                    ean = line[supplier_relation.ean]
+                    try:
+                        ean = int(ean)
+                    except ValueError:
+                        ean = None
+                else:
                     ean = None
-            else:
-                ean = None
-            if supplier_relation.minimum_order:
-                minimum_order = int(line[supplier_relation.minimum_order])
-            else:
-                minimum_order = None
-            if supplier_relation.packing_amount:
-                packing_amount = int(line[supplier_relation.packing_amount])
-            else:
-                packing_amount = None
+                if supplier_relation.minimum_order:
+                    minimum_order = int(line[supplier_relation.minimum_order])
+                else:
+                    minimum_order = None
+                if supplier_relation.packing_amount:
+                    packing_amount = int(line[supplier_relation.packing_amount])
+                else:
+                    packing_amount = None
 
-            supplier_type_articles.append(SupplierTypeArticle(number=number, name=name, cost=cost,
+                supplier_type_articles.append(SupplierTypeArticle(number=number, name=name, cost=cost,
                                                               supply=supply, ean=ean,
                                                               minimum_number_to_order=minimum_order,
                                                               packing_amount=packing_amount,
