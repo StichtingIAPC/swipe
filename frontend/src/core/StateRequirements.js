@@ -43,7 +43,7 @@ export function connectMixin(requirements, state = null) {
 	 */
 	function func(_state) {
 		const missingRequirements = Object.entries(requirements)
-			.filter((entry) => _state[entry[0]][entry[0]] == null);
+			.filter((entry) => !!_state[entry[0]] && !_state[entry[0]][entry[0]]);
 		return {
 			requirementsLoaded: missingRequirements.length == 0,
 			missingRequirements: missingRequirements,

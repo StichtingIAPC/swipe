@@ -85,5 +85,5 @@ VATDetail.propTypes = {
 };
 
 export default connect(
-	(state, props) => ({VAT: state.VATs.VATs.find((el) => Number(el.id) == Number(props.params.VATID))})
+	(state, props) => ({VAT: (state.VATs.VATs || []).find((el) => Number(el.id) == Number(props.params.VATID))})
 )(VATDetail);

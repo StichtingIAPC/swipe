@@ -19,6 +19,8 @@ import CurrencyDetail from "./components/money/currency/CurrencyDetail";
 import CurrencyEdit from "./components/money/currency/CurrencyEdit";
 import VATDetail from "./components/money/VAT/VATDetail";
 import VATEdit from "./components/money/VAT/VATEdit";
+import AccountingGroupEdit from "./components/money/accountingGroup/AccountingGroupEdit";
+import AccountingGroupDetail from "./components/money/accountingGroup/AccountingGroupDetail";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -47,6 +49,9 @@ class Routes extends React.Component {
 					<Route path="vat/create/" component={VATEdit} />
 					<Route path="vat/:VATID/edit/" component={VATEdit} />
 					<Route path="vat/:VATID/" component={VATDetail} />
+					<Route path="accountinggroup/create/" component={AccountingGroupEdit} />
+					<Route path="accountinggroup/:accountingGroupID/edit/" component={AccountingGroupEdit} />
+					<Route path="accountinggroup/:accountingGroupID/" component={AccountingGroupDetail} />
 				</Route>
 
 				<Route path="pos">

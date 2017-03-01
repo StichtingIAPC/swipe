@@ -19,7 +19,6 @@ export function accountingGroups(state = initialState, action) {
 			fetching: false,
 			accountingGroups: action.accountingGroups.map(accountingGroup => ({
 				...accountingGroup,
-				denomination_set: accountingGroup.denomination_set.sort((a, b) => Number(a.amount) - Number(b.amount)),
 			})),
 			fetchError: null,
 		};

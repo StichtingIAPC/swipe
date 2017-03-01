@@ -5,7 +5,7 @@ import {
 	doneFetchingAccountingGroups,
 	accountingGroupInputError,
 	accountingGroupFetchError
-} from "../../actions/money/currencies";
+} from "../../actions/money/accountingGroups";
 import { get, post, put as api_put } from "../../api";
 
 export function* fetchAccountingGroups({ redirectTo }) {
@@ -22,7 +22,7 @@ export function* fetchAccountingGroups({ redirectTo }) {
 	}
 }
 
-export function* createCurrency({ accGrp }) {
+export function* createAccountingGroup({ accGrp }) {
 	const accountingGroup = {...accGrp};
 	try {
 		const data = yield (yield call(
@@ -43,7 +43,7 @@ export function* createCurrency({ accGrp }) {
 	}
 }
 
-export function* updateCurrency({ accGrp }) {
+export function* updateAccountingGroup({ accGrp }) {
 	const accountingGroup = {...accGrp};
 	try {
 		const data = yield (yield call(

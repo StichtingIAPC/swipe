@@ -1,13 +1,10 @@
 import React, { PropTypes } from "react";
-import { Link } from "react-router";
 import { connect } from "react-redux";
-import { startFetchingCurrencies } from "../../../actions/money/currencies";
+import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
-/**
- * Created by Matthias on 26/11/2016.
- */
+import { startFetchingAccountingGroups } from "../../../actions/money/accountingGroups";
 
-class CurrencyList extends React.Component {
+class AccountingGroupList extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -15,16 +12,16 @@ class CurrencyList extends React.Component {
 		}
 	}
 
-	renderEntry({activeID, currency}) {
+	renderEntry({activeID, accountingGroup}) {
 		return (
-			<tr className={activeID == currency.iso ? 'active' : null}>
+			<tr className={activeID == accountingGroup.id ? 'active' : null}>
 				<td>
-					{`${currency.name} (${currency.iso})`}
+					{accountingGroup.name}
 				</td>
 				<td>
 					<div className="btn-group pull-right">
 						{
-							currency.updating ? (
+							accountingGroup.updating ? (
 								<Link
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
@@ -33,13 +30,13 @@ class CurrencyList extends React.Component {
 							) : null
 						}
 						<Link
-							to={`/money/currency/${currency.iso}/`}
+							to={`/money/accountinggroup/${accountingGroup.id}/`}
 							className="btn btn-default btn-xs"
 							title="Details">
 							<FontAwesome icon="crosshairs" />
 						</Link>
 						<Link
-							to={`/money/currency/${currency.iso}/edit/`}
+							to={`/money/accountinggroup/${accountingGroup.id}/edit/`}
 							className="btn btn-default btn-xs"
 							title="Edit">
 							<FontAwesome icon="edit" />
@@ -67,7 +64,7 @@ class CurrencyList extends React.Component {
 				}>
 				<div className="box-header with-border">
 					<h3 className="box-title">
-						List of currencies
+						List of accounting groups
 					</h3>
 					<div className="box-tools">
 						<div className="input-group">
@@ -96,7 +93,7 @@ class CurrencyList extends React.Component {
 						<thead>
 							<tr>
 								<th>
-									<span>Currency name</span>
+									<span>Accounting group name</span>
 								</th>
 								<th>
 									<span className="pull-right">Options</span>
@@ -104,9 +101,9 @@ class CurrencyList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.currencies.map(
+							{this.props.accountingGroups.map(
 								(item) => (
-									<this.renderEntry activeID={this.props.activeID} key={item.iso} currency={item} />
+									<this.renderEntry activeID={this.props.activeID} key={item.id} accountingGroup={item} />
 								)
 							)}
 						</tbody>
@@ -125,20 +122,20 @@ class CurrencyList extends React.Component {
 	}
 }
 
-CurrencyList.propTypes = {
+AccountingGroupList.propTypes = {
 	activeID: PropTypes.string,
 };
 
 export default connect(
 	state => ({
-		errorMsg: state.currencies.fetchError,
-		currencies: state.currencies.currencies || [],
-		fetching: state.currencies.fetching,
+		errorMsg: state.accountingGroups.fetchError,
+		accountingGroups: state.accountingGroups.accountingGroups || [],
+		fetching: state.accountingGroups.fetching,
 	}),
 	(dispatch) => ({
 		update: (evt) => {
 			evt.preventDefault();
-			dispatch(startFetchingCurrencies());
+			dispatch(startFetchingAccountingGroups());
 		},
 	})
-)(CurrencyList);
+)(AccountingGroupList);
