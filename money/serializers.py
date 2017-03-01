@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -106,12 +107,12 @@ class VATSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         vatperiods = validated_data.pop('vatperiod_set')
-        vat = VAT.objects.create(**validated_data)
-        vperiods = []
-        for vp_data in vatperiods:
-            vperiods.append(VATPeriod(**vp_data))
-        vat.vatperiod_set.set(vperiods)
-        return super().create(validated_data)
+        vat = None
+        with transaction.atomic():
+            vat = VAT.objects.create(**validated_data)
+            for vp_data in vatperiods:
+                VATPeriod.objects.create(**vp_data, vat=vat)
+        return vat
 
     def update(self, instance: VAT, validated_data):
         instance.name = validated_data.get('name', instance.name)

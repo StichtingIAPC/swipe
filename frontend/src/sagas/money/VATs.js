@@ -3,7 +3,7 @@ import { push } from "react-router-redux";
 import { startFetchingVATs, doneFetchingVATs, VATInputError, VATFetchError } from "../../actions/money/VATs";
 import { get, post, put as api_put } from "../../api";
 
-const format_date = date => date ? (date instanceof Date ? date.format('YYYY-MM-DD') : date) : null;
+const format_date = date => date ? (date instanceof Object ? date.format('YYYY-MM-DD') : date) : null;
 
 export function* fetchVATs({ redirectTo }) {
 	try {
