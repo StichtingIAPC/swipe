@@ -301,9 +301,8 @@ class VATTests(TestCase, TestData):
         vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=Decimal("1"))
         vp1.save()
         vp2 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_3, vatrate=Decimal("1"))
-        vp2.save()
         with self.assertRaises(VATError):
-            v1.getvatrate()
+            vp2.save()
 
     def test_one_period_bounded_works(self):
         v1 = VAT(name="VATFoo", active=True)

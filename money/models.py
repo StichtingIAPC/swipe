@@ -56,6 +56,34 @@ class VATPeriod(models.Model):
     # What's the Rate of this VAT (percentage)? This is the multiplication factor.
     vatrate = models.DecimalField(decimal_places=6, max_digits=8)
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        relevant_vat_periods = VATPeriod.objects.filter(vat=self.vat)
+        for period in relevant_vat_periods:
+            if not period.end_date:
+                if self.begin_date >= period.begin_date:
+                    raise VATError("Vat period overlap detected."
+                                   " {] bigger than {}".format(self.begin_date, period.begin_date))
+                if not self.end_date:
+                    raise VATError("Periode period overlap. Two non-terminating periods detected")
+                if self.end_date >= period.begin_date:
+                    raise VATError("Vat period overlap detected. "
+                                   "End of new period {} ends "
+                                   "after begin of previous period {}".format(self.end_date, period.begin_date))
+            else:
+                if self.begin_date >= period.begin_date and self.begin_date <= period.end_date:
+                    raise VATError("Vat period overlap detected. "
+                                   "Begin date {} "
+                                   "falls between old period "
+                                   "bounds {} and {}".format(self.begin_date, period.begin_date, period.end_date))
+                if self.end_date >= period.begin_date and self.end_date <= period.end_date:
+                    raise VATError("Vat period overlap detected. "
+                                   "End date {} "
+                                   "falls between old period "
+                                   "bounds {} and {}".format(self.end_date, period.begin_date, period.end_date))
+
+        super(VATPeriod, self).save()
+
 
 class AccountingGroup(models.Model):
     # Number for internal administration
