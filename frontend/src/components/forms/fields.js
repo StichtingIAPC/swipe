@@ -4,6 +4,7 @@ import DecimalField from "./DecimalField";
 import BoolField from "./BoolField";
 import CharField from "./CharField";
 import MoneyInput from "./MoneyInput";
+import SelectField from "./SelectField";
 
 /**
  * Created by Matthias on 18/11/2016.
@@ -15,6 +16,7 @@ export {
 	DecimalField,
 	BoolField,
 	CharField,
+	SelectField,
 
 	MoneyInput,
 }
