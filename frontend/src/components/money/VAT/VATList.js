@@ -1,13 +1,10 @@
 import React, { PropTypes } from "react";
-import { Link } from "react-router";
 import { connect } from "react-redux";
-import { startFetchingCurrencies } from "../../../actions/money/currencies";
+import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
-/**
- * Created by Matthias on 26/11/2016.
- */
+import { startFetchingVATs } from "../../../actions/money/VATs";
 
-class CurrencyList extends React.Component {
+class VATList extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -15,16 +12,16 @@ class CurrencyList extends React.Component {
 		}
 	}
 
-	renderEntry({activeID, currency}) {
+	renderEntry({activeID, VAT}) {
 		return (
-			<tr className={activeID == currency.iso ? 'active' : null}>
+			<tr className={Number(activeID) == VAT.id ? 'active' : null}>
 				<td>
-					{`${currency.name} (${currency.iso})`}
+					{VAT.name}
 				</td>
 				<td>
 					<div className="btn-group pull-right">
 						{
-							currency.updating ? (
+							VAT.updating ? (
 								<Link
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
@@ -33,13 +30,13 @@ class CurrencyList extends React.Component {
 							) : null
 						}
 						<Link
-							to={`/money/currency/${currency.iso}/`}
+							to={`/money/vat/${VAT.id}/`}
 							className="btn btn-default btn-xs"
 							title="Details">
 							<FontAwesome icon="crosshairs" />
 						</Link>
 						<Link
-							to={`/money/currency/${currency.iso}/edit/`}
+							to={`/money/vat/${VAT.id}/edit/`}
 							className="btn btn-default btn-xs"
 							title="Edit">
 							<FontAwesome icon="edit" />
@@ -67,7 +64,7 @@ class CurrencyList extends React.Component {
 				}>
 				<div className="box-header with-border">
 					<h3 className="box-title">
-						List of currencies
+						List of VATs
 					</h3>
 					<div className="box-tools">
 						<div className="input-group">
@@ -79,13 +76,13 @@ class CurrencyList extends React.Component {
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
-									className="btn btn-sm btn-default"
-									to="/money/currency/create/"
-									title="Create new currency">
+									className="btn btn-default btn-sm"
+									to="/money/vat/create/"
+									title="Create new VAT">
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-sm btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -96,7 +93,7 @@ class CurrencyList extends React.Component {
 						<thead>
 							<tr>
 								<th>
-									<span>Currency name</span>
+									<span>VAT name</span>
 								</th>
 								<th>
 									<span className="pull-right">Options</span>
@@ -104,11 +101,11 @@ class CurrencyList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.currencies !== null ? this.props.currencies.map(
+							{this.props.VATs.map(
 								(item) => (
-									<this.renderEntry activeID={this.props.activeID} key={item.iso} currency={item} />
+									<this.renderEntry activeID={this.props.VATID} key={item.id} VAT={item} />
 								)
-							) : null}
+							)}
 						</tbody>
 					</table>
 				</div>
@@ -125,20 +122,20 @@ class CurrencyList extends React.Component {
 	}
 }
 
-CurrencyList.propTypes = {
+VATList.propTypes = {
 	activeID: PropTypes.string,
 };
 
 export default connect(
 	state => ({
-		errorMsg: state.currencies.fetchError,
-		currencies: state.currencies.currencies || [],
-		fetching: state.currencies.fetching,
+		errorMsg: state.VATs.fetchError,
+		VATs: state.VATs.VATs || [],
+		fetching: state.VATs.fetching,
 	}),
-	(dispatch) => ({
+	dispatch => ({
 		update: (evt) => {
 			evt.preventDefault();
-			dispatch(startFetchingCurrencies());
+			dispatch(startFetchingVATs());
 		},
-	})
-)(CurrencyList);
+	}),
+)(VATList)

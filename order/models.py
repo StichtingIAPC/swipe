@@ -60,13 +60,10 @@ class Order(Blame, Shared):
         """
         raiseif(not type(order) == Order, InvalidDataError, "order must be an Order")
         for ol in orderlines:
-            ol.user_modified = user
             raiseif(not type(ol) == OrderLine, InvalidDataError)
         order.user_modified = user
         order.save()
-        for ol in orderlines:
-            ol.order = order
-            ol.save()
+        OrderLine.bulk_create_orderlines(orderlines, order, user)
 
     @staticmethod
     @transaction.atomic()
@@ -280,6 +277,41 @@ class OrderLine(Blame):
             'state',
             'wishable',
         ]
+
+    @staticmethod
+    def bulk_create_orderlines(ols, order: Order, user: User):
+        ol_logs = []
+        for ol in ols:
+            if not isinstance(ol, OrderLine):
+                raise IncorrectDataError("ol should be OrderLine")
+            # Temporary measure until complexities get worked out
+            raiseif(not hasattr(ol.wishable, 'sellabletype'), IncorrectDataError, "Wishable should be of sellable type")
+            raiseif(not hasattr(ol, 'expected_sales_price'), IncorrectDataError, "Orderline should have expected sales price")
+            # Temporary measure until complexities get worked out
+            raiseif(not isinstance(ol.expected_sales_price, Price), IncorrectDataError, "Expected sales price should be a price")
+
+            ol.order = order
+            ol.user_created = user
+            ol.user_modified = user
+
+            if not ol.state:
+                if type(ol.wishable) == OtherCostType:
+                    ol.state = 'A'
+                else:
+                    ol.state = 'O'
+            else:
+                raiseif(ol.state not in OrderLineState.STATE_CHOICES, IncorrectDataError, "State is not valid")
+
+            ol.expected_sales_price = Price(amount=ol.expected_sales_price._amount,
+                                              currency=ol.expected_sales_price._currency,
+                                              vat=ol.wishable.get_vat_rate())
+        with transaction.atomic():
+            OrderLine.objects.bulk_create(ols)
+            nw_ols = OrderLine.objects.filter(order=order)
+            for ol in nw_ols:
+                ol_logs.append(OrderLineState(state=ol.state, user_created=ol.user_modified, orderline=ol))
+            OrderLineState.objects.bulk_create(ol_logs)
+
 
 
 class OrderCombinationLine:

@@ -1,7 +1,7 @@
 import React, { PropTypes } from "react";
 
 export default function SelectField(props) {
-	const { name, className, options, value, ...rest} = props;
+	const { name, className, options, value, selector, ...rest} = props;
 	return (
 		<div className={className || `form-group`}>
 			<label className="col-sm-3 control-label" htmlFor={name}>
@@ -13,10 +13,9 @@ export default function SelectField(props) {
 					id={name}
 					value={value}
 					{...rest}>
-
 					{(options || []).map(
 						(opt) => (
-							<option key={opt.id} value={opt.id}>{opt.name}</option>
+							<option key={opt[selector]} value={opt[selector]}>{opt.name}</option>
 						)
 					)}
 				</select>
@@ -25,9 +24,19 @@ export default function SelectField(props) {
 	);
 }
 
-SelectField.proptypes = {
+SelectField.propTypes = {
 	name: PropTypes.string.isRequired,
 	className: PropTypes.string,
 	value: PropTypes.number.isRequired,
+	onChange: PropTypes.func.isRequired,
+	selector: PropTypes.string.isRequired,
+	options: PropTypes.arrayOf(
+		PropTypes.shape({
+			name: PropTypes.string.isRequired,
+		})
+	).isRequired,
+};
 
-}
+SelectField.defaultProps = {
+	selector: 'id',
+};

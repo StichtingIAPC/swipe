@@ -152,13 +152,16 @@ class SupplierTests(SimpleTestCase):
         parsed = CSVParser.parse(file_location, self.nedis)
         # noinspection PyUnusedLocal
         supplier_articles = CSVSupplierRelation.get_supplier_type_articles(parsed, self.nedis)
+        self.assertEqual(len(supplier_articles), 9657)
         # Checks if the extraction does not fail
 
     def test_process_copaco_full(self):
+        # Not actually the complete copaco list but a subset of its articles
         file_location = "./article_updater/testing/Copaco_prijslijst_91658.xml"
         parsed = XMLParser.parse(file_location, self.copaco)
         # noinspection PyUnusedLocal
         supplier_articles = XMLSupplierRelation.get_supplier_type_articles(parsed, self.copaco)
+        self.assertEqual(len(supplier_articles), 317)
         # Checks if the extraction does not fail
 
 

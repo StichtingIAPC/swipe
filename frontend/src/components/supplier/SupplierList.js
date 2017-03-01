@@ -109,7 +109,7 @@ class SupplierList extends React.Component {
 export default connect(
 	state => ({
 		errorMsg: state.suppliers.fetchError,
-		suppliers: state.suppliers.suppliers,
+		suppliers: state.suppliers.suppliers || [],
 		fetching: state.suppliers.fetching,
 	}),
 	dispatch => ({ update: () => dispatch(startFetchingSuppliers()) })

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { PropTypes } from "react";
 
 /**
  * Created by Matthias on 18/11/2016.
@@ -15,11 +15,20 @@ export default function IntegerField(props) {
 					type="number"
 					min={0}
 					step={1}
-					id={name}
 					value={value}
 					onChange={onChange}
+					id={name}
 					{...rest} />
 			</div>
 		</div>
 	)
 }
+
+IntegerField.propTypes = {
+	name: PropTypes.string.isRequired,
+	value: PropTypes.oneOfType([
+		PropTypes.string,
+		PropTypes.number,
+	]).isRequired,
+	onChange: PropTypes.func.isRequired,
+};
