@@ -29,7 +29,7 @@ class AccountingGroupEdit extends React.Component {
 
 	save(evt) {
 		evt.preventDefault();
-		if (this.state.id) {
+		if (this.props.accountingGroup) {
 			this.props.updateAccountingGroup(this.state);
 		} else {
 			this.props.createAccountingGroup(this.state);
