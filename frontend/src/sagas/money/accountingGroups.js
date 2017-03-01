@@ -31,7 +31,7 @@ export function* createAccountingGroup({ accGrp }) {
 			accountingGroup,
 		)).json();
 		yield put(startFetchingAccountingGroups({
-			redirectTo: `/money/accountinggroup/${data.iso}/`,
+			redirectTo: `/money/accountinggroup/${data.id}/`,
 		}));
 	} catch (e) {
 		let msg;
@@ -48,11 +48,11 @@ export function* updateAccountingGroup({ accGrp }) {
 	try {
 		const data = yield (yield call(
 			api_put,
-			`/money/accountinggroup/${accountingGroup.iso}/`,
+			`/money/accountinggroup/${accountingGroup.id}/`,
 			accountingGroup,
 		)).json();
 		yield put(startFetchingAccountingGroups({
-			redirectTo: `/money/accountinggroup/${data.iso}/`,
+			redirectTo: `/money/accountinggroup/${data.id}/`,
 		}));
 	} catch (e) {
 		let msg;
