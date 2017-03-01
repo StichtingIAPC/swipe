@@ -1,5 +1,5 @@
 const initialState = {
-	currencies: [],
+	currencies: null,
 	fetching: false,
 	inputError: null,
 	fetchError: null,

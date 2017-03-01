@@ -11,7 +11,7 @@ class SupplierEdit extends React.Component {
 	}
 
 	componentWillMount() {
-		this.reset(null);
+		this.reset(this.props.supplier);
 	}
 
 	getResetState(props = this.props) {
