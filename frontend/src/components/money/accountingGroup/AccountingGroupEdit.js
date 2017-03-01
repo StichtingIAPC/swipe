@@ -29,7 +29,7 @@ class AccountingGroupEdit extends React.Component {
 
 	save(evt) {
 		evt.preventDefault();
-		if (this.state.id) {
+		if (this.props.accountingGroup) {
 			this.props.updateAccountingGroup(this.state);
 		} else {
 			this.props.createAccountingGroup(this.state);
@@ -37,14 +37,14 @@ class AccountingGroupEdit extends React.Component {
 	}
 
 	render() {
-		const accountingGroup = this.props.accountingGroup;
+		const accountingGroup = this.state;
 		return (
 			<Form
 				title={this.props.currentID ? `Edit ${this.props.accountingGroup.name}` : 'Create new accounting group'}
 				onReset={this.reset.bind(this)}
 				onSubmit={this.save.bind(this)}
 				error={this.props.errorMsg}
-				returnLink={this.props.currency ? `/money/accountinggroup/${accountingGroup.id}/` : '/money/'}
+				returnLink={this.props.accountingGroup ? `/money/accountinggroup/${accountingGroup.id}/` : '/money/'}
 				closeLink="/money/">
 				<StringField name="Name" value={accountingGroup.name} onChange={evt => this.setState({name: evt.target.value})} />
 				<IntegerField name="Accounting number" value={accountingGroup.accounting_number} onChange={evt => this.setState({accounting_number: Number(evt.target.value)})} />

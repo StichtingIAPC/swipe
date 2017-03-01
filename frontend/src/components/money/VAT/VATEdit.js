@@ -42,7 +42,8 @@ class VATEdit extends React.Component {
 				{
 					...state,
 					vatperiod_set: [
-						...state.vatperiod_set]
+						...state.vatperiod_set
+					],
 				}
 			);
 			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e == VATPeriod)] = {...VATPeriod, [name]: nextValue};

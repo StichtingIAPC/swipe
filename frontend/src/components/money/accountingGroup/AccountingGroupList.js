@@ -77,8 +77,8 @@ class AccountingGroupList extends React.Component {
 								</Link>
 								<Link
 									className="btn btn-sm btn-default"
-									to="/money/currency/create/"
-									title="Create new currency">
+									to="/money/accountinggroup/create/"
+									title="Create new accounting group">
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
