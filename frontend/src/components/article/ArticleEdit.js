@@ -86,10 +86,7 @@ class ArticleEdit extends React.Component {
 							value={this.state.accounting_group || ''}
 							name="Accounting group"
 							onChange={(evt) => this.setState({accounting_group: evt.target.value})}
-							options={[
-								{id: 1, name: "boeken"},
-								{id: 2, name: "tekenpakketten"},
-							]} />
+							options={this.props.accountingGroups} />
 						{"{ PricingModelSelectorComponent }"}
 					</div>
 				</div>
@@ -116,7 +113,7 @@ export default connect(
 		...ownProps,
 		defaultCurrency: (state.defaultCurrency || {symbol: "€", digits: 2, iso: 'EUR'}),
 		article: (state.articles.articles || []).find(article => article.id == Number(ownProps.params.articleID)),
-		accountingGroups: state.accountingGroups
+		accountingGroups: state.accountingGroups.accountingGroups,
 	}),
 	dispatch => ({
 		addArticle: (article) => {

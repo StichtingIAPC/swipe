@@ -8,6 +8,7 @@ import { labels } from "../../actions/assortment/labels";
 import { labelTypes } from "../../actions/assortment/labelTypes";
 import ArticleSelector from "./ArticleSelector";
 import FontAwesome from "../tools/icons/FontAwesome";
+import { accountingGroups } from "../../actions/money/accountingGroups";
 
 class ArticleManager extends React.Component {
 	componentWillMount() {
@@ -42,6 +43,7 @@ export default connect(
 		articles,
 		labels,
 		labelTypes,
+		accountingGroups,
 	}),
 	dispatch => ({
 		dispatch: dispatch,
