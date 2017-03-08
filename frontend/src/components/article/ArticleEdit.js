@@ -73,7 +73,7 @@ class ArticleEdit extends React.Component {
 					<div className="form-horizontal">
 						<StringField value={this.state.name} name="Name" onChange={evt => this.setState({name: evt.target.value})} />
 						<IntegerField value={this.state.ean || ''} name="EAN" onChange={evt => this.setState({ean: Number(evt.target.value)})} min={0} step={1} />
-						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState({serial_number: evt.target.value})} />
+						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState(({serial_number}) => ({serial_number: !serial_number}))} />
 					</div>
 					<p>Tag/label add/remove here</p>
 				</div>
