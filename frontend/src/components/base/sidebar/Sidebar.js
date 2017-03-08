@@ -9,9 +9,12 @@ class Sidebar extends React.Component {
 			<aside className="main-sidebar">
 				<section className="sidebar">
 					<ul className="sidebar-menu">
-						<SidebarLink text="Supplier" icon="truck" to="/supplier/" />
-						<SidebarLink text="Money config" icon="money" to="/money/" />
 						<SidebarLink text="Article manager" icon="cube" to="/articlemanager/" />
+						<SidebarLink text="Admin">
+							<SidebarLink text="Supplier" icon="truck" to="/supplier/" />
+							<SidebarLink text="Money config" icon="money" to="/money/" />
+							<SidebarLink text="Register" icon="credit-card" to="/register/" />
+						</SidebarLink>
 						<li><br /></li>
 						<SidebarLink onClick={this.props.logout} text="Log out" glyph="log-out" />
 					</ul>
