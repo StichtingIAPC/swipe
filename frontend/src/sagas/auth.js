@@ -9,6 +9,10 @@ export function* login({ username, password }) {
 	form.append('username', username);
 	form.append('password', password);
 	try {
+		const result = yield call(fetch, config.baseurl + '/auth/login/');
+		if (!result.ok) {
+			throw (yield result.json());
+		}
 		const data = yield (yield call(fetch, config.baseurl + '/auth/login/', {
 			method: 'POST',
 			body: form,
