@@ -155,7 +155,7 @@ export default connect(
 	(state, ownProps) => ({
 		...ownProps,
 		errorMsg: state.currencies.inputError,
-		currency: (state.currencies.currencies.find((obj) => obj.iso == ownProps.params.currencyID) || null),
+		currency: ((state.currencies.currencies || []).find((obj) => obj.iso == ownProps.params.currencyID) || null),
 	}),
 	(dispatch) => ({
 		updateCurrency: (currency) => dispatch(updateCurrency(currency)),

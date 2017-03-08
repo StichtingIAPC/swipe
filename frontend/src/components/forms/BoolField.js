@@ -9,6 +9,7 @@ export default function BoolField ({name, className, value, onChange, ...rest}) 
 					className="checkbox"
 					type="checkbox"
 					id={name}
+					checked={value}
 					value={value}
 					onChange={onChange}
 					{...rest} />

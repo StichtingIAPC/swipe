@@ -1,13 +1,10 @@
 import React, { PropTypes } from "react";
-import { Link } from "react-router";
 import { connect } from "react-redux";
-import { startFetchingCurrencies } from "../../../actions/money/currencies";
+import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
-/**
- * Created by Matthias on 26/11/2016.
- */
+import { startFetchingPaymentTypes } from "../../../actions/register/paymentTypes";
 
-class CurrencyList extends React.Component {
+class PaymentTypeList extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -15,16 +12,16 @@ class CurrencyList extends React.Component {
 		}
 	}
 
-	renderEntry({activeID, currency}) {
+	renderEntry({paymentTypeID, register}) {
 		return (
-			<tr className={activeID == currency.iso ? 'active' : null}>
+			<tr className={Number(paymentTypeID) == register.id ? 'active' : null}>
 				<td>
-					{`${currency.name} (${currency.iso})`}
+					{register.name}
 				</td>
 				<td>
 					<div className="btn-group pull-right">
 						{
-							currency.updating ? (
+							register.updating ? (
 								<Link
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
@@ -33,13 +30,13 @@ class CurrencyList extends React.Component {
 							) : null
 						}
 						<Link
-							to={`/money/currency/${currency.iso}/`}
+							to={`/register/paymenttype/${register.id}/`}
 							className="btn btn-default btn-xs"
 							title="Details">
 							<FontAwesome icon="crosshairs" />
 						</Link>
 						<Link
-							to={`/money/currency/${currency.iso}/edit/`}
+							to={`/register/paymenttype/${register.id}/edit/`}
 							className="btn btn-default btn-xs"
 							title="Edit">
 							<FontAwesome icon="edit" />
@@ -67,7 +64,7 @@ class CurrencyList extends React.Component {
 				}>
 				<div className="box-header with-border">
 					<h3 className="box-title">
-						List of currencies
+						List of payment types
 					</h3>
 					<div className="box-tools">
 						<div className="input-group">
@@ -79,13 +76,13 @@ class CurrencyList extends React.Component {
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
-									className="btn btn-sm btn-default"
-									to="/money/currency/create/"
-									title="Create new currency">
+									className="btn btn-default btn-sm"
+									to="/register/paymenttype/create/"
+									title="Create new payment type">
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-sm btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -96,7 +93,7 @@ class CurrencyList extends React.Component {
 						<thead>
 							<tr>
 								<th>
-									<span>Currency name</span>
+									<span>Payment type name</span>
 								</th>
 								<th>
 									<span className="pull-right">Options</span>
@@ -104,11 +101,11 @@ class CurrencyList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.currencies !== null ? this.props.currencies.map(
+							{this.props.paymentTypes.map(
 								(item) => (
-									<this.renderEntry activeID={this.props.activeID} key={item.iso} currency={item} />
+									<this.renderEntry registerID={this.props.paymentTypeID} key={item.id} register={item} />
 								)
-							) : null}
+							)}
 						</tbody>
 					</table>
 				</div>
@@ -125,20 +122,21 @@ class CurrencyList extends React.Component {
 	}
 }
 
-CurrencyList.propTypes = {
-	activeID: PropTypes.string,
+PaymentTypeList.propTypes = {
+	paymentTypeID: PropTypes.string,
 };
 
 export default connect(
 	state => ({
-		errorMsg: state.currencies.fetchError,
-		currencies: state.currencies.currencies || [],
-		fetching: state.currencies.fetching,
+		errorMsg: state.registers.fetchError,
+		paymentTypes: state.paymentTypes.paymentTypes || [],
+		fetching: state.registers.fetching,
 	}),
-	(dispatch) => ({
+	dispatch => ({
+		dispatch,
 		update: (evt) => {
 			evt.preventDefault();
-			dispatch(startFetchingCurrencies());
+			dispatch(startFetchingPaymentTypes());
 		},
-	})
-)(CurrencyList);
+	}),
+)(PaymentTypeList)

@@ -4,6 +4,7 @@ This file contains the models that are used to index, sort and model the assortm
 
 import math
 import re
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -194,12 +195,23 @@ class AssortmentUnitType(models.Model):
                 [enum['as_choice'][1] for a, enum in conf_labels.VALUE_TYPES.items() if enum['countable'] is False] or
                 self.incremental_type is None):
             return str(value)
-
+        _value = value
+        if type(value) is str:
+            if ',' in value or '.' in value:
+                value = Decimal(value)
+            else:
+                value = int(value)
+        if value is None:
+            value = 0
         incr_settings = conf_labels.COUNTING_TYPES[self.incremental_type]
         # get the settings of the incrementation of this unit type
         rel_value = value / incr_settings['start']
         # get the value relative to the start of the list
-        index = math.floor(math.log(rel_value, int(incr_settings['factor'])))
+
+        if rel_value != 0:
+            index = math.floor(math.log(rel_value, int(incr_settings['factor'])))
+        else:
+            index = math.floor(math.log(1, int(incr_settings['factor']))) # 0 has same postfix as 1
         # calculate the index that the corresponding string is stored
 
         if index < 0 or index > len(incr_settings['values']):

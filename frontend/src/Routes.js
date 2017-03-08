@@ -21,6 +21,15 @@ import VATDetail from "./components/money/VAT/VATDetail";
 import VATEdit from "./components/money/VAT/VATEdit";
 import AccountingGroupEdit from "./components/money/accountingGroup/AccountingGroupEdit";
 import AccountingGroupDetail from "./components/money/accountingGroup/AccountingGroupDetail";
+// Article components
+import ArticleEdit from "./components/article/ArticleEdit";
+import ArticleManager from "./components/article/ArticleManager";
+// Register components
+import RegisterBase from "./components/register/RegisterBase";
+import RegisterEdit from "./components/register/register/RegisterEdit";
+import RegisterDetail from "./components/register/register/RegisterDetail";
+import PaymentTypeEdit from "./components/register/paymentType/PaymentTypeEdit";
+import PaymentTypeDetail from "./components/register/paymentType/PaymentTypeDetail";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -53,7 +62,18 @@ class Routes extends React.Component {
 					<Route path="accountinggroup/:accountingGroupID/edit/" component={AccountingGroupEdit} />
 					<Route path="accountinggroup/:accountingGroupID/" component={AccountingGroupDetail} />
 				</Route>
-
+				<Route path="articlemanager/" component={ArticleManager}>
+					<Route path="create/" component={ArticleEdit} />
+					<Route path=":articleID/" component={ArticleEdit} />
+				</Route>
+				<Route path="register/" component={RegisterBase}>
+					<Route path="register/create/" component={RegisterEdit} />
+					<Route path="register/:registerID/edit/" component={RegisterEdit} />
+					<Route path="register/:registerID/" component={RegisterDetail} />
+					<Route path="paymenttype/create/" component={PaymentTypeEdit} />
+					<Route path="paymenttype/:paymentTypeID/edit/" component={PaymentTypeEdit} />
+					<Route path="paymenttype/:paymentTypeID/" component={PaymentTypeDetail} />
+				</Route>
 				<Route path="pos">
 					<IndexRedirect to="register" />
 					<Route path="register">

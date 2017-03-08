@@ -5,9 +5,9 @@ from article.models import ArticleType
 from article.serializers import ArticleTypeSerializer
 
 
-class ArticleListView(mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      generics.GenericAPIView):
+class ArticleTypeListView(mixins.ListModelMixin,
+                          mixins.CreateModelMixin,
+                          generics.GenericAPIView):
     queryset = ArticleType.objects.all()
     serializer_class = ArticleTypeSerializer
 

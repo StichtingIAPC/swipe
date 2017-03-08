@@ -66,7 +66,7 @@ class RegisterView(mixins.RetrieveModelMixin,
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
 
