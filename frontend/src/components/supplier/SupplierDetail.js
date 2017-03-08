@@ -54,6 +54,6 @@ SupplierDetail.propTypes = {
 export default connect(
 	(state, ownProps) => ({
 		...ownProps,
-		supplier: state.suppliers.suppliers.filter(s => s.id == parseInt(ownProps.params.supplierID || '-1'))[0],
+		supplier: state.suppliers.suppliers.filter(s => Number(s.id) == parseInt(ownProps.params.supplierID || '-1'))[0],
 	})
 )(SupplierDetail);
