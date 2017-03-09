@@ -64,7 +64,7 @@ class ArticleEdit extends React.Component {
 							<div className="btn-group">
 								<Link to="/articlemanager/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
 								<Link onClick={(evt) => this.reset(evt)} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></Link>
-								<Link onClick={(evt) => this.save()} className="btn btn-success btn-sm" title="Save">Save</Link>
+								<Link onClick={() => this.save()} className="btn btn-success btn-sm" title="Save">Save</Link>
 							</div>
 						</div>
 					</div>
@@ -107,6 +107,17 @@ class ArticleEdit extends React.Component {
 		);
 	}
 }
+
+ArticleEdit.propTypes = {
+	defaultCurrency: PropTypes.object.isRequired,
+	article: PropTypes.object.isRequired,
+	accountingGroups: PropTypes.arrayOf(PropTypes.object).isRequired,
+	addArticle: PropTypes.func.isRequired,
+	editArticle: PropTypes.func.isRequired,
+	params: PropTypes.shape({
+		articleID: PropTypes.string.isRequired,
+	}).isRequired,
+};
 
 export default connect(
 	(state, ownProps) => ({
