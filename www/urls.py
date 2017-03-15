@@ -31,6 +31,8 @@ urlpatterns = [
     # Include Register URLs
     url(r'^register/', include("register.urls")),
 
+    url(r'^stock/', include("stock.urls")),
+
     url(r'^tools/', include('tools.urls')),
 
     url(r'^public/', include('public_info.urls')),

@@ -4,7 +4,10 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from money.models import CurrencyData as Currency, Denomination, AccountingGroup, Money, VAT, VATPeriod
+from money.models import CurrencyData as Currency, Denomination, \
+    AccountingGroup, Money, VAT, VATPeriod, Cost
+
+
 
 
 class MoneySerializerField(serializers.Field):
@@ -22,6 +25,17 @@ class MoneySerializerField(serializers.Field):
             'amount': str(obj.amount),
             'currency': obj.currency.iso
         }
+
+
+class CostSerializerField(MoneySerializerField):
+    def to_internal_value(self, data):
+        if data is None:
+            return None
+        try:
+            return Cost(amount=Decimal(data['amount']),
+                        currency=Currency(data['currency']))
+        except Exception as e:
+            raise ValidationError from e
 
 
 class DenominationSerializer(serializers.ModelSerializer):
