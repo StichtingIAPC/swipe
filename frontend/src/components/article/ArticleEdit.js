@@ -28,7 +28,8 @@ class ArticleEdit extends React.Component {
 		};
 	}
 
-	save() {
+	save(evt) {
+		if (evt) evt.preventDefault();
 		if (this.state.id) {
 			this.props.editArticle(this.state);
 		} else {
@@ -39,15 +40,6 @@ class ArticleEdit extends React.Component {
 	reset(evt, props) {
 		if (evt) evt.preventDefault();
 		this.setState(this.getResetState(props));
-	}
-
-	submit(evt) {
-		evt.preventDefault();
-		if (this.state.id == null) {
-			this.props.addArticle({ ...this.state, lastModified: new Date() });
-		} else {
-			this.props.editArticle({ ...this.state, lastModified: new Date() });
-		}
 	}
 
 	componentWillReceiveProps(props) {
