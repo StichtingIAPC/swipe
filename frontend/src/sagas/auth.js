@@ -9,14 +9,14 @@ export function* login({ username, password }) {
 	form.append('username', username);
 	form.append('password', password);
 	try {
-		const result = yield call(fetch, config.baseurl + '/auth/login/');
+		const result = yield call(fetch, config.baseurl + '/auth/login/', {
+			method: 'POST',
+			body: form,
+		});
 		if (!result.ok) {
 			throw (yield result.json());
 		}
-		const data = yield (yield call(fetch, config.baseurl + '/auth/login/', {
-			method: 'POST',
-			body: form,
-		})).json();
+		const data = yield (result).json();
 
 		yield put(loginSuccess(data.token, data.user));
 
