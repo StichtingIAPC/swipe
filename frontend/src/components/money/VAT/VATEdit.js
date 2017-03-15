@@ -67,7 +67,7 @@ class VATEdit extends React.Component {
 								<DatePicker
 									minDate={VATPeriod.start_date}
 									dateFormat="YYYY-MM-DD"
-									onChange={val => updateValue('start_date', val)} />
+									onChange={val => updateValue('end_date', val)} />
 								)
 						}
 					</td>
