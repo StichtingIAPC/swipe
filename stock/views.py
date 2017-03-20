@@ -7,7 +7,7 @@ from stock.serializers import StockSerializer
 class StockView(mixins.UpdateModelMixin,
                           mixins.RetrieveModelMixin,
                           generics.GenericAPIView):
-    queryset = Stock.objects.all()
+    queryset = Stock.objects.all().select_related('article')
     serializer_class = StockSerializer
 
     def get(self, request, *args, **kwargs):
@@ -19,7 +19,7 @@ class StockView(mixins.UpdateModelMixin,
 class StockListView(mixins.ListModelMixin,
                               mixins.CreateModelMixin,
                               generics.GenericAPIView):
-    queryset = Stock.objects.all()
+    queryset = Stock.objects.all().select_related('article')
     serializer_class = StockSerializer
 
     def get(self, request, *args, **kwargs):
