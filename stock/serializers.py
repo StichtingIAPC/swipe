@@ -1,5 +1,7 @@
+from crm.models import Customer
+from pricing.models import PricingModel
 from stock.models import Stock, StockLabeledLine
-from money.serializers import CostSerializerField, MoneySerializerField
+from money.serializers import CostSerializerField, MoneySerializerField, PriceSerializer
 from article.models import ArticleType
 
 
@@ -15,15 +17,9 @@ class StockLabeledLineSerializer(serializers.ModelSerializer):
 class StockSerializer(StockLabeledLineSerializer):
     book_value = CostSerializerField()
 
-    class CustomArticleSerializer(serializers.RelatedField):
-        def to_representation(self, value: ArticleType):
-            fp=value.fixed_price
-            if fp:
-                return {'id': value.pk, 'fixed_price': {'amount': fp.amount, 'currency': fp.currency.iso}}
-            else:
-                return {'id': value.pk, 'fixed_price': None}
-
-    article = CustomArticleSerializer(read_only=True)
+    def __init__(self, *args, customer=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.customer = Customer.objects.get(id=customer) if customer else None
 
     class Meta:
         model = Stock
@@ -32,3 +28,8 @@ class StockSerializer(StockLabeledLineSerializer):
             'count',
             'book_value',
         )
+
+    def to_representation(self, instance: Stock):
+        _repr = super().to_representation(instance)
+        _repr['price'] = PriceSerializer().to_representation(PricingModel.return_price(instance.article, customer=self.customer, stock=instance))
+        return _repr

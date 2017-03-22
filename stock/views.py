@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import mixins, generics
 
+from crm.models import Customer
 from stock.models import Stock
 from stock.serializers import StockSerializer
 
@@ -11,10 +12,11 @@ class StockView(mixins.UpdateModelMixin,
     serializer_class = StockSerializer
 
     def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        # customer_pk = kwargs.pop('customer', None)
+        # customer = Customer.objects.get(pk=customer_pk) if customer_pk else None
+        # self.serializer_class = self.get_serializer_class()(customer=customer)
+        return self.list(request, *args, **kwargs)
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
 
 class StockListView(mixins.ListModelMixin,
                               mixins.CreateModelMixin,
@@ -23,9 +25,7 @@ class StockListView(mixins.ListModelMixin,
     serializer_class = StockSerializer
 
     def get(self, request, *args, **kwargs):
+        # customer_pk = kwargs.pop('customer', None)
+        # customer = Customer.objects.get(pk=customer_pk) if customer_pk else None
+        # self.serializer_class = self.get_serializer_class()(customer=customer)
         return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
