@@ -26,7 +26,7 @@ export function* createCurrency({ curr }) {
 	const currency = {...curr};
 	try {
 		const data = yield (yield call(
-			api_put,
+			post,
 			'/money/currency/',
 			currency,
 		)).json();
@@ -47,7 +47,7 @@ export function* updateCurrency({ curr }) {
 	const currency = {...curr};
 	try {
 		const data = yield (yield call(
-			post,
+			api_put,
 			`/money/currency/${currency.iso}/`,
 			currency,
 		)).json();

@@ -34,3 +34,4 @@ List of contributors
 - Rick Lubbers
 - Simon Struck
 - Mauk Muller
+- Niels Overkamp

@@ -2,16 +2,17 @@
 // System dependencies
 import React from "react";
 import ReactDOM from "react-dom";
-import {createStore, applyMiddleware, compose} from "redux";
-import {Provider} from "react-redux";
+import { createStore, applyMiddleware, compose } from "redux";
+import { Provider } from "react-redux";
 import createSagaMiddleware from "redux-saga";
 import Routes from "./Routes.js";
-import {browserHistory} from "react-router";
-import {syncHistoryWithStore, routerMiddleware} from "react-router-redux";
+import { browserHistory } from "react-router";
+import { syncHistoryWithStore, routerMiddleware } from "react-router-redux";
 import "font-awesome/css/font-awesome.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "admin-lte/dist/css/AdminLTE.min.css";
 import "admin-lte/dist/css/skins/skin-blue.min.css";
+import "react-datepicker/dist/react-datepicker.css";
 import "./styles/main.scss";
 // Pages
 import rootReducer from "./reducers/root";

@@ -85,11 +85,11 @@ class SupplierList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{Object.keys(this.props.suppliers).filter((key) => this.props.suppliers[key]).map(
-								(id) => (
-									<this.renderEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
+							{this.props.suppliers !== null ? this.props.suppliers.map(
+								(supplier) => (
+									<this.renderEntry supplierID={this.props.supplierID} key={supplier.id} supplier={supplier} />
 								)
-							)}
+							) : null}
 						</tbody>
 					</table>
 				</div>
@@ -109,7 +109,7 @@ class SupplierList extends React.Component {
 export default connect(
 	state => ({
 		errorMsg: state.suppliers.fetchError,
-		suppliers: state.suppliers.suppliers,
+		suppliers: state.suppliers.suppliers || [],
 		fetching: state.suppliers.fetching,
 	}),
 	dispatch => ({ update: () => dispatch(startFetchingSuppliers()) })

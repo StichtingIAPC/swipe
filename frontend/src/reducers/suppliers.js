@@ -1,5 +1,5 @@
 const initialState = {
-	suppliers: [],
+	suppliers: null,
 	fetching: false,
 	fetchError: null,
 	inputError: null,

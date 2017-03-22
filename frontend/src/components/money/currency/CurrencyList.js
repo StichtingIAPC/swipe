@@ -17,7 +17,7 @@ class CurrencyList extends React.Component {
 
 	renderEntry({activeID, currency}) {
 		return (
-			<tr className={Number(activeID) == currency.iso ? 'active' : null}>
+			<tr className={activeID == currency.iso ? 'active' : null}>
 				<td>
 					{`${currency.name} (${currency.iso})`}
 				</td>
@@ -79,13 +79,13 @@ class CurrencyList extends React.Component {
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
-									className="btn btn-default btn-sm"
+									className="btn btn-sm btn-default"
 									to="/money/currency/create/"
 									title="Create new currency">
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-sm btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -104,11 +104,11 @@ class CurrencyList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.currencies.map(
+							{this.props.currencies !== null ? this.props.currencies.map(
 								(item) => (
-									<this.renderEntry activeID={this.props.currencyID} key={item.iso} currency={item} />
+									<this.renderEntry activeID={this.props.activeID} key={item.iso} currency={item} />
 								)
-							)}
+							) : null}
 						</tbody>
 					</table>
 				</div>
@@ -130,10 +130,9 @@ CurrencyList.propTypes = {
 };
 
 export default connect(
-	(state, ownProps) => ({
-		...ownProps,
+	state => ({
 		errorMsg: state.currencies.fetchError,
-		currencies: state.currencies.currencies,
+		currencies: state.currencies.currencies || [],
 		fetching: state.currencies.fetching,
 	}),
 	(dispatch) => ({

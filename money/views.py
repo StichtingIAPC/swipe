@@ -1,7 +1,7 @@
 from rest_framework import mixins, generics
 
-from money.models import CurrencyData, Denomination, VAT
-from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer
+from money.models import CurrencyData, Denomination, VAT, AccountingGroup
+from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer, AccountingGroupSerializer
 
 
 class CurrencyListView(mixins.ListModelMixin,
@@ -58,6 +58,32 @@ class VATView(mixins.UpdateModelMixin,
     queryset = VAT.objects.all() \
         .prefetch_related('vatperiod_set')
     serializer_class = VATSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class AccountingGroupListView(mixins.ListModelMixin,
+                              mixins.CreateModelMixin,
+                              generics.GenericAPIView):
+    queryset = AccountingGroup.objects.all()
+    serializer_class = AccountingGroupSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class AccountingGroupView(mixins.UpdateModelMixin,
+                          mixins.RetrieveModelMixin,
+                          generics.GenericAPIView):
+    queryset = AccountingGroup.objects.all()
+    serializer_class = AccountingGroupSerializer
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
