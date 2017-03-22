@@ -12,9 +12,6 @@ class StockView(mixins.UpdateModelMixin,
     serializer_class = StockSerializer
 
     def get(self, request, *args, **kwargs):
-        # customer_pk = kwargs.pop('customer', None)
-        # customer = Customer.objects.get(pk=customer_pk) if customer_pk else None
-        # self.serializer_class = self.get_serializer_class()(customer=customer)
         return self.list(request, *args, **kwargs)
 
 
@@ -25,7 +22,4 @@ class StockListView(mixins.ListModelMixin,
     serializer_class = StockSerializer
 
     def get(self, request, *args, **kwargs):
-        # customer_pk = kwargs.pop('customer', None)
-        # customer = Customer.objects.get(pk=customer_pk) if customer_pk else None
-        # self.serializer_class = self.get_serializer_class()(customer=customer)
         return self.list(request, *args, **kwargs)
