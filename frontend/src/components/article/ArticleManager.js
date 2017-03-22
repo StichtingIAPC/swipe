@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import { push } from "react-router-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/StateRequirements";
+import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
 import { articles } from "../../actions/articles";
 import { labels } from "../../actions/assortment/labels";
 import { labelTypes } from "../../actions/assortment/labelTypes";

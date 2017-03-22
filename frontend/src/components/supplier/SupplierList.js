@@ -86,8 +86,8 @@ class SupplierList extends React.Component {
 						</thead>
 						<tbody>
 							{this.props.suppliers !== null ? this.props.suppliers.map(
-								(id) => (
-									<this.renderEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
+								(supplier) => (
+									<this.renderEntry supplierID={this.props.supplierID} key={supplier.id} supplier={supplier} />
 								)
 							) : null}
 						</tbody>

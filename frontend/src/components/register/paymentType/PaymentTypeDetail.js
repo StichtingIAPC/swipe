@@ -1,28 +1,28 @@
 import React, { PropTypes } from "react";
 import { Link } from "react-router";
 import { connect } from "react-redux";
-import FontAwesome from "../tools/icons/FontAwesome";
+import FontAwesome from "../../tools/icons/FontAwesome";
 
-class SupplierDetail extends React.Component {
+class PaymentTypeDetail extends React.Component {
 	trash(evt) {
 		evt.preventDefault();
 	}
 
 	render() {
-		if (!this.props.supplier) {
+		if (!this.props.paymentType) {
 			return null;
 		}
 
-		const supplier = this.props.supplier;
+		const paymentType = this.props.paymentType;
 		return (
 			<div className="box">
 				<div className="box-header with-border">
-					<h3 className="box-title">Supplier: {supplier.name}</h3>
+					<h3 className="box-title">Payment type: {paymentType.name}</h3>
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
-								<Link to="/supplier/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
-								<Link to={`/supplier/${supplier.id}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
+								<Link to="/register/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
+								<Link to={`/register/paymenttype/${paymentType.id}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
 								<Link onClick={this.trash.bind(this)} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
 							</div>
 						</div>
@@ -30,11 +30,11 @@ class SupplierDetail extends React.Component {
 				</div>
 				<div className="box-body">
 					<dl className="dl-horizontal">
-						{['id', 'name', 'deleted', 'notes', 'searchUrl'].map(
+						{['name', 'is_invoicing'].map(
 							(key) => (
 								<div key={key}>
 									<dt>{key}</dt>
-									<dd>{String(supplier[key])}</dd>
+									<dd>{String(paymentType[key])}</dd>
 								</div>
 							)
 						)}
@@ -43,17 +43,17 @@ class SupplierDetail extends React.Component {
 			</div>
 		)
 	}
-};
+}
 
-SupplierDetail.propTypes = {
+PaymentTypeDetail.propTypes = {
 	params: PropTypes.shape({
-		supplierID: PropTypes.string.isRequired,
+		paymentTypeID: PropTypes.string.isRequired,
 	}).isRequired,
 };
 
 export default connect(
 	(state, ownProps) => ({
 		...ownProps,
-		supplier: state.suppliers.suppliers.filter(s => Number(s.id) == parseInt(ownProps.params.supplierID || '-1'))[0],
+		paymentType: state.paymentTypes.paymentTypes.filter(s => Number(s.id) == parseInt(ownProps.params.paymentTypeID || '-1'))[0],
 	})
-)(SupplierDetail);
+)(PaymentTypeDetail);

@@ -66,7 +66,7 @@ class VATEdit extends React.Component {
 								<DatePicker
 									minDate={VATPeriod.start_date}
 									dateFormat="YYYY-MM-DD"
-									onChange={val => updateValue('start_date', val)} />
+									onChange={val => updateValue('end_date', val)} />
 								)
 						}
 					</td>
@@ -136,7 +136,7 @@ class VATEdit extends React.Component {
 				onSubmit={this.save.bind(this)}
 				error={this.props.errorMsg}>
 				<StringField name="Name" value={this.state.name} onChange={(evt) => this.setState({name: evt.target.value})} />
-				<BoolField name="Active" value={this.state.active} onChange={(evt) => this.setState({active: evt.target.value})} />
+				<BoolField name="Active" value={this.state.active} onChange={evt => this.setState(({active}) => ({active: !active}))} />
 				<div className="form-group">
 					<label className="col-sm-3 control-label">VAT periods</label>
 					<div className="col-sm-9">

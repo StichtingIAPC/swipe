@@ -28,7 +28,8 @@ class ArticleEdit extends React.Component {
 		};
 	}
 
-	save() {
+	save(evt) {
+		if (evt) evt.preventDefault();
 		if (this.state.id) {
 			this.props.editArticle(this.state);
 		} else {
@@ -39,15 +40,6 @@ class ArticleEdit extends React.Component {
 	reset(evt, props) {
 		if (evt) evt.preventDefault();
 		this.setState(this.getResetState(props));
-	}
-
-	submit(evt) {
-		evt.preventDefault();
-		if (this.state.id == null) {
-			this.props.addArticle({ ...this.state, lastModified: new Date() });
-		} else {
-			this.props.editArticle({ ...this.state, lastModified: new Date() });
-		}
 	}
 
 	componentWillReceiveProps(props) {
@@ -73,7 +65,7 @@ class ArticleEdit extends React.Component {
 					<div className="form-horizontal">
 						<StringField value={this.state.name} name="Name" onChange={evt => this.setState({name: evt.target.value})} />
 						<IntegerField value={this.state.ean || ''} name="EAN" onChange={evt => this.setState({ean: Number(evt.target.value)})} min={0} step={1} />
-						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState({serial_number: evt.target.value})} />
+						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState(({serial_number}) => ({serial_number: !serial_number}))} />
 					</div>
 					<p>Tag/label add/remove here</p>
 				</div>

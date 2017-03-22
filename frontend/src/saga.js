@@ -5,6 +5,8 @@ import { fetchSuppliers, createSupplier, updateSupplier } from "./sagas/supplier
 import { fetchVATs, createVAT, updateVAT } from "./sagas/money/VATs";
 import { fetchAccountingGroups, createAccountingGroup, updateAccountingGroup } from "./sagas/money/accountingGroups";
 import { fetchArticles, createArticle, updateArticle } from "./sagas/articles";
+import { fetchRegisters, createRegister, updateRegister } from "./sagas/register/registers";
+import { createPaymentType, updatePaymentType, fetchPaymentTypes } from "./sagas/register/paymentTypes";
 
 export default function* rootSaga() {
 	// Auth sagas
@@ -35,4 +37,15 @@ export default function* rootSaga() {
 	yield takeEvery('ARTICLE_CREATE', createArticle);
 	yield takeEvery('ARTICLE_UPDATE', updateArticle);
 	yield takeEvery('ARTICLE_DELETE', updateArticle);
+
+	// Register sagas
+	yield takeLatest('REGISTER_FETCH_START', fetchRegisters);
+	yield takeEvery('REGISTER_CREATE', createRegister);
+	yield takeEvery('REGISTER_UPDATE', updateRegister);
+	yield takeEvery('REGISTER_DELETE', updateRegister);
+	// Payment type sagas
+	yield takeLatest('PAYMENT_TYPE_FETCH_START', fetchPaymentTypes);
+	yield takeEvery('PAYMENT_TYPE_CREATE', createPaymentType);
+	yield takeEvery('PAYMENT_TYPE_UPDATE', updatePaymentType);
+	yield takeEvery('PAYMENT_TYPE_DELETE', updatePaymentType);
 };

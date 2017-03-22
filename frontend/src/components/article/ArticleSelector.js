@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { articles } from "../../actions/articles";
 import { labels } from "../../actions/assortment/labels";
 import { labelTypes } from "../../actions/assortment/labelTypes";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/StateRequirements";
+import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
 import Label from "../assortment/AssortmentLabel";
 import FontAwesome from "../tools/icons/FontAwesome";
 
