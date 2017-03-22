@@ -4,6 +4,7 @@ import { fetchCurrencies, createCurrency, updateCurrency } from "./sagas/money/c
 import { fetchSuppliers, createSupplier, updateSupplier } from "./sagas/suppliers";
 import { fetchVATs, createVAT, updateVAT } from "./sagas/money/VATs";
 import { fetchAccountingGroups, createAccountingGroup, updateAccountingGroup } from "./sagas/money/accountingGroups";
+import { fetchArticles, createArticle, updateArticle } from "./sagas/articles";
 
 export default function* rootSaga() {
 	// Auth sagas
@@ -28,4 +29,10 @@ export default function* rootSaga() {
 	yield takeLatest('ACCOUNTING_GROUP_FETCH_START', fetchAccountingGroups);
 	yield takeEvery('ACCOUNTING_GROUP_CREATE', createAccountingGroup);
 	yield takeEvery('ACCOUNTING_GROUP_UPDATE', updateAccountingGroup);
+
+	// Article sagas
+	yield takeLatest('ARTICLE_FETCH_START', fetchArticles);
+	yield takeEvery('ARTICLE_CREATE', createArticle);
+	yield takeEvery('ARTICLE_UPDATE', updateArticle);
+	yield takeEvery('ARTICLE_DELETE', updateArticle);
 };

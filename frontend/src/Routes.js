@@ -21,6 +21,9 @@ import VATDetail from "./components/money/VAT/VATDetail";
 import VATEdit from "./components/money/VAT/VATEdit";
 import AccountingGroupEdit from "./components/money/accountingGroup/AccountingGroupEdit";
 import AccountingGroupDetail from "./components/money/accountingGroup/AccountingGroupDetail";
+// Article components
+import ArticleEdit from "./components/article/ArticleEdit";
+import ArticleManager from "./components/article/ArticleManager";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -52,6 +55,10 @@ class Routes extends React.Component {
 					<Route path="accountinggroup/create/" component={AccountingGroupEdit} />
 					<Route path="accountinggroup/:accountingGroupID/edit/" component={AccountingGroupEdit} />
 					<Route path="accountinggroup/:accountingGroupID/" component={AccountingGroupDetail} />
+				</Route>
+				<Route path="articlemanager/" component={ArticleManager}>
+					<Route path="create/" component={ArticleEdit} />
+					<Route path=":articleID/" component={ArticleEdit} />
 				</Route>
 
 				<Route path="pos">

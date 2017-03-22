@@ -85,11 +85,11 @@ class SupplierList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{Object.keys(this.props.suppliers).filter((key) => this.props.suppliers[key]).map(
+							{this.props.suppliers !== null ? this.props.suppliers.map(
 								(id) => (
 									<this.renderEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
 								)
-							)}
+							) : null}
 						</tbody>
 					</table>
 				</div>

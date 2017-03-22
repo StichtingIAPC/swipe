@@ -25,7 +25,6 @@ export function* fetchSuppliers({redirectTo}) {
 		if (redirectTo)
 			yield put(push(redirectTo));
 	}	catch (e) {
-		console.log(e);
 		yield put(supplierFetchError(e.message));
 	}
 }
@@ -64,7 +63,7 @@ export function* updateSupplier({ supplier }) {
 		const data = yield (yield call(
 			api_put,
 			`/supplier/${supplier.id}/`,
-			supplier,
+			document,
 		)).json();
 
 		yield put(startFetchingSuppliers({
