@@ -67,7 +67,9 @@ class ArticleEdit extends React.Component {
 						<IntegerField value={this.state.ean || ''} name="EAN" onChange={evt => this.setState({ean: Number(evt.target.value)})} min={0} step={1} />
 						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState(({serial_number}) => ({serial_number: !serial_number}))} />
 					</div>
-					<p>Tag/label add/remove here</p>
+					<div className="form-horizontal">
+						{"{ Tag/label add/remove here }"}
+					</div>
 				</div>
 				<div className="box-header with-border">
 					<h3 className="box-title">Pricing</h3>
@@ -120,5 +122,6 @@ export default connect(
 			delete copy['useFixedPrice'];
 			return dispatch(updateArticle(copy))
 		},
+		toggleLabelsModal: () => dispatch(toggleLabelsModal())
 	})
 )(ArticleEdit)
