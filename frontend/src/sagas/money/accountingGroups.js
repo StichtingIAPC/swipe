@@ -18,7 +18,12 @@ export function* fetchAccountingGroups({ redirectTo }) {
 		if (redirectTo)
 			yield put(push(redirectTo));
 	} catch (e) {
-		yield put(accountingGroupFetchError(e.message));
+		let msg;
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = yield call(e.json.bind(e));
+		yield put(accountingGroupFetchError(msg));
 	}
 }
 

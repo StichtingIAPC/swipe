@@ -1,12 +1,10 @@
 import { takeEvery, takeLatest } from "redux-saga";
 import { login, saveLoginDetails } from "./sagas/auth.js";
-import { fetchCurrencies, createCurrency, updateCurrency } from "./sagas/money/currencies";
 import { fetchSuppliers, createSupplier, updateSupplier } from "./sagas/suppliers";
-import { fetchVATs, createVAT, updateVAT } from "./sagas/money/VATs";
-import { fetchAccountingGroups, createAccountingGroup, updateAccountingGroup } from "./sagas/money/accountingGroups";
 import { fetchArticles, createArticle, updateArticle } from "./sagas/articles";
-import { fetchRegisters, createRegister, updateRegister } from "./sagas/register/registers";
-import { createPaymentType, updatePaymentType, fetchPaymentTypes } from "./sagas/register/paymentTypes";
+import assortment from "./sagas/assortment/assortment";
+import money from "./sagas/money/money";
+import register from "./sagas/register/register";
 
 export default function* rootSaga() {
 	// Auth sagas
@@ -19,33 +17,14 @@ export default function* rootSaga() {
 	yield takeEvery('SUPPLIER_UPDATE', updateSupplier);
 	yield takeEvery('SUPPLIER_DELETE', updateSupplier);
 
-	// Money Sagas - Currency
-	yield takeLatest('CURRENCY_FETCH_START', fetchCurrencies);
-	yield takeEvery('CURRENCY_CREATE', createCurrency);
-	yield takeEvery('CURRENCY_UPDATE', updateCurrency);
-	// Money Sagas - VAT
-	yield takeLatest('VAT_FETCH_START', fetchVATs);
-	yield takeEvery('VAT_CREATE', createVAT);
-	yield takeEvery('VAT_UPDATE', updateVAT);
-	// Money Sagas - Accounting groups
-	yield takeLatest('ACCOUNTING_GROUP_FETCH_START', fetchAccountingGroups);
-	yield takeEvery('ACCOUNTING_GROUP_CREATE', createAccountingGroup);
-	yield takeEvery('ACCOUNTING_GROUP_UPDATE', updateAccountingGroup);
-
 	// Article sagas
 	yield takeLatest('ARTICLE_FETCH_START', fetchArticles);
 	yield takeEvery('ARTICLE_CREATE', createArticle);
 	yield takeEvery('ARTICLE_UPDATE', updateArticle);
 	yield takeEvery('ARTICLE_DELETE', updateArticle);
 
-	// Register sagas
-	yield takeLatest('REGISTER_FETCH_START', fetchRegisters);
-	yield takeEvery('REGISTER_CREATE', createRegister);
-	yield takeEvery('REGISTER_UPDATE', updateRegister);
-	yield takeEvery('REGISTER_DELETE', updateRegister);
-	// Payment type sagas
-	yield takeLatest('PAYMENT_TYPE_FETCH_START', fetchPaymentTypes);
-	yield takeEvery('PAYMENT_TYPE_CREATE', createPaymentType);
-	yield takeEvery('PAYMENT_TYPE_UPDATE', updatePaymentType);
-	yield takeEvery('PAYMENT_TYPE_DELETE', updatePaymentType);
+
+	yield* assortment();
+	yield* money();
+	yield* register();
 };
