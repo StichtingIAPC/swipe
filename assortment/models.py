@@ -147,6 +147,10 @@ class AssortmentUnitType(models.Model):
     # mega, mini, milliards, etc?
 
     def __init__(self, *args, **kwargs):
+        if kwargs.get('value_type') == '':
+            kwargs.pop('value_type')
+        if kwargs.get('incremental_type') == '':
+            kwargs.pop('incremental_type')
         if (kwargs.get('value_type') is not None and
                 not conf_labels.VALUE_TYPES[kwargs.get('value_type')]['countable'] and
                 kwargs.get('incremental_type') is not None):

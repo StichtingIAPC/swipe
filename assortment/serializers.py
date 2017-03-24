@@ -9,7 +9,6 @@ class LabelSerializer(serializers.ModelSerializer):
     {
       "id": Number,
       "value": String,
-      "label_type": Number,
     }
     """
     class Meta:
@@ -17,24 +16,7 @@ class LabelSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'value',
-            'label_type',
         )
-
-
-class LabelSerializerWithEdit(LabelSerializer):
-    """
-    shape:
-    {
-      "id": Number,
-      "value": String,
-      "label_type": Number,
-    }
-    """
-    class Meta(LabelSerializer.Meta):
-        extra_kwargs = {
-            'value': {'read_only': False},
-            'label_type': {'read_only': False, 'queryset': AssortmentLabelType.objects.all()}
-        }
 
 
 class LabelTypeSerializer(serializers.ModelSerializer):
@@ -56,6 +38,15 @@ class LabelTypeSerializer(serializers.ModelSerializer):
             'unit_type',
         )
 
+    def to_internal_value(self, data: dict):
+        data.pop('labels')
+        return super().to_internal_value(data=data)
+
+    def to_representation(self, instance: AssortmentLabelType):
+        _repr = super().to_representation(instance)
+        _repr['labels'] = [LabelSerializer().to_representation(label) for label in instance.assortmentlabel_set.all()]
+        return _repr
+
 
 class LabelTypeSerializerWithEdit(LabelTypeSerializer):
     """
@@ -64,7 +55,7 @@ class LabelTypeSerializerWithEdit(LabelTypeSerializer):
       "id": Number,
       "description": String,
       "name": String,
-      "unit_type": Number,
+      "unit_type": UnitTypeID,
     }
     """
 
@@ -82,8 +73,9 @@ class UnitTypeSerializer(serializers.ModelSerializer):
       "id": Number,
       "type_long": String,
       "type_short": String,
-      "value_type": String,
-      "incremental_type": String,
+      "value_type": chars,
+      "incremental_type": chars,
+    }
     """
     class Meta:
         model = AssortmentUnitType
@@ -103,8 +95,9 @@ class UnitTypeSerializerWithEdit(UnitTypeSerializer):
       "id": Number,
       "type_long": String,
       "type_short": String,
-      "value_type": String,
-      "incremental_type": String,
+      "value_type": chars,
+      "incremental_type": chars,
+    }
     """
     class Meta(UnitTypeSerializer.Meta):
         extra_kwargs = {
