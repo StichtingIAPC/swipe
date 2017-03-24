@@ -1,6 +1,5 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Link } from "react-router";
 import DatePicker from "react-datepicker";
 import { updateVAT, createVAT } from "../../../actions/money/VATs";
 import Form from "../../forms/Form";
@@ -42,7 +41,7 @@ class VATEdit extends React.Component {
 				{
 					...state,
 					vatperiod_set: [
-						...state.vatperiod_set
+						...state.vatperiod_set,
 					],
 				}
 			);
