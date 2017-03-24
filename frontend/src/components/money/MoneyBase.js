@@ -13,7 +13,6 @@ import { accountingGroups } from "../../actions/money/accountingGroups";
 
 class MoneyBase extends React.Component {
 	componentWillMount() {
-		console.log('componentWillMount');
 		fetchStateRequirementsFor(this);
 	}
 
