@@ -36,10 +36,10 @@ export function* createLabelType({ labelType } = {}) {
 			post,
 			'/assortment/labeltypes/',
 			document
-		));
+		)).json();
 
 		yield put(startFetchingLabelTypes({
-			redirectTo: `/assortment/labeltype/`,
+			redirectTo: `/assortment/`,
 		}));
 	} catch (e) {
 		let msg;

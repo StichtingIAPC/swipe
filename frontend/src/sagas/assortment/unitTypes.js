@@ -36,7 +36,7 @@ export function* createUnitType({ unitType } = {}) {
 			post,
 			'/assortment/unittypes/',
 			document
-		));
+		)).json();
 
 		yield put(startFetchingUnitTypes({
 			redirectTo: `/assortment/unittypes/${data.id}/`,
