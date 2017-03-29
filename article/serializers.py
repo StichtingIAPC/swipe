@@ -1,8 +1,10 @@
+from django.db.models import Q
 from rest_framework import serializers
 
 from article.models import ArticleType, WishableType
 from assortment.models import AssortmentLabel
 from money.serializers import MoneySerializerField
+
 
 def get_or_create_labels(labels_obj):
     """
@@ -12,12 +14,11 @@ def get_or_create_labels(labels_obj):
     """
     q = Q()
     for labeltype_id, values in labels_obj.items():
-        q &= Q(label_type__id=labeltype_id, value__in=values)
+        q |= Q(label_type_id=labeltype_id, value__in=values)
 
     asls = list(AssortmentLabel.objects.filter(q).select_related('label_type').all())
 
-    expected_labels = {(label_value, label_type) for label_type, lvals in labels_obj.items() for label_value in lvals}
-
+    expected_labels = {(label_value, int(label_type)) for label_type, lvals in labels_obj.items() for label_value in lvals}
     for asl in asls:
         expected_labels.remove((asl.value, asl.label_type.pk))
 
@@ -58,7 +59,13 @@ class ArticleTypeSerializer(serializers.ModelSerializer):
         return _repr
 
     def to_internal_value(self, data):
-        return super().to_internal_value(data)
+        labels = data.pop('labels', None)
+
+        internal_value = super().to_internal_value(data)
+
+        internal_value['labels'] = get_or_create_labels(labels)
+
+        return internal_value
 
     def create(self, validated_data):
         labels = validated_data.pop('labels')
@@ -75,9 +82,7 @@ class ArticleTypeSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
 
         if validated_data.get('labels'):
-            labels = get_or_create_labels(validated_data.get('labels'))
-
-            instance.labels.set(labels)
+            instance.labels.set(validated_data.get('labels'))
 
         instance.save()
         return instance

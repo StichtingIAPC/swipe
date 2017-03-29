@@ -102,6 +102,6 @@ class UnitTypeSerializerWithEdit(UnitTypeSerializer):
     class Meta(UnitTypeSerializer.Meta):
         extra_kwargs = {
             'type_long': {'read_only': False},
-            'type_short': {'read_only': False},
+            'type_short': {'read_only': False, 'allow_blank': True},
             'value_type': {'read_only': False},
         }
