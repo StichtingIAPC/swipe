@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 import { updateCurrency, createCurrency } from "../../../actions/money/currencies";
 import Form from "../../forms/Form";
-import { StringField, IntegerField, CharField, MoneyInput } from "../../forms/fields";
+import { StringField, IntegerField, CharField, MoneyField } from "../../forms/fields";
 import FontAwesome from "../../tools/icons/FontAwesome";
 
 /**
@@ -124,7 +124,7 @@ class CurrencyEdit extends React.Component {
 					<div className="col-sm-9">
 						{currency.denomination_set.map((denomination, index) => (
 							<div key={denomination.id || i--} className="">
-								<MoneyInput
+								<MoneyField
 									currency={currency}
 									value={denomination.amount}
 									{...(
@@ -139,7 +139,7 @@ class CurrencyEdit extends React.Component {
 											</Link>
 										</span>
 									)}
-								</MoneyInput>
+								</MoneyField>
 								<br />
 							</div>
 						))}
