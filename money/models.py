@@ -164,6 +164,9 @@ class Money:
     def __str__(self):
         return "{}: {}".format(self.currency.iso, self._amount)
 
+    def __repr__(self):
+        return self.__str__()
+
     def compare(self, item2):
         if type(self) != type(item2):
             raise TypeError("Cannot compare objects of type {} and {}".format(type(self), type(item2)))
