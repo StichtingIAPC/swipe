@@ -47,6 +47,7 @@ export function connectMixin(requirements, state = null) {
 		return {
 			requirementsLoaded: missingRequirements.length == 0,
 			missingRequirements: missingRequirements,
+			reloadRequirements: (obj) => Object.values(requirements).map(fun => obj.props.dispatch(fun)),
 		}
 	}
 
