@@ -1,6 +1,9 @@
+from collections import defaultdict
+from typing import Tuple, List
+
 from django.conf import settings
 from django.db import transaction, IntegrityError, models
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 
 from article.models import ArticleType
@@ -337,7 +340,86 @@ class SalesPeriod(models.Model):
 
     @staticmethod
     @transaction.atomic
-    def close(registercounts, denominationcounts, memo=""):
+    def close2(
+            registercounts_denominationcounts: List[Tuple[RegisterCount, List[DenominationCount]]],
+            memo: str =None) -> List[Exception]:
+
+        # early return when register is closed
+        if not RegisterMaster.sales_period_is_open():
+            return [AlreadyClosedError("Salesperiod is already closed")]
+        if not memo:
+            memo = None  # ensure memo is None when None or "" or otherwise empty string
+
+        open_registers = set(RegisterMaster.get_open_registers())
+        unchecked = set(open_registers)
+        errors = []
+
+        totals = defaultdict(lambda: Decimal(0))
+
+        for registercount, denominationcounts in registercounts_denominationcounts:
+            amount = registercount.amount
+            register = registercount.register
+
+            # let's already add the counted amount to the currency so that we don't have to do that later on
+            totals[register.currency] += amount
+
+            if register.is_cash_register:
+                # check if denominations have valid amounts
+                if not denominationcounts:
+                    errors.append(InvalidDenominationList(
+                        "Register {} should have denomination counts attached, but doesn't.".format(register.name)
+                    ))
+                    break
+
+                denom_amount = Decimal(0)
+
+                for denom_count in denominationcounts:
+                    if denom_count.number < 0:
+                        errors.append(NegativeCountError(
+                            "Register {} has an invalid denomination count for {}{}".format(
+                                register.name,
+                                denom_count.denomination.currency,
+                                denom_count.denomination.amount,
+                            )
+                        ))
+                        break
+
+                    denom_amount += denom_count.get_money_value().amount
+
+                if denom_amount != amount:
+                    errors.append(InvalidDenominationList("List not equal to expected count: {}, count: {}. "
+                                                          "Result: {}".format(denominationcounts,
+                                                                              registercount, denom_amount)))
+                    break
+
+            # now that we're done with checking the register's data, we can pop the register from the list.
+            if register in unchecked:
+                unchecked.pop(register)
+            else:
+                errors.append(InvalidOperationError("Register {} is not available in the list of "
+                                                    "unchecked registers.".format(register.name)))
+
+        if errors:
+            return errors
+
+        if len(unchecked) > 0:
+            return [InvalidOperationError("There are some uncounted registers, please count them")]
+
+        sales_period = RegisterMaster.get_open_sales_period()
+
+
+        # get a totals count for all registers: get all
+        totals = TransactionLine.objects.filter(transaction__salesperiod=sales_period).distinct('price_currency')\
+            .annotate(price_sum=Sum('price'))\
+            .values('price_sum', 'price_currency')
+
+        for price_sum, price_currency in totals:
+            totals[price_currency] -= price_sum
+
+
+    @staticmethod
+    @transaction.atomic
+    def close(registercounts, denominationcounts, memo=None):
         # Method of closing the sales period. If the correct registercounts and denominationcounts are added, this
         # method gracefully closes the sales period
         if memo == "":

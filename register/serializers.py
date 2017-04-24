@@ -1,8 +1,11 @@
 from decimal import Decimal
 
+from django.db.models import Sum, Field
 from rest_framework import serializers
 
-from register.models import Register, PaymentType, RegisterCount, RegisterPeriod, DenominationCount
+from money.serializers import MoneySerializerField
+from register.models import Register, PaymentType, RegisterCount, RegisterPeriod, DenominationCount, SalesPeriod
+from sales.models import TransactionLine
 
 
 class PaymentTypeSerializer(serializers.ModelSerializer):
@@ -66,7 +69,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
 
-class RegisterCountSerializer(serializers.Serializer):
+class RegisterCountSerializer(serializers.ModelSerializer):
+    """
+    shape: {
+      "id": RegisterCount.PK,
+      "register": Register.PK
+      "is_opening_count": Boolean,
+      "amount": Optional<"Decimal">,
+      "denomination_counts": Array<{
+        "amount": "Decimal",
+        "number": Number,
+      }>,
+    }
+    """
+
     def to_representation(self, instance: RegisterCount):
         data = super().to_representation(instance=instance)
         denom_counts = None
@@ -80,12 +96,13 @@ class RegisterCountSerializer(serializers.Serializer):
                 })
 
         data['denomination_counts'] = denom_counts
+        data['register'] = instance.register_period.register_id
         return data
 
     def to_internal_value(self, data):
         denomination_counts = data.pop('denomination_counts')
         instance = super().to_internal_value(data)
-        period = RegisterPeriod.objects.prefetch_related('register__currency__denomination_set').get(instance.register_period)
+        period = instance.register_period
         denom_counts = []
         if period.register.is_cash_register:
             denominations = list(period.register.currency.denomination_set.all())
@@ -110,7 +127,94 @@ class RegisterCountSerializer(serializers.Serializer):
         model = RegisterCount
         fields = (
             'id',
-            'register_period',
             'is_opening_count',
             'amount',
+        )
+
+
+class OpeningCountDifferenceSerializer(serializers.Serializer):
+    difference = MoneySerializerField()
+    register = serializers.IntegerField()
+
+
+class ClosingCountDifferenceSerializer(serializers.Serializer):
+    difference = MoneySerializerField
+
+
+class RegisterPeriodSerializer(serializers.ModelSerializer):
+    """
+    shape: {
+      "id": RegisterPeriod.PK,
+      "register": Register.PK,
+      "sales_period": SalesPeriod.PK,
+      "beginTime": "DateTime",
+      "endTime": "DateTime",
+      "memo": String,
+      "registercount_set": Array<RegisterCount>,
+      "openingcountdifference_set": Array<OpeningCountDifference>,
+    }
+    """
+    registercount_set = RegisterCountSerializer(many=True)
+    openingcountdifference_set = OpeningCountDifferenceSerializer(many=True)
+
+    class Meta:
+        model = RegisterPeriod
+        fields = (
+            'id',
+            'register',
+            'sales_period',
+            'beginTime',
+            'endTime',
+            'memo',
+            'registercount_set',
+            'openingcountdifference_set',
+        )
+
+
+class RegisterClosingSerializer(serializers.Serializer):
+    def to_internal_value(self, data: dict):
+        serializer = RegisterCountSerializer()
+        res = {}
+        for key, value in data.items():
+            res[int(key)] = serializer.to_internal_value( value)
+        return res
+
+
+class SalesPeriodSerializer(serializers.ModelSerializer):
+    """
+    shape: {
+      "id": SalesPeriod.PK,
+      "beginTime": "DateTime",
+      "endTime": "DateTime",
+      "registerperiod_set": Array<RegisterPeriod>,
+      "money_differences": Array<{
+        "currency": "Currency.ISO",
+        "amount": "Decimal",
+      }>
+    }
+    """
+    registerperiod_set = RegisterPeriodSerializer(many=True)
+    closingcountdifference_set = ClosingCountDifferenceSerializer(many=True)
+
+    def to_internal_value(self, data: dict):
+        data.pop('money_differences', None)
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance: SalesPeriod):
+        _repr = super().to_representation(instance)
+        _repr['money_differences'] = TransactionLine.objects\
+            .filter(transaction__salesperiod=instance)\
+            .order_by('price_currency')\
+            .annotate(amount=Sum('price'), currency=Field('price_currency'))\
+            .values('amount', 'currency')
+        return _repr
+
+    class Meta:
+        model = SalesPeriod
+        fields = (
+            'id',
+            'beginTime',
+            'endTime',
+            'registerperiod_set',
+            'closingcountdifference_set',
         )

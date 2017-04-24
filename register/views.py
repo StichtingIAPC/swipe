@@ -9,12 +9,14 @@ from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import View, ListView, CreateView, DetailView, UpdateView
 from rest_framework import mixins, generics
+from rest_framework.response import Response
 
 from money.models import Denomination, Price, VAT
 from register.forms import CloseForm, OpenForm
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
     RegisterPeriod, PaymentType
-from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer
+from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer, \
+    RegisterClosingSerializer
 from sales.models import Transaction
 from tools.templatetags.tools.breadcrumbs import crumb
 
@@ -55,6 +57,48 @@ class RegisterListView(mixins.ListModelMixin,
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+
+
+class RegisterOpenView(mixins.ListModelMixin,
+                       generics.GenericAPIView):
+    serializer = RegisterCountSerializer
+    queryset = RegisterCount.objects\
+        .filter(register_period__endTime__isnull=False,
+                is_opening_count=False,
+                register_period__register__is_active=True)
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        obj = RegisterOpenSerializer(request.data)
+        obj.is_valid(raise_exception=True)
+        counts = obj.validated_data['counts']
+
+        return Response(obj)
+
+
+class RegisterCloseView(mixins.ListModelMixin,
+                        generics.GenericAPIView):
+    serializer = RegisterCountSerializer
+    queryset = RegisterCount.objects\
+        .filter(register_period__endTime__isnull=True,
+                is_opening_count=True)
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        rcs = RegisterClosingSerializer(request.data)
+        rcs.is_valid()
+        register_closing_dict = rcs.validated_data
+        register_ids = register_closing_dict.keys()
+
+        for reg_count in register_closing_dict.values():
+            pass
+
+        RegisterMaster.get_open_sales_period().close()
+        return mixins.Response()
 
 
 class RegisterView(mixins.RetrieveModelMixin,
