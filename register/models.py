@@ -64,7 +64,7 @@ class Register(models.Model):
             raise IntegrityError("Register had more than one register period open")
         return amt == 1
 
-    def get_prev_open_count(self):
+    def get_prev_closing_count(self):
         # Get this registers previous count when it was closed.
         # This shouldn't be used for Brief Registers; they should start at zero instead.
         if self.registerperiod_set.exists():
@@ -120,7 +120,7 @@ class Register(models.Model):
                             count = denomination.get_money_value()
                         else:
                             count += denomination.get_money_value()
-                    diff = count - self.get_prev_open_count()
+                    diff = count - self.get_prev_closing_count()
 
                 # Get or create SalesPeriod
                 if RegisterMaster.sales_period_is_open():
@@ -465,6 +465,41 @@ class SalesPeriod(models.Model):
             sales_period.endTime = timezone.now()
             sales_period.closing_memo = memo
 
+
+            # Calculate register difference
+            totals = {}
+            for register in open_registers:
+                for registercount in registercounts:
+                    if registercount.register_period.register == register:
+                        opening_count = RegisterCount.objects.filter(register_period=registercount.register_period)\
+                            .first()
+                        if totals.get(registercount.register_period.register.currency.iso, None):
+                            totals[registercount.register_period.register.currency.iso] += \
+                                registercount.amount - opening_count.amount
+
+                        else:
+                            totals[registercount.register_period.register.currency.iso] = \
+                                registercount.amount - opening_count.amount
+                        break
+
+            # Run all transactions
+            for transation in Transaction.objects.filter(salesperiod=sales_period):
+                for line in TransactionLine.objects.filter(transaction=transation):
+                    if not totals.get(line.price.currency.iso):
+                        raise InvalidOperationError("Currency {}"
+                                                    " is not found for "
+                                                    "transaction {}".format(line.price.currency, transation))
+                    else:
+                        totals[line.price.currency.iso] -= line.price.amount*line.count
+
+            # Run all MoneyInOuts
+            for register in open_registers:
+                for registercount in registercounts:
+                    if registercount.register_period.register == register:
+                        for inout in MoneyInOut.objects.filter(register_period=registercount.register_period):
+                            totals[register.currency.iso] -= inout.amount
+
+
             # Iterates over registers and connects them to the correct register counts.
             # Also adds the correct denomination counts
             for register in open_registers:
@@ -487,46 +522,33 @@ class SalesPeriod(models.Model):
                         raise InvalidDenominationList("List not equal to expected count: {}, count: {}. "
                                                       "Result: {}".format(matching_denom_counts,
                                                                           selected_register_count, counted))
-                # Saving magic happens after this line
-                sales_period.save()
+
+            # Everything works and is checked. Now we can safely store everything
+
+            sales_period.save()
+            # If you recognize this code, you read the lines above
+            for register in open_registers:
+                selected_register_count = None
+                for registercount in registercounts:
+                    if registercount.register_period.register == register:
+                        selected_register_count = registercount
+                        break
+                matching_denom_counts = []
+                if register.is_cash_register:
+                    # Put all denominations for currency in a hashmap
+                    # For all denominationcounts
+                    for denom in denominationcounts:
+                        if denom.register_count == selected_register_count:
+                            matching_denom_counts.append(denom)
+
                 register.close(indirect=True, register_count=selected_register_count,
                                denomination_counts=matching_denom_counts)
-
-            # Calculate register difference
-            totals = {}
-            for register in open_registers:
-                for registercount in registercounts:
-                    if registercount.register_period.register == register:
-                        opening_count = RegisterCount.objects.filter(register_period=registercount.register_period)\
-                            .first()
-                        if totals.get(registercount.register_period.register.currency.iso, None):
-                            totals[registercount.register_period.register.currency.iso] += \
-                                registercount.amount - opening_count.amount
-
-                        else:
-                            totals[registercount.register_period.register.currency.iso] = \
-                                registercount.amount - opening_count.amount
-
-            # Run all transactions
-            for transation in Transaction.objects.filter(salesperiod=sales_period):
-                for line in TransactionLine.objects.filter(transaction=transation):
-                    if not totals.get(line.price.currency.iso):
-                        raise InvalidOperationError("Currency {}"
-                                                    " is not found for "
-                                                    "transaction {}".format(line.price.currency, transation))
-                    else:
-                        totals[line.price.currency.iso] -= line.price.amount*line.count
-
-            # Run all MoneyInOuts
-            for register in open_registers:
-                for registercount in registercounts:
-                    if registercount.register_period.register == register:
-                        for inout in MoneyInOut.objects.filter(register_period=registercount.register_period):
-                            totals[register.currency.iso] += inout.amount
 
             for currency in totals.keys():
                 ClosingCountDifference.objects.create(difference=Money(totals[currency], Currency(currency)),
                                                       sales_period=sales_period)
+
+
         else:
             raise AlreadyClosedError("Salesperiod is already closed")
 

@@ -4,8 +4,8 @@ import { Link } from "react-router";
 import { push } from "react-router-redux";
 import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
 import { articles } from "../../actions/articles";
-import { labels } from "../../actions/assortment/labels";
 import { labelTypes } from "../../actions/assortment/labelTypes";
+import { unitTypes } from "../../actions/assortment/unitTypes";
 import ArticleSelector from "./ArticleSelector";
 import FontAwesome from "../tools/icons/FontAwesome";
 import { accountingGroups } from "../../actions/money/accountingGroups";
@@ -39,11 +39,13 @@ class ArticleManager extends React.Component {
 }
 
 export default connect(
-	connectMixin({
-		articles,
-		labels,
-		labelTypes,
-		accountingGroups,
+	state => ({
+		...connectMixin({
+			articles,
+			labelTypes,
+			unitTypes,
+			accountingGroups,
+		}, state),
 	}),
 	dispatch => ({
 		dispatch: dispatch,

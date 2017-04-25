@@ -4,6 +4,8 @@ import { Link } from "react-router";
 import { createArticle, updateArticle } from "../../actions/articles";
 import { BoolField, IntegerField, StringField, SelectField } from "../forms/fields";
 import FontAwesome from "../tools/icons/FontAwesome";
+import LabelField from "../forms/LabelField";
+import LabelList from "../assortment/LabelList";
 
 class ArticleEdit extends React.Component {
 	constructor(props) {
@@ -46,6 +48,9 @@ class ArticleEdit extends React.Component {
 		if (this.props.article != props.article) this.reset(undefined, props);
 	}
 
+	removeLabel(ltID, lValue) {
+		this.setState(state => ({labels: {...state.labels, [ltID]: (state.labels[ltID] || []).filter(v => v !== lValue)}}));
+	}
 	render() {
 		return (
 			<form className="box">
@@ -67,7 +72,39 @@ class ArticleEdit extends React.Component {
 						<IntegerField value={this.state.ean || ''} name="EAN" onChange={evt => this.setState({ean: Number(evt.target.value)})} min={0} step={1} />
 						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState(({serial_number}) => ({serial_number: !serial_number}))} />
 					</div>
-					<p>Tag/label add/remove here</p>
+					<div className="form-horizontal">
+						<div className="form-group">
+							<label className="col-sm-3 control-label" htmlFor="labels">Labels</label>
+							<div className="col-sm-9">
+								<LabelField
+									name="labels"
+									labels={this.state.labels}
+									onAddLabel={
+										(typeID, value) => this.setState(
+											state => ({
+												...state,
+												labels: {
+													...state.labels,
+													[typeID]: (state.labels[typeID]
+														.filter(
+															v => v !== value
+														) || [])
+														.concat([value]),
+												},
+											})
+										)
+									} />
+							</div>
+							<LabelList
+								className="col-sm-9 col-sm-offset-3"
+								labels={this.state.labels}
+								insert={({value, typeID}) => (
+									<a className="btn btn-danger btn-xs" onClick={() => this.removeLabel(typeID, value)}>
+										<FontAwesome icon="close" />
+									</a>
+								)} />
+						</div>
+					</div>
 				</div>
 				<div className="box-header with-border">
 					<h3 className="box-title">Pricing</h3>
@@ -131,5 +168,6 @@ export default connect(
 			delete copy['useFixedPrice'];
 			return dispatch(updateArticle(copy))
 		},
+		toggleLabelsModal: () => dispatch(toggleLabelsModal())
 	})
 )(ArticleEdit)

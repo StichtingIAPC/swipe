@@ -2,11 +2,11 @@ import React from "react";
 import { Link } from "react-router";
 import { connect } from "react-redux";
 import { articles } from "../../actions/articles";
-import { labels } from "../../actions/assortment/labels";
 import { labelTypes } from "../../actions/assortment/labelTypes";
+import { unitTypes } from "../../actions/assortment/unitTypes";
 import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import Label from "../assortment/AssortmentLabel";
 import FontAwesome from "../tools/icons/FontAwesome";
+import LabelList from "../assortment/LabelList";
 
 class ArticleSelector extends React.Component {
 	constructor(props) {
@@ -30,9 +30,7 @@ class ArticleSelector extends React.Component {
 						{article.name}
 						<span className="label label-danger pull-right">{article.price}</span>
 					</a>
-					<span className="product-description">
-						{article.labels.map((id) => <Label key={id} labelID={id} />)}
-					</span>
+					<LabelList labels={article.labels} className="product-description" />
 				</div>
 			</li>
 		)
@@ -80,8 +78,8 @@ export default connect(
 	state => ({
 		...connectMixin({
 			articles,
-			labels,
 			labelTypes,
+			unitTypes,
 		}, state),
 		articles: state.articles.articles || [],
 	}),

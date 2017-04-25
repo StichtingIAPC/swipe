@@ -132,7 +132,7 @@ class AssortmentUnitType(models.Model):
     types are string ('s'), integer ('i'), Decimal (number, 'n') and boolean ('b'). You can name the type of value you
     expect, like 'meters', 'seconds', anything really.
     """
-    type_short = models.CharField(max_length=8, editable=False)  # e.g. 'm' for meters, 'l' for liters
+    type_short = models.CharField(max_length=8, editable=False, blank=True)  # e.g. 'm' for meters, 'l' for liters
     type_long = models.CharField(max_length=255, editable=False)    # e.g. 'meter' or 'liter'
     value_type = models.CharField(max_length=1,
                                   choices=sorted([enum['as_choice'] for n, enum in conf_labels.VALUE_TYPES.items()]),
@@ -147,6 +147,10 @@ class AssortmentUnitType(models.Model):
     # mega, mini, milliards, etc?
 
     def __init__(self, *args, **kwargs):
+        if kwargs.get('value_type') == '':
+            kwargs.pop('value_type')
+        if kwargs.get('incremental_type') == '':
+            kwargs.pop('incremental_type')
         if (kwargs.get('value_type') is not None and
                 not conf_labels.VALUE_TYPES[kwargs.get('value_type')]['countable'] and
                 kwargs.get('incremental_type') is not None):

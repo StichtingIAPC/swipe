@@ -30,6 +30,11 @@ import RegisterEdit from "./components/register/register/RegisterEdit";
 import RegisterDetail from "./components/register/register/RegisterDetail";
 import PaymentTypeEdit from "./components/register/paymentType/PaymentTypeEdit";
 import PaymentTypeDetail from "./components/register/paymentType/PaymentTypeDetail";
+import LabelsBase from "./components/assortment/LabelsBase";
+import LabelTypeEdit from "./components/assortment/labeltype/LabelTypeEdit";
+import UnitTypeEdit from "./components/assortment/unittype/UnitTypeEdit";
+import LabelTypeDetail from "./components/assortment/labeltype/LabelTypeDetail";
+import UnitTypeDetail from "./components/assortment/unittype/UnitTypeDetail";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -74,6 +79,14 @@ class Routes extends React.Component {
 					<Route path="paymenttype/:paymentTypeID/edit/" component={PaymentTypeEdit} />
 					<Route path="paymenttype/:paymentTypeID/" component={PaymentTypeDetail} />
 				</Route>
+				<Route path="assortment" component={LabelsBase}>
+					<Route path="labeltype/create/" component={LabelTypeEdit} />
+					<Route path="labeltype/:labelTypeID/edit" component={LabelTypeEdit} />
+					<Route path="labeltype/:labelTypeID/" component={LabelTypeDetail} />
+					<Route path="unittype/create/" component={UnitTypeEdit} />
+					<Route path="unittype/:unitTypeID/edit" component={UnitTypeEdit} />
+					<Route path="unittype/:unitTypeID/" component={UnitTypeDetail} />
+				</Route>
 				<Route path="pos">
 					<IndexRedirect to="register" />
 					<Route path="register">
@@ -93,7 +106,7 @@ export default connect(
 	state => ({ user: state.auth.currentUser }),
 	dispatch => ({
 		authenticate: (route) => {
-			if (route != null) dispatch(setRouteAfterAuthentication(route))
+			if (route != null) dispatch(setRouteAfterAuthentication(route));
 			dispatch(push('/authentication/login'));
 		},
 	})

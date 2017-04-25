@@ -7,18 +7,22 @@ import sidebar from "./sidebar";
 import currencies from "./money/currencies";
 import VATs from "./money/VATs";
 import accountingGroups from "./money/accountingGroups";
-import registers from "./registers";
-import paymentTypes from "./paymentTypes";
+import labelTypes from "./assortment/labelTypes";
+import unitTypes from "./assortment/unitTypes";
+import registers from "./register/registers";
+import paymentTypes from "./register/paymentTypes";
 
 export default combineReducers({
-	routing: routerReducer,
 	accountingGroups,
 	articles,
 	auth,
 	currencies,
-	registers,
+	labelTypes,
 	paymentTypes,
+	registers,
+	routing: routerReducer,
 	sidebar,
 	suppliers,
+	unitTypes,
 	VATs,
 });
