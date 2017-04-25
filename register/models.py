@@ -342,7 +342,7 @@ class SalesPeriod(models.Model):
     @transaction.atomic
     def close2(
             registercounts_denominationcounts: List[Tuple[RegisterCount, List[DenominationCount]]],
-            memo: str =None) -> List[Exception]:
+            memo: str=None) -> List[Exception]:
 
         # early return when register is closed
         if not RegisterMaster.sales_period_is_open():
@@ -415,6 +415,8 @@ class SalesPeriod(models.Model):
 
         for price_sum, price_currency in totals:
             totals[price_currency] -= price_sum
+
+        in_outs = MoneyInOut.objects.filter(sales_period=sales_period)
 
 
     @staticmethod
@@ -663,28 +665,15 @@ class MoneyInOut(models.Model):
     """
     Adds money to a register during an open register period
     """
-    # Period to which the MoneyInOut belongs
-    register_period = models.ForeignKey(RegisterPeriod)
-
+    # Register to which
+    register = models.ForeignKey(Register)
+    # Salesperiod where in/out took place
+    sales_period = models.ForeignKey(SalesPeriod)
     # Positive: ADD, negative: REMOVE moneys
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        if 'register_period' not in kwargs:
-            raise InvalidOperationError("MoneyInOut requires an open register period")
-        else:
-            register_period = kwargs['register_period']
-            if not register_period:
-                raise InvalidOperationError("Invalid register period")
-            else:
-                if not register_period.is_open():
-                    InvalidOperationError("Register period should be open")
-                else:
-                    return cls(*args, **kwargs)
-
     def __str__(self):
-        return "Register Period:{}, Amount:{}".format(self.register_period, self.amount)
+        return "Register:{}, Sales Period: {}, Amount:{}".format(self.register_id, self.sales_period_id, self.amount)
 
 
 class SalesPeriodDifference(models.Model):
