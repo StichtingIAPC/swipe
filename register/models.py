@@ -1,10 +1,8 @@
 from collections import defaultdict
-from typing import Tuple, List
 
 from django.conf import settings
 from django.db import transaction, IntegrityError, models
 from django.db.models import Q, Sum
-from django.utils import timezone
 
 from article.models import ArticleType
 from money.models import Money, Decimal, Denomination, CurrencyData, Currency, MoneyField
@@ -77,12 +75,11 @@ class Register(models.Model):
     def get_prev_closing_count(self):
         # Get this registers previous count when it was closed.
         # This shouldn't be used for Brief Registers; they should start at zero instead.
-        if self.registerperiod_set.exists():
-            period = self.registerperiod_set.last()
-            count = RegisterCount.objects.get(register_period=period, is_opening_count=False)
-            return Money(Decimal(count.amount), self.currency)
-        else:  # Return zero. This prevents Swipe from crashing when a register is opened for the first time.
+        count_exists = RegisterCount.objects.filter(is_opening_count=False).exists()
+        if not count_exists:
+            # Dummy the count
             return Money(Decimal("0.00000"), self.currency)
+        return RegisterCount.objects.filter(is_opening_count=False).order_by('sales_period__beginTime').last()
 
     @property
     def denomination_counts(self):
@@ -249,13 +246,14 @@ class RegisterMaster:
     @staticmethod
     def get_open_registers():
         # Returns all open registers
-        return Register.objects.filter(registerperiod__endTime__isnull=True, registerperiod__isnull=False)
+        return Register.objects.filter(registercount__sales_period__endTime__isnull=False,
+                                       registercount__is_opening_count=True).distinct()
 
     @staticmethod
     def get_payment_types_for_open_registers():
         # Returns the set of payment types that are possible in the open register period
-        return PaymentType.objects.filter(register__registerperiod__endTime__isnull=True,
-                                          register__registerperiod__isnull=False).distinct()
+        return PaymentType.objects.filter(register__registercount__sales_period__endTime__isnull=False,
+                                          register__registercount__is_opening_count=True).distinct()
 
 
 class ConsistencyChecker:
@@ -362,7 +360,7 @@ class SalesPeriod(models.Model):
     @transaction.atomic
     def close(
             registercounts_denominationcounts,
-            memo: str=None) -> List[Exception]:
+            memo: str=None):
         """
         Closes a sales period by closing all the opened registers. Requires the totals to be filled in.
         :param registercounts_denominationcounts:
