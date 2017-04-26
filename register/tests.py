@@ -111,11 +111,12 @@ class BasicTest(TestCase, TestData):
         self.reg2.open(Decimal("1.21"))
         self.assertTrue(RegisterMaster.sales_period_is_open())
         self.assertEquals(RegisterMaster.number_of_open_registers(), 2)
+        sales_period = SalesPeriod.get_opened_sales_period()
         reg_count_1 = RegisterCount()
-        reg_count_1.register_period = self.reg1.get_current_open_register_period()
+        reg_count_1.register = self.reg1
         reg_count_1.amount = Decimal("4.22371")
         reg_count_2 = RegisterCount()
-        reg_count_2.register_period = self.reg2.get_current_open_register_period()
+        reg_count_2.register = self.reg2
         reg_count_2.amount = Decimal("10.22371")
         reg_counts = [reg_count_1, reg_count_2]
         c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, number=1)
@@ -125,11 +126,12 @@ class BasicTest(TestCase, TestData):
         trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.currency_data_used),
                                      num=1, text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
         pay = Payment(amount=Money(Decimal("1.00000"), self.currency_data_used), payment_type=self.cash)
-        MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
+        mio = MoneyInOut(register=self.reg1,
                                   amount=Decimal("1.0000"))
+        mio.save()
         Transaction.create_transaction(user=self.copro, payments=[pay], transaction_lines=[trans])
-
-        SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
+        reg_count_denom_counts = [(reg_count_1, denom_counts), (reg_count_2, None)]
+        SalesPeriod.close(registercounts_denominationcounts=reg_count_denom_counts, memo="HELLO")
         self.assertEquals(RegisterMaster.number_of_open_registers(), 0)
         self.assertFalse(RegisterMaster.sales_period_is_open())
         ConsistencyChecker.full_check()
@@ -142,14 +144,14 @@ class BasicTest(TestCase, TestData):
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("4.22371"), denominations=denom_counts)
         reg_count_1 = RegisterCount()
-        reg_count_1.register_period = self.reg1.get_current_open_register_period()
+        reg_count_1.register = self.reg1
         reg_count_1.amount = Decimal("4.22371")
-        reg_counts = [reg_count_1]
         c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, number=1)
         c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, number=1)
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
-        SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="HELLO")
+        reg_counts_denom_counts = [(reg_count_1, denom_counts)]
+        SalesPeriod.close(registercounts_denominationcounts=reg_counts_denom_counts, memo="HELLO")
         c1 = DenominationCount(denomination=self.denom1, number=1)
         c2 = DenominationCount(denomination=self.denom2, number=1)
         c3 = DenominationCount(denomination=self.denom3, number=2)
@@ -221,19 +223,18 @@ class BasicTest(TestCase, TestData):
         counting_difference = OpeningCountDifference.objects.get()
         self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=self.eu))
 
-        current_register_period=self.reg1.get_current_open_register_period()
-        money_in = MoneyInOut(amount=Decimal("2"), register_period=current_register_period)
+        money_in = MoneyInOut(amount=Decimal("2"), register=self.reg1, sales_period=sales_period)
         money_in.save()
 
         reg_count_1 = RegisterCount()
-        reg_count_1.register_period = current_register_period
+        reg_count_1.register = self.reg1
         reg_count_1.amount = Decimal("2")
-        reg_counts = [reg_count_1]
         c1 = DenominationCount(register_count=reg_count_1, denomination=self.denom1, number=0)
         c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, number=1)
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, number=0)
         denom_counts = [c1, c2, c3]
-        SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="")
+        reg_counts_denom_counts = [(reg_count_1, denom_counts)]
+        SalesPeriod.close(registercounts_denominationcounts=reg_counts_denom_counts, memo="")
         counting_difference = ClosingCountDifference.objects.get()
         self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=self.eu))
 

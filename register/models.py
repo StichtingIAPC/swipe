@@ -246,13 +246,13 @@ class RegisterMaster:
     @staticmethod
     def get_open_registers():
         # Returns all open registers
-        return Register.objects.filter(registercount__sales_period__endTime__isnull=False,
+        return Register.objects.filter(registercount__sales_period__endTime__isnull=True,
                                        registercount__is_opening_count=True).distinct()
 
     @staticmethod
     def get_payment_types_for_open_registers():
         # Returns the set of payment types that are possible in the open register period
-        return PaymentType.objects.filter(register__registercount__sales_period__endTime__isnull=False,
+        return PaymentType.objects.filter(register__registercount__sales_period__endTime__isnull=True,
                                           register__registercount__is_opening_count=True).distinct()
 
 
@@ -364,7 +364,7 @@ class SalesPeriod(models.Model):
         """
         Closes a sales period by closing all the opened registers. Requires the totals to be filled in.
         :param registercounts_denominationcounts:
-        :type registercounts_denominationcounts: List[Tuple[RegisterCount, List[DenominationCount]]]
+        :type registercounts_denominationcounts: list[tuple[RegisterCount, list[DenominationCount]]]
         :param memo:
         :return:
         """
@@ -419,7 +419,7 @@ class SalesPeriod(models.Model):
 
             # now that we're done with checking the register's data, we can pop the register from the list.
             if register in unchecked:
-                unchecked.pop(register)
+                unchecked.remove(register)
             else:
                 errors.append(InvalidOperationError("Register {} is not available in the list of "
                                                     "unchecked registers.".format(register.name)))
@@ -438,10 +438,14 @@ class SalesPeriod(models.Model):
             .annotate(price_sum=Sum('price'))\
             .values('price_sum', 'price_currency')
 
-        for price_sum, price_currency in totals:
+        for (price_sum, price_currency) in totals:
             totals[price_currency] -= price_sum
 
-        in_outs = MoneyInOut.objects.filter(sales_period=sales_period)
+        in_outs = MoneyInOut.objects.filter(sales_period=sales_period).select_related('register__currency')
+        for in_out in in_outs:
+            totals[in_out.register.currency.iso] -= in_out.amount
+
+        print("The totals for EUR are ", totals["EUR"])
 
 
     # @staticmethod
@@ -626,10 +630,9 @@ class RegisterCount(models.Model):
         if 'denominations' in kwargs:
             denominations = kwargs['denominations']
 
-        register = self.register_period.register
-        if register.is_cash_register:
+        if self.register.is_cash_register:
             # Put all denominations for currency in a hashmap
-            denoms_for_register = Denomination.objects.filter(currency=register.currency)
+            denoms_for_register = Denomination.objects.filter(currency=self.register.currency)
             all_denoms = {}
             for denom in denoms_for_register:
                 all_denoms[str(denom.amount)] = 1
@@ -707,6 +710,15 @@ class MoneyInOut(models.Model):
 
     def __str__(self):
         return "Register:{}, Sales Period: {}, Amount:{}".format(self.register_id, self.sales_period_id, self.amount)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.id:
+            if not hasattr(self, 'sales_period') or not self.sales_period:
+                self.sales_period = SalesPeriod.get_opened_sales_period()
+            super(MoneyInOut, self).save()
+        else:
+            super(MoneyInOut, self).save()
 
 
 class SalesPeriodDifference(models.Model):
