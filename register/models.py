@@ -94,28 +94,11 @@ class Register(models.Model):
 
     @property
     def denomination_counts(self):
-        reg_period_set_count = self.registerperiod_set.count()
-        if reg_period_set_count != 0:
-            count = self.registerperiod_set.latest().registercount_set.get(
-                Q(register_period__endTime=None, is_opening_count=True) |
-                Q(register_period__endTime__isnull=False, is_opening_count=False)
-            )
-            denom_counts = count.denominationcount_set.all()
-            counts = []
-            for denom in self.currency.denomination_set.all():
-                my_count = 0
-                for count in denom_counts:
-                    if count.denomination == denom:
-                        my_count = count.amount
-                        break
-                counts.append(DenominationCount(denomination=denom, number=my_count))
-            return counts
+        if RegisterCount.objects.filter(register=self).exists():
+            return DenominationCount.objects.filter(register_count=RegisterCount.objects.filter(register=self).
+                                                    latest('time_created'))
         else:
-            denoms = self.currency.denomination_set.all()
-            denom_list = []
-            for denom in denoms:
-                denom_list.append(DenominationCount(denomination=denom, number=0))
-            return denom_list
+            return []
 
     @transaction.atomic
     def open(self, counted_amount, memo="", denominations=None):
@@ -133,11 +116,11 @@ class Register(models.Model):
                 # Calculate Cash Register Difference
                 if self.is_cash_register:
                     count = None
-                    for denomination in denominations:
+                    for denomination_count in denominations:
                         if count is None:
-                            count = denomination.get_money_value()
+                            count = denomination_count.get_money_value()
                         else:
-                            count += denomination.get_money_value()
+                            count += denomination_count.get_money_value()
                     diff = count - self.get_prev_closing_count()
 
                 # Get or create SalesPeriod
@@ -153,15 +136,23 @@ class Register(models.Model):
                     reg_count = RegisterCount(is_opening_count=True, register=self, sales_period=open_sales_period,
                                               amount=counted_amount)
                     reg_count.save(denominations=denominations)
+                    used_denominations = set()
 
-                    for denomination in denominations:
-                        counted_amount -= denomination.number * denomination.denomination.amount
-                        denomination.register_count = reg_count
+                    for denomination_count in denominations:
+                        counted_amount -= denomination_count.number * denomination_count.denomination.amount
+                        denomination_count.register_count = reg_count
+                        used_denominations.add(denomination_count.denomination)
 
                     raiseif(counted_amount != Decimal("0.00000"),
                             RegisterCountError, "denominations amounts did not add up.")
-                    for denomination in denominations:
-                        denomination.save()
+                    all_denominations = Denomination.objects.filter(currency__register=self)
+                    for den in all_denominations:
+                        if den not in used_denominations:
+                            denominations.append(DenominationCount(number=0, denomination=den,
+                                                                   register_count=reg_count))
+
+                    for denomination_count in denominations:
+                        denomination_count.save()
 
                 else:  # Create Brief Register
                     # Optional: Disallow opening with no value
@@ -482,6 +473,8 @@ class RegisterCount(models.Model):
     is_opening_count = models.BooleanField()
     # How much money is there at the moment of counting?
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=-1.0)
+    # Time at which the registercount was created(otherwise it's really to hard to find the latest one)
+    time_created = models.DateTimeField(auto_now_add=True, null=True)
 
     def save(self, *args, **kwargs):
         denominations = []
@@ -519,10 +512,12 @@ class RegisterCount(models.Model):
         # Distills an amount value from the denomination counts
         denom_counts = DenominationCount.objects.filter(register_count=self)
         if len(denom_counts) > 0:
-            self.amount = 0.0
+            amount = Decimal(0)
             for count in denom_counts:
-                self.amount += count.get_money_value()
-            self.save()
+                amount += count.get_money_value()
+            return amount
+        else:
+            return Decimal(0)
 
     def __str__(self):
         return "Register:{}, is_opening_count:{}, Amount:{}".\
@@ -548,7 +543,8 @@ class DenominationCount(models.Model):
         return cls(*args, **kwargs)
 
     def __str__(self):
-        return "{} {} x {}".format(self.denomination.currency, self.denomination.amount, self.number)
+        return "{} {} x {} @ RegCount {}".format(self.denomination.currency, self.denomination.amount, self.number,
+                                                 self.register_count_id)
 
 
 class MoneyInOut(models.Model):

@@ -23,6 +23,7 @@ class BasicTest(TestCase, TestData):
         self.reg1 = Register(currency=self.currency_data_used, is_cash_register=True, payment_type=self.cash, name="A")
         self.reg2 = Register(currency=self.currency_data_used, is_cash_register=False, payment_type=self.pin, name='B')
         self.reg3 = Register(currency=self.usd, is_cash_register=False, payment_type=self.pin, name='C')
+        self.reg4 = Register(currency=self.currency_data_used, is_cash_register=True, payment_type=self.cash, name="D")
         self.denom1 = Denomination(currency=self.currency_data_used, amount=Decimal("2.20371"))
         self.denom1.save()
         self.denom2 = Denomination(currency=self.currency_data_used, amount=Decimal("2.00000"))
@@ -245,3 +246,32 @@ class BasicTest(TestCase, TestData):
         self.reg1.open(Decimal("2"), denominations=denom_counts)
         counting_difference=OpeningCountDifference.objects.all().last()
         self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=self.eu))
+
+    def test_open_multiple_cash_registers(self):
+        self.eu.save()
+        self.reg1.save()
+        self.reg4.save()
+        c1 = DenominationCount(denomination=self.denom1, number=0)
+        c2 = DenominationCount(denomination=self.denom2, number=1)
+        c3 = DenominationCount(denomination=self.denom3, number=0)
+        denom_counts = [c1, c2, c3]
+        self.reg1.open(Decimal("2"), denominations=denom_counts)
+        denom_counts = DenominationCount.objects.all()
+        self.assertEqual(len(denom_counts), 3)
+        val_dict = {self.denom1: 0,
+                    self.denom2: 1,
+                    self.denom3: 0}
+        for denom in denom_counts:
+            self.assertTrue(val_dict[denom.denomination] == denom.number)
+        c4 = DenominationCount(denomination=self.denom1, number=0)
+        c5 = DenominationCount(denomination=self.denom2, number=2)
+        c6 = DenominationCount(denomination=self.denom3, number=10)
+        denom_counts2 = [c4, c5, c6]
+        self.reg4.open(Decimal("4.20"), denominations=denom_counts2)
+        val_dict2 = {self.denom1: 0,
+                    self.denom2: 2,
+                    self.denom3: 10}
+        self.assertEqual(DenominationCount.objects.count(), 6)
+        new_denoms=DenominationCount.objects.filter(register_count__register=self.reg4)
+        for new_den in new_denoms:
+            self.assertTrue(val_dict2[new_den.denomination] == new_den.number)

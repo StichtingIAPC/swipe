@@ -156,7 +156,6 @@ class SalesPeriodSerializer(serializers.ModelSerializer):
       "id": SalesPeriod.PK,
       "beginTime": "DateTime",
       "endTime": "DateTime",
-      "registerperiod_set": Array<RegisterPeriod>,
       "money_differences": Array<{
         "currency": "Currency.ISO",
         "amount": "Decimal",
