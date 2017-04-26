@@ -4,7 +4,7 @@ from django.db.models import Sum, Field
 from rest_framework import serializers
 
 from money.serializers import MoneySerializerField
-from register.models import Register, PaymentType, RegisterCount, RegisterPeriod, DenominationCount, SalesPeriod
+from register.models import Register, PaymentType, RegisterCount, DenominationCount, SalesPeriod
 from sales.models import TransactionLine
 
 
@@ -141,36 +141,6 @@ class ClosingCountDifferenceSerializer(serializers.Serializer):
     difference = MoneySerializerField
 
 
-class RegisterPeriodSerializer(serializers.ModelSerializer):
-    """
-    shape: {
-      "id": RegisterPeriod.PK,
-      "register": Register.PK,
-      "sales_period": SalesPeriod.PK,
-      "beginTime": "DateTime",
-      "endTime": "DateTime",
-      "memo": String,
-      "registercount_set": Array<RegisterCount>,
-      "openingcountdifference_set": Array<OpeningCountDifference>,
-    }
-    """
-    registercount_set = RegisterCountSerializer(many=True)
-    openingcountdifference_set = OpeningCountDifferenceSerializer(many=True)
-
-    class Meta:
-        model = RegisterPeriod
-        fields = (
-            'id',
-            'register',
-            'sales_period',
-            'beginTime',
-            'endTime',
-            'memo',
-            'registercount_set',
-            'openingcountdifference_set',
-        )
-
-
 class RegisterClosingSerializer(serializers.Serializer):
     def to_internal_value(self, data: dict):
         serializer = RegisterCountSerializer()
@@ -193,7 +163,7 @@ class SalesPeriodSerializer(serializers.ModelSerializer):
       }>
     }
     """
-    registerperiod_set = RegisterPeriodSerializer(many=True)
+    registercount_set = RegisterCountSerializer(many=True)
     closingcountdifference_set = ClosingCountDifferenceSerializer(many=True)
 
     def to_internal_value(self, data: dict):
@@ -215,6 +185,6 @@ class SalesPeriodSerializer(serializers.ModelSerializer):
             'id',
             'beginTime',
             'endTime',
-            'registerperiod_set',
+            'registercount_set',
             'closingcountdifference_set',
         )

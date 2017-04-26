@@ -9,12 +9,11 @@ from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import View, ListView, CreateView, DetailView, UpdateView
 from rest_framework import mixins, generics
-from rest_framework.response import Response
 
 from money.models import Denomination, Price, VAT
 from register.forms import CloseForm, OpenForm
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
-    RegisterPeriod, PaymentType
+ PaymentType
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer, \
     RegisterClosingSerializer
 from sales.models import Transaction
@@ -27,15 +26,12 @@ class RegisterListView(mixins.ListModelMixin,
     queryset = Register.objects.select_related(
         'payment_type'
     ).annotate(
-        Count('registerperiod')
+        Count('registercount')
     ).prefetch_related(
-        Prefetch(
-            'registerperiod_set',
-            queryset=RegisterPeriod.objects.prefetch_related(
                 Prefetch(
                     'registercount_set',
                     queryset=RegisterCount.objects.filter(
-                        register_period__endTime__isnull=F('is_opening_count')
+                        sales_period__endTime__isnull=F('is_opening_count')
                     ).prefetch_related(
                         Prefetch(
                             'denominationcount_set',
@@ -45,8 +41,6 @@ class RegisterListView(mixins.ListModelMixin,
                         )
                     )
                 )
-            )
-        )
     ).prefetch_related(
         'currency__denomination_set'
     )  # Heavy prefetch query to optimize loading of objects, and prevent optional O(n) behaviour on the DB
@@ -63,26 +57,27 @@ class RegisterOpenView(mixins.ListModelMixin,
                        generics.GenericAPIView):
     serializer = RegisterCountSerializer
     queryset = RegisterCount.objects\
-        .filter(register_period__endTime__isnull=False,
+        .filter(sales_period__endTime__isnull=False,
                 is_opening_count=False,
-                register_period__register__is_active=True)
+                register__is_active=True)
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        obj = RegisterOpenSerializer(request.data)
-        obj.is_valid(raise_exception=True)
-        counts = obj.validated_data['counts']
+        pass
+        #obj = RegisterOpenSerializer(request.data)
+        #obj.is_valid(raise_exception=True)
+        #counts = obj.validated_data['counts']
 
-        return Response(obj)
+        #return Response(obj)
 
 
 class RegisterCloseView(mixins.ListModelMixin,
                         generics.GenericAPIView):
     serializer = RegisterCountSerializer
     queryset = RegisterCount.objects\
-        .filter(register_period__endTime__isnull=True,
+        .filter(sales_period__endTime__isnull=True,
                 is_opening_count=True)
 
     def get(self, request, *args, **kwargs):
@@ -146,7 +141,7 @@ class RegisterCountListView(mixins.ListModelMixin,
     queryset = RegisterCount.objects.prefetch_related(
         'denominationcount_set__denomination'
     ).prefetch_related(
-        'register_period__register__currency__denomination_set'
+        'register__currency__denomination_set'
     )
     serializer_class = RegisterCountSerializer
 
@@ -259,7 +254,7 @@ class CloseFormView(PermissionRequiredMixin, View):
             for col in form.briefs:
                 reg = Register.objects.get(name=col)
 
-                register_counts.append(RegisterCount(register_period=reg.get_current_open_register_period(),
+                register_counts.append(RegisterCount(register=reg, sales_period=SalesPeriod.get_opened_sales_period(),
                                                      amount=Decimal(request.POST["brief_{}".format(col)])))
 
             for col in form.columns:
@@ -269,7 +264,7 @@ class CloseFormView(PermissionRequiredMixin, View):
 
                 for denomination in Denomination.objects.filter(currency=reg.currency):
                     cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
-                rc = RegisterCount(register_period=reg.get_current_open_register_period(),
+                rc = RegisterCount(register=reg, sales_period=SalesPeriod.get_opened_sales_period(),
                                    is_opening_count=False, amount=cnt)
                 register_counts.append(rc)
                 for denomination in Denomination.objects.filter(currency=reg.currency):
@@ -306,11 +301,6 @@ class RegisterEdit(PermissionRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('register_detail', kwargs=self.kwargs)
-
-
-@crumb(_('Register period list'), 'register_index')
-class RegisterPeriodList(LoginRequiredMixin, ListView):
-    model = RegisterPeriod
 
 
 @crumb(_('Create'), 'register_list')

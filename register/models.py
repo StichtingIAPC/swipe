@@ -169,6 +169,15 @@ class Register(models.Model):
             raise InactiveError("The register is inactive and cannot be opened")
 
     def close(self, indirect=False, register_count=None, denomination_counts=None):
+        """
+
+        :param indirect:
+        :param register_count:
+        :type register_count: RegisterCount
+        :param denomination_counts:
+        :type denomination_counts: List[DenominationCount]
+        :return:
+        """
         # Closes a register, should always be called indirectly via registermaster
         if denomination_counts is None:
             denomination_counts = []
@@ -180,21 +189,28 @@ class Register(models.Model):
             if not self.is_open():
                 raise AlreadyClosedError("Register is already closed")
             else:
-                reg_period = RegisterPeriod.objects.filter(register=self, endTime__isnull=True)
-                if len(reg_period) > 1:
-                    raise IntegrityError("More than one register period is open")
+                # Opened register means opened sales period
+                opened_sales_period = SalesPeriod.get_opened_sales_period()
+                reg_count = RegisterCount.objects.filter(register=self, sales_period=opened_sales_period)
+                if len(reg_count) > 1:
+                    raise IntegrityError("Register is either opened twice or already closed.")
+                elif len(reg_count) == 0:
+                    raise IntegrityError("Register is apparantly not opened but function indicated that it was.")
                 else:
-                    reg_per = reg_period.first()
-                    reg_per.endTime = reg_per.sales_period.endTime
-                    reg_per.save()
-                    if register_count is None:
-                        raise InvalidOperationError("A close without an register count is not accepted.")
-                    else:
-                        register_count.register_period = reg_per
-                        register_count.save(denominations=denomination_counts)
+                    if register_count.register_id != self.id:
+                        raise InvalidInputError("Registercount's register does not match register")
+                    if register_count.is_opening_count or not register_count.sales_period == opened_sales_period:
+                        raise InvalidInputError("Registercount should be closing and connected to salesperiod")
+                    if not self.is_cash_register:
                         for denom in denomination_counts:
-                            denom.register_count = register_count
-                            denom.save()
+                            raiseif(denom.denomination.currency_id != self.currency_id, InvalidInputError,
+                                    "Denomination does not have correct currency")
+                            raiseif(denom.register_count.register_id != self.id, InvalidInputError,
+                                    "Denominationcount and register don't match")
+
+                    register_count.save()
+                    for denom in denomination_counts:
+                        denom.save()
 
     def save(self, **kwargs):
         if self.is_cash_register:
@@ -228,12 +244,7 @@ class RegisterMaster:
     @staticmethod
     def number_of_open_registers():
         # Retrieves the number of open registers, 0 when period is closed and error when inconsistent
-        open_reg_periods = RegisterPeriod.objects.filter(endTime__isnull=True)
-        number = len(open_reg_periods)
-        if number > 0:
-            if not RegisterMaster.sales_period_is_open():
-                raise IntegrityError("Registers are open while sales period is closed")
-        return number
+        return RegisterCount.objects.filter(sales_period__endTime__isnull=True, is_opening_count=True).count()
 
     @staticmethod
     def get_open_registers():
@@ -269,10 +280,10 @@ class ConsistencyChecker:
                 "severity": CRITICAL
             })
         try:
-            ConsistencyChecker.check_open_register_periods()
+            ConsistencyChecker.check_open_register_counts()
         except IntegrityError:
             errors.append({
-                "text": "Register had more than one register period open",
+                "text": "Register has more register counts opened in an opened sales period than possible",
                 "location": "SalesPeriods",
                 "line": -1,
                 "severity": CRITICAL
@@ -291,7 +302,7 @@ class ConsistencyChecker:
     @staticmethod
     def full_check():
         ConsistencyChecker.check_open_sales_periods()
-        ConsistencyChecker.check_open_register_periods()
+        ConsistencyChecker.check_open_register_counts()
         ConsistencyChecker.check_payment_types()
 
     @staticmethod
@@ -302,15 +313,15 @@ class ConsistencyChecker:
             raise IntegrityError("More than one sales period is open")
 
     @staticmethod
-    def check_open_register_periods():
+    def check_open_register_counts():
         # Checks if register is opened at most once
-        active_register_periods = RegisterPeriod.objects.filter(endTime__isnull=True)
-        a = {}
-        for k in active_register_periods:
-            if k.register.id not in a:
-                a[k.register.id] = 1
+        relevant_register_counts = RegisterCount.objects.filter(sales_period__endTime__isnull=True)
+        a = set()
+        for count in relevant_register_counts:
+            if count.register_id in a:
+                raise IntegrityError("Register is opened and closed while Sales period is still open")
             else:
-                raise IntegrityError("Register had more than one register period open")
+                a.add(count.register_id)
 
     @staticmethod
     def check_payment_types():
@@ -338,6 +349,14 @@ class SalesPeriod(models.Model):
 
     def is_opened(self):
         return not self.endTime
+
+    @staticmethod
+    def get_opened_sales_period():
+        """
+        Gets the opened salesperiod. If there is none or there are multiple, Django will throw an exception.
+        :return:
+        """
+        return SalesPeriod.objects.get(endTime__isnull=True)
 
     @staticmethod
     @transaction.atomic
@@ -650,22 +669,6 @@ class RegisterCount(models.Model):
                 self.amount += count.get_money_value()
             self.save()
 
-    @staticmethod
-    def get_last_register_count_for_register(register):
-        # Returns last register count for specified register
-        if isinstance(register, Register):
-            last_register_period = RegisterPeriod.objects.filter(register=register).last("beginTime")
-            counts = RegisterCount.objects.filter(register_period=last_register_period)
-            if len(counts) == 1:
-                return counts[0]
-            raiseif(len(counts) != 2, RegisterInconsistencyError)
-            for count in counts:
-                if not count.is_opening_count:
-                    return count
-
-        else:
-            raise TypeError("Type of register is not Register")
-
     def __str__(self):
         return "Register_period_id:{}, is_opening_count:{}, Amount:{}".\
             format(self.register_period.id, self.is_opening_count, self.amount)
@@ -775,4 +778,7 @@ class RegisterCountError(Exception):
 
 
 class RegisterInconsistencyError(Exception):
+    pass
+
+class InvalidInputError(Exception):
     pass
