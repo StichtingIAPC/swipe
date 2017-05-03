@@ -506,7 +506,7 @@ class RegisterCount(models.Model):
         return cls(*args, **kwargs)
 
     def is_cash_register_count(self):
-        return self.register_period.register.is_cash_register
+        return self.register.is_cash_register
 
     def get_amount_from_denominationcounts(self):
         # Distills an amount value from the denomination counts

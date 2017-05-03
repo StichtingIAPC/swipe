@@ -76,6 +76,7 @@ class RegisterCountSerializer(serializers.ModelSerializer):
       "register": Register.PK
       "is_opening_count": Boolean,
       "amount": Optional<"Decimal">,
+      "currency": CurrencyData
       "denomination_counts": Array<{
         "amount": "Decimal",
         "number": Number,
@@ -96,16 +97,16 @@ class RegisterCountSerializer(serializers.ModelSerializer):
                 })
 
         data['denomination_counts'] = denom_counts
-        data['register'] = instance.register_period.register_id
+        data['currency'] = instance.register.currency_id
+        data['register'] = instance.register_id
         return data
 
     def to_internal_value(self, data):
         denomination_counts = data.pop('denomination_counts')
         instance = super().to_internal_value(data)
-        period = instance.register_period
         denom_counts = []
-        if period.register.is_cash_register:
-            denominations = list(period.register.currency.denomination_set.all())
+        if instance.register.is_cash_register:
+            denominations = list(instance.register.currency.denomination_set.all())
             for denom in denominations:
                 number = 0
 
