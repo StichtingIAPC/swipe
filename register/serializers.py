@@ -175,8 +175,8 @@ class SalesPeriodSerializer(serializers.ModelSerializer):
         _repr['money_differences'] = TransactionLine.objects\
             .filter(transaction__salesperiod=instance)\
             .order_by('price_currency')\
-            .annotate(amount=Sum('price'), currency=Field('price_currency'))\
-            .values('amount', 'currency')
+        #    .annotate(amount=Sum('price'), currency=Field('price_currency'))\
+        #    .values('amount', 'currency')
         return _repr
 
     class Meta:

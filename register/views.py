@@ -15,7 +15,7 @@ from register.forms import CloseForm, OpenForm
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
  PaymentType
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer, \
-    RegisterClosingSerializer
+    RegisterClosingSerializer, SalesPeriodSerializer
 from sales.models import Transaction
 from tools.templatetags.tools.breadcrumbs import crumb
 
@@ -327,3 +327,13 @@ class PaymentTypeCreate(PermissionRequiredMixin, CreateView):
 class PaymentTypeDetail(LoginRequiredMixin, DetailView):
     model = PaymentType
     template_name = 'register/paymenttype_detail.html'
+
+
+class SalesPeriodListView(mixins.ListModelMixin,
+                          mixins.CreateModelMixin,
+                          generics.GenericAPIView):
+    queryset = SalesPeriod.objects.all()
+    serializer_class = SalesPeriodSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
