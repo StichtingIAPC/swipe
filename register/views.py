@@ -53,12 +53,12 @@ class RegisterListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class RegisterOpenView(mixins.ListModelMixin,
+class RegisterOpenedView(mixins.ListModelMixin,
                        generics.GenericAPIView):
-    serializer = RegisterCountSerializer
+    serializer_class = RegisterCountSerializer
     queryset = RegisterCount.objects\
-        .filter(sales_period__endTime__isnull=False,
-                is_opening_count=False,
+        .filter(sales_period__endTime__isnull=True,
+                is_opening_count=True,
                 register__is_active=True)
 
     def get(self, request, *args, **kwargs):
@@ -73,27 +73,13 @@ class RegisterOpenView(mixins.ListModelMixin,
         #return Response(obj)
 
 
-class RegisterCloseView(mixins.ListModelMixin,
+class RegisterClosedView(mixins.ListModelMixin,
                         generics.GenericAPIView):
-    serializer = RegisterCountSerializer
-    queryset = RegisterCount.objects\
-        .filter(sales_period__endTime__isnull=True,
-                is_opening_count=True)
+    serializer_class = RegisterCountSerializer
+    queryset = RegisterMaster.get_closed_register_counts()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        rcs = RegisterClosingSerializer(request.data)
-        rcs.is_valid()
-        register_closing_dict = rcs.validated_data
-        register_ids = register_closing_dict.keys()
-
-        for reg_count in register_closing_dict.values():
-            pass
-
-        RegisterMaster.get_open_sales_period().close()
-        return mixins.Response()
 
 
 class RegisterView(mixins.RetrieveModelMixin,
