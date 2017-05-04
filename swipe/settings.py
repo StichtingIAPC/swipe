@@ -302,6 +302,11 @@ SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')
 }
 
+# PDF Settings
+PDF_SHOW_BOUNDARIES = True  # Show page boundaries on the rendered PDFs
+PDF_HEADER_IMAGE_PATH = "img/pdf_header.svg"  # Needs to be SVG for now, relative to staticfiles root
+PDF_LOGO_IMAGE_PATH = "img/pdf_logo.svg"  # Needs to be SVG for now, relative to staticfiles root
+
 # TODO: Explanation needed
 REST_FRAMEWORK = {
 }
