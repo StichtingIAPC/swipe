@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',  # to enable the frontend to be hosted on another machine than the API.
+    'wkhtmltopdf',
 
     # our apps
     'core',
@@ -303,9 +304,10 @@ SWIPE_JS_GLOBAL_VARS = {
 }
 
 # PDF Settings
-PDF_SHOW_BOUNDARIES = True  # Show page boundaries on the rendered PDFs
 PDF_HEADER_IMAGE_PATH = "img/pdf_header.svg"  # Needs to be SVG for now, relative to staticfiles root
 PDF_LOGO_IMAGE_PATH = "img/pdf_logo.svg"  # Needs to be SVG for now, relative to staticfiles root
+PDF_SHOW_IN_BROWSER = True  # Show the PDF in the user's browser instead of downloading it
+PDF_SHOW_BORDERS = False  # Show borders around elements in the PDF
 
 # TODO: Explanation needed
 REST_FRAMEWORK = {

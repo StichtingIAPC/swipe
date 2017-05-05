@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style type="text/css">
+        {% if show_borders %}
+        * {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            border: 1px solid black
+        }
+        {% endif %}
+        .iapc_logo {
+            width: 250px;
+            float: right;
+        }
+        .iapc_header {
+            height: 200px;
+            display: block;
+        }
+        .iapc_title {
+            font-family: "Montserrat", sans-serif;
+            font-size: 20pt;
+            max-width: 600px;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+        .header_left {
+            float: left;
+        }
+        .content {
+            width: 900px;
+            margin: 0;
+        }
+        .pdf_header {
+            text-align: center;
+            overflow: hidden;
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+<body class="content">
+    <div class="pdf_header">
+        {% block pdf_header %}
+        <div class="header_left">
+            <img class="iapc_header" src="{{ base_path }}/static/img/pdf_header.svg" />
+            <h1 class="iapc_title">{{ pdf_title }}</h1>
+        </div>
+        <img class="iapc_logo" src="{{ base_path }}/static/img/pdf_logo.svg" />
+        {% endblock %}
+    </div>
+</body>
+</html>

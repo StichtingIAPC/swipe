@@ -1,0 +1,95 @@
+{% load pdf.swipe_barcode %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style type="text/css">
+        {% if show_borders %}
+        * {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            border: 1px solid black
+        }
+        {% endif %}
+        .content {
+            max-width: 900px;
+            margin: 0;
+        }
+        .pdf_footer {
+            display: table;
+            width: 900px;
+        }
+        .footer_text {
+            display: table-cell;
+            padding: 0;
+            vertical-align: middle;
+            font-family: "Open Sans", sans-serif;
+            max-width: 650px;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+        .footer_barcode {
+            display: table-cell;
+            text-align: right;
+            vertical-align: middle;
+            width: 250px;
+        }
+        .payment_details {
+            width: 100%;
+        }
+        .payment_details th {
+            text-align: left;
+        }
+    </style>
+    {% block css %}{% endblock %}
+
+    <script type="text/javascript">
+        var pdfInfo = {};
+        var x = document.location.search.substring(1).split('&');
+        for (var i in x) {
+            var z = x[i].split('=', 2); pdfInfo[z[0]] = unescape(z[1]);
+        }
+        function getPdfInfo() {
+            var page = pdfInfo.page || 1;
+            var pageCount = pdfInfo.topage || 1;
+            document.getElementById('current_page').textContent = page;
+            document.getElementById('page_count').textContent = pageCount;
+        }
+    </script>
+    {% block js %}{% endblock %}
+</head>
+<body class="content" onload="getPdfInfo();{% block onload %}{% endblock %}">
+    <div class="pdf_footer">
+    {% block pdf_footer %}
+    {% if object.is_invoice %}
+        <div class="footer_text">
+            <table class="payment_details">
+                <tr>
+                    <th>IBAN:</th>
+                    <td>NL31RABO0115657140</td>
+                    <th>BTW:</th>
+                    <td>NL800656787B01</td>
+                </tr>
+                <tr>
+                    <th>BIC:</th>
+                    <td>RABONL2U</td>
+                    <th>KvK:</th>
+                    <td>41029973</td>
+                </tr>
+                <tr>
+                    <th>T.a.v:</th>
+                    <td>Stichting IAPC</td>
+                    <th>Pagina:</th>
+                    <td><span id="current_page"></span>/<span id="page_count"></span></td>
+                </tr>
+            </table>
+        </div>
+        <span class="footer_barcode">{% barcode document_id %}</span>
+    {% else %}
+        <span class="footer_text">{{ footer_text|safe }}</span>
+        <span class="footer_barcode">{% barcode document_id %}</span>
+    {% endif %}
+    {% endblock %}
+    </div>
+</body>
+</html>
