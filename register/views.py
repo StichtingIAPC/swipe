@@ -76,7 +76,7 @@ class RegisterOpenedView(mixins.ListModelMixin,
 class RegisterClosedView(mixins.ListModelMixin,
                         generics.GenericAPIView):
     serializer_class = RegisterCountSerializer
-    queryset = RegisterMaster.get_closed_register_counts()
+    queryset = RegisterMaster.get_last_closed_register_counts()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
