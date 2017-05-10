@@ -261,27 +261,7 @@ class RegisterMaster:
 
     @staticmethod
     def get_closed_register_counts():
-        # Very inefficient. If you can do this better, please do
-        is_open = RegisterMaster.sales_period_is_open()
-        closed_register_counts = []
-        if not is_open:
-            closed_registers = Register.objects.all()
-        else:
-            open_regs= RegisterMaster.get_open_registers()
-            closed_registers = set(Register.objects.all())
-            for open in open_regs:
-                closed_registers.remove(open)
-
-        for register in closed_registers:
-            counts = RegisterCount.objects.filter(register=register,
-                                         is_opening_count=False)
-            if len(counts) > 0:
-                closed_register_counts.append(counts.latest('time_created'))
-
-        closed_register_counts_ids = []
-        for reg in closed_register_counts:
-            closed_register_counts_ids.append(reg.id)
-        return RegisterCount.objects.filter(id__in=closed_register_counts_ids)
+        return RegisterCount.objects.filter(is_opening_count=False).exclude(register__registercount__sales_period__endTime=None)
 
 
 class ConsistencyChecker:
