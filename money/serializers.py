@@ -135,7 +135,7 @@ class VATSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             vat = VAT.objects.create(**validated_data)
             for vp_data in vatperiods:
-                VATPeriod.objects.create(**vp_data, vat=vat)
+                VATPeriod.objects.create(vat=vat, **vp_data)
         return vat
 
     def update(self, instance: VAT, validated_data):
