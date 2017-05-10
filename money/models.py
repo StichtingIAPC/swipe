@@ -1,5 +1,5 @@
+import datetime
 from decimal import Decimal
-from fractions import Fraction
 
 from django.core.validators import RegexValidator
 from django.db import models
@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy
 
 from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
 from tools.util import raiseif
-import datetime
 
 
 class VAT(models.Model):
@@ -224,6 +223,8 @@ class MoneyProxy:
 
     # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
+        if obj is None:
+            return self
         amount, currency = self._get_values(obj)
         if amount is None:
             return None
@@ -274,7 +275,9 @@ class MoneyField(models.DecimalField):
             c_field = CurrencyField(max_length=3)
             c_field.creation_counter = self.creation_counter
             cls.add_to_class(currency_field_name(name), c_field)
+
         super(MoneyField, self).contribute_to_class(cls, name)
+
         setattr(cls, name, MoneyProxy(self, name, self.type))
 
     # The boiler needs some plating
@@ -447,6 +450,8 @@ class PriceProxy:
 
     # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
+        if obj is None:
+            return self
         amount, currency, vat = self._get_values(obj)
         if amount is None:
             return None
@@ -599,6 +604,8 @@ class SalesPriceProxy:
 
     # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
+        if obj is None:
+            return self
         amount, currency, vat, cost = self._get_values(obj)
         if amount is None:
             return None
