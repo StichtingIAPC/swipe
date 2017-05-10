@@ -161,51 +161,22 @@
     <div class="receipt_data">
         <div class="customer_data">
             <table>
-                <tr><th>Aan:</th></tr>
                 <tr><td>{{ object.customer_name }}</td></tr>
                 <tr><td>{{ object.customer_address }}</td></tr>
                 <tr><td>{{ object.customer_zipcode }} {{ object.customer_city }}</td></tr>
             </table>
         </div>
         <div class="store_data">
-            <table>
-                <tr>
-                    <th>Stichting IAPC</th>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Zilverling E105</td>
-                    <td>Tel: 053 - 489 3927</td>
-                </tr>
-                <tr>
-                    <td>7500 AE Enschede</td>
-                    <td>bestuur@iapc.utwente.nl</td>
-                </tr>
-                <tr>
-                    <td>The Netherlands</td>
-                    <td>www.iapc.utwente.nl</td>
-                </tr>
-            </table>
+            {% if object.is_receipt %}
+            <dl>
+                <dt>Kassabonnummer:</dt><dd>{{ object.receipt_id }}</dd>
+                <dt>Cooperant:</dt><dd>{{ object.cooperant }}</dd>
+                <dt>Datum:</dt><dd>{{ object.date|date:"Y-m-d" }}</dd>
+            </dl>
+            {% else %}
+            {% endif %}
         </div>
     </div>
-    <table class="invoice_info">
-        <thead>
-            <tr>
-                <th>Factuurdatum</th>
-                <th>Betaaltermijn</th>
-                <th>Afnamedatum</th>
-                <th>Factuurnummer</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{% now "Y-m-d" %}</td>
-                <td>30 Dagen</td>
-                <td>{{ object.date|date:"Y-m-d" }}</td>
-                <td>{{ object|invoicenr }}</td>
-            </tr>
-        </tbody>
-    </table>
     <table class="receipt_table">
         <thead>
             <tr>
@@ -255,8 +226,5 @@
                 </tr>
             </table>
         </div>
-    </div>
-    <div class="invoice_text">
-        <p>U dient deze betaling binnen 30 dagen na bovengenoemde factuurdatum te voldoen.<br/>Gelieve bij uw overboeking het factuurnummer te vermelden.</p>
     </div>
 {% endblock %}

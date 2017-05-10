@@ -61,7 +61,7 @@
     }
 
     .totals-group{
-        margin-top: 2em;
+        margin-top: 1em;
     }
 
     .customer_data {
@@ -76,7 +76,7 @@
     }
 
     .store_data {
-        width: 400px;
+        width: 300px;
         display: inline-block;
         vertical-align: top;
         text-align: left;
@@ -94,23 +94,6 @@
     }
     .store_data dd {
         float: right;
-    }
-
-    .invoice_info {
-        width: 100%;
-        margin-bottom: 1em;
-    }
-
-    .invoice_info th {
-        text-align: left;
-    }
-
-    .memo-container {
-        width: 550px;
-        display: inline-block;
-        vertical-align: top;
-        text-align: left;
-        float: left;
     }
 
     .totals-container {
@@ -144,13 +127,8 @@
         font-weight: bold;
     }
 
-    .invoice_text {
-        text-align: center;
-        font-weight: bold;
-    }
-
     /* Do not break the part below the spacer over pages */
-    .totals-group, div.memo {
+    .totals-group {
         page-break-inside: avoid !important;
     }
 
@@ -161,102 +139,49 @@
     <div class="receipt_data">
         <div class="customer_data">
             <table>
-                <tr><th>Aan:</th></tr>
-                <tr><td>{{ object.customer_name }}</td></tr>
-                <tr><td>{{ object.customer_address }}</td></tr>
-                <tr><td>{{ object.customer_zipcode }} {{ object.customer_city }}</td></tr>
+                <tr><td>{{ object.supplier_name }}</td></tr>
+                <tr><td>{{ object.supplier_address }}</td></tr>
+                <tr><td>{{ object.supplier_zipcode }} {{ object.supplier_city }}</td></tr>
             </table>
         </div>
         <div class="store_data">
-            <table>
-                <tr>
-                    <th>Stichting IAPC</th>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Zilverling E105</td>
-                    <td>Tel: 053 - 489 3927</td>
-                </tr>
-                <tr>
-                    <td>7500 AE Enschede</td>
-                    <td>bestuur@iapc.utwente.nl</td>
-                </tr>
-                <tr>
-                    <td>The Netherlands</td>
-                    <td>www.iapc.utwente.nl</td>
-                </tr>
-            </table>
+            <dl>
+                <dt>Referentie:</dt><dd>{{ object.supplierorder_id }}</dd>
+                <dt>Cooperant:</dt><dd>{{ object.cooperant }}</dd>
+                <dt>Datum:</dt><dd>{{ object.date|date:"Y-m-d" }}</dd>
+            </dl>
         </div>
     </div>
-    <table class="invoice_info">
-        <thead>
-            <tr>
-                <th>Factuurdatum</th>
-                <th>Betaaltermijn</th>
-                <th>Afnamedatum</th>
-                <th>Factuurnummer</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{% now "Y-m-d" %}</td>
-                <td>30 Dagen</td>
-                <td>{{ object.date|date:"Y-m-d" }}</td>
-                <td>{{ object|invoicenr }}</td>
-            </tr>
-        </tbody>
-    </table>
     <table class="receipt_table">
         <thead>
             <tr>
+                <th>Artikelcode</th>
                 <th>Aantal</th>
                 <th>Artikel</th>
-                <th>Stuksprijs</th>
-                <th>BTW (%)</th>
+                <th>Bestelprijs</th>
                 <th>Totaal</th>
             </tr>
         </thead>
         <tbody>
             {% for line in object.lines %}
             <tr class="striped">
+                <td>{{ line.article_code }}</td>
                 <td class="align-right">{{ line.amount }}</td>
                 <td>{{ line.article }}</td>
                 <td class="align-right">€ {{ line.piece_price|floatformat:2 }}</td>
-                <td class="align-right">{{ line.vat|floatformat:1 }} %</td>
                 <td class="align-right">€ {{ line.total_price|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     <div class="totals-group">
-        <div class="memo-container">
-            <div class="memo">
-                {% if object.memo %}
-                    <dl>
-                        <dt>Memo:</dt>
-                        <dd>{{ object.memo }}</dd>
-                    </dl>
-                {% endif %}
-            </div>
-        </div>
         <div class="totals-container">
             <table>
-                <tr class="total">
-                    <td class="align-left">Totale prijs excl. BTW</td>
-                    <td class="align-right">€ {{ object.totals.excl_vat|floatformat:2 }}</td>
-                </tr>
-                <tr class="total">
-                    <td class="align-left">Totale BTW</td>
-                    <td class="align-right">€ {{ object.totals.vat|floatformat:2 }}</td>
-                </tr>
                 <tr class="total grand-total">
-                    <td class="align-left">Totale prijs</td>
-                    <td class="align-right">€ {{ object.totals.total|floatformat:2 }}</td>
+                    <td class="align-left">Totaal (excl. BTW)</td>
+                    <td class="align-right">€ {{ object.total|floatformat:2 }}</td>
                 </tr>
             </table>
         </div>
-    </div>
-    <div class="invoice_text">
-        <p>U dient deze betaling binnen 30 dagen na bovengenoemde factuurdatum te voldoen.<br/>Gelieve bij uw overboeking het factuurnummer te vermelden.</p>
     </div>
 {% endblock %}
