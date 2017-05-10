@@ -2,10 +2,10 @@ import React, { PropTypes } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import { createArticle, updateArticle } from "../../actions/articles";
-import { BoolField, IntegerField, StringField, SelectField } from "../forms/fields";
+import { BoolField, IntegerField, SelectField, StringField } from "../forms/fields";
 import FontAwesome from "../tools/icons/FontAwesome";
 import LabelField from "../forms/LabelField";
-import LabelList from "../assortment/LabelList";
+import LabelList from "../admin/assortment/LabelList";
 
 class ArticleEdit extends React.Component {
 	constructor(props) {
@@ -166,8 +166,7 @@ export default connect(
 			const copy = {...article};
 			if (!copy.useFixedPrice) copy.fixed_price = null;
 			delete copy['useFixedPrice'];
-			return dispatch(updateArticle(copy))
+			return dispatch(updateArticle(copy));
 		},
-		toggleLabelsModal: () => dispatch(toggleLabelsModal())
 	})
 )(ArticleEdit)

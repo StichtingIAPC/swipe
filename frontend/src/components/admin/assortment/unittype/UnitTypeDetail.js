@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
-import { valueTypes, incrementalTypes } from "../../../constants/assortment";
+import { incrementalTypes, valueTypes } from "../../../constants/assortment";
 
 class UnitTypeDetail extends React.Component {
 	render() {

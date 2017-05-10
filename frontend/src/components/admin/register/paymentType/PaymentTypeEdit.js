@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { createPaymentType, updatePaymentType } from "../../../actions/register/paymentTypes";
 import Form from "../../forms/Form";
-import { StringField, BoolField } from "../../forms/fields";
+import { BoolField, StringField } from "../../forms/fields";
 
 class PaymentTypeEdit extends React.Component {
 	constructor(props) {

@@ -6,7 +6,7 @@ import { labelTypes } from "../../actions/assortment/labelTypes";
 import { unitTypes } from "../../actions/assortment/unitTypes";
 import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
 import FontAwesome from "../tools/icons/FontAwesome";
-import LabelList from "../assortment/LabelList";
+import LabelList from "../admin/assortment/LabelList";
 
 class ArticleSelector extends React.Component {
 	constructor(props) {

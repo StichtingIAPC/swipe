@@ -2,6 +2,7 @@
 	"presets": [
 		["env", {
 			"debug": true,
+			"modules": false,
 			"targets": {
 				"browsers": [
 					"last 2 ff versions",

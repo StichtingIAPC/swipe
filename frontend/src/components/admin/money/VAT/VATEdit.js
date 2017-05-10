@@ -1,9 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
 import DatePicker from "react-datepicker";
-import { updateVAT, createVAT } from "../../../actions/money/VATs";
+import { createVAT, updateVAT } from "../../../actions/money/VATs";
 import Form from "../../forms/Form";
-import { StringField, BoolField } from "../../forms/fields";
+import { BoolField, StringField } from "../../forms/fields";
 import FontAwesome from "../../tools/icons/FontAwesome";
 
 class VATEdit extends React.Component {

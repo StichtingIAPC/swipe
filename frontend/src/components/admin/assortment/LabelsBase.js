@@ -1,11 +1,10 @@
 import React from "react";
-import { Link } from "react-router";
 import { connect } from "react-redux";
 import LabelTypeList from "./labeltype/LabelTypeList";
 import UnitTypeList from "./unittype/UnitTypeList";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import { labelTypes } from "../../actions/assortment/labelTypes";
-import { unitTypes } from "../../actions/assortment/unitTypes";
+import { connectMixin, fetchStateRequirementsFor } from "../../../core/stateRequirements";
+import { labelTypes } from "../../../actions/assortment/labelTypes";
+import { unitTypes } from "../../../actions/assortment/unitTypes";
 
 class LabelsModal extends React.Component {
 	componentWillMount() {

@@ -1,9 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
-import { updateCurrency, createCurrency } from "../../../actions/money/currencies";
+import { createCurrency, updateCurrency } from "../../../actions/money/currencies";
 import Form from "../../forms/Form";
-import { StringField, IntegerField, CharField, MoneyField } from "../../forms/fields";
+import { CharField, IntegerField, MoneyField, StringField } from "../../forms/fields";
 import FontAwesome from "../../tools/icons/FontAwesome";
 
 /**

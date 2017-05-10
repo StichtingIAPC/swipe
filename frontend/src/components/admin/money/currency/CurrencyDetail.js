@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, browserHistory } from "react-router";
+import { browserHistory, Link } from "react-router";
 import { connect } from "react-redux";
 import FontAwesome from "../../tools/icons/FontAwesome";
 
