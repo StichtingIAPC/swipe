@@ -14,8 +14,8 @@ from money.models import Denomination, Price, VAT
 from register.forms import CloseForm, OpenForm
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
  PaymentType
-from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer, \
-    RegisterClosingSerializer, SalesPeriodSerializer
+from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
+    RegisterCountSerializer, SalesPeriodSerializer
 from sales.models import Transaction
 from tools.templatetags.tools.breadcrumbs import crumb
 

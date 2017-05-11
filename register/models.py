@@ -166,10 +166,13 @@ class Register(models.Model):
                                               register=self, sales_period=open_sales_period)
                     reg_count.save()
 
+                # Set diff to zero, may change later on
+                if not self.is_cash_register:
+                    diff = Money(amount=Decimal(0), currency=Currency(self.currency.iso))
+
                 # Save Register Count Difference
-                if self.is_cash_register:
-                    # noinspection PyUnboundLocalVariable
-                    OpeningCountDifference.objects.create(register_count=reg_count, difference=diff)
+                # noinspection PyUnboundLocalVariable
+                OpeningCountDifference.objects.create(register_count=reg_count, difference=diff)
         else:
             raise InactiveError("The register is inactive and cannot be opened")
 
@@ -618,7 +621,7 @@ class OpeningCountDifference(models.Model):
     # Difference that can occur when a register is opened. This indicated that money (dis)appeared between closing and
     # opening of the register.
     difference = MoneyField()
-    register_count = models.ForeignKey("RegisterCount")
+    register_count = models.OneToOneField("RegisterCount")
 
     def __str__(self):
         return "[{}] : {}".format(self.register_count, self.difference)

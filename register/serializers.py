@@ -1,10 +1,12 @@
+from collections import OrderedDict
 from decimal import Decimal
 
 from django.db.models import Sum, Field
 from rest_framework import serializers
 
 from money.serializers import MoneySerializerField
-from register.models import Register, PaymentType, RegisterCount, DenominationCount, SalesPeriod
+from register.models import Register, PaymentType, RegisterCount, \
+    DenominationCount, SalesPeriod, OpeningCountDifference, ClosingCountDifference
 from sales.models import TransactionLine
 
 
@@ -87,6 +89,7 @@ class RegisterCountSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: RegisterCount):
         data = super().to_representation(instance=instance)
         denom_counts = None
+        opening_difference = None
 
         if instance.is_cash_register_count():
             denom_counts = []
@@ -95,7 +98,10 @@ class RegisterCountSerializer(serializers.ModelSerializer):
                     'amount': denom_count.denomination.amount,
                     'number': denom_count.number
                 })
+        if instance.is_opening_count:
+            opening_difference = OpeningCountDifferenceSerializer().to_representation(instance.openingcountdifference)
 
+        data['opening_count_difference'] = opening_difference
         data['denomination_counts'] = denom_counts
         data['currency'] = instance.register.currency_id
         data['register'] = instance.register_id
@@ -134,21 +140,35 @@ class RegisterCountSerializer(serializers.ModelSerializer):
 
 
 class OpeningCountDifferenceSerializer(serializers.Serializer):
-    difference = MoneySerializerField()
-    register = serializers.IntegerField()
+    difference = MoneySerializerField
+    register = serializers.IntegerField
+
+    def to_representation(self, instance):
+        data = OrderedDict()
+        data['id'] = instance.id
+        data['register'] = instance.register_count_id
+        data['difference'] = MoneySerializerField().to_representation(instance.difference)
+        return data
+
+    class Meta:
+        model = OpeningCountDifference
+        fields = ('id',
+                  'register',
+                  'difference')
 
 
 class ClosingCountDifferenceSerializer(serializers.Serializer):
     difference = MoneySerializerField
 
+    def to_representation(self, instance: ClosingCountDifference):
+        data = OrderedDict()
+        data['id'] = instance.id
+        data['sales_period'] = instance.sales_period_id
+        data['difference'] = MoneySerializerField().to_representation(instance.difference)
+        return data
 
-class RegisterClosingSerializer(serializers.Serializer):
-    def to_internal_value(self, data: dict):
-        serializer = RegisterCountSerializer()
-        res = {}
-        for key, value in data.items():
-            res[int(key)] = serializer.to_internal_value( value)
-        return res
+    def to_internal_value(self, data):
+        return super().to_internal_value(data)
 
 
 class SalesPeriodSerializer(serializers.ModelSerializer):
@@ -172,11 +192,6 @@ class SalesPeriodSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance: SalesPeriod):
         _repr = super().to_representation(instance)
-        _repr['money_differences'] = TransactionLine.objects\
-            .filter(transaction__salesperiod=instance)\
-            .order_by('price_currency')\
-        #    .annotate(amount=Sum('price'), currency=Field('price_currency'))\
-        #    .values('amount', 'currency')
         return _repr
 
     class Meta:
