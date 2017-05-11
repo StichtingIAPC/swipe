@@ -121,6 +121,12 @@ class Register(models.Model):
                             count = denomination_count.get_money_value()
                         else:
                             count += denomination_count.get_money_value()
+                    # Without denominations, the value is equal to 0
+                    # This prevents an error when denomination count is empty
+                    # Failure will occur however, if the opening count is non-zero as no counts means that
+                    # there is a difference between counted_amount and denomination counts
+                    if len(denominations) == 0:
+                        count = Money(amount=Decimal(0), currency=Currency(self.currency.iso))
                     diff = count - self.get_prev_closing_count()
 
                 # Get or create SalesPeriod
@@ -560,7 +566,7 @@ class DenominationCount(models.Model):
     number = models.IntegerField()
 
     def get_money_value(self):
-        return Money(amount=self.denomination.amount, currency=self.denomination.currency) * int(self.number)
+        return Money(amount=self.denomination.amount, currency=Currency(self.denomination.currency.iso)) * int(self.number)
 
     @classmethod
     def create(cls, *args, **kwargs):
