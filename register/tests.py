@@ -82,7 +82,7 @@ class BasicTest(TestCase, TestData):
         self.assertTrue(self.reg1.is_open())
         self.assertEquals(RegisterMaster.number_of_open_registers(), 1)
         counting_difference = OpeningCountDifference.objects.get()
-        self.assertEqual(counting_difference.difference, Money(amount=Decimal("4.22371"), currency=self.eu))
+        self.assertEqual(counting_difference.difference, Money(amount=Decimal("4.22371"), currency=Currency(self.eu.iso)))
 
         with self.assertRaises(AlreadyOpenError):
             self.reg1.open(Decimal("1.21"))
@@ -122,9 +122,9 @@ class BasicTest(TestCase, TestData):
         c2 = DenominationCount(register_count=reg_count_1, denomination=self.denom2, number=1)
         c3 = DenominationCount(register_count=reg_count_1, denomination=self.denom3, number=1)
         denom_counts = [c1, c2, c3]
-        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=self.currency_data_used),
+        trans = OtherTransactionLine(count=1, price=Price(Decimal("1.00000"), vat=Decimal("1.21"), currency=Currency(self.currency_data_used.iso)),
                                      num=1, text="HOI", user_modified=self.copro, accounting_group=self.acc_group)
-        pay = Payment(amount=Money(Decimal("1.00000"), self.currency_data_used), payment_type=self.cash)
+        pay = Payment(amount=Money(Decimal("1.00000"), self.currency_data_used.as_currency()), payment_type=self.cash)
         MoneyInOut.objects.create(register_period=self.reg1.get_current_open_register_period(),
                                   amount=Decimal("1.0000"))
         Transaction.create_transaction(user=self.copro, payments=[pay], transaction_lines=[trans])
@@ -219,7 +219,7 @@ class BasicTest(TestCase, TestData):
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("0"), denominations=denom_counts)
         counting_difference = OpeningCountDifference.objects.get()
-        self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=self.eu))
+        self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=Currency(self.eu.iso)))
 
         current_register_period=self.reg1.get_current_open_register_period()
         money_in = MoneyInOut(amount=Decimal("2"), register_period=current_register_period)
@@ -235,7 +235,7 @@ class BasicTest(TestCase, TestData):
         denom_counts = [c1, c2, c3]
         SalesPeriod.close(registercounts=reg_counts, denominationcounts=denom_counts, memo="")
         counting_difference = ClosingCountDifference.objects.get()
-        self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=self.eu))
+        self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=Currency(self.eu.iso)))
 
         c1 = DenominationCount(denomination=self.denom1, number=0)
         c2 = DenominationCount(denomination=self.denom2, number=1)
@@ -243,4 +243,4 @@ class BasicTest(TestCase, TestData):
         denom_counts = [c1, c2, c3]
         self.reg1.open(Decimal("2"), denominations=denom_counts)
         counting_difference=OpeningCountDifference.objects.all().last()
-        self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=self.eu))
+        self.assertEqual(counting_difference.difference, Money(amount=Decimal("0"), currency=Currency(self.eu.iso)))

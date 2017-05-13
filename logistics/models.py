@@ -585,7 +585,7 @@ class SupplierOrderCombinationLine:
                 currency = Currency(iso=USED_CURRENCY)
             else:
                 amount = o['line_cost']
-                currency = o['line_cost_currency']
+                currency = Currency(iso=o['line_cost_currency'])
             cost = Cost(amount=amount, currency=currency)
             socl = SupplierOrderCombinationLine(number=number,
                                                 article_type=ArticleType(name=o['article_type__name'],

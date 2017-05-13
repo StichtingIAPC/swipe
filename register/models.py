@@ -67,9 +67,9 @@ class Register(models.Model):
         if self.registerperiod_set.exists():
             period = self.registerperiod_set.last()
             count = RegisterCount.objects.get(register_period=period, is_opening_count=False)
-            return Money(Decimal(count.amount), self.currency)
+            return Money(Decimal(count.amount), Currency(self.currency.iso))
         else:  # Return zero. This prevents Swipe from crashing when a register is opened for the first time.
-            return Money(Decimal("0.00000"), self.currency)
+            return Money(Decimal("0.00000"), Currency(self.currency.iso))
 
     @property
     def denomination_counts(self):
@@ -589,7 +589,7 @@ class DenominationCount(models.Model):
     number = models.IntegerField()
 
     def get_money_value(self):
-        return Money(self.denomination.amount, self.denomination.currency) * int(self.number)
+        return Money(self.denomination.amount, Currency(self.denomination.currency.iso)) * int(self.number)
 
     @classmethod
     def create(cls, *args, **kwargs):

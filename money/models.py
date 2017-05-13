@@ -146,6 +146,8 @@ class Money:
     def __init__(self, amount: Decimal, currency: Currency=None, use_system_currency: bool=False):
         if use_system_currency:
             currency = Currency(iso=USED_CURRENCY)
+        raiseif(not isinstance(amount, Decimal), InvalidDataError, "amount must be a Decimal")
+        raiseif(not isinstance(currency, Currency), InvalidDataError, "currency must be a Currency")
         self._amount = amount.quantize(Decimal(10)**(-DECIMAL_PLACES))
         self._currency = currency
 
@@ -706,6 +708,9 @@ class CurrencyData(models.Model):
             return self.iso == other.iso
         else:
             return False
+
+    def as_currency(self):
+        return Currency(iso=self.iso)
 
     def __str__(self):
         return self.iso
