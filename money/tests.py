@@ -10,7 +10,7 @@ from money.models import Currency, TestSalesPriceType, SalesPrice
 from money.models import CurrencyData
 from money.models import Denomination
 from money.models import Money, VAT, VATPeriod, VATError
-from money.models import Price
+from money.models import Price, InvalidDataError
 from money.models import TestCostType
 from money.models import TestMoneyType
 from money.models import TestPriceType
@@ -37,6 +37,14 @@ class MoneyTest(TestCase):
     def testCreateMoneyWithoutCurency(self):
         m = Money(Decimal("5.21"), None, use_system_currency=True)
         self.assertEqual(m.currency, Currency(iso=USED_CURRENCY))
+
+    def testCreatingMoneyWithCurrencyDataFails(self):
+        with self.assertRaises(InvalidDataError):
+            Money(amount=Decimal(0), currency=CurrencyData(iso="EUR", name="Euro", digits=2, symbol="€"))
+
+    def testCreatingMoneyWithNonDecimalFails(self):
+        with self.assertRaises(InvalidDataError):
+            Money(amount=1, currency=Currency("EUR"))
 
 
 class CostTest(TestCase):

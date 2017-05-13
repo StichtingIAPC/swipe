@@ -379,7 +379,7 @@ class OrderCombinationLine:
                 vat = 0
             else:
                 amount = o['expected_sales_price']
-                currency = o['expected_sales_price_currency']
+                currency = Currency(iso=o['expected_sales_price_currency'])
                 vat = o['expected_sales_price_vat']
             price = Price(amount=amount, vat=vat, currency=currency)
             ocl = OrderCombinationLine(number=number, wishable=WishableType(name=o['wishable__name'],
