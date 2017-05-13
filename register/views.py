@@ -76,7 +76,6 @@ class RegisterOpenedView(mixins.ListModelMixin,
 class RegisterClosedView(mixins.ListModelMixin,
                         generics.GenericAPIView):
     serializer_class = RegisterCountSerializer
-    #queryset = RegisterMaster.get_last_closed_register_counts()
 
     def get_queryset(self):
         return RegisterMaster.get_last_closed_register_counts()
@@ -340,3 +339,12 @@ class SalesPeriodListView(mixins.ListModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+
+class SalesPeriodView(mixins.RetrieveModelMixin,
+                      generics.GenericAPIView):
+    queryset = SalesPeriod.objects.all()
+    serializer_class = SalesPeriodSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)

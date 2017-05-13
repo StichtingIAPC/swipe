@@ -27,5 +27,6 @@ urlpatterns = [
     url(r'^opened/$', views.RegisterOpenedView.as_view(), name="registeropened_view"),
     url(r'^closed/$', views.RegisterClosedView.as_view(), name="registerclosed_view"),
     url(r'^salesperiods/$', views.SalesPeriodListView.as_view(), name="salesperiodlist_view"),
+    url(r'^salesperiods/(?P<pk>\d+)/$', views.SalesPeriodView.as_view(), name="salesperiod_view"),
     url(r'^(?P<pk>\d+)/$', views.RegisterView.as_view(), name="register_view"),
 ]
