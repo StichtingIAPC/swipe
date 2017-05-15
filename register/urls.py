@@ -20,6 +20,7 @@ from register import views
 urlpatterns = [
     # Standard page
     url(r'^$', views.RegisterListView.as_view(), name="registerlist_view"),
+    url(r'^open/(?P<pk>\d+)/$', views.RegisterOpenView.as_view(), name="registerlist_view"),
     url(r'^paymenttype/$', views.PaymentTypeListView.as_view(), name="paymenttype_view"),
     url(r'^paymenttype/(?P<pk>\d+)/$', views.PaymentTypeView.as_view(), name="paymenttype_view"),
     url(r'^count/$', views.RegisterCountListView.as_view(), name="registercountlist_view"),
@@ -27,6 +28,7 @@ urlpatterns = [
     url(r'^opened/$', views.RegisterOpenedView.as_view(), name="registeropened_view"),
     url(r'^closed/$', views.RegisterClosedView.as_view(), name="registerclosed_view"),
     url(r'^salesperiods/$', views.SalesPeriodListView.as_view(), name="salesperiodlist_view"),
+    url(r'^salesperiods/latest/$', views.SalesPeriodLatestView.as_view(), name="salesperiodlatest_view"),
     url(r'^salesperiods/(?P<pk>\d+)/$', views.SalesPeriodView.as_view(), name="salesperiod_view"),
     url(r'^(?P<pk>\d+)/$', views.RegisterView.as_view(), name="register_view"),
 ]

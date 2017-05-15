@@ -150,6 +150,15 @@ class RegisterCountView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
+class RegisterOpenView(mixins.RetrieveModelMixin,
+                       generics.GenericAPIView):
+    queryset = Register.objects.all()
+    serializer_class = RegisterSerializer
+    
+    def post(self, request, *args, **kwargs):
+        reg = self.retrieve(request, *args, **kwargs)
+        return reg
+
 @crumb(_('Open registers'), 'register_state')
 class OpenFormView(PermissionRequiredMixin, View):
     permission_required = 'register.open_register'
@@ -348,3 +357,18 @@ class SalesPeriodView(mixins.RetrieveModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class SalesPeriodLatestView(mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin,
+                      generics.GenericAPIView):
+    serializer_class = SalesPeriodSerializer
+
+    def get_queryset(self):
+        if SalesPeriod.objects.exists():
+            return [SalesPeriod.objects.latest('beginTime')]
+        else:
+            return SalesPeriod.objects.none()
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
