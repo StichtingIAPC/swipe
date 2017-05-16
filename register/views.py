@@ -4,8 +4,8 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMix
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import F
 from django.db.models import Prefetch, Count
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
+from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.shortcuts import render, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import View, ListView, CreateView, DetailView, UpdateView
 from rest_framework import mixins, generics
@@ -156,50 +156,55 @@ class RegisterOpenView(mixins.RetrieveModelMixin,
     serializer_class = RegisterSerializer
     
     def post(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        try:
+            register = Register.objects.get(pk=pk)
+        except Register.DoesNotExist:
+            raise Http404
         reg = self.retrieve(request, *args, **kwargs)
         return reg
-
-@crumb(_('Open registers'), 'register_state')
-class OpenFormView(PermissionRequiredMixin, View):
-    permission_required = 'register.open_register'
-    form_class = OpenForm
-    initial = {'key': 'value'}
-    template_name = "register/open_count.html"
-
-    def get(self, request):
-        if RegisterMaster.sales_period_is_open():
-            return HttpResponse("ERROR, Register is already open")
-
-        form = self.form_class(initial=self.initial)
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            for col in form.briefs:
-                if request.POST.get("brief_" + col, False):
-                    reg = Register.objects.get(name=col)
-                    reg.open(Decimal(0), "")
-
-            for col in form.columns:
-                if not request.POST.get("reg_{}_active".format(col.name), False):
-                    continue
-                reg = Register.objects.get(name=col.name)
-                denomination_counts = []
-                cnt = Decimal(0)
-                for denomination in Denomination.objects.filter(currency=reg.currency):
-                    denomination_counts.append(DenominationCount(denomination=denomination,
-                                                                 amount=int(request.POST["reg_{}_{}"
-                                                                            .format(col.name, denomination.amount)])))
-
-                    cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
-
-                reg.open(cnt, request.POST['memo_{}'.format(col.name)], denominations=denomination_counts)
-
-            # <process form cleaned data>
-            return HttpResponseRedirect('/register/state/')
-        return render(request, self.template_name, {'form': form})
-
+#
+# @crumb(_('Open registers'), 'register_state')
+# class OpenFormView(PermissionRequiredMixin, View):
+#     permission_required = 'register.open_register'
+#     form_class = OpenForm
+#     initial = {'key': 'value'}
+#     template_name = "register/open_count.html"
+#
+#     def get(self, request):
+#         if RegisterMaster.sales_period_is_open():
+#             return HttpResponse("ERROR, Register is already open")
+#
+#         form = self.form_class(initial=self.initial)
+#         return render(request, self.template_name, {'form': form})
+#
+#     def post(self, request):
+#         form = self.form_class(request.POST)
+#         if form.is_valid():
+#             for col in form.briefs:
+#                 if request.POST.get("brief_" + col, False):
+#                     reg = Register.objects.get(name=col)
+#                     reg.open(Decimal(0), "")
+#
+#             for col in form.columns:
+#                 if not request.POST.get("reg_{}_active".format(col.name), False):
+#                     continue
+#                 reg = Register.objects.get(name=col.name)
+#                 denomination_counts = []
+#                 cnt = Decimal(0)
+#                 for denomination in Denomination.objects.filter(currency=reg.currency):
+#                     denomination_counts.append(DenominationCount(denomination=denomination,
+#                                                                  amount=int(request.POST["reg_{}_{}"
+#                                                                             .format(col.name, denomination.amount)])))
+#
+#                     cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
+#
+#                 reg.open(cnt, request.POST['memo_{}'.format(col.name)], denominations=denomination_counts)
+#
+#             # <process form cleaned data>
+#             return HttpResponseRedirect('/register/state/')
+#         return render(request, self.template_name, {'form': form})
+#
 
 @crumb(_('Open check'), 'register_index')
 class IsOpenStateView(LoginRequiredMixin, View):
