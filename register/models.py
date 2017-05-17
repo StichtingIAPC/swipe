@@ -171,11 +171,12 @@ class Register(models.Model):
 
                 # Set diff to zero, may change later on
                 if not self.is_cash_register:
-                    diff = Money(amount=Decimal(0), currency=Currency(self.currency.iso))
+                    diff = Money(amount=counted_amount, currency=Currency(self.currency.iso))
 
                 # Save Register Count Difference
                 # noinspection PyUnboundLocalVariable
                 OpeningCountDifference.objects.create(register_count=reg_count, difference=diff)
+                return reg_count
         else:
             raise InactiveError("The register is inactive and cannot be opened")
 

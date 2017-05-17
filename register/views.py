@@ -3,12 +3,12 @@ from decimal import Decimal
 import json
 from django.db.models import F
 from django.db.models import Prefetch, Count
-from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpResponseBadRequest
+from django.http import HttpResponse, Http404, HttpResponseBadRequest, HttpResponse, JsonResponse
 from rest_framework import mixins, generics
 
 from money.models import Denomination, Price, VAT, Currency, Money
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
- PaymentType
+ PaymentType, AlreadyOpenError
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
     RegisterCountSerializer, SalesPeriodSerializer
 from sales.models import Transaction
@@ -176,7 +176,17 @@ class RegisterOpenView(mixins.RetrieveModelMixin,
         if denoms is None:
             respo = HttpResponseBadRequest(reason="Denominationcounts are missing")
             return respo
-
+        if not isinstance(denoms, list):
+            respo = HttpResponseBadRequest(reason="Denominationcounts are malformed")
+            return respo
+        if not register.is_cash_register:
+            try:
+                count=register.open(counted_amount=counted_amount, memo=memo)
+                return HttpResponse(content=json.dumps(RegisterCountSerializer().to_representation(count)),
+                                    content_type="application/json")
+            except AlreadyOpenError:
+                respo = HttpResponseBadRequest(reason="Register is already opened")
+                return respo
         print(counted_amount)
         print(type(json_data))
         reg = self.retrieve(request, *args, **kwargs)
