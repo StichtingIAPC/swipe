@@ -141,16 +141,19 @@ class Register(models.Model):
                 if self.is_cash_register:
                     reg_count = RegisterCount(is_opening_count=True, register=self, sales_period=open_sales_period,
                                               amount=counted_amount)
-                    reg_count.save(denominations=denominations)
                     used_denominations = set()
 
                     for denomination_count in denominations:
                         counted_amount -= denomination_count.number * denomination_count.denomination.amount
-                        denomination_count.register_count = reg_count
                         used_denominations.add(denomination_count.denomination)
 
                     raiseif(counted_amount != Decimal("0.00000"),
                             RegisterCountError, "denominations amounts did not add up.")
+
+                    reg_count.save(denominations=denominations)
+                    for denomination_count in denominations:
+                        denomination_count.register_count = reg_count
+
                     all_denominations = Denomination.objects.filter(currency__register=self)
                     for den in all_denominations:
                         if den not in used_denominations:
