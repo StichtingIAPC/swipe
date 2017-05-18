@@ -95,7 +95,7 @@ class RegisterCountSerializer(serializers.ModelSerializer):
             denom_counts = []
             for denom_count in instance.denominationcount_set.all().select_related('denomination'):
                 denom_counts.append({
-                    'amount': denom_count.denomination.amount,
+                    'amount': str(denom_count.denomination.amount),
                     'number': denom_count.number
                 })
         if instance.is_opening_count:
