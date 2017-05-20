@@ -493,6 +493,7 @@ class SalesPeriod(models.Model):
 
         sales_period.endTime = timezone.now()
         sales_period.save()
+        return sales_period
 
     def __str__(self):
         return "Begin time: {}, End time: {}".format(self.beginTime, self.endTime)

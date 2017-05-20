@@ -155,7 +155,6 @@ class RegisterOpenView(mixins.RetrieveModelMixin,
         except Register.DoesNotExist:
             raise Http404
         json_data=request.data  #type: dict
-        print(json_data)
         memo = json_data.get("memo", None)
         if memo is None:
             respo = HttpResponseBadRequest(reason="Memo is missing")
@@ -228,6 +227,81 @@ class RegisterOpenView(mixins.RetrieveModelMixin,
                 return respo
 
 
+class SalesPeriodCloseView(mixins.RetrieveModelMixin,
+                           generics.GenericAPIView):
+    queryset = SalesPeriod.objects.all()
+    serializer_class = SalesPeriodSerializer
+
+    @staticmethod
+    def deconstruct_post_body(body: dict):
+        register_data = body.get("register_infos", None)
+        if register_data is None:
+            raise ParseError("No register_data available")
+        counts_and_denom_counts = []
+
+        for datum in register_data:
+            register = datum.get("register", None)
+            if register is None:
+                raise ParseError("Register is missing")
+            try:
+                register = int(register)
+            except Exception:
+                raise ParseError("Register is not a number")
+            register = Register.objects.get(id=register)
+            amount = datum.get("amount", None)
+            if amount is None:
+                raise ParseError("Amount is missing")
+            try:
+                float(amount)
+            except Exception:
+                raise ParseError("Amount is not decimal")
+            amount = Decimal(amount)
+            reg_count = RegisterCount(register=register, amount=amount)
+            denom_counts = []
+            denoms = datum.get("denoms", None)
+            if denoms is None:
+                raise ParseError("Denoms are missing")
+            if not isinstance(denoms, list):
+                raise ParseError("Denoms is not a list")
+            for denom in denoms:
+                count = denom.get("count", None)
+                denomination = denom.get("denomination", None)
+                try:
+                    int(denomination)
+                except ValueError:
+                    raise ParseError("Denomination is not a number")
+                db_denom = Denomination.objects.get(id=denomination)
+                try:
+                    count = int(count)
+                except Exception:
+                    raise ParseError("Denominationcounts are malformed")
+                denom_counts.append(DenominationCount(register_count=reg_count,
+                                                      denomination=db_denom,
+                                                      number=count))
+            counts_and_denom_counts.append((reg_count, denom_counts))
+
+        params = type('', (), {})
+        params.memo = body.get("memo", "")
+
+        params.registercounts_denominationcounts = counts_and_denom_counts
+        return params
+
+    def post(self, request):
+        sales_period = RegisterMaster.get_open_sales_period()
+        if not sales_period:
+            return HttpResponseBadRequest(reason="Salesperiod is closed")
+
+        json_data = request.data  # type: dict
+        try:
+            params = SalesPeriodCloseView.deconstruct_post_body(json_data)
+        except ParseError as e:
+            return HttpResponseBadRequest(reason=str(e))
+
+        period = sales_period.close(params.registercounts_denominationcounts, params.memo)
+        return HttpResponse(content=json.dumps(SalesPeriodSerializer().to_representation(period)),
+                            content_type="application/json")
+
+
 class SalesPeriodListView(mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           generics.GenericAPIView):
@@ -260,3 +334,7 @@ class SalesPeriodLatestView(mixins.ListModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+
+class ParseError(Exception):
+    pass
