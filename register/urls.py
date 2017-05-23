@@ -25,7 +25,6 @@ urlpatterns = [
     url(r'^closed/$', views.RegisterClosedView.as_view(), name="registerclosed_view"),
     url(r'^count/$', views.RegisterCountListView.as_view(), name="registercountlist_view"),
     url(r'^count/(?P<pk>\d+)/$', views.RegisterCountView.as_view(), name="registercount_view"),
-    url(r'^denominations/$', views.DenominationListView.as_view(), name="denominationlist_view"),
     url(r'^open/(?P<pk>\d+)/$', views.RegisterOpenView.as_view(), name="registeropen_view"),
     url(r'^opened/$', views.RegisterOpenedView.as_view(), name="registeropened_view"),
     url(r'^paymenttype/$', views.PaymentTypeListView.as_view(), name="paymenttype_view"),

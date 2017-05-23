@@ -326,13 +326,5 @@ class SalesPeriodLatestView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class DenominationListView(mixins.ListModelMixin, generics.GenericAPIView):
-    serializer_class = DenominationSerializer
-    queryset = Denomination.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-
 class ParseError(Exception):
     pass
