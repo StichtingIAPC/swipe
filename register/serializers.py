@@ -204,12 +204,3 @@ class SalesPeriodSerializer(serializers.ModelSerializer):
             'closingcountdifference_set',
         )
 
-
-class DenominationSerializer(serializers.ModelSerializer):
-
-    def to_representation(self, instance: Denomination):
-        data = OrderedDict()
-        data["id"] = instance.id
-        data["currency"] = instance.currency_id
-        data["amount"] = instance.amount
-        return data

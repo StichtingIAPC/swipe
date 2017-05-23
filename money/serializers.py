@@ -53,6 +53,7 @@ class DenominationSerializer(serializers.ModelSerializer):
         model = Denomination
         fields = (
             'id',
+            'currency',
             'amount',
         )
 

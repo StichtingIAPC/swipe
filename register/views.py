@@ -9,8 +9,9 @@ from rest_framework import mixins, generics
 from money.models import Denomination
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
  PaymentType, AlreadyOpenError, RegisterCountError
+from money.serializers import DenominationSerializer
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
-    RegisterCountSerializer, SalesPeriodSerializer, DenominationSerializer
+    RegisterCountSerializer, SalesPeriodSerializer
 
 class DictParsers:
 
