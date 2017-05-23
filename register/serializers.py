@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from money.serializers import MoneySerializerField
 from register.models import Register, PaymentType, RegisterCount, \
-    DenominationCount, SalesPeriod, OpeningCountDifference, ClosingCountDifference
+    DenominationCount, SalesPeriod, OpeningCountDifference, ClosingCountDifference, Denomination
 from sales.models import TransactionLine
 
 
@@ -203,3 +203,13 @@ class SalesPeriodSerializer(serializers.ModelSerializer):
             'registercount_set',
             'closingcountdifference_set',
         )
+
+
+class DenominationSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, instance: Denomination):
+        data = OrderedDict()
+        data["id"] = instance.id
+        data["currency"] = instance.currency_id
+        data["amount"] = instance.amount
+        return data
