@@ -5,17 +5,6 @@ from django.core.management.base import BaseCommand
 from mockdatagen.models import execute, do_in_order
 from mockdatagen.mocks import money
 
-CRITICAL = "CRITICAL"
-HIGH = "HIGH"
-MEDIUM = "MEDIUM"
-LOW = "LOW"
-checkers = []
-
-
-def consistency_check(func):
-    checkers.append(func)
-    return func
-
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
