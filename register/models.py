@@ -467,7 +467,7 @@ class SalesPeriod(models.Model):
                                                     "unchecked registers.".format(register.name)))
 
         if errors:
-            return errors
+            raise SalesPeriodCloseError(errors=errors)
 
         if len(unchecked) > 0:
             return [InvalidOperationError("There are some uncounted registers, please count them")]
@@ -678,5 +678,19 @@ class RegisterCountError(Exception):
 class RegisterInconsistencyError(Exception):
     pass
 
+
 class InvalidInputError(Exception):
     pass
+
+
+class SalesPeriodCloseError(Exception):
+
+    def __init__(self, errors):
+        super(SalesPeriodCloseError, self).__init__()
+        self.errors = errors
+
+    def __str__(self):
+        ret = ""
+        for error in self.errors:
+            ret += str(error)
+        return ret
