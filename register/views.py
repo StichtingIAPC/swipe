@@ -60,7 +60,7 @@ class DictParsers:
             raise ParseError("List is missing")
         if not isinstance(obj, list):
             raise ParseError("Object is not a list")
-
+        return obj
 
 class RegisterListView(mixins.ListModelMixin,
                        mixins.CreateModelMixin,
@@ -255,7 +255,7 @@ class SalesPeriodCloseView(mixins.RetrieveModelMixin,
 
     @staticmethod
     def deconstruct_post_body(body: dict):
-        register_data = DictParsers.list_parser(body.get("register_infos", None))
+        register_data = DictParsers.list_parser(body.get("register_infos"))
         counts_and_denom_counts = []
 
         for datum in register_data:
@@ -266,7 +266,7 @@ class SalesPeriodCloseView(mixins.RetrieveModelMixin,
             denoms = DictParsers.list_parser(datum.get("denoms", None))
             for denom in denoms:
                 denom_count = DictParsers.denominationcount_parser(denom)
-                denom_counts.register_count = reg_count
+                denom_count.register_count = reg_count
                 denom_counts.append(denom_count)
             counts_and_denom_counts.append((reg_count, denom_counts))
 
