@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router";
 import { connect } from "react-redux";
 import LabelTypeList from "./labeltype/LabelTypeList";
 import UnitTypeList from "./unittype/UnitTypeList";

@@ -65,14 +65,18 @@ export default class AsyncSelectBox extends React.Component {
 					value={this.props.query} />
 				<div className={"async-select-box-results-wrapper" + (this.state.focused ? ' async-select-box-results-wrapper-visible' : '')}>
 					<div className="async-select-box-results">
-						{this.props.results && this.props.results.length > 0 ? this.props.results.map(
-							(result, index) =>
-								<div className={index === this.state.selected ? 'selected' : ''} key={result.key} onClick={() => this.props.onSelect(result.key)}>
-									<span>{result.label}</span>
+						{
+							this.props.results && this.props.results.length > 0 ? this.props.results.map(
+								(result, index) =>
+									<div className={index === this.state.selected ? 'selected' : ''} key={result.key} onClick={() => this.props.onSelect(result.key)}>
+										<span>{result.label}</span>
+									</div>
+							) : (
+								<div>
+									<span>No results</span>
 								</div>
-							) : <div>
-							<span>No results</span>
-						</div>}
+							)
+						}
 					</div>
 				</div>
 			</div>

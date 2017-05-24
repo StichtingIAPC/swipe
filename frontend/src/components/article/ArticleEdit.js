@@ -2,7 +2,7 @@ import React, { PropTypes } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import { createArticle, updateArticle } from "../../actions/articles";
-import { BoolField, IntegerField, StringField, SelectField } from "../forms/fields";
+import { BoolField, IntegerField, SelectField, StringField } from "../forms/fields";
 import FontAwesome from "../tools/icons/FontAwesome";
 import LabelField from "../forms/LabelField";
 import LabelList from "../assortment/LabelList";
@@ -70,7 +70,7 @@ class ArticleEdit extends React.Component {
 					<div className="form-horizontal">
 						<StringField value={this.state.name} name="Name" onChange={evt => this.setState({name: evt.target.value})} />
 						<IntegerField value={this.state.ean || ''} name="EAN" onChange={evt => this.setState({ean: Number(evt.target.value)})} min={0} step={1} />
-						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={evt => this.setState(({serial_number}) => ({serial_number: !serial_number}))} />
+						<BoolField value={this.state.serial_number} name="Uses serial numbers" onChange={() => this.setState(({serial_number}) => ({serial_number: !serial_number}))} />
 					</div>
 					<div className="form-horizontal">
 						<div className="form-group">
@@ -168,6 +168,5 @@ export default connect(
 			delete copy['useFixedPrice'];
 			return dispatch(updateArticle(copy))
 		},
-		toggleLabelsModal: () => dispatch(toggleLabelsModal())
 	})
 )(ArticleEdit)
