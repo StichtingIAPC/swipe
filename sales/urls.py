@@ -4,7 +4,7 @@ from sales import views
 
 urlpatterns = [
     # Standard page
-    url(r'^$', views.PaymentListView.as_view(), name="paymentlist_view"),
-    url(r'^opened/', views.PaymentOpenListView.as_view(), name="paymentopenlist_view")
-
+    url(r'^payments/(?P<pk>\d+)/$', views.PaymentView.as_view(), name="payment_view"),
+    url(r'^payments/', views.PaymentListView.as_view(), name="paymentopenlist_view"),
+    url(r'^payments/opened/', views.PaymentOpenListView.as_view(), name="paymentopenlist_view"),
 ]

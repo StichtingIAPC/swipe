@@ -30,3 +30,9 @@ class PaymentOpenListView(mixins.ListModelMixin,
             return Payment.objects.filter(transaction__salesperiod=opensalesperiod)
 
 
+class PaymentView(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
