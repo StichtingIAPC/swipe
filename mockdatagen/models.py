@@ -5,7 +5,6 @@ from django.db import models
 
 # Create your models here.
 from money.models import Currency, CurrencyData
-
 requires = {}
 requiredBy = {}
 functions = {}
@@ -26,16 +25,7 @@ def register(cls):
     return cls
 
 
-class Currency2Gen:
-    model = CurrencyData
 
-    def func(self):
-        print("HI2")
-
-    requirements = {Currency}
-
-
-register(Currency2Gen)
 
 
 def do_in_order(func):
