@@ -293,10 +293,19 @@ class SalesPeriodCloseView(mixins.RetrieveModelMixin,
 
 
 class SalesPeriodListView(mixins.ListModelMixin,
-                          mixins.CreateModelMixin,
                           generics.GenericAPIView):
     queryset = SalesPeriod.objects.all()
     serializer_class = SalesPeriodSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+class PaymentTypeOpenListView(mixins.ListModelMixin,
+                          generics.GenericAPIView):
+    serializer_class = PaymentTypeSerializer
+
+    def get_queryset(self):
+        return RegisterMaster.get_payment_types_for_open_registers()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
