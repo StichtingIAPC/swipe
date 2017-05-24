@@ -70,7 +70,12 @@ export default class AsyncSelectBox extends React.Component {
 								(result, index) =>
 									<div className={index === this.state.selected ? 'selected' : ''} key={result.key} onClick={() => this.props.onSelect(result.key)}>
 										<span>{result.label}</span>
-									</div>) : <div><span>No results</span></div>
+									</div>
+							) : (
+								<div>
+									<span>No results</span>
+								</div>
+							)
 						}
 					</div>
 				</div>

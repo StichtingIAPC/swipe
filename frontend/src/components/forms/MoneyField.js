@@ -4,9 +4,6 @@ import React from "react";
  * Created by Matthias on 30/11/2016.
  */
 
-
-
-
 export default class MoneyField extends React.Component {
 	render() {
 		const {currency, value, onChange, children, ...restProps} = this.props;
@@ -24,17 +21,18 @@ export default class MoneyField extends React.Component {
 			</div>
 		)
 	}
+
 	valueToString(value, currency) {
 		if (isNaN(Number(value.replace(".", "")))){
 			return value;
 		}
-		value = value.replace(".", "");
-		value = (Number(value) / Math.pow(10, currency.digits));
-		value = value == 0 ? "" : value.toFixed(currency.digits);
-		return value;
+		let _value = value.replace(".", "");
+		_value = (Number(_value) / Math.pow(10, currency.digits));
+		_value = _value === 0 ? "" : _value.toFixed(currency.digits);
+		return _value;
 	}
+
 	getPlaceholder(currency) {
 		return "0." + ("0".repeat(currency.digits))
 	}
 }
-

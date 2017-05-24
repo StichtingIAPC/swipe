@@ -2,10 +2,10 @@ import { call, put } from "redux-saga/effects";
 import { push } from "react-router-redux";
 import { get, post, put as api_put } from "../../api";
 import {
-	startFetchingLabelTypes,
 	doneFetchingLabelTypes,
 	labelTypeFetchError,
-	labelTypeInputError
+	labelTypeInputError,
+	startFetchingLabelTypes
 } from "../../actions/assortment/labelTypes";
 
 export function* fetchLabelTypes({redirectTo} = {}) {
@@ -32,7 +32,7 @@ export function* createLabelType({ labelType } = {}) {
 	const document = { ...labelType };
 
 	try {
-		const data = yield (yield call(
+		yield (yield call(
 			post,
 			'/assortment/labeltypes/',
 			document
