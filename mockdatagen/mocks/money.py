@@ -2,7 +2,7 @@ from _pydecimal import Decimal
 from datetime import datetime
 
 from mockdatagen.models import register
-from money.models import CurrencyData, Denomination, VAT, VATPeriod
+from money.models import CurrencyData, Denomination, VAT, VATPeriod, AccountingGroup
 
 
 class CurrencyDataGen:
@@ -70,7 +70,24 @@ class VatPeriodDataGen:
         VATPeriod.objects.get_or_create(vat=vat2, begin_date=time, vatrate=Decimal(1.21))
         print(VATPeriod.objects.all())
 
-    requirements = {VAT}
+    requirements = {VAT, "PENIS"}
 
 
 register(VatPeriodDataGen)
+
+
+class AccountingGroupGen:
+    model = AccountingGroup
+
+    def func(self):
+        vat = VAT.objects.get(name="LOW")
+        vat2 = VAT.objects.get(name="HIGH")
+        time = datetime(2010, 6, 18, 21, 18, 22, 449637)
+        AccountingGroup.objects.get_or_create(vat_group=vat2, accounting_number=1921, name="Other")
+        AccountingGroup.objects.get_or_create(vat_group=vat, accounting_number=1337, name="Books")
+        print(AccountingGroup.objects.all())
+
+    requirements = {VAT}
+
+
+register(AccountingGroupGen)

@@ -46,4 +46,6 @@ def do_in_order(func):
 
 
 def execute(model):
+    if not type(model) is str:
+        model.objects.all().delete()
     functions[model](model)
