@@ -15,3 +15,4 @@ class PaymentSerializer(serializers.ModelSerializer):
             'amount',
             'transaction'
         )
+
