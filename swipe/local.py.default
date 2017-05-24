@@ -8,9 +8,12 @@
 DEBUG = True
 
 # Custom installed apps for debugging
-#INSTALLED_APPS = INSTALLED_APPS + (
-#    'debug_toolbar',  # Django Debugging toolbar
-#)
+# INSTALLED_APPS = INSTALLED_APPS + (
+#     'debug_toolbar',  # Django Debugging toolbar
+# )
+# MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + [
+#     'debug_toolbar.middleware.DebugToolbarMiddleware',
+# ]
 
 ## uncomment for Windows installs.
 # COMPRESS_ES6_COMPILER_CMD = (

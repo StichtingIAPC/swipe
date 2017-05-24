@@ -1,6 +1,5 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Link } from "react-router";
 import { createLabelType, updateLabelType } from "../../../actions/assortment/labelTypes";
 import Form from "../../forms/Form";
 import StringField from "../../forms/StringField";

@@ -29,9 +29,9 @@ urlpatterns = [
 
     # Include CRM URLs
     # Include Register URLs
-    url(r'^register/', include("register.urls")),
+    url(r'^register/', include('register.urls')),
 
-    url(r'^stock/', include("stock.urls")),
+    url(r'^stock/', include('stock.urls')),
 
     url(r'^tools/', include('tools.urls')),
 

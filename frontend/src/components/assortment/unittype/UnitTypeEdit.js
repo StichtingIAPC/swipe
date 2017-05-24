@@ -1,11 +1,10 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Link } from "react-router";
 import { createUnitType, updateUnitType } from "../../../actions/assortment/unitTypes";
 import Form from "../../forms/Form";
 import StringField from "../../forms/StringField";
 import SelectField from "../../forms/SelectField";
-import { valueTypes, incrementalTypes } from "../../../constants/assortment";
+import { incrementalTypes, valueTypes } from "../../../constants/assortment";
 
 class UnitTypeEdit extends React.Component {
 	constructor(props) {

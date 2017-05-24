@@ -1,6 +1,4 @@
 import React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router";
 import AssortmentLabel from "./AssortmentLabel";
 
 export default function LabelList ({labels, insert, ...rest}) {

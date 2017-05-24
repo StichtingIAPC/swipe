@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 let cache = {};
 let lastUnitTypes = null;
 
-function AssortmentLabel({labelTypes, unitTypes, labelTypeID, labelValue, children, dispatch, ...rest}) {
+function AssortmentLabel({labelTypes, unitTypes, labelTypeID, labelValue, children, ...rest}) {
 	const labelType = labelTypes.find(label => label.id === labelTypeID);
 	if (unitTypes !== lastUnitTypes) {
 		lastUnitTypes = unitTypes;
