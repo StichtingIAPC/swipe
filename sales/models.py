@@ -5,12 +5,13 @@ from django.db import models, transaction
 from article.models import ArticleType, OtherCostType, SellableType
 from blame.models import Blame, ImmutableBlame
 from crm.models import User, Customer
-from money.models import MoneyField, PriceField, CostField, AccountingGroup
+from money.models import MoneyField, PriceField, CostField, AccountingGroup, CurrencyData
 from order.models import OrderLine, Order, OrderLineState
 from stock.models import StockChangeSet, Id10TError, Stock, StockLock, LockError
 from stock.stocklabel import StockLabeledLine, OrderLabel
 from pricing.models import PricingModel
 from tools.util import raiseif
+from swipe.settings import USED_CURRENCY
 import customer_invoicing.models
 
 
@@ -250,7 +251,7 @@ class Transaction(Blame):
         raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
 
         for payment in payments:
-            raiseif(not isinstance(payment, Payment), "payment is not a Payment")
+            raiseif(not isinstance(payment, Payment), InvalidDataException, "payment is not a Payment")
             raiseif(not payment.amount.uses_system_currency(), InvalidDataException, "Payment currency should be system currency")
         types_supported = [SalesTransactionLine, OtherCostTransactionLine, OtherTransactionLine,
                            RefundTransactionLine]
@@ -273,12 +274,26 @@ class Transaction(Blame):
         # to a function in the customer invoicing module
         transaction_has_invoiced_payment = False
 
+        system_currency_data = CurrencyData.objects.get(iso=USED_CURRENCY)
+        open_registers = RegisterMaster.get_open_registers()
+
         for payment in payments:
             if payment.payment_type not in possible_payment_types:
                 raise PaymentTypeError("Paymenttype: {}, is not in the possible list of payments for the "
                                        "open registers".format(payment.payment_type))
+            currency_matches = False
+            for register in open_registers:
+                if register.payment_type == payment.payment_type and register.currency == system_currency_data:
+                    currency_matches = True
+                    break
+            if not currency_matches:
+                raise PaymentTypeError("Paymenttype: {} does not link to the system currency".
+                                       format(payment.payment_type))
+
             if payment.payment_type.is_invoicing:
                 transaction_has_invoiced_payment = True
+
+
 
         if transaction_has_invoiced_payment and customer is None:
             raise IncorrectDataException("Invoicing payments were chosen but customer is none")

@@ -681,6 +681,23 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
         st_level = Stock.objects.get(article=self.articletype_1, labeltype__isnull=True)
         self.assertEqual(st_level.count, 1)
 
+    def test_no_matching_currency(self):
+        rupee = CurrencyData(iso="INR", name="Indian Rupee", digits=2, symbol="₹")
+        rupee.save()
+        new_register = Register(name="Rupee Maestro", currency=rupee, payment_type=self.paymenttype_maestro)
+        new_register.save()
+        new_register.open(Decimal(0))
+        self.create_custorders()
+        oth_count = 2
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=oth_count,
+                                          other_cost_type=self.othercosttype_1, order=1)
+        money_3 = Money(amount=self.price_system_currency_1.amount * oth_count,
+                        currency=self.price_system_currency_1.currency)
+        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+        with self.assertRaises(PaymentTypeError):
+            Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                       customer=self.customer_person_2)
+
 
 class StockTests(TestCase, TestData):
 
