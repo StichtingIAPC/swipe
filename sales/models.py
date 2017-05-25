@@ -293,6 +293,16 @@ class Transaction(Blame):
             if payment.payment_type.is_invoicing:
                 transaction_has_invoiced_payment = True
 
+        # Checks if the last payment is of a different currency. Mathematically, if this occurs
+        # the currency has changed and if it does not occur(for all payments), the currency has not changed.
+        last_payment = Payment.objects.filter(transaction__salesperiod=salesperiod).last()
+        if last_payment and last_payment.amount.currency.iso != USED_CURRENCY:
+            raise PaymentTypeError("You have tried to change the standard currency from {} to {} during a sales period."
+                                   "Please close and reopen "
+                                   "the registers first.".format(last_payment.amount.currency.iso,
+                                                                 USED_CURRENCY))
+
+
 
 
         if transaction_has_invoiced_payment and customer is None:
