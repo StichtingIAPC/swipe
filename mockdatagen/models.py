@@ -25,9 +25,6 @@ def register(cls):
     return cls
 
 
-
-
-
 def do_in_order(func):
     req = deepcopy(requires)
     reqb = deepcopy(requiredBy)
@@ -47,5 +44,8 @@ def do_in_order(func):
 
 def execute(model):
     if not type(model) is str:
+        print(model.__name__)
         model.objects.all().delete()
     functions[model](model)
+    if not type(model) is str:
+        print(model.objects.all())

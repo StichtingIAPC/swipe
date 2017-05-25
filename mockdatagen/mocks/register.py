@@ -12,7 +12,6 @@ class PaymentTypeGen:
         PaymentType.objects.get_or_create(name="Maestro", is_invoicing=False)
         PaymentType.objects.get_or_create(name="Cash", is_invoicing=False)
         PaymentType.objects.get_or_create(name="Invoice", is_invoicing=True)
-        print(PaymentType.objects.all())
 
     requirements = {}
 
@@ -31,7 +30,6 @@ class RegisterGen:
         Register.objects.get_or_create(name="Maestro Register", currency=cur, payment_type=mae)
         Register.objects.get_or_create(name="Cash Register", currency=cur, is_cash_register=True, payment_type=cas)
         Register.objects.get_or_create(name="Invoice Register", currency=cur, payment_type=inv)
-        print(PaymentType.objects.all())
 
     requirements = {PaymentType, CurrencyData}
 
@@ -50,7 +48,6 @@ class RegisterOpenClose:
         SalesPeriod.close([(RegisterCount(register=mae, amount=Decimal(10)), None), (
             RegisterCount(register=cash, amount=Decimal(10)),
             [DenominationCount(denomination=Denomination.objects.get(amount=Decimal(2)), number=5)])])
-        print(RegisterMaster.get_open_registers())
 
     requirements = {Register}
 

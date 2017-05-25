@@ -10,8 +10,6 @@ class CurrencyDataGen:
 
     def func(self):
         CurrencyData.objects.get_or_create(iso="EUR", name="Euro", symbol="€", digits=2)
-        print(CurrencyData.objects.all())
-
 
     requirements = {}
 
@@ -37,7 +35,6 @@ class DenominationDataGen:
         Denomination.objects.get_or_create(currency=cur, amount=Decimal(100))
         Denomination.objects.get_or_create(currency=cur, amount=Decimal(200))
         Denomination.objects.get_or_create(currency=cur, amount=Decimal(500))
-        print(Denomination.objects.all())
 
     requirements = {CurrencyData}
 
@@ -51,7 +48,6 @@ class VatDataGen:
     def func(self):
         VAT.objects.get_or_create(name="HIGH", active=True)
         VAT.objects.get_or_create(name="LOW", active=True)
-        print(VAT.objects.all())
 
     requirements = {}
 
@@ -68,9 +64,8 @@ class VatPeriodDataGen:
         time = datetime(2010, 6, 18, 21, 18, 22, 449637)
         VATPeriod.objects.get_or_create(vat=vat, begin_date=time, vatrate=Decimal(1.06))
         VATPeriod.objects.get_or_create(vat=vat2, begin_date=time, vatrate=Decimal(1.21))
-        print(VATPeriod.objects.all())
 
-    requirements = {VAT, "PENIS"}
+    requirements = {VAT}
 
 
 register(VatPeriodDataGen)
@@ -85,7 +80,6 @@ class AccountingGroupGen:
         time = datetime(2010, 6, 18, 21, 18, 22, 449637)
         AccountingGroup.objects.get_or_create(vat_group=vat2, accounting_number=1921, name="Other")
         AccountingGroup.objects.get_or_create(vat_group=vat, accounting_number=1337, name="Books")
-        print(AccountingGroup.objects.all())
 
     requirements = {VAT}
 
