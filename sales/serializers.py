@@ -43,6 +43,11 @@ class TransactionSerializer(serializers.Serializer):
                 serialized_lines.append(None)
 
         data["transactions"] = serialized_lines
+        payments = Payment.objects.filter(id=instance.id)
+        serialized_payments = []
+        for payment in payments:
+            serialized_payments.append(PaymentSerializer().to_representation(payment))
+        data["payments"] = serialized_payments
         return data
 
 

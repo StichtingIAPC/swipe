@@ -55,8 +55,10 @@ class TransactionListView(mixins.ListModelMixin, generics.GenericAPIView):
 
 
 class TransactionOpenView(mixins.ListModelMixin, generics.GenericAPIView):
-    queryset = Transaction.objects.filter(salesperiod__endTime__isnull=True)
     serializer_class = TransactionSerializer
+
+    def get_queryset(self):
+        return Transaction.objects.filter(salesperiod__endTime__isnull=True)
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
