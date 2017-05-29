@@ -46,7 +46,6 @@ class TransactionLineSerializer(serializers.Serializer):
         data['id'] = instance.id
         data['transaction'] = instance.transaction_id
         data['num'] = instance.num
-        print(data)
         data['price'] = PriceSerializer().to_representation(instance.price)
         data['count'] = instance.count
         data['isRefunded'] = instance.isRefunded

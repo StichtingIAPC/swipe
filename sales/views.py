@@ -44,3 +44,11 @@ class TransactionView(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class TransactionListView(mixins.ListModelMixin, generics.GenericAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
