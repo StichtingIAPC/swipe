@@ -3,7 +3,7 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from sales.models import Payment, TransactionLine, SalesTransactionLine, Transaction, \
-    OtherCostTransactionLine, OtherTransactionLine
+    OtherCostTransactionLine, OtherTransactionLine, RefundTransactionLine
 from money.serializers import MoneySerializerField, PriceSerializer, CostSerializerField
 
 
@@ -33,8 +33,15 @@ class TransactionSerializer(serializers.Serializer):
                                                             'refundtransactionline')
         serialized_lines = []
         for line in lines:
-            if line.othercosttransactionline is not None:
+            if hasattr(line, 'othercosttransactionline') and line.othercosttransactionline is not None:
                 serialized_lines.append(OtherCostTransactionLineSerializer().to_representation(line.othercosttransactionline))
+            if hasattr(line, 'salestransactionline') and line.salestransactionline is not None:
+                serialized_lines.append(SalesTransactionLineSerializer().to_representation(line.salestransactionline))
+            if hasattr(line, 'othertransactionline') and line.othertransactionline is not None:
+                serialized_lines.append(OtherTransactionLineSerializer().to_representation(line.othertransactionline))
+            if hasattr(line, 'refundtransactionline') and line.refundtransactionline is not None:
+                serialized_lines.append(None)
+
         data["transactions"] = serialized_lines
         return data
 
@@ -80,6 +87,17 @@ class OtherTransactionLineSerializer(TransactionLineSerializer):
     def to_representation(self, instance: OtherTransactionLine):
         data = super(OtherTransactionLineSerializer, self).to_representation(instance)
         data['class'] = "OtherTransactionLine"
+        return data
+
+
+class RefundTransactionLineSerializer(TransactionLineSerializer):
+
+    def to_representation(self, instance: RefundTransactionLine):
+        data = super(RefundTransactionLineSerializer, self).to_representation(instance)
+        data['sold_transaction_line'] = instance.sold_transaction_line_id
+        data['test_rma'] = instance.test_rma_id
+        data['creates_rma'] = instance.creates_rma
+        data['class'] = "RefundTransactionLine"
         return data
 
 
