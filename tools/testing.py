@@ -248,7 +248,7 @@ class TestData:
                                                     packing_document_name="Packing document name 1", user=self.user_1,
                                                     article_type_cost_combinations=atccs)
 
-    def create_transactions_article_type_for_order(self, article_1=2, article_2=3, othercost_1=4):
+    def create_transactions_article_type_for_order(self, article_1=2, article_2=3, othercost_1=4, order=1):
         self.SOLD_ARTICLE_1 = article_1
         self.SOLD_ARTICLE_2 = article_2
         self.SOLD_OTHERCOST_1 = othercost_1
@@ -256,14 +256,14 @@ class TestData:
             if not self.register_3.is_open():
                 self.register_3.open(counted_amount=Decimal(0))
             if article_1 > 0:
-                tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=self.SOLD_ARTICLE_1, order=1,
+                tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=self.SOLD_ARTICLE_1, order=order,
                                             article=self.articletype_1)
                 money_1 = Money(amount=self.price_system_currency_1.amount * self.SOLD_ARTICLE_1, currency=self.price_system_currency_1.currency)
                 pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
                 Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1],
                                                customer=None)
             if article_2 > 0:
-                tl_2 = SalesTransactionLine(price=self.price_systen_currency_2, count=self.SOLD_ARTICLE_2, order=1,
+                tl_2 = SalesTransactionLine(price=self.price_systen_currency_2, count=self.SOLD_ARTICLE_2, order=order,
                                             article=self.articletype_2)
                 money_2 = Money(amount=self.price_systen_currency_2.amount * self.SOLD_ARTICLE_2,
                                 currency=self.price_systen_currency_2.currency)
@@ -272,7 +272,7 @@ class TestData:
                                                customer=self.customer_person_1)
             if othercost_1 > 0:
                 octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=self.SOLD_OTHERCOST_1,
-                                                  other_cost_type=self.othercosttype_1, order=1)
+                                                  other_cost_type=self.othercosttype_1, order=order)
                 money_3 = Money(amount=self.price_system_currency_1.amount * self.SOLD_OTHERCOST_1,
                                 currency=self.price_system_currency_1.currency)
                 pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
