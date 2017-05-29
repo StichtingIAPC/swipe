@@ -1,8 +1,8 @@
 from rest_framework import generics
 from rest_framework import mixins
 
-from sales.models import Payment
-from sales.serializers import PaymentSerializer
+from sales.models import Payment, Transaction, TransactionLine
+from sales.serializers import PaymentSerializer, TransactionSerializer
 from register.models import RegisterMaster
 
 
@@ -33,6 +33,14 @@ class PaymentOpenListView(mixins.ListModelMixin,
 class PaymentView(mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+class TransactionView(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
