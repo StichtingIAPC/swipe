@@ -133,7 +133,6 @@ class TestData:
             self.articletype_2 = ArticleType.objects.create(name="ArticleType 2",
                                                                      accounting_group=self.accounting_group_food, serial_number=False)
 
-
     def part_setup_article_type_supplier(self):
         atss = ArticleTypeSupplier.objects.all()
         if len(atss) >=2:

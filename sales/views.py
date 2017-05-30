@@ -1,9 +1,13 @@
 from rest_framework import generics
 from rest_framework import mixins
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
+from django.db.models import Sum
+import json
 
+from money.serializers import MoneySerializerField
 from sales.models import Payment, Transaction, TransactionLine
 from sales.serializers import PaymentSerializer, TransactionSerializer
-from register.models import RegisterMaster
+from register.models import RegisterMaster, SalesPeriod
 
 
 class PaymentListView(mixins.ListModelMixin,
@@ -62,3 +66,37 @@ class TransactionOpenView(mixins.ListModelMixin, generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+
+class PaymentTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        # This can most likely be done much more efficiently than iteration, Django is not very clear about it
+        payments = Payment.objects.filter(transaction__salesperiod__id=pk)
+        serialization = PaymentTotalsView.get_aggregation_and_serialize(payments)
+        return HttpResponse(content=json.dumps(serialization), content_type="application/json")
+
+    @staticmethod
+    def get_aggregation_and_serialize(payments):
+        payment_type_aggregation = {}
+        for payment in payments:
+            total = payment_type_aggregation.get((payment.payment_type_id, payment.amount.currency.iso))
+            if total:
+                payment_type_aggregation[
+                    (payment.payment_type_id, payment.amount.currency.iso)] = total + payment.amount
+            else:
+                payment_type_aggregation[(payment.payment_type_id, payment.amount.currency.iso)] = payment.amount
+        serialization = []
+        for key in payment_type_aggregation:
+            serialization.append({'paymenttype': key[0],
+                                  'amount': MoneySerializerField().to_representation(payment_type_aggregation[key])})
+        return serialization
+
+class PaymentsLatestTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
+
+    def get(self, request, *args, **kwargs):
+        sp = SalesPeriod.objects.all().latest('beginTime')
+        payments = Payment.objects.filter(transaction__salesperiod=sp)
+        serialization = PaymentTotalsView.get_aggregation_and_serialize(payments)
+        return HttpResponse(content=json.dumps(serialization), content_type="application/json")
