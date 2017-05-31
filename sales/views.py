@@ -1,10 +1,11 @@
 from rest_framework import generics
 from rest_framework import mixins
-from django.http import Http404, HttpResponseBadRequest, HttpResponse
+from django.http import Http404, HttpResponseBadRequest, HttpResponse, JsonResponse
 from django.db.models import Sum
 import json
 
 from money.serializers import MoneySerializerField
+from register.views import ParseError
 from sales.models import Payment, Transaction, TransactionLine
 from sales.serializers import PaymentSerializer, TransactionSerializer
 from register.models import RegisterMaster, SalesPeriod
@@ -99,4 +100,17 @@ class PaymentsLatestTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
         sp = SalesPeriod.objects.all().latest('beginTime')
         payments = Payment.objects.filter(transaction__salesperiod=sp)
         serialization = PaymentTotalsView.get_aggregation_and_serialize(payments)
-        return HttpResponse(content=json.dumps(serialization), content_type="application/json")
+        return HttpResponse(content=json.dumps(serialization, indent=4), content_type="application/json")
+
+class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
+
+    @staticmethod
+    def deconstruct_post_body(body):
+        pass
+
+    def post(self, request, *args, **kwargs):
+        json_data = request.data # type: dict
+        try:
+            TransactionCreateView.deconstruct_post_body(json_data)
+        except ParseError as e:
+            return HttpResponseBadRequest(reason=str(e))
