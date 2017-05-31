@@ -19,11 +19,18 @@ class DictParsers():
         return string
 
     @staticmethod
-    def list_parser(obj: str):
+    def list_parser(obj):
         if obj is None:
             raise ParseError("List is missing")
         if not isinstance(obj, list):
             raise ParseError("Object is not a list")
+        return obj
+
+    def int_parser(obj: int):
+        if obj is None:
+            raise ParseError("Integer is missing")
+        if not isinstance(obj, int):
+            raise ParseError("Object is not an integer")
         return obj
 
 

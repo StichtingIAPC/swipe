@@ -1,7 +1,23 @@
+from collections import OrderedDict
+
 from rest_framework import mixins, generics
 
-from money.models import CurrencyData, Denomination, VAT, AccountingGroup
+from money.models import CurrencyData, Denomination, VAT, AccountingGroup, Currency, Money
 from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer, AccountingGroupSerializer
+from tools.json_parsers import ParseError, DictParsers
+
+
+class MoneyDictParsers:
+
+    @staticmethod
+    def money_parser(obj: dict):
+        if obj is None:
+            raise ParseError("Money does not exist")
+        if not isinstance(obj, OrderedDict):
+            raise ParseError("Object cannot be a Money as it is not a dict")
+        amount = DictParsers.decimal_parser(obj.get("amount"))
+        currency = Currency(iso=DictParsers.string_parser("currency"))
+        return Money(amount=amount, currency=currency)
 
 
 class CurrencyListView(mixins.ListModelMixin,

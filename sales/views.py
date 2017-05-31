@@ -4,11 +4,31 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse, JsonRespo
 from django.db.models import Sum
 import json
 
+from crm.views import CRMDictParsers
 from money.serializers import MoneySerializerField
+from money.views import MoneyDictParsers
 from register.views import ParseError
 from sales.models import Payment, Transaction, TransactionLine
 from sales.serializers import PaymentSerializer, TransactionSerializer
 from register.models import RegisterMaster, SalesPeriod
+from tools.json_parsers import DictParsers
+
+class SalesDictParsers:
+
+    @staticmethod
+    def payment_parser(obj: dict):
+        if obj is None:
+            raise ParseError("Payment does not exist")
+        if not isinstance(obj, dict):
+            raise ParseError("Payment is not a dict")
+        payment_type = DictParsers.int_parser(obj.get("payment_type"))
+        amount = MoneyDictParsers.money_parser(obj.get("amount"))
+        return Payment(payment_type_id=payment_type, amount=amount)
+
+    @staticmethod
+    def transactionline_parser(obj: dict):
+        count = DictParsers.int_parser(obj.get("count"))
+
 
 
 class PaymentListView(mixins.ListModelMixin,
@@ -152,7 +172,18 @@ class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
 
     @staticmethod
     def deconstruct_post_body(body):
-        pass
+        user = CRMDictParsers.user_parser(body.get("user"))
+        customer_int = body.get("customer", None)
+        if customer_int:
+            customer = CRMDictParsers.customer_parser(customer_int)
+        else:
+            customer = None
+        payments = DictParsers.list_parser(body.get("payments"))
+        payment_list = []
+        for payment in payments:
+            payment_list.append(SalesDictParsers.payment_parser(payment))
+        transactionlines = DictParsers.list_parser(body.get("transactionlines"))
+
 
     def post(self, request, *args, **kwargs):
         json_data = request.data # type: dict
