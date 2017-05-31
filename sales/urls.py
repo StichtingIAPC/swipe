@@ -6,6 +6,7 @@ urlpatterns = [
     # Standard page
     url(r'^payments/(?P<pk>\d+)/$', views.PaymentView.as_view(), name="payment_view"),
     url(r'^payments/$', views.PaymentListView.as_view(), name="paymentopenlist_view"),
+    url(r'^payments/list/(?P<pk>\d+)/$', views.PaymentGroupView.as_view(), name="paymentgroup_view"),
     url(r'^payments/opened/$', views.PaymentOpenListView.as_view(), name="paymentopenlist_view"),
     url(r'^payments/totals/(?P<pk>\d+)/$', views.PaymentTotalsView.as_view(), name="paymenttotals_view"),
     url(r'^payments/totals/latest/$', views.PaymentsLatestTotalsView.as_view(), name="paymentlatesttotals_view"),
