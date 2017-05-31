@@ -278,6 +278,29 @@ class TestData:
                 Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                                customer=self.customer_person_2)
 
+    def create_transaction_cash(self, othercost_1=5, othercost_2=7):
+        self.sold_othercost_1_cash=othercost_1
+        self.sold_othercost_2_cash=othercost_2
+        if othercost_1+othercost_2 > 2:
+            if not self.register_1.is_open():
+                self.register_1.open(counted_amount=Decimal(0), denominations=[])
+            if othercost_1 > 0:
+                octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=self.sold_othercost_1_cash,
+                                                  other_cost_type=self.othercosttype_1, order=None)
+                money_3 = Money(amount=self.price_system_currency_1.amount * self.sold_othercost_1_cash,
+                                currency=self.price_system_currency_1.currency)
+                pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_cash)
+                Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                               customer=self.customer_person_2)
+            if othercost_2:
+                octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=self.sold_othercost_2_cash,
+                                                  other_cost_type=self.othercosttype_2, order=None)
+                money_3 = Money(amount=self.price_system_currency_1.amount * self.sold_othercost_2_cash,
+                                currency=self.price_system_currency_1.currency)
+                pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_cash)
+                Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                               customer=self.customer_person_2)
+
     def create_externalisation(self, article_1=5, article_2=7):
         self.INTERNALISED_ARTICLE_1 = article_1
         self.INTERNALISED_ARTICLE_2 = article_2
