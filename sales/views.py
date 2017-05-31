@@ -20,6 +20,52 @@ class PaymentListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
+class PaymentGroupView(mixins.RetrieveModelMixin,
+                          generics.GenericAPIView):
+
+    def get(self, request, *args, **kwargs):
+        self.queryset = Payment.objects.filter(transaction__salesperiod__id=kwargs["pk"]).order_by("payment_type")
+        resultset = []
+        type_list = []
+        first_of_type = True
+        current_type = None
+        for element in self.queryset:
+            if (first_of_type):
+                type_list = []
+                current_type = element.payment_type
+                first_of_type = False
+            if (current_type == element.payment_type):
+                type_list.append(PaymentSerializer().to_representation(element))
+            else:
+                first_of_type=True
+                resultset.append(type_list)
+        resultset.append(type_list)
+        return HttpResponse(content = json.dumps(resultset, indent=4), content_type="application/json")
+
+
+class PaymentGroupOpenedView(mixins.RetrieveModelMixin,
+                          generics.GenericAPIView):
+
+    def get(self, request, *args, **kwargs):
+        self.queryset = Payment.objects.filter(transaction__salesperiod__endTime=None).order_by("payment_type")
+        resultset = []
+        type_list = []
+        first_of_type = True
+        current_type = None
+        for element in self.queryset:
+            if (first_of_type):
+                type_list = []
+                current_type = element.payment_type
+                first_of_type = False
+            if (current_type == element.payment_type):
+                type_list.append(PaymentSerializer().to_representation(element))
+            else:
+                first_of_type=True
+                resultset.append(type_list)
+        resultset.append(type_list)
+        return HttpResponse(content = json.dumps(resultset, indent=4), content_type="application/json")
+
+
 class PaymentOpenListView(mixins.ListModelMixin,
                           generics.GenericAPIView):
     serializer_class = PaymentSerializer
