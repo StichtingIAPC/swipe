@@ -5,22 +5,24 @@ from mockdatagen.models import register
 from money.models import CurrencyData, Denomination, VAT, VATPeriod, AccountingGroup
 
 
+@register
 class CurrencyDataGen:
     model = CurrencyData
 
-    def func(self):
+    @staticmethod
+    def func():
         CurrencyData.objects.get_or_create(iso="EUR", name="Euro", symbol="€", digits=2)
 
     requirements = {}
 
 
-register(CurrencyDataGen)
 
-
+@register
 class DenominationDataGen:
     model = Denomination
 
-    def func(self):
+    @staticmethod
+    def func():
         cur = CurrencyData.objects.first()
         Denomination.objects.get_or_create(currency=cur, amount=Decimal(0.05))
         Denomination.objects.get_or_create(currency=cur, amount=Decimal(0.1))
@@ -39,26 +41,24 @@ class DenominationDataGen:
     requirements = {CurrencyData}
 
 
-register(DenominationDataGen)
-
-
+@register
 class VatDataGen:
     model = VAT
 
-    def func(self):
+    @staticmethod
+    def func():
         VAT.objects.get_or_create(name="HIGH", active=True)
         VAT.objects.get_or_create(name="LOW", active=True)
 
     requirements = {}
 
 
-register(VatDataGen)
-
-
+@register
 class VatPeriodDataGen:
     model = VATPeriod
 
-    def func(self):
+    @staticmethod
+    def func():
         vat = VAT.objects.get(name="LOW")
         vat2 = VAT.objects.get(name="HIGH")
         time = datetime(2010, 6, 18, 21, 18, 22, 449637)
@@ -68,13 +68,12 @@ class VatPeriodDataGen:
     requirements = {VAT}
 
 
-register(VatPeriodDataGen)
-
-
+@register
 class AccountingGroupGen:
     model = AccountingGroup
 
-    def func(self):
+    @staticmethod
+    def func():
         vat = VAT.objects.get(name="LOW")
         vat2 = VAT.objects.get(name="HIGH")
         time = datetime(2010, 6, 18, 21, 18, 22, 449637)
@@ -84,4 +83,3 @@ class AccountingGroupGen:
     requirements = {VAT}
 
 
-register(AccountingGroupGen)

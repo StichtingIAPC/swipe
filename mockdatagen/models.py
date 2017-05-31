@@ -46,6 +46,6 @@ def execute(model):
     if not type(model) is str:
         print(model.__name__)
         model.objects.all().delete()
-    functions[model](model)
+    functions[model]()
     if not type(model) is str:
         print(model.objects.all())

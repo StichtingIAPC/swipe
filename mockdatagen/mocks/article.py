@@ -7,10 +7,12 @@ from mockdatagen.models import register
 from money.models import CurrencyData, Denomination, VAT, VATPeriod, AccountingGroup
 
 
+@register
 class LabelUnitTypeGen:
     model = AssortmentLabel
 
-    def func(self):
+    @staticmethod
+    def func():
         AssortmentUnitType.objects.all().delete()
         AssortmentLabelType.objects.all().delete()
 
@@ -41,19 +43,15 @@ class LabelUnitTypeGen:
     requirements = {}
 
 
-register(LabelUnitTypeGen)
-
-
+@register
 class ArticleTypeGen:
     model = ArticleType
 
-    def func(self):
+    @staticmethod
+    def func():
         other = AccountingGroup.objects.get(name="Other")
         books = AccountingGroup.objects.get(name="Books")
         ArticleType.objects.get_or_create(name="Micro Usb Cable", accounting_group=other, ean=1234567890123)
         ArticleType.objects.get_or_create(name="Geen Probleem", accounting_group=books, ean=1234567890124)
 
     requirements = {AccountingGroup}
-
-
-register(ArticleTypeGen)

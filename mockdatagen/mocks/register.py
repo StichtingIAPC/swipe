@@ -5,10 +5,12 @@ from money.models import Currency, CurrencyData, Denomination
 from register.models import PaymentType, Register, RegisterCount, SalesPeriod, DenominationCount, RegisterMaster
 
 
+@register
 class PaymentTypeGen:
     model = PaymentType
 
-    def func(self):
+    @staticmethod
+    def func():
         PaymentType.objects.get_or_create(name="Maestro", is_invoicing=False)
         PaymentType.objects.get_or_create(name="Cash", is_invoicing=False)
         PaymentType.objects.get_or_create(name="Invoice", is_invoicing=True)
@@ -16,13 +18,13 @@ class PaymentTypeGen:
     requirements = {}
 
 
-register(PaymentTypeGen)
 
-
+@register
 class RegisterGen:
     model = Register
 
-    def func(self):
+    @staticmethod
+    def func():
         cur = CurrencyData.objects.get(iso="EUR")
         mae = PaymentType.objects.get(name="Maestro")
         cas = PaymentType.objects.get(name="Cash")
@@ -34,13 +36,12 @@ class RegisterGen:
     requirements = {PaymentType, CurrencyData}
 
 
-register(RegisterGen)
-
-
+@register
 class RegisterOpenClose:
     model = "PRE"
 
-    def func(self):
+    @staticmethod
+    def func():
         mae = Register.objects.get(name="Maestro Register")
         cash = Register.objects.get(name="Cash Register")
         mae.open(Decimal(0))
@@ -52,17 +53,13 @@ class RegisterOpenClose:
     requirements = {Register}
 
 
-register(RegisterOpenClose)
-
-
+@register
 class IncoiceOpen:
     model = "invoiceOpen"
 
-    def func(self):
+    @staticmethod
+    def func():
         inv = Register.objects.get(name="Invoice Register")
         inv.open(Decimal(0))
 
     requirements = {"PRE"}
-
-
-register(IncoiceOpen)
