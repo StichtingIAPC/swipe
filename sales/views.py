@@ -33,17 +33,17 @@ class SalesDictParsers:
         price = MoneyDictParsers.price_parser(obj.get("price"))
         order = DictParsers.int_parser(obj.get("order"), optional=True)
         clazz = DictParsers.string_parser(obj.get("class"))
-        if clazz is "SalesTransactionLine":
+        if clazz == "SalesTransactionLine":
             cost = MoneyDictParsers.cost_parser(obj.get("cost"))
             article = ArticleDictParsers.article_parser(obj.get("article"))
             return SalesTransactionLine(count=count, price=price, order=order, cost=cost, article=article)
-        elif clazz is "OtherCostTransactionLine":
+        elif clazz == "OtherCostTransactionLine":
             other_cost_type = DictParsers.int_parser(obj.get("other_cost_type"))
             return OtherCostTransactionLine(count=count, price=price, order=order, other_cost_type_id=other_cost_type)
-        elif clazz is "OtherTransactionLine":
+        elif clazz == "OtherTransactionLine":
             text = DictParsers.string_parser(obj.get("text"))
             return OtherTransactionLine(count=count, price=price, order=order, text=text)
-        elif clazz is "RefundTransactionLine":
+        elif clazz == "RefundTransactionLine":
             sold_transaction_line = DictParsers.int_parser(obj.get("sold_transaction_line"))
             test_rma = DictParsers.int_parser(obj.get("test_rma"), optional=True)
             creates_rma = DictParsers.boolean_parser(obj.get("creates_rma"), optional=True)
