@@ -208,7 +208,7 @@ module.exports = {
 			after: true,
 		}],
 		'line-comment-position': OFF,
-		'linebreak-style': [ WARN, 'windows' ],
+		'linebreak-style': OFF,
 		'lines-around-comments': OFF,
 		'lines-around-directive': [ WARN, {
 			before: 'always',
