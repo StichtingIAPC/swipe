@@ -1,25 +1,32 @@
 import { call, put } from "redux-saga/effects";
 import { push } from "react-router-redux";
 import { get, post, put as api_put } from "../api";
-import { startFetchingArticles, doneFetchingArticles, articleFetchError, articleInputError } from "../actions/articles";
+import { articleFetchError, articleInputError, doneFetchingArticles, startFetchingArticles } from "../actions/articles";
 
-export function* fetchArticles({redirectTo} = {}) {
+export function* fetchArticles({ redirectTo } = {}) {
+	let msg = null;
+
 	try {
 		const data = yield (yield call(
 			get,
 			'/article/',
 		)).json();
+
 		yield put(doneFetchingArticles(data));
-		if (redirectTo) {
+		if (redirectTo)
 			yield put(push(redirectTo));
-		}
 	}	catch (e) {
-		yield put(articleFetchError(e.message));
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = e.json();
+		yield put(articleFetchError(msg));
 	}
 }
 
 export function* createArticle({ article } = {}) {
 	const document = { ...article };
+	let msg = null;
 
 	try {
 		const data = yield (yield call(
@@ -28,21 +35,20 @@ export function* createArticle({ article } = {}) {
 			document,
 		)).json();
 
-		yield put(startFetchingArticles({
-			redirectTo: `/articlemanager/${data.id}/`,
-		}));
+		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
 			msg = e.json();
+
 		yield put(articleInputError(msg));
 	}
 }
 
 export function* updateArticle({ article } = {}) {
 	const document = { ...article };
+	let msg = null;
 
 	try {
 		const data = yield (yield call(
@@ -51,15 +57,13 @@ export function* updateArticle({ article } = {}) {
 			document,
 		)).json();
 
-		yield put(startFetchingArticles({
-			redirectTo: `/articlemanager/${data.id}/`,
-		}));
+		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
 			msg = e.json();
+
 		yield put(articleInputError(msg));
 	}
 }

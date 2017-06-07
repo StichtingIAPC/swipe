@@ -1,4 +1,5 @@
-import React, {PropTypes} from "react";
+import React from "react";
+import PropTypes from "prop-types";
 
 /**
  * Created by Matthias on 27/11/2016.
@@ -6,7 +7,8 @@ import React, {PropTypes} from "react";
 
 export default class CharField extends React.Component {
 	render() {
-		const {name, className, value, minLength, maxLength, ...rest} = this.props;
+		const { name, className, value, minLength, maxLength, ...rest } = this.props;
+
 		return (
 			<div className={className}>
 				<label className="col-sm-3 control-label" htmlFor={name}>{name}</label>
@@ -21,7 +23,7 @@ export default class CharField extends React.Component {
 						{...rest} />
 				</div>
 			</div>
-		)
+		);
 	}
 }
 
@@ -33,6 +35,4 @@ CharField.propTypes = {
 	className: PropTypes.string,
 };
 
-CharField.defaultProps = {
-	className: 'form-group',
-};
+CharField.defaultProps = { className: 'form-group' };

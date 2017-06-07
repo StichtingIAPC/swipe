@@ -1,6 +1,6 @@
 import React from "react";
-import {connect} from "react-redux";
-import {push} from "react-router-redux";
+import { connect } from "react-redux";
+import { push } from "react-router-redux";
 
 class Dashboard extends React.Component {
 	toHw(event) {
@@ -10,7 +10,7 @@ class Dashboard extends React.Component {
 	}
 
 	render() {
-		return <div><span>Dashboard </span><a onClick={this.toHw.bind(this)}>Naar HW</a></div>
+		return <div><span>Dashboard </span><a onClick={::this.toHw}>Naar HW</a></div>;
 	}
 }
 

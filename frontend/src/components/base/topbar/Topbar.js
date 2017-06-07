@@ -1,5 +1,6 @@
-import React, { PropTypes } from 'react';
-import UserBlock from './UserBlock';
+import React from "react";
+import PropTypes from "prop-types";
+import UserBlock from "./UserBlock";
 
 export class Topbar extends React.Component {
 	render() {
@@ -34,8 +35,6 @@ Topbar.propTypes = {
 	name: PropTypes.string,
 };
 
-Topbar.defaultProps = {
-	name: 'page',
-};
+Topbar.defaultProps = { name: 'page' };
 
 export default Topbar;

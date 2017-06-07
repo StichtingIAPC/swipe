@@ -261,7 +261,7 @@ module.exports = {
 		'no-restricted-syntax': OFF,
 		'no-tabs': OFF,
 		'no-ternary': OFF,
-		'no-trailing-spaces': OFF,
+		'no-trailing-spaces': WARN,
 		'no-underscore-dangle': OFF,
 		'no-unneeded-ternary': WARN,
 		'no-whitespace-before-property': ERROR,

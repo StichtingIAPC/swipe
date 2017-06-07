@@ -1,7 +1,7 @@
 import { takeEvery, takeLatest } from "redux-saga";
 import { login, saveLoginDetails } from "./sagas/auth.js";
-import { fetchSuppliers, createSupplier, updateSupplier } from "./sagas/suppliers";
-import { fetchArticles, createArticle, updateArticle } from "./sagas/articles";
+import { createSupplier, fetchSuppliers, updateSupplier } from "./sagas/suppliers";
+import { createArticle, fetchArticles, updateArticle } from "./sagas/articles";
 import assortment from "./sagas/assortment/assortment";
 import money from "./sagas/money/money";
 import register from "./sagas/register/register";
@@ -27,4 +27,4 @@ export default function* rootSaga() {
 	yield* assortment();
 	yield* money();
 	yield* register();
-};
+}

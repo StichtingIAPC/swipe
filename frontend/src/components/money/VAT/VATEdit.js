@@ -10,12 +10,17 @@ class VATEdit extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = this.getResetState();
-		this.renderVATPeriodRow = this.renderVATPeriodRow.bind(this);
+		this.renderVATPeriodRow = ::this.renderVATPeriodRow;
 	}
 
 	getResetState(props = this.props) {
-		if (props.VAT != null) return { ...props.VAT };
-		return { name: '', active: true, vatperiod_set: [] };
+		if (props.VAT !== null)
+			return { ...props.VAT };
+		return {
+			name: '',
+			active: true,
+			vatperiod_set: [],
+		};
 	}
 
 	reset() {
@@ -28,31 +33,34 @@ class VATEdit extends React.Component {
 
 	save(evt) {
 		evt.preventDefault();
-		if (this.state.id) {
+		if (this.state.id)
 			this.props.updateVAT(this.state);
-		} else {
+		 else
 			this.props.createVAT(this.state);
-		}
 	}
 
-	renderVATPeriodRow({VATPeriod}) {
+	renderVATPeriodRow({ VATPeriod }) {
 		const updateValue = (name, nextValue) => this.setState(state => {
-			const nstate = (
+			const nstate =
 				{
 					...state,
 					vatperiod_set: [
 						...state.vatperiod_set,
 					],
 				}
-			);
-			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e == VATPeriod)] = {...VATPeriod, [name]: nextValue};
+
+			;
+			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e === VATPeriod)] = {
+				...VATPeriod,
+				[name]: nextValue,
+			};
 			return nstate;
 		});
 
 		const remove = () => this.setState(state => (
 			{
 				...state,
-				vatperiod_set: state.vatperiod_set.filter((el) => el !== VATPeriod),
+				vatperiod_set: state.vatperiod_set.filter(el => el !== VATPeriod),
 			}
 		));
 
@@ -73,48 +81,46 @@ class VATEdit extends React.Component {
 					<td>{VATPeriod.vatrate}</td>
 					<td />
 				</tr>
-			)
-		} else {
-			return (
-				<tr>
-					<td>
-						<DatePicker
-							selected={VATPeriod.begin_date}
-							maxDate={VATPeriod.end_date}
-							dateFormat="YYYY-MM-DD"
-							onChange={val => updateValue('begin_date', val)} />
-					</td>
-					<td>
-						<DatePicker
-							selected={VATPeriod.end_date}
-							minDate={VATPeriod.begin_date}
-							dateFormat="YYYY-MM-DD"
-							onChange={val => updateValue('end_date', val)} />
-					</td>
-					<td>
-						<input
-							type="number"
-							min="0"
-							step="0.001"
-							value={VATPeriod.vatrate}
-							onChange={evt => updateValue('vatrate', evt.target.value)} />
-					</td>
-					<td>
-						<div className="input-group">
-							<div className="btn-group-xs">
-								<a className="btn bnt-xs btn-danger" onClick={() => remove()}>
-									<FontAwesome icon="ban" />
-								</a>
-							</div>
-						</div>
-					</td>
-				</tr>
-			)
+			);
 		}
+		return (
+			<tr>
+				<td>
+					<DatePicker
+						selected={VATPeriod.begin_date}
+						maxDate={VATPeriod.end_date}
+						dateFormat="YYYY-MM-DD"
+						onChange={val => updateValue('begin_date', val)} />
+				</td>
+				<td>
+					<DatePicker
+						selected={VATPeriod.end_date}
+						minDate={VATPeriod.begin_date}
+						dateFormat="YYYY-MM-DD"
+						onChange={val => updateValue('end_date', val)} />
+				</td>
+				<td>
+					<input
+						type="number"
+						min="0"
+						step="0.001"
+						value={VATPeriod.vatrate}
+						onChange={evt => updateValue('vatrate', evt.target.value)} />
+				</td>
+				<td>
+					<div className="input-group">
+						<div className="btn-group-xs">
+							<a className="btn bnt-xs btn-danger" onClick={() => remove()}>
+								<FontAwesome icon="ban" />
+							</a>
+						</div>
+					</div>
+				</td>
+			</tr>
+		);
 	}
 
 	render() {
-		let index = 0;
 		const addVATPeriod = () => this.setState(state => ({
 			...state,
 			vatperiod_set: [
@@ -129,14 +135,14 @@ class VATEdit extends React.Component {
 
 		return (
 			<Form
-				returnLink={this.state.id ? `/money/vat/${this.state.id}/` : "/money/"}
+				returnLink={this.state.id ? `/money/vat/${this.state.id}/` : '/money/'}
 				closeLink="/money/"
-				title={this.state.id ? this.state.name : "New VAT"}
-				onReset={this.reset.bind(this)}
-				onSubmit={this.save.bind(this)}
+				title={this.state.id ? this.state.name : 'New VAT'}
+				onReset={::this.reset}
+				onSubmit={::this.save}
 				error={this.props.errorMsg}>
-				<StringField name="Name" value={this.state.name} onChange={(evt) => this.setState({name: evt.target.value})} />
-				<BoolField name="Active" value={this.state.active} onChange={() => this.setState(({active}) => ({active: !active}))} />
+				<StringField name="Name" value={this.state.name} onChange={evt => this.setState({ name: evt.target.value })} />
+				<BoolField name="Active" value={this.state.active} onChange={() => this.setState(({ active }) => ({ active: !active }))} />
 				<div className="form-group">
 					<label className="col-sm-3 control-label">VAT periods</label>
 					<div className="col-sm-9">
@@ -158,8 +164,8 @@ class VATEdit extends React.Component {
 							<tbody>
 								{
 									this.state.vatperiod_set.map(
-										(vp) => (
-											<this.renderVATPeriodRow key={vp.id || 'new' + index++} VATPeriod={vp} />
+										(vp, i) => (
+											<this.renderVATPeriodRow key={vp.id || `new${i}`} VATPeriod={vp} />
 										)
 									)
 								}
@@ -168,17 +174,17 @@ class VATEdit extends React.Component {
 					</div>
 				</div>
 			</Form>
-		)
+		);
 	}
 }
 
 export default connect(
 	(state, ownProps) => ({
 		errorMsg: state.VATs.inputError,
-		VAT: (state.VATs.VATs.find((obj) => obj.id == ownProps.params.VATID) || null),
+		VAT: state.VATs.VATs.find(obj => obj.id === ownProps.params.VATID) || null,
 	}),
 	dispatch => ({
-		updateVAT: (VAT) => dispatch(updateVAT(VAT)),
-		createVAT: (VAT) => dispatch(createVAT(VAT)),
+		updateVAT: VAT => dispatch(updateVAT(VAT)),
+		createVAT: VAT => dispatch(createVAT(VAT)),
 	})
-)(VATEdit)
+)(VATEdit);
