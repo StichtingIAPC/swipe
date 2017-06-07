@@ -26,11 +26,24 @@ class DictParsers():
             raise ParseError("Object is not a list")
         return obj
 
-    def int_parser(obj: int):
+    @staticmethod
+    def int_parser(obj: int, optional=False):
         if obj is None:
+            if optional:
+                return None
             raise ParseError("Integer is missing")
         if not isinstance(obj, int):
             raise ParseError("Object is not an integer")
+        return obj
+
+    @staticmethod
+    def boolean_parser(obj: bool, optional=False):
+        if obj is None:
+            if optional:
+                return None
+            return ParseError("Boolean is missing")
+        if not isinstance(obj, bool):
+            raise ParseError("Object is not a boolean")
         return obj
 
 

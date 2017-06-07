@@ -4,11 +4,13 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse, JsonRespo
 from django.db.models import Sum
 import json
 
+from article.views import ArticleDictParsers
 from crm.views import CRMDictParsers
 from money.serializers import MoneySerializerField
 from money.views import MoneyDictParsers
 from register.views import ParseError
-from sales.models import Payment, Transaction, TransactionLine
+from sales.models import Payment, Transaction, TransactionLine, SalesTransactionLine, OtherCostTransactionLine, \
+    OtherTransactionLine, RefundTransactionLine
 from sales.serializers import PaymentSerializer, TransactionSerializer
 from register.models import RegisterMaster, SalesPeriod
 from tools.json_parsers import DictParsers
@@ -28,6 +30,30 @@ class SalesDictParsers:
     @staticmethod
     def transactionline_parser(obj: dict):
         count = DictParsers.int_parser(obj.get("count"))
+        price = MoneyDictParsers.price_parser(obj.get("price"))
+        order = DictParsers.int_parser(obj.get("order"), optional=True)
+        clazz = DictParsers.string_parser(obj.get("class"))
+        if clazz is "SalesTransactionLine":
+            cost = MoneyDictParsers.cost_parser(obj.get("cost"))
+            article = ArticleDictParsers.article_parser(obj.get("article"))
+            return SalesTransactionLine(count=count, price=price, order=order, cost=cost, article=article)
+        elif clazz is "OtherCostTransactionLine":
+            other_cost_type = DictParsers.int_parser(obj.get("other_cost_type"))
+            return OtherCostTransactionLine(count=count, price=price, order=order, other_cost_type_id=other_cost_type)
+        elif clazz is "OtherTransactionLine":
+            text = DictParsers.string_parser(obj.get("text"))
+            return OtherTransactionLine(count=count, price=price, order=order, text=text)
+        elif clazz is "RefundTransactionLine":
+            sold_transaction_line = DictParsers.int_parser(obj.get("sold_transaction_line"))
+            test_rma = DictParsers.int_parser(obj.get("test_rma"), optional=True)
+            creates_rma = DictParsers.boolean_parser(obj.get("creates_rma"), optional=True)
+            if not creates_rma:
+                creates_rma = False
+            return RefundTransactionLine(count=count, price=price, order=order,
+                                         sold_transaction_line_id=sold_transaction_line, test_rma=test_rma,
+                                         creates_rma=creates_rma)
+        else:
+            raise ParseError("Class is not valid")
 
 
 
@@ -173,6 +199,7 @@ class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
     @staticmethod
     def deconstruct_post_body(body):
         user = CRMDictParsers.user_parser(body.get("user"))
+        # Customer is Optional
         customer_int = body.get("customer", None)
         if customer_int:
             customer = CRMDictParsers.customer_parser(customer_int)
@@ -183,11 +210,26 @@ class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
         for payment in payments:
             payment_list.append(SalesDictParsers.payment_parser(payment))
         transactionlines = DictParsers.list_parser(body.get("transactionlines"))
-
+        transaction_list = []
+        for line in transactionlines:
+            transaction_list.append(SalesDictParsers.transactionline_parser(line))
+        data = type('', (), {})
+        data.user = user
+        data.customer = customer
+        data.transaction_lines = transaction_list
+        data.payments = payment_list
+        return data
 
     def post(self, request, *args, **kwargs):
         json_data = request.data # type: dict
         try:
-            TransactionCreateView.deconstruct_post_body(json_data)
+            data = TransactionCreateView.deconstruct_post_body(json_data)
         except ParseError as e:
             return HttpResponseBadRequest(reason=str(e))
+        try:
+            transaction = Transaction.create_transaction(user=data.user, payments=data.payments,
+                                           transaction_lines=data.transaction_lines, customer=data.customer)
+        except Exception as e:
+            return HttpResponseBadRequest(reason=str(e))
+        return HttpResponse(content=json.dumps(TransactionSerializer().to_representation(transaction), indent=4),
+                            content_type='application/json')
