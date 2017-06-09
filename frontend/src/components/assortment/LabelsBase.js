@@ -13,7 +13,7 @@ class LabelsModal extends React.Component {
 
 	render() {
 		return (
-			<div  className="row">
+			<div className="row">
 				<div className="col-sm-4">
 					<LabelTypeList activeID={this.props.labelTypeID} />
 					<UnitTypeList activeID={this.props.unitTypeID} />
@@ -22,7 +22,7 @@ class LabelsModal extends React.Component {
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
 			</div>
-		)
+		);
 	}
 }
 

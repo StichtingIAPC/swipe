@@ -2,29 +2,37 @@ import { call, put } from "redux-saga/effects";
 import { push } from "react-router-redux";
 import { get, post, put as api_put } from "../../api";
 import {
-	startFetchingPaymentTypes,
 	doneFetchingPaymentTypes,
 	paymentTypeFetchError,
-	paymentTypeInputError
+	paymentTypeInputError,
+	startFetchingPaymentTypes
 } from "../../actions/register/paymentTypes";
 
 export function* fetchPaymentTypes({ redirectTo } = {}) {
+	let msg = null;
+
 	try {
 		const data = yield (yield call(
 			get,
 			'/register/paymenttype/',
 		)).json();
+
 		yield put(doneFetchingPaymentTypes(data));
-		if (redirectTo) {
+		if (redirectTo)
 			yield put(push(redirectTo));
-		}
 	}	catch (e) {
-		yield put(paymentTypeFetchError(e.message));
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = e.json();
+
+		yield put(paymentTypeFetchError(msg));
 	}
 }
 
 export function* createPaymentType({ paymentType } = {}) {
 	const document = { ...paymentType };
+	let msg = null;
 
 	try {
 		const data = yield (yield call(
@@ -33,21 +41,20 @@ export function* createPaymentType({ paymentType } = {}) {
 			document,
 		)).json();
 
-		yield put(startFetchingPaymentTypes({
-			redirectTo: `/register/paymenttype/${data.id}/`,
-		}));
+		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
 			msg = e.json();
+
 		yield put(paymentTypeInputError(msg));
 	}
 }
 
 export function* updatePaymentType({ paymentType } = {}) {
 	const document = { ...paymentType };
+	let msg = null;
 
 	try {
 		const data = yield (yield call(
@@ -56,15 +63,13 @@ export function* updatePaymentType({ paymentType } = {}) {
 			document,
 		)).json();
 
-		yield put(startFetchingPaymentTypes({
-			redirectTo: `/register/paymenttype/${data.id}/`,
-		}));
+		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
 			msg = e.json();
+
 		yield put(paymentTypeInputError(msg));
 	}
 }

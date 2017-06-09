@@ -25,8 +25,19 @@ export function VATs(state = initialState, action) {
 		};
 	}
 
-	if (action.type === 'VAT_INPUT_ERROR') return { ...state, inputError: action.error };
-	if (action.type === 'VAT_FETCH_ERROR') return { ...state, fetching: false, fetchError: action.error };
+	if (action.type === 'VAT_INPUT_ERROR') 		{
+		return {
+			...state,
+			inputError: action.error,
+		};
+	}
+	if (action.type === 'VAT_FETCH_ERROR') 		{
+		return {
+			...state,
+			fetching: false,
+			fetchError: action.error,
+		};
+	}
 	return state;
 }
 

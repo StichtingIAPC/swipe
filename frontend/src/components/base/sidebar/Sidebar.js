@@ -1,4 +1,5 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginReset } from "../../../actions/auth";
 import SidebarLink from "./SidebarLink";
@@ -25,13 +26,11 @@ class Sidebar extends React.Component {
 	}
 }
 
-Sidebar.propTypes = {
-	children: PropTypes.node,
-};
+Sidebar.propTypes = { children: PropTypes.node };
 
 Sidebar.defaultProps = {};
 
 export default connect(
 	state => ({ isAuthenticated: state.auth.user !== null }),
-	dispatch => ({ logout: () => dispatch(loginReset())})
+	dispatch => ({ logout: () => dispatch(loginReset()) })
 )(Sidebar);

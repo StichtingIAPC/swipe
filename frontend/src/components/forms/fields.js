@@ -18,4 +18,4 @@ export {
 	CharField,
 	SelectField,
 	MoneyField,
-}
+};

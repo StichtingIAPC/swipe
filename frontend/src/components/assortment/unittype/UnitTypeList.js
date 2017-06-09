@@ -1,4 +1,5 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
@@ -12,9 +13,9 @@ class UnitTypeList extends React.Component {
 		]),
 	};
 
-	renderEntry({ activeID, unitType }) {
+	static RenderEntry({ activeID, unitType }) {
 		return (
-			<tr className={Number(activeID) == unitType.id ? 'active' : null}>
+			<tr className={+activeID === unitType.id ? 'active' : null}>
 				<td>
 					{unitType.type_long}
 				</td>
@@ -35,7 +36,7 @@ class UnitTypeList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	update(evt) {
@@ -55,7 +56,7 @@ class UnitTypeList extends React.Component {
 									className={`btn btn-sm ${this.props.invalid ? 'btn-danger' : 'btn-default'} ${this.props.fetching ? 'disabled' : ''}`}
 									to="#"
 									title="Refresh"
-									onClick={this.update.bind(this)}>
+									onClick={::this.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
@@ -81,11 +82,11 @@ class UnitTypeList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.unitTypes !== null ? this.props.unitTypes.map(
-								(unitType) => (
-									<this.renderEntry activeID={this.props.activeID} key={unitType.id} unitType={unitType} />
+							{this.props.unitTypes === null ? null : this.props.unitTypes.map(
+								unitType => (
+									<UnitTypeList.RenderEntry activeID={this.props.activeID} key={unitType.id} unitType={unitType} />
 								)
-							) : null}
+							)}
 						</tbody>
 					</table>
 				</div>
@@ -108,7 +109,5 @@ export default connect(
 		errorMsg: state.unitTypes.errorMsg,
 		fetching: state.labelTypes.fetching,
 	}),
-	dispatch => ({
-		update: () => dispatch(startFetchingUnitTypes()),
-	}),
-)(UnitTypeList)
+	dispatch => ({ update: () => dispatch(startFetchingUnitTypes()) }),
+)(UnitTypeList);
