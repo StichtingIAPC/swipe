@@ -42,7 +42,8 @@ class SalesDictParsers:
             return OtherCostTransactionLine(count=count, price=price, order=order, other_cost_type_id=other_cost_type)
         elif clazz == "OtherTransactionLine":
             text = DictParsers.string_parser(obj.get("text"))
-            return OtherTransactionLine(count=count, price=price, order=order, text=text)
+            accounting_group = DictParsers.int_parser(obj.get("accounting_group"))
+            return OtherTransactionLine(count=count, price=price, order=order, text=text, accounting_group_id=accounting_group)
         elif clazz == "RefundTransactionLine":
             sold_transaction_line = DictParsers.int_parser(obj.get("sold_transaction_line"))
             test_rma = DictParsers.int_parser(obj.get("test_rma"), optional=True)
