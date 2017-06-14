@@ -11,6 +11,6 @@ from django.contrib.auth.models import User
 class Command(BaseCommand):
     def handle(self, *args, **options):
         User.objects.all().delete()
-        User.objects.create_superuser("superswipe@iapc.utwente.nl", 'swipe', 'swipersdoswipe')
+        User.objects.create_superuser("swipe", 'swipe@iapc.utwente.nl', 'swipersdoswipe')
         print(User.objects.all())
         do_in_order(execute)
