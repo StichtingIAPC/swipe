@@ -1,8 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
-import { createRegister, updateRegister } from "../../../actions/register/registers";
-import Form from "../../forms/Form";
-import { BoolField, SelectField, StringField } from "../../forms/fields";
+import { createRegister, updateRegister } from "../../../../actions/register/registers";
+import Form from "../../../forms/Form";
+import { BoolField, SelectField, StringField } from "../../../forms/fields";
 
 class RegisterEdit extends React.Component {
 	constructor(props) {

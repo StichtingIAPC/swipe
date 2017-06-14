@@ -1,10 +1,10 @@
 import React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
-import { createCurrency, updateCurrency } from "../../../actions/money/currencies";
-import Form from "../../forms/Form";
-import { CharField, IntegerField, MoneyField, StringField } from "../../forms/fields";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import { createCurrency, updateCurrency } from "../../../../actions/money/currencies";
+import Form from "../../../forms/Form";
+import { CharField, IntegerField, MoneyField, StringField } from "../../../forms/fields";
+import FontAwesome from "../../../tools/icons/FontAwesome";
 
 /**
  * Created by Matthias on 26/11/2016.

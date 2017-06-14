@@ -1,9 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
-import { createLabelType, updateLabelType } from "../../../actions/assortment/labelTypes";
-import Form from "../../forms/Form";
-import StringField from "../../forms/StringField";
-import SelectField from "../../forms/SelectField";
+import { createLabelType, updateLabelType } from "../../../../actions/assortment/labelTypes";
+import Form from "../../../forms/Form";
+import StringField from "../../../forms/StringField";
+import SelectField from "../../../forms/SelectField";
 
 class LabelTypeEdit extends React.Component {
 	constructor(props) {

@@ -2,8 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
-import FontAwesome from "../../tools/icons/FontAwesome";
-import { startFetchingRegisters } from "../../../actions/register/registers";
+import FontAwesome from "../../../tools/icons/FontAwesome";
+import { startFetchingRegisters } from "../../../../actions/register/registers";
 
 class RegisterList extends React.Component {
 	static propTypes = {

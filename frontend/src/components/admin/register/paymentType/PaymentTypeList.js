@@ -2,8 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
-import FontAwesome from "../../tools/icons/FontAwesome";
-import { startFetchingPaymentTypes } from "../../../actions/register/paymentTypes";
+import FontAwesome from "../../../tools/icons/FontAwesome";
+import { startFetchingPaymentTypes } from "../../../../actions/register/paymentTypes";
 
 class PaymentTypeList extends React.Component {
 	constructor(props) {
