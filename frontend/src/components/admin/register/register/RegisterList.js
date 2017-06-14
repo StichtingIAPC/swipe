@@ -1,20 +1,23 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
 import { startFetchingRegisters } from "../../../actions/register/registers";
 
 class RegisterList extends React.Component {
+	static propTypes = {
+		registerID: PropTypes.string,
+	};
+
 	constructor(props) {
 		super(props);
-		this.state = {
-			open: true,
-		}
+		this.state = { open: true };
 	}
 
-	renderEntry({registerID, register}) {
+	static RenderEntry({ registerID, register }) {
 		return (
-			<tr className={Number(registerID) == register.id ? 'active' : null}>
+			<tr className={+registerID === register.id ? 'active' : null}>
 				<td>
 					{register.name}
 				</td>
@@ -44,12 +47,12 @@ class RegisterList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	toggle(evt) {
 		evt.preventDefault();
-		this.setState({open: !this.state.open});
+		this.setState({ open: !this.state.open });
 	}
 
 	render() {
@@ -82,7 +85,7 @@ class RegisterList extends React.Component {
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -102,8 +105,8 @@ class RegisterList extends React.Component {
 						</thead>
 						<tbody>
 							{this.props.registers.map(
-								(item) => (
-									<this.renderEntry registerID={this.props.registerID} key={item.id} register={item} />
+								item => (
+									<RegisterList.RenderEntry registerID={this.props.registerID} key={item.id} register={item} />
 								)
 							)}
 						</tbody>
@@ -118,13 +121,9 @@ class RegisterList extends React.Component {
 					) : null
 				}
 			</div>
-		)
+		);
 	}
 }
-
-RegisterList.propTypes = {
-	registerID: PropTypes.string,
-};
 
 export default connect(
 	state => ({
@@ -134,9 +133,9 @@ export default connect(
 	}),
 	dispatch => ({
 		dispatch,
-		update: (evt) => {
+		update: evt => {
 			evt.preventDefault();
 			dispatch(startFetchingRegisters());
 		},
 	}),
-)(RegisterList)
+)(RegisterList);

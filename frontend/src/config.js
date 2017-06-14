@@ -1,3 +1,1 @@
-export default {
-	baseurl: `//${window.location.hostname}:8000`,
-};
+export default { baseurl: `//${window.location.hostname}:8000` };

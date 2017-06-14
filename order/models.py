@@ -285,7 +285,7 @@ class OrderLine(Blame):
             if not isinstance(ol, OrderLine):
                 raise IncorrectDataError("ol should be OrderLine")
             # Temporary measure until complexities get worked out
-            raiseif(not hasattr(ol.wishable, 'sellabletype'), IncorrectDataError, "Wishable should be of sellable type")
+            raiseif(not hasattr(ol.wishable, 'sellabletype') and not isinstance(ol.wishable, SellableType), IncorrectDataError, "Wishable should be of sellable type")
             raiseif(not hasattr(ol, 'expected_sales_price'), IncorrectDataError, "Orderline should have expected sales price")
             # Temporary measure until complexities get worked out
             raiseif(not isinstance(ol.expected_sales_price, Price), IncorrectDataError, "Expected sales price should be a price")

@@ -23,7 +23,7 @@ class RegisterBase extends React.Component {
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
 			</div>
-		)
+		);
 	}
 }
 
@@ -33,4 +33,4 @@ export default connect(
 		paymentTypes,
 		currencies,
 	})
-)(RegisterBase)
+)(RegisterBase);

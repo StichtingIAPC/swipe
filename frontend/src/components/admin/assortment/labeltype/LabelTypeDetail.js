@@ -5,7 +5,8 @@ import FontAwesome from "../../tools/icons/FontAwesome";
 
 class LabelTypeDetail extends React.Component {
 	render() {
-		const labelType = this.props.labelType;
+		const { labelType } = this.props;
+
 		return (
 			<div className="box">
 				<div className="box-header with-border">
@@ -21,8 +22,8 @@ class LabelTypeDetail extends React.Component {
 				</div>
 				<div className="box-body">
 					<dl className="dl-horizontal">
-						{['name', 'description'].map(
-							(key) => (
+						{[ 'name', 'description' ].map(
+							key => (
 								<div key={key}>
 									<dt>{key}</dt>
 									<dd>{String(labelType[key])}</dd>
@@ -35,7 +36,7 @@ class LabelTypeDetail extends React.Component {
 						</div>
 						<div>
 							<dt>Labels</dt>
-							<dd>{this.props.labelType.labels.map(el => <span key={el}>{el}</span>) || "None"}</dd>
+							<dd>{labelType.labels.map(el => <span key={el}>{el}</span>) || 'None'}</dd>
 						</div>
 					</dl>
 				</div>
@@ -47,9 +48,10 @@ class LabelTypeDetail extends React.Component {
 export default connect(
 	(state, props) => {
 		const labelType = (state.labelTypes.labelTypes || []).find(el => el.id === Number(props.params.labelTypeID));
+
 		return {
 			labelType,
 			unitType: (state.unitTypes.unitTypes || []).find(el => el.id === Number(labelType.unit_type)),
-		}
+		};
 	}
 )(LabelTypeDetail);

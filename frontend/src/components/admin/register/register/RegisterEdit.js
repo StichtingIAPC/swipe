@@ -15,26 +15,41 @@ class RegisterEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.register != null) return { ...props.register };
-		return { name: '', currency: '', is_cash_register: true, is_active: true, payment_type: 0 };
+		if (props.register !== null)
+			return { ...props.register };
+		return {
+			name: '',
+			currency: '',
+			is_cash_register: true,
+			is_active: true,
+			payment_type: 0,
+		};
 	}
 
 	reset(evt, props) {
-		if (evt) evt.preventDefault();
+		if (evt)
+			evt.preventDefault();
 		this.setState(this.getResetState(props));
 	}
 
 	submit(evt) {
 		evt.preventDefault();
-		if (this.state.id == null) {
-			this.props.addRegister({ ...this.state, lastModified: new Date() });
+		if (this.state.id === null) {
+			this.props.addRegister({
+				...this.state,
+				lastModified: new Date(),
+			});
 		} else {
-			this.props.editRegister({ ...this.state, lastModified: new Date() });
+			this.props.editRegister({
+				...this.state,
+				lastModified: new Date(),
+			});
 		}
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.register != props.register) this.reset(undefined, props);
+		if (this.props.register !== props.register)
+			this.reset(null, props);
 	}
 
 	render() {
@@ -42,9 +57,9 @@ class RegisterEdit extends React.Component {
 
 		return (
 			<Form
-				title={(!!this.state.id ? 'Edit' : 'Add') + " register"}
-				onSubmit={this.submit.bind(this)}
-				onReset={this.reset.bind(this)}
+				title={`${this.state.id ? 'Edit' : 'Add'} register`}
+				onSubmit={::this.submit}
+				onReset={::this.reset}
 				error={this.props.errorMsg}
 				returnLink={this.props.register ? `/register/register/${this.props.register.id}/` : '/register/'}
 				closeLink="/register/">
@@ -59,11 +74,11 @@ class RegisterEdit extends React.Component {
 					name="Currency"
 					options={this.props.currencies} />
 				<BoolField
-					onChange={() => this.setState(({is_cash_register}) => ({is_cash_register: !is_cash_register}))}
+					onChange={() => this.setState(({ is_cash_register }) => ({ is_cash_register: !is_cash_register }))}
 					value={this.state.is_cash_register}
 					name="Cash register" />
 				<BoolField
-					onChange={() => this.setState(({is_active}) => ({is_active: !is_active}))}
+					onChange={() => this.setState(({ is_active }) => ({ is_active: !is_active }))}
 					name="Active"
 					value={this.state.is_active} />
 				<SelectField
@@ -72,16 +87,16 @@ class RegisterEdit extends React.Component {
 					value={this.state.payment_type}
 					options={this.props.paymentTypes} />
 			</Form>
-		)
+		);
 	}
 }
 
 
 export default connect(
 	(state, props) => ({
-		register: (state.registers.registers || []).filter(s => s.id === parseInt(props.params.registerID || '-1'))[0],
-		currencies: (state.currencies.currencies || []),
-		paymentTypes: (state.paymentTypes.paymentTypes || []),
+		register: (state.registers.registers || []).filter(s => s.id === parseInt(props.params.registerID || '-1', 10))[0],
+		currencies: state.currencies.currencies || [],
+		paymentTypes: state.paymentTypes.paymentTypes || [],
 	}),
 	dispatch => ({
 		addRegister: register => dispatch(createRegister(register)),

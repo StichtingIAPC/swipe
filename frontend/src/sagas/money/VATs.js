@@ -1,21 +1,33 @@
 import { call, put } from "redux-saga/effects";
 import { push } from "react-router-redux";
-import { startFetchingVATs, doneFetchingVATs, VATInputError, VATFetchError } from "../../actions/money/VATs";
+import { doneFetchingVATs, startFetchingVATs, VATFetchError, VATInputError } from "../../actions/money/VATs";
 import { get, post, put as api_put } from "../../api";
 
-const format_date = date => date ? (date instanceof Object ? date.format('YYYY-MM-DD') : date) : null;
+const format_date = date => {
+	if (date)
+		return date instanceof Object ? date.format('YYYY-MM-DD') : date;
+	return null;
+};
 
 export function* fetchVATs({ redirectTo }) {
+	let msg = null;
+
 	try {
 		const data = yield (yield call(
 			get,
 			'/money/vat/',
 		)).json();
+
 		yield put(doneFetchingVATs(data));
 		if (redirectTo)
 			yield put(push(redirectTo));
 	} catch (e) {
-		yield put(VATFetchError(e.message));
+		if (e instanceof Error)
+			msg = e.message;
+		if (e instanceof Response)
+			msg = e.json();
+
+		yield put(VATFetchError(msg));
 	}
 }
 
@@ -23,28 +35,29 @@ export function* createVAT({ vat }) {
 	const VAT = {
 		...vat,
 		vatperiod_set: vat.vatperiod_set.map(
-			(vp) => ({
+			vp => ({
 				...vp,
 				begin_date: format_date(vp.begin_date),
 				end_date: format_date(vp.end_date),
 			})
 		),
 	};
+	let msg = null;
+
 	try {
 		const data = yield (yield call(
 			post,
 			'/money/vat/',
 			VAT,
 		)).json();
-		yield put(startFetchingVATs({
-			redirectTo: `/money/vat/${data.id}/`,
-		}));
+
+		yield put(startFetchingVATs({ redirectTo: `/money/vat/${data.id}/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
-			msg = yield call(e.json.bind(e));
+			msg = yield e.json();
+
 		yield put(VATInputError(msg));
 	}
 }
@@ -53,27 +66,29 @@ export function* updateVAT({ vat }) {
 	const VAT = {
 		...vat,
 		vatperiod_set: vat.vatperiod_set.map(
-			(vp) => ({
+			vp => ({
 				...vp,
 				begin_date: format_date(vp.begin_date),
 				end_date: format_date(vp.end_date),
 			})
 		),
-	};	try {
+	};
+	let msg = null;
+
+	try {
 		const data = yield (yield call(
 			api_put,
 			`/money/vat/${VAT.id}/`,
 			VAT,
 		)).json();
-		yield put(startFetchingVATs({
-			redirectTo: `/money/vat/${data.id}/`,
-		}));
+
+		yield put(startFetchingVATs({ redirectTo: `/money/vat/${data.id}/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
-			msg = yield call(e.json.bind(e));
+			msg = yield e.json();
+
 		yield put(VATInputError(msg));
 	}
 }

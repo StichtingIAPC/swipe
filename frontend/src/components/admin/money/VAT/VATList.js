@@ -1,20 +1,23 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
 import { startFetchingVATs } from "../../../actions/money/VATs";
 
 class VATList extends React.Component {
+	static propTypes = {
+		activeID: PropTypes.string,
+	};
+
 	constructor(props) {
 		super(props);
-		this.state = {
-			open: true,
-		}
+		this.state = { open: true };
 	}
 
-	renderEntry({activeID, VAT}) {
+	static RenderEntry({ activeID, VAT }) {
 		return (
-			<tr className={Number(activeID) == VAT.id ? 'active' : null}>
+			<tr className={+activeID === VAT.id ? 'active' : null}>
 				<td>
 					{VAT.name}
 				</td>
@@ -44,12 +47,12 @@ class VATList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	toggle(evt) {
 		evt.preventDefault();
-		this.setState({open: !this.state.open});
+		this.setState({ open: !this.state.open });
 	}
 
 	render() {
@@ -82,7 +85,7 @@ class VATList extends React.Component {
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -102,8 +105,8 @@ class VATList extends React.Component {
 						</thead>
 						<tbody>
 							{this.props.VATs.map(
-								(item) => (
-									<this.renderEntry activeID={this.props.VATID} key={item.id} VAT={item} />
+								item => (
+									<VATList.RenderEntry activeID={this.props.VATID} key={item.id} VAT={item} />
 								)
 							)}
 						</tbody>
@@ -118,13 +121,9 @@ class VATList extends React.Component {
 					) : null
 				}
 			</div>
-		)
+		);
 	}
 }
-
-VATList.propTypes = {
-	activeID: PropTypes.string,
-};
 
 export default connect(
 	state => ({
@@ -133,9 +132,9 @@ export default connect(
 		fetching: state.VATs.fetching,
 	}),
 	dispatch => ({
-		update: (evt) => {
+		update: evt => {
 			evt.preventDefault();
 			dispatch(startFetchingVATs());
 		},
 	}),
-)(VATList)
+)(VATList);

@@ -1,4 +1,5 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
@@ -7,14 +8,12 @@ import { startFetchingPaymentTypes } from "../../../actions/register/paymentType
 class PaymentTypeList extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			open: true,
-		}
+		this.state = { open: true };
 	}
 
-	renderEntry({paymentTypeID, register}) {
+	static RenderEntry({ paymentTypeID, register }) {
 		return (
-			<tr className={Number(paymentTypeID) == register.id ? 'active' : null}>
+			<tr className={+paymentTypeID === register.id ? 'active' : null}>
 				<td>
 					{register.name}
 				</td>
@@ -44,12 +43,12 @@ class PaymentTypeList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	toggle(evt) {
 		evt.preventDefault();
-		this.setState({open: !this.state.open});
+		this.setState({ open: !this.state.open });
 	}
 
 	render() {
@@ -82,7 +81,7 @@ class PaymentTypeList extends React.Component {
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -102,8 +101,8 @@ class PaymentTypeList extends React.Component {
 						</thead>
 						<tbody>
 							{this.props.paymentTypes.map(
-								(item) => (
-									<this.renderEntry registerID={this.props.paymentTypeID} key={item.id} register={item} />
+								item => (
+									<PaymentTypeList.RenderEntry registerID={this.props.paymentTypeID} key={item.id} register={item} />
 								)
 							)}
 						</tbody>
@@ -118,13 +117,11 @@ class PaymentTypeList extends React.Component {
 					) : null
 				}
 			</div>
-		)
+		);
 	}
 }
 
-PaymentTypeList.propTypes = {
-	paymentTypeID: PropTypes.string,
-};
+PaymentTypeList.propTypes = { paymentTypeID: PropTypes.string };
 
 export default connect(
 	state => ({
@@ -134,9 +131,9 @@ export default connect(
 	}),
 	dispatch => ({
 		dispatch,
-		update: (evt) => {
+		update: evt => {
 			evt.preventDefault();
 			dispatch(startFetchingPaymentTypes());
 		},
 	}),
-)(PaymentTypeList)
+)(PaymentTypeList);

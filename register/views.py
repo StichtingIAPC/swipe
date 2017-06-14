@@ -12,24 +12,10 @@ from register.models import RegisterMaster, Register, DenominationCount, SalesPe
 from money.serializers import DenominationSerializer
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
     RegisterCountSerializer, SalesPeriodSerializer
+from tools.json_parsers import ParseError, DictParsers
 
-class DictParsers:
 
-    @staticmethod
-    def decimal_parser(string: str):
-        if string is None:
-            raise ParseError("String does not exist")
-        try:
-            float(string)
-        except ValueError:
-            raise ParseError("String is not a valid decimal")
-        return Decimal(string)
-
-    @staticmethod
-    def string_parser(string: str):
-        if string is None:
-            raise ParseError("String does not exist")
-        return string
+class RegisterDictParsers:
 
     @staticmethod
     def denominationcount_parser(dictionary: dict):
@@ -53,14 +39,6 @@ class DictParsers:
         if not type(integer) == int:
             raise ParseError("Register is not an int")
         return Register.objects.get(id=integer)
-
-    @staticmethod
-    def list_parser(obj: str):
-        if obj is None:
-            raise ParseError("List is missing")
-        if not isinstance(obj, list):
-            raise ParseError("Object is not a list")
-        return obj
 
 class RegisterListView(mixins.ListModelMixin,
                        mixins.CreateModelMixin,
@@ -204,7 +182,7 @@ class RegisterOpenView(mixins.RetrieveModelMixin,
         denoms = DictParsers.list_parser(body.get("denoms", None))
         denominations = []
         for denom in denoms:
-            denominations.append(DictParsers.denominationcount_parser(denom))
+            denominations.append(RegisterDictParsers.denominationcount_parser(denom))
         params = type('', (), {})
         params.memo = memo
         params.amount = amount
@@ -259,13 +237,13 @@ class SalesPeriodCloseView(mixins.RetrieveModelMixin,
         counts_and_denom_counts = []
 
         for datum in register_data:
-            register = DictParsers.register_parser(datum.get("register", None))
+            register = RegisterDictParsers.register_parser(datum.get("register", None))
             amount = DictParsers.decimal_parser(datum.get("amount", None))
             reg_count = RegisterCount(register=register, amount=amount)
             denom_counts = []
             denoms = DictParsers.list_parser(datum.get("denoms", None))
             for denom in denoms:
-                denom_count = DictParsers.denominationcount_parser(denom)
+                denom_count = RegisterDictParsers.denominationcount_parser(denom)
                 denom_count.register_count = reg_count
                 denom_counts.append(denom_count)
             counts_and_denom_counts.append((reg_count, denom_counts))
@@ -293,10 +271,19 @@ class SalesPeriodCloseView(mixins.RetrieveModelMixin,
 
 
 class SalesPeriodListView(mixins.ListModelMixin,
-                          mixins.CreateModelMixin,
                           generics.GenericAPIView):
     queryset = SalesPeriod.objects.all()
     serializer_class = SalesPeriodSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+class PaymentTypeOpenListView(mixins.ListModelMixin,
+                          generics.GenericAPIView):
+    serializer_class = PaymentTypeSerializer
+
+    def get_queryset(self):
+        return RegisterMaster.get_payment_types_for_open_registers()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -325,6 +312,3 @@ class SalesPeriodLatestView(mixins.ListModelMixin,
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-
-class ParseError(Exception):
-    pass

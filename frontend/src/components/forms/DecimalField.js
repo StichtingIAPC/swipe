@@ -6,7 +6,8 @@ import React from "react";
 
 export default class DecimalField extends React.Component {
 	render() {
-		const {name, className, ...rest} = this.props;
+		const { name, className, ...rest } = this.props;
+
 		return (
 			<div className={className || `form-group`}>
 				<label className="col-sm-3 control-label" htmlFor={name}>{name}</label>
@@ -21,6 +22,6 @@ export default class DecimalField extends React.Component {
 						{...rest} />
 				</div>
 			</div>
-		)
+		);
 	}
 }

@@ -1,4 +1,5 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
@@ -7,14 +8,12 @@ import { startFetchingAccountingGroups } from "../../../actions/money/accounting
 class AccountingGroupList extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			open: true,
-		}
+		this.state = { open: true };
 	}
 
-	renderEntry({activeID, accountingGroup}) {
+	static RenderEntry({ activeID, accountingGroup }) {
 		return (
-			<tr className={activeID == accountingGroup.id ? 'active' : null}>
+			<tr className={activeID === accountingGroup.id ? 'active' : null}>
 				<td>
 					{accountingGroup.name}
 				</td>
@@ -44,12 +43,12 @@ class AccountingGroupList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	toggle(evt) {
 		evt.preventDefault();
-		this.setState({open: !this.state.open});
+		this.setState({ open: !this.state.open });
 	}
 
 	render() {
@@ -82,7 +81,7 @@ class AccountingGroupList extends React.Component {
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-sm btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-sm btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -102,8 +101,8 @@ class AccountingGroupList extends React.Component {
 						</thead>
 						<tbody>
 							{this.props.accountingGroups.map(
-								(item) => (
-									<this.renderEntry activeID={this.props.activeID} key={item.id} accountingGroup={item} />
+								item => (
+									<AccountingGroupList.RenderEntry activeID={this.props.activeID} key={item.id} accountingGroup={item} />
 								)
 							)}
 						</tbody>
@@ -118,13 +117,11 @@ class AccountingGroupList extends React.Component {
 					) : null
 				}
 			</div>
-		)
+		);
 	}
 }
 
-AccountingGroupList.propTypes = {
-	activeID: PropTypes.string,
-};
+AccountingGroupList.propTypes = { activeID: PropTypes.string };
 
 export default connect(
 	state => ({
@@ -132,8 +129,8 @@ export default connect(
 		accountingGroups: state.accountingGroups.accountingGroups || [],
 		fetching: state.accountingGroups.fetching,
 	}),
-	(dispatch) => ({
-		update: (evt) => {
+	dispatch => ({
+		update: evt => {
 			evt.preventDefault();
 			dispatch(startFetchingAccountingGroups());
 		},

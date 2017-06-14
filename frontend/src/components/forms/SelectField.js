@@ -1,7 +1,9 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 
 export default function SelectField(props) {
-	const { name, className, options, value, selector, nameField, ...rest} = props;
+	const { name, className, options, value, selector, nameField, ...rest } = props;
+
 	return (
 		<div className={className || `form-group`}>
 			<label className="col-sm-3 control-label" htmlFor={name}>
@@ -14,8 +16,8 @@ export default function SelectField(props) {
 					value={value}
 					{...rest}>
 					{(options || []).map(
-						(opt) => (
-							<option key={opt[selector]} value={opt[selector] || ""}>{opt[nameField || 'name']}</option>
+						opt => (
+							<option key={opt[selector]} value={opt[selector] || ''}>{opt[nameField || 'name']}</option>
 						)
 					)}
 				</select>
@@ -36,6 +38,4 @@ SelectField.propTypes = {
 	options: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
-SelectField.defaultProps = {
-	selector: 'id',
-};
+SelectField.defaultProps = { selector: 'id' };

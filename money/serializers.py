@@ -44,7 +44,7 @@ class PriceSerializer(Serializer):
         return {
             'amount': str(obj.amount),
             'currency': obj.currency.iso,
-            'vat': obj.vat
+            'vat': str(obj.vat)
         }
 
 

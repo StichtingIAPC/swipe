@@ -1,6 +1,7 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 
-export default function BoolField ({name, className, value, onChange, ...rest}) {
+export default function BoolField({ name, className, value, onChange, ...rest }) {
 	return (
 		<div className={className || `form-group`}>
 			<label className="col-sm-3 control-label" htmlFor={name}>{name}</label>
@@ -15,15 +16,13 @@ export default function BoolField ({name, className, value, onChange, ...rest}) 
 					{...rest} />
 			</div>
 		</div>
-	)
+	);
 }
 
 BoolField.propTypes = {
 	name: PropTypes.string.isRequired,
-	value: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]).isRequired,
+	value: PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]).isRequired,
 	className: PropTypes.string,
 };
 
-BoolField.defaultProps = {
-	className: 'form-group',
-};
+BoolField.defaultProps = { className: 'form-group' };

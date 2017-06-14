@@ -6,7 +6,8 @@ import { incrementalTypes, valueTypes } from "../../../constants/assortment";
 
 class UnitTypeDetail extends React.Component {
 	render() {
-		const unitType = this.props.unitType;
+		const { unitType } = this.props;
+
 		return (
 			<div className="box">
 				<div className="box-header with-border">
@@ -22,8 +23,8 @@ class UnitTypeDetail extends React.Component {
 				</div>
 				<div className="box-body">
 					<dl className="dl-horizontal">
-						{['type_long', 'type_short'].map(
-							(key) => (
+						{[ 'type_long', 'type_short' ].map(
+							key => (
 								<div key={key}>
 									<dt>{key}</dt>
 									<dd>{String(unitType[key])}</dd>
@@ -32,11 +33,11 @@ class UnitTypeDetail extends React.Component {
 						)}
 						<div>
 							<dt>Value type</dt>
-							<dd>{(valueTypes.find(el => el.id === this.props.unitType.value_type) || {}).name}</dd>
+							<dd>{(valueTypes.find(el => el.id === unitType.value_type) || {}).name}</dd>
 						</div>
 						<div>
 							<dt>Counting type</dt>
-							<dd>{(incrementalTypes.find(el => el.id === this.props.unitType.incremental_type) || {}).name}</dd>
+							<dd>{(incrementalTypes.find(el => el.id === unitType.incremental_type) || {}).name}</dd>
 						</div>
 					</dl>
 				</div>
@@ -46,7 +47,5 @@ class UnitTypeDetail extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({
-		unitType: (state.unitTypes.unitTypes || []).find(el => el.id === Number(props.params.unitTypeID)),
-	}),
+	(state, props) => ({ unitType: (state.unitTypes.unitTypes || []).find(el => el.id === Number(props.params.unitTypeID)) }),
 )(UnitTypeDetail);

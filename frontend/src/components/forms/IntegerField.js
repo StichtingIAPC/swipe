@@ -1,11 +1,13 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 
 /**
  * Created by Matthias on 18/11/2016.
  */
 
 export default function IntegerField(props) {
-	const {name, className, value, onChange, ...rest} = props;
+	const { name, className, value, onChange, ...rest } = props;
+
 	return (
 		<div className={className || `form-group`}>
 			<label className="col-sm-3 control-label" htmlFor={name}>{name}</label>
@@ -21,7 +23,7 @@ export default function IntegerField(props) {
 					{...rest} />
 			</div>
 		</div>
-	)
+	);
 }
 
 IntegerField.propTypes = {

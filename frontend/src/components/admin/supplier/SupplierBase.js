@@ -19,10 +19,10 @@ class SupplierBase extends React.Component {
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
 			</div>
-		)
+		);
 	}
 }
 
 export default connect(
 	connectMixin({ suppliers })
-)(SupplierBase)
+)(SupplierBase);

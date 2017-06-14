@@ -38,7 +38,8 @@ import UnitTypeDetail from "./components/admin/assortment/unittype/UnitTypeDetai
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
-		if (this.props.user === null) this.props.authenticate(nextState.location.pathname);
+		if (this.props.user === null)
+			this.props.authenticate(nextState.location.pathname);
 	}
 
 	render() {
@@ -46,7 +47,7 @@ class Routes extends React.Component {
 			<Route path="/authentication">
 				<Route path="login" component={Authentication} />
 			</Route>
-			<Route path="/" component={Application} onEnter={this.checkAuthentication.bind(this)}>
+			<Route path="/" component={Application} onEnter={::this.checkAuthentication}>
 				<IndexRedirect to="/dashboard" />
 				<Route path="dashboard" component={Dashboard} />
 				<Route path="helloworld" component={HelloWorld} />
@@ -105,8 +106,9 @@ class Routes extends React.Component {
 export default connect(
 	state => ({ user: state.auth.currentUser }),
 	dispatch => ({
-		authenticate: (route) => {
-			if (route != null) dispatch(setRouteAfterAuthentication(route));
+		authenticate: route => {
+			if (route !== null)
+				dispatch(setRouteAfterAuthentication(route));
 			dispatch(push('/authentication/login'));
 		},
 	})

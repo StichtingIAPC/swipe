@@ -33,7 +33,7 @@ class ArticleSelector extends React.Component {
 					<LabelList labels={article.labels} className="product-description" />
 				</div>
 			</li>
-		)
+		);
 	}
 
 	render() {
@@ -51,9 +51,9 @@ class ArticleSelector extends React.Component {
 									<FontAwesome icon="repeat" />
 								</Link>
 								{
-									this.props.toolButtons ? (
-										this.props.toolButtons
-									) : null
+									this.props.toolButtons ?
+										this.props.toolButtons :
+									 null
 								}
 							</div>
 						</div>
@@ -83,7 +83,5 @@ export default connect(
 		}, state),
 		articles: state.articles.articles || [],
 	}),
-	dispatch => ({
-		updateList: () => dispatch(articles()),
-	})
-)(ArticleSelector)
+	dispatch => ({ updateList: () => dispatch(articles()) })
+)(ArticleSelector);
