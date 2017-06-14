@@ -2,7 +2,6 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.db import transaction, IntegrityError, models
-from django.db.models import Q, Sum
 from django.utils import timezone
 
 from article.models import ArticleType
@@ -273,7 +272,7 @@ class RegisterMaster:
                                           register__registercount__is_opening_count=True).distinct()
 
     @staticmethod
-    def get_last_closed_register_counts():
+    def get_closed_register_register_counts():
         # Very inefficient. If you can do this better, please do
         is_open = RegisterMaster.sales_period_is_open()
         closed_register_counts = []
@@ -290,11 +289,11 @@ class RegisterMaster:
                                                   is_opening_count=False)
             if len(counts) > 0:
                 closed_register_counts.append(counts.latest('time_created'))
+            else:
+                closed_register_counts.append(RegisterCount(register=register, id=-1, is_opening_count=False, sales_period_id=-1, time_created=None, amount=Decimal("0")))
+                # dummy registercount for never closed registers
 
-        closed_register_counts_ids = []
-        for reg in closed_register_counts:
-            closed_register_counts_ids.append(reg.id)
-        return RegisterCount.objects.filter(id__in=closed_register_counts_ids)
+        return closed_register_counts
 
 
 class ConsistencyChecker:

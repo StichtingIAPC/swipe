@@ -1,6 +1,5 @@
-from decimal import Decimal
-
 import json
+
 from django.db.models import F
 from django.db.models import Prefetch, Count
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
@@ -8,8 +7,7 @@ from rest_framework import mixins, generics
 
 from money.models import Denomination
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
- PaymentType, AlreadyOpenError, RegisterCountError
-from money.serializers import DenominationSerializer
+    PaymentType, AlreadyOpenError, RegisterCountError
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
     RegisterCountSerializer, SalesPeriodSerializer
 from tools.json_parsers import ParseError, DictParsers
@@ -98,7 +96,7 @@ class RegisterClosedView(mixins.ListModelMixin,
     serializer_class = RegisterCountSerializer
 
     def get_queryset(self):
-        return RegisterMaster.get_last_closed_register_counts()
+        return RegisterMaster.get_closed_register_register_counts()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
