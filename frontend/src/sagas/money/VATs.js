@@ -1,7 +1,7 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { doneFetchingVATs, startFetchingVATs, VATFetchError, VATInputError } from "../../actions/money/VATs";
-import { get, post, put as api_put } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { doneFetchingVATs, startFetchingVATs, VATFetchError, VATInputError } from '../../actions/money/VATs';
+import { get, post, put as api_put } from '../../api';
 
 const format_date = date => {
 	if (date)

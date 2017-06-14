@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../../api';
 import {
 	doneFetchingLabelTypes,
 	labelTypeFetchError,
 	labelTypeInputError,
 	startFetchingLabelTypes
-} from "../../actions/assortment/labelTypes";
+} from '../../actions/assortment/labelTypes';
 
 export function* fetchLabelTypes({ redirectTo } = {}) {
 	let msg = null;

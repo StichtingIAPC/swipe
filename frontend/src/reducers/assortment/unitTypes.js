@@ -1,5 +1,5 @@
-import { booleanField, replaceField, reSetField } from "../tools/subReducers";
-import { combineReducers } from "redux";
+import { booleanField, replaceField, reSetField } from '../tools/subReducers';
+import { combineReducers } from 'redux';
 
 export default combineReducers({
 	unitTypes: replaceField('UNIT_TYPE_FETCH_DONE', [], 'unitTypes'),

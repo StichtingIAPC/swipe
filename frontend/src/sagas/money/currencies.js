@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
 import {
 	currencyFetchError,
 	currencyInputError,
 	doneFetchingCurrencies,
 	startFetchingCurrencies
-} from "../../actions/money/currencies";
-import { get, post, put as api_put } from "../../api";
+} from '../../actions/money/currencies';
+import { get, post, put as api_put } from '../../api';
 
 export function* fetchCurrencies({ redirectTo }) {
 	let msg = null;

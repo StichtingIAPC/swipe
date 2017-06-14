@@ -1,5 +1,5 @@
-import { combineReducers } from "redux";
-import { booleanField, replaceField, reSetField } from "../tools/subReducers";
+import { combineReducers } from 'redux';
+import { booleanField, replaceField, reSetField } from '../tools/subReducers';
 
 export default combineReducers({
 	registers: replaceField('REGISTER_FETCH_DONE', [], 'registers'),

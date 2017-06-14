@@ -1,5 +1,5 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
 export default class DenominationCount extends React.PureComponent {
 	static propTypes = {
@@ -21,7 +21,8 @@ export default class DenominationCount extends React.PureComponent {
 	};
 
 	render() {
-		const {currency, amount, registerCount, disabled} = this.props;
+		const { currency, amount, registerCount, disabled } = this.props;
+
 		return (
 			<div className="input-group">
 				<span className="input-group-addon">{currency.symbol} {(+amount).toFixed(currency.digits)}</span>
@@ -30,8 +31,8 @@ export default class DenominationCount extends React.PureComponent {
 					className="form-control"
 					type="number" min={0} step={1}
 					onChange={evt => this.props.updateDenomAmount(amount, evt.target.value)}
-					value={(registerCount.denomination_counts.find(count => count.amount === amount) || {number: 0}).number} />
+					value={(registerCount.denomination_counts.find(count => count.amount === amount) || { number: 0 }).number} />
 			</div>
-		)
+		);
 	}
 }

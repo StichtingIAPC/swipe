@@ -1,10 +1,10 @@
-import React from "react";
-import { connect } from "react-redux";
+import React from 'react';
+import { connect } from 'react-redux';
 // Actions
-import { toggleSidebar } from "actions/sidebar.js";
+import { toggleSidebar } from 'actions/sidebar.js';
 // Components
-import Topbar from "components/base/topbar/Topbar.js";
-import Sidebar from "components/base/sidebar/Sidebar.js";
+import Topbar from 'components/base/topbar/Topbar.js';
+import Sidebar from 'components/base/sidebar/Sidebar.js';
 
 class Application extends React.Component {
 	render() {

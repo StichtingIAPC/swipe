@@ -1,5 +1,5 @@
-import { combineReducers } from "redux";
-import { booleanField, replaceField, reSetField } from "../tools/subReducers";
+import { combineReducers } from 'redux';
+import { booleanField, replaceField, reSetField } from '../tools/subReducers';
 
 export default combineReducers({
 	paymentTypes: replaceField('PAYMENT_TYPE_FETCH_DONE', [], 'paymentTypes'),

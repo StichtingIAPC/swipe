@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../../api';
 import {
 	doneFetchingRegisters,
 	registerFetchError,
 	registerInputError,
 	startFetchingRegisters
-} from "../../actions/register/registers";
+} from '../../actions/register/registers';
 
 export function* fetchRegisters({ redirectTo } = {}) {
 	let msg = null;

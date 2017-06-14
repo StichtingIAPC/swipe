@@ -1,11 +1,11 @@
-import React from "react";
-import { connect } from "react-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import { currencies } from "../../actions/money/currencies";
-import { registers } from "../../actions/register/registers";
-import { openRegisterCounts } from "../../actions/register/registerCount/openRegisters";
-import { closedRegisterCounts } from "../../actions/register/registerCount/closedRegisters";
-import RegisterOpenComponent from "./RegisterOpenComponent";
+import React from 'react';
+import { connect } from 'react-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { currencies } from '../../actions/money/currencies';
+import { registers } from '../../actions/register/registers';
+import { openRegisterCounts } from '../../actions/register/registerCount/openRegisters';
+import { closedRegisterCounts } from '../../actions/register/registerCount/closedRegisters';
+import RegisterOpenComponent from './RegisterOpenComponent';
 
 class RegisterCount extends React.Component {
 	componentWillMount() {

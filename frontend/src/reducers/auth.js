@@ -1,4 +1,4 @@
-import { setToken } from "../api";
+import { setToken } from '../api';
 const initialState = {
 	currentUser: null,
 	loading: false,

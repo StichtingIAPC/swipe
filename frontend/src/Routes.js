@@ -1,42 +1,42 @@
-import React from "react";
-import { connect } from "react-redux";
-import { IndexRedirect, Route, Router } from "react-router";
-import { push } from "react-router-redux";
-import { setRouteAfterAuthentication } from "actions/auth.js";
+import React from 'react';
+import { connect } from 'react-redux';
+import { IndexRedirect, Route, Router } from 'react-router';
+import { push } from 'react-router-redux';
+import { setRouteAfterAuthentication } from 'actions/auth.js';
 // Subrouters
-import { Error404 } from "./components/base/Error404";
-import Authentication from "./components/authentication/Authentication.js";
-import Application from "./components/Application.js";
-import Dashboard from "./components/Dashboard.js";
-import HelloWorld from "./components/HelloWorld.js";
+import { Error404 } from './components/base/Error404';
+import Authentication from './components/authentication/Authentication.js';
+import Application from './components/Application.js';
+import Dashboard from './components/Dashboard.js';
+import HelloWorld from './components/HelloWorld.js';
 // Supplier components
-import SupplierBase from "components/admin/supplier/SupplierBase";
-import SupplierEdit from "components/admin/supplier/SupplierEdit";
-import SupplierDetail from "components/admin/supplier/SupplierDetail";
+import SupplierBase from 'components/admin/supplier/SupplierBase';
+import SupplierEdit from 'components/admin/supplier/SupplierEdit';
+import SupplierDetail from 'components/admin/supplier/SupplierDetail';
 // Money components
-import MoneyBase from "./components/admin/money/MoneyBase";
-import CurrencyDetail from "./components/admin/money/currency/CurrencyDetail";
-import CurrencyEdit from "./components/admin/money/currency/CurrencyEdit";
-import VATDetail from "./components/admin/money/VAT/VATDetail";
-import VATEdit from "./components/admin/money/VAT/VATEdit";
-import AccountingGroupEdit from "./components/admin/money/accountingGroup/AccountingGroupEdit";
-import AccountingGroupDetail from "./components/admin/money/accountingGroup/AccountingGroupDetail";
+import MoneyBase from './components/admin/money/MoneyBase';
+import CurrencyDetail from './components/admin/money/currency/CurrencyDetail';
+import CurrencyEdit from './components/admin/money/currency/CurrencyEdit';
+import VATDetail from './components/admin/money/VAT/VATDetail';
+import VATEdit from './components/admin/money/VAT/VATEdit';
+import AccountingGroupEdit from './components/admin/money/accountingGroup/AccountingGroupEdit';
+import AccountingGroupDetail from './components/admin/money/accountingGroup/AccountingGroupDetail';
 // Article components
-import ArticleEdit from "./components/article/ArticleEdit";
-import ArticleManager from "./components/article/ArticleManager";
+import ArticleEdit from './components/article/ArticleEdit';
+import ArticleManager from './components/article/ArticleManager';
 // Register components
-import RegisterBase from "./components/admin/register/RegisterBase";
-import RegisterEdit from "./components/admin/register/register/RegisterEdit";
-import RegisterDetail from "./components/admin/register/register/RegisterDetail";
-import PaymentTypeEdit from "./components/admin/register/paymentType/PaymentTypeEdit";
-import PaymentTypeDetail from "./components/admin/register/paymentType/PaymentTypeDetail";
-import LabelsBase from "./components/admin/assortment/LabelsBase";
-import LabelTypeEdit from "./components/admin/assortment/labeltype/LabelTypeEdit";
-import UnitTypeEdit from "./components/admin/assortment/unittype/UnitTypeEdit";
-import LabelTypeDetail from "./components/admin/assortment/labeltype/LabelTypeDetail";
-import UnitTypeDetail from "./components/admin/assortment/unittype/UnitTypeDetail";
-import { CloseRegisterCount, OpenRegisterCount } from "./components/registercount/RegisterCount";
-import RegisterCounting from "./components/registercount/RegisterCounting";
+import RegisterBase from './components/admin/register/RegisterBase';
+import RegisterEdit from './components/admin/register/register/RegisterEdit';
+import RegisterDetail from './components/admin/register/register/RegisterDetail';
+import PaymentTypeEdit from './components/admin/register/paymentType/PaymentTypeEdit';
+import PaymentTypeDetail from './components/admin/register/paymentType/PaymentTypeDetail';
+import LabelsBase from './components/admin/assortment/LabelsBase';
+import LabelTypeEdit from './components/admin/assortment/labeltype/LabelTypeEdit';
+import UnitTypeEdit from './components/admin/assortment/unittype/UnitTypeEdit';
+import LabelTypeDetail from './components/admin/assortment/labeltype/LabelTypeDetail';
+import UnitTypeDetail from './components/admin/assortment/unittype/UnitTypeDetail';
+import { CloseRegisterCount, OpenRegisterCount } from './components/registercount/RegisterCount';
+import RegisterCounting from './components/registercount/RegisterCounting';
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {

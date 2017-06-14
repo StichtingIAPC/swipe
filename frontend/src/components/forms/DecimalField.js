@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 /**
  * Created by Matthias on 18/11/2016.

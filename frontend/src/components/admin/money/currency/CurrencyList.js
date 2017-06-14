@@ -1,9 +1,9 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import { startFetchingCurrencies } from "../../../../actions/money/currencies";
-import FontAwesome from "../../../tools/icons/FontAwesome";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import { startFetchingCurrencies } from '../../../../actions/money/currencies';
+import FontAwesome from '../../../tools/icons/FontAwesome';
 /**
  * Created by Matthias on 26/11/2016.
  */

@@ -1,6 +1,6 @@
-import React from "react";
-import PropTypes from "prop-types";
-import DenominationCount from "./DenominationCount";
+import React from 'react';
+import PropTypes from 'prop-types';
+import DenominationCount from './DenominationCount';
 
 export default class RegisterOpenComponent extends React.Component {
 	static propTypes = {
@@ -15,7 +15,7 @@ export default class RegisterOpenComponent extends React.Component {
 		super(props);
 		this.state = {
 			selected: false,
-		}
+		};
 	}
 
 	render() {
@@ -29,7 +29,7 @@ export default class RegisterOpenComponent extends React.Component {
 				<div className="box-body">
 					<div className="input-group">
 						<span className="input-group-addon">
-							<input type="checkbox" checked={this.state.selected} onChange={() => this.setState(({ selected }) => ({selected: !selected}))} />
+							<input type="checkbox" checked={this.state.selected} onChange={() => this.setState(({ selected }) => ({ selected: !selected }))} />
 						</span>
 						<span className="input-group-addon">{currency.symbol}</span>
 						<input
@@ -46,7 +46,7 @@ export default class RegisterOpenComponent extends React.Component {
 					}
 				</div>
 			</div>
-		)
+		);
 	}
 }
 

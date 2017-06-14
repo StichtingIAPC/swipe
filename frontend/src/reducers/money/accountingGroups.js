@@ -1,5 +1,5 @@
-import { combineReducers } from "redux";
-import { booleanField, replaceField, reSetField } from "../tools/subReducers";
+import { combineReducers } from 'redux';
+import { booleanField, replaceField, reSetField } from '../tools/subReducers';
 
 export default combineReducers({
 	accountingGroups: replaceField('ACCOUNTING_GROUP_FETCH_DONE', [], 'accountingGroups'),

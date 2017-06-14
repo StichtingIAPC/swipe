@@ -1,5 +1,5 @@
-import { booleanField, replaceField, reSetField } from "./tools/subReducers";
-import { combineReducers } from "redux";
+import { booleanField, replaceField, reSetField } from './tools/subReducers';
+import { combineReducers } from 'redux';
 
 export default combineReducers({
 	suppliers: replaceField('SUPPLIER_FETCH_DONE', [], 'suppliers'),

@@ -1,10 +1,10 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { connectMixin } from "../../core/stateRequirements";
-import { labelTypes } from "../../actions/assortment/labelTypes";
-import { unitTypes } from "../../actions/assortment/unitTypes";
-import AsyncSelectBox from "../base/AsyncSelectBox";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { connectMixin } from '../../core/stateRequirements';
+import { labelTypes } from '../../actions/assortment/labelTypes';
+import { unitTypes } from '../../actions/assortment/unitTypes';
+import AsyncSelectBox from '../base/AsyncSelectBox';
 
 class LabelField extends React.Component {
 	static propTypes = { onAddLabel: PropTypes.func.isRequired };

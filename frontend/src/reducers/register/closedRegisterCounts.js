@@ -1,5 +1,5 @@
-import { combineReducers } from "redux";
-import { booleanField, replaceField, reSetField } from "../tools/subReducers";
+import { combineReducers } from 'redux';
+import { booleanField, replaceField, reSetField } from '../tools/subReducers';
 
 export default combineReducers({
 	closedRegisterCounts: replaceField('REGISTERCOUNT_FETCH_CLOSED_REGISTERCOUNTS_DONE', [], 'registerCounts'),

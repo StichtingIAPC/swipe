@@ -1,8 +1,8 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import FontAwesome from "../../../tools/icons/FontAwesome";
-import { incrementalTypes, valueTypes } from "../../../../constants/assortment";
+import React from 'react';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import { incrementalTypes, valueTypes } from '../../../../constants/assortment';
 
 class UnitTypeDetail extends React.Component {
 	render() {

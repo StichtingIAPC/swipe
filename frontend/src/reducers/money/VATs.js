@@ -1,15 +1,16 @@
-import { combineReducers } from "redux";
-import { booleanField, reSetField } from "../tools/subReducers";
+import { combineReducers } from 'redux';
+import { booleanField, reSetField } from '../tools/subReducers';
 
 export default combineReducers({
 	VATs: (state = [], action) => {
-		if (action.type === 'VAT_FETCH_DONE')
+		if (action.type === 'VAT_FETCH_DONE')			{
 			return action.VATs.map(
 				VAT => ({
 					...VAT,
 					vatperiod_set: VAT.vatperiod_set.sort((a, b) => new Date(a.begin_date).getTime() - new Date(b.begin_date).getTime()),
 				})
 			);
+		}
 		return state;
 	},
 	fetching: booleanField({

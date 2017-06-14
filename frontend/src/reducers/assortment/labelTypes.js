@@ -1,5 +1,5 @@
-import { booleanField, replaceField, reSetField } from "../tools/subReducers";
-import { combineReducers } from "redux";
+import { booleanField, replaceField, reSetField } from '../tools/subReducers';
+import { combineReducers } from 'redux';
 
 export default combineReducers({
 	labelTypes: replaceField('LABEL_TYPE_FETCH_DONE', [], 'labelTypes'),

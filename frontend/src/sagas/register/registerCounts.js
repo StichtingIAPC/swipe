@@ -1,14 +1,14 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get } from '../../api';
 import {
 	doneFetchingOpenRegisterCounts,
 	openRegisterCountFetchError
-} from "../../actions/register/registerCount/openRegisters";
+} from '../../actions/register/registerCount/openRegisters';
 import {
 	closedRegisterCountFetchError,
 	doneFetchingClosedRegisterCounts
-} from "../../actions/register/registerCount/closedRegisters";
+} from '../../actions/register/registerCount/closedRegisters';
 
 export function* fetchOpenRegisterCounts({ redirectTo }) {
 	try {

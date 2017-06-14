@@ -1,8 +1,8 @@
-import { takeEvery } from "redux-saga";
-import { takeLatest } from "redux-saga/effects";
-import { createRegister, fetchRegisters, updateRegister } from "./registers";
-import { createPaymentType, fetchPaymentTypes, updatePaymentType } from "./paymentTypes";
-import { fetchClosedRegisterCounts, fetchOpenRegisterCounts } from "./registerCounts";
+import { takeEvery } from 'redux-saga';
+import { takeLatest } from 'redux-saga/effects';
+import { createRegister, fetchRegisters, updateRegister } from './registers';
+import { createPaymentType, fetchPaymentTypes, updatePaymentType } from './paymentTypes';
+import { fetchClosedRegisterCounts, fetchOpenRegisterCounts } from './registerCounts';
 
 export default function* registerSagas() {
 	// Register sagas

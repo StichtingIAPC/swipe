@@ -1,9 +1,9 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import FontAwesome from "../../../tools/icons/FontAwesome";
-import { startFetchingVATs } from "../../../../actions/money/VATs";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import { startFetchingVATs } from '../../../../actions/money/VATs';
 
 class VATList extends React.Component {
 	static propTypes = {
