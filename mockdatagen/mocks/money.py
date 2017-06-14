@@ -1,7 +1,7 @@
 from _pydecimal import Decimal
 from datetime import datetime
 
-from mockdatagen.models import register
+from mockdatagen.helpers import register
 from money.models import CurrencyData, Denomination, VAT, VATPeriod, AccountingGroup
 
 

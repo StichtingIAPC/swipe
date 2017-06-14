@@ -1,6 +1,6 @@
 from _pydecimal import Decimal
 
-from mockdatagen.models import register
+from mockdatagen.helpers import register
 from money.models import Currency, CurrencyData, Denomination
 from register.models import PaymentType, Register, RegisterCount, SalesPeriod, DenominationCount, RegisterMaster
 

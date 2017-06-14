@@ -1,7 +1,7 @@
 from _pydecimal import Decimal
 
 from crm.models import Customer, Person, Organisation, ContactOrganisation
-from mockdatagen.models import register
+from mockdatagen.helpers import register
 from money.models import Currency, CurrencyData, Denomination
 from register.models import PaymentType, Register, RegisterCount, SalesPeriod, DenominationCount, RegisterMaster
 
