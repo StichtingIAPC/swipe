@@ -1,8 +1,8 @@
-import { call, put, select } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { loginError, loginSuccess, setRouteAfterAuthentication } from "../actions/auth.js";
-import config from "../config.js";
-import fetch from "isomorphic-fetch";
+import { call, put, select } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { loginError, loginSuccess, setRouteAfterAuthentication } from '../actions/auth.js';
+import config from '../config.js';
+import fetch from 'isomorphic-fetch';
 
 export function* login({ username, password }) {
 	const form = new FormData();
@@ -10,7 +10,7 @@ export function* login({ username, password }) {
 	form.append('username', username);
 	form.append('password', password);
 	try {
-		const result = yield call(fetch, `${config.baseurl}/auth/login/`, {
+		const result = yield call(fetch, `${config.backendUrl}/auth/login/`, {
 			method: 'POST',
 			body: form,
 		});

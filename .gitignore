@@ -118,3 +118,6 @@ target/
 
 # Node package directory
 node_modules/
+
+# Replacer settings
+settings.local.js

@@ -1,1 +1,1 @@
-export default { baseurl: `//${window.location.hostname}:8000` };
+export default { backendUrl: __BACKEND_URL__ };

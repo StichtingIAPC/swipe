@@ -1,9 +1,24 @@
 'use strict';
 
 const path = require('path');
+const webpack = require('webpack');
 
 const APP_DIR = path.resolve(path.join(__dirname, 'frontend', 'src'));
 const BUILD_DIR = path.resolve(path.join(__dirname, 'frontend', 'dist'));
+
+let replacements = {};
+try {
+	// eslint-disable-next-line global-require
+	replacements = require(path.resolve(path.join(APP_DIR, 'config.local')));
+} catch (e) { console.log('No config.local.js found, continueing on without changing any settings')}
+
+let defaults = {
+	'__BACKEND_URL__': '`//${window.location.hostname}:8000`',
+	'process.env': {
+		NODE_ENV: JSON.stringify('develop'),
+	},
+};
+
 
 module.exports = {
 	entry: [
@@ -40,6 +55,9 @@ module.exports = {
 			},
 		],
 	},
+	plugins: [
+		new webpack.DefinePlugin(Object.assign({}, defaults, replacements)),
+	],
 	resolve: {
 		modules: [ 'node_modules', APP_DIR ],
 	},

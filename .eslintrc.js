@@ -1,9 +1,11 @@
-
 const ERROR = 2;
 const WARN = 1;
 const OFF = 0;
 
 module.exports = {
+	globals: {
+		__BACKEND_URL__: true
+	},
 	env: {
 		browser: true,
 		es6: true,
