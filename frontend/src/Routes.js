@@ -17,6 +17,8 @@ import SupplierDetail from "components/supplier/SupplierDetail";
 import MoneyBase from "./components/money/MoneyBase";
 import CurrencyDetail from "./components/money/currency/CurrencyDetail";
 import CurrencyEdit from "./components/money/currency/CurrencyEdit";
+// Register components
+import Register from "./components/register/Register";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -48,7 +50,7 @@ class Routes extends React.Component {
 					<IndexRedirect to="register" />
 					<Route path="register">
 						<IndexRedirect to="state" />
-						<Route path="state" />
+						<Route path="state" component={Register} />
 						<Route path="open" />
 						<Route path="close" />
 					</Route>

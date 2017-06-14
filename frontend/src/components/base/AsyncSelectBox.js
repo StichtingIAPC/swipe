@@ -11,7 +11,7 @@ export default class AsyncSelectBox extends React.Component {
 
 	constructor() {
 		super();
-		this.state = { value: '', focused: false };
+		this.state = { focused: false };
 	}
 
 	render() {
