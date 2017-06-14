@@ -35,6 +35,8 @@ import LabelTypeEdit from "./components/admin/assortment/labeltype/LabelTypeEdit
 import UnitTypeEdit from "./components/admin/assortment/unittype/UnitTypeEdit";
 import LabelTypeDetail from "./components/admin/assortment/labeltype/LabelTypeDetail";
 import UnitTypeDetail from "./components/admin/assortment/unittype/UnitTypeDetail";
+import { CloseRegisterCount, OpenRegisterCount } from "./components/registercount/RegisterCount";
+import RegisterCounting from "./components/registercount/RegisterCounting";
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
@@ -51,7 +53,10 @@ class Routes extends React.Component {
 				<IndexRedirect to="/dashboard" />
 				<Route path="dashboard" component={Dashboard} />
 				<Route path="helloworld" component={HelloWorld} />
-
+				<Route path="registercount" component={RegisterCounting}>
+					<Route path="open" component={OpenRegisterCount} />
+					<Route path="close" component={CloseRegisterCount} />
+				</Route>
 				<Route path="supplier/" component={SupplierBase}>
 					<Route path="create/" component={SupplierEdit} />
 					<Route path=":supplierID/edit/" component={SupplierEdit} />
