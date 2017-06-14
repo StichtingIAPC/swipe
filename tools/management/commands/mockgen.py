@@ -9,7 +9,20 @@ from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--yes-i-am-sure',
+            action='store_true',
+            dest='ok',
+            default=False,
+            help='Actually run the command.'
+        )
+
+    def handle(self, *args, ok, **options):
+        # Check for --yes-i-am-sure flag
+        if not ok:
+            self.stdout.write("To actually run the command, use the option '--yes-i-am-sure'. ")
+            return
         User.objects.all().delete()
         User.objects.create_superuser("swipe", 'swipe@iapc.utwente.nl', 'swipersdoswipe')
         print(User.objects.all())
