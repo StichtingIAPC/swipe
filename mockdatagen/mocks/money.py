@@ -1,11 +1,11 @@
 from _pydecimal import Decimal
 from datetime import datetime
 
-from mockdatagen.helpers import register_mock_gen
+from mockdatagen.helpers import MockGen
 from money.models import CurrencyData, Denomination, VAT, VATPeriod, AccountingGroup
 
 
-@register_mock_gen
+@MockGen.register
 class CurrencyDataGen:
     model = CurrencyData
 
@@ -16,7 +16,7 @@ class CurrencyDataGen:
     requirements = {}
 
 
-@register_mock_gen
+@MockGen.register
 class DenominationDataGen:
     model = Denomination
 
@@ -40,7 +40,7 @@ class DenominationDataGen:
     requirements = {CurrencyData}
 
 
-@register_mock_gen
+@MockGen.register
 class VatDataGen:
     model = VAT
 
@@ -52,7 +52,7 @@ class VatDataGen:
     requirements = {}
 
 
-@register_mock_gen
+@MockGen.register
 class VatPeriodDataGen:
     model = VATPeriod
 
@@ -67,7 +67,7 @@ class VatPeriodDataGen:
     requirements = {VAT}
 
 
-@register_mock_gen
+@MockGen.register
 class AccountingGroupGen:
     model = AccountingGroup
 

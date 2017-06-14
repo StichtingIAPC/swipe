@@ -1,12 +1,9 @@
-from _pydecimal import Decimal
 
-from crm.models import Customer, Person, Organisation, ContactOrganisation
-from mockdatagen.helpers import register_mock_gen
-from money.models import Currency, CurrencyData, Denomination
-from register.models import PaymentType, Register, RegisterCount, SalesPeriod, DenominationCount, RegisterMaster
+from crm.models import Person, Organisation, ContactOrganisation
+from mockdatagen.helpers import MockGen
 
 
-@register_mock_gen
+@MockGen.register
 class CustomerGen:
     model = Person
 
@@ -23,7 +20,7 @@ class CustomerGen:
     requirements = {}
 
 
-@register_mock_gen
+@MockGen.register
 class OrganisationGen:
     model = Organisation
 
@@ -44,7 +41,7 @@ class OrganisationGen:
     requirements = {Person}
 
 
-@register_mock_gen
+@MockGen.register
 class ContactOrganisationGen:
     model = ContactOrganisation
 

@@ -1,13 +1,10 @@
-from _pydecimal import Decimal
-from datetime import datetime
-
 from article.models import ArticleType
 from assortment.models import AssortmentUnitType, AssortmentLabelType, AssortmentLabel
-from mockdatagen.helpers import register_mock_gen
-from money.models import CurrencyData, Denomination, VAT, VATPeriod, AccountingGroup
+from mockdatagen.helpers import MockGen
+from money.models import AccountingGroup
 
 
-@register_mock_gen
+@MockGen.register
 class LabelUnitTypeGen:
     model = AssortmentLabel
 
@@ -43,7 +40,7 @@ class LabelUnitTypeGen:
     requirements = {}
 
 
-@register_mock_gen
+@MockGen.register
 class ArticleTypeGen:
     model = ArticleType
 

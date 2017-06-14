@@ -1,27 +1,6 @@
 import queue
 
 from copy import deepcopy
-from django.db import models
-
-# Create your models here.
-from money.models import Currency, CurrencyData
-
-
-def register_mock_gen(cls):
-    inst = MockGen.get_instance()
-
-    model = cls.model
-    func = cls.func
-    requirements = cls.requirements
-    if not inst.requiredBy.get(model):
-        inst.requiredBy[model] = []
-    inst.requires[model] = requirements
-    inst.functions[model] = func
-    for req in requirements:
-        if not inst.requiredBy.get(req):
-            inst.requiredBy[req] = []
-        inst.requiredBy[req].append(model)
-    return cls
 
 
 class MockGen:
@@ -29,6 +8,23 @@ class MockGen:
     requires = {}
     requiredBy = {}
     functions = {}
+
+    @classmethod
+    def register(cls, to_register):
+        inst = MockGen.get_instance()
+
+        model = to_register.model
+        func = to_register.func
+        requirements = to_register.requirements
+        if not inst.requiredBy.get(model):
+            inst.requiredBy[model] = []
+        inst.requires[model] = requirements
+        inst.functions[model] = func
+        for req in requirements:
+            if not inst.requiredBy.get(req):
+                inst.requiredBy[req] = []
+            inst.requiredBy[req].append(model)
+        return to_register
 
     @classmethod
     def get_instance(cls):
