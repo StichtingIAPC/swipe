@@ -6,28 +6,29 @@ const initialState = {
 };
 
 export default function articleReducer(state = initialState, action) {
-	if (action.type === 'ARTICLE_FETCH_START')		 		{
+	if (action.type === 'ARTICLE_FETCH_START') {
 		return {
 			...state,
 			fetching: true,
 			inputError: null,
 		};
 	}
-	if (action.type === 'ARTICLE_FETCH_DONE')		 		{
+	if (action.type === 'ARTICLE_FETCH_DONE') {
 		return {
 			...state,
 			fetching: false,
 			articles: action.articles,
 			fetchError: null,
+			populated: true,
 		};
 	}
-	if (action.type === 'ARTICLE_INPUT_ERROR')		 		{
+	if (action.type === 'ARTICLE_INPUT_ERROR') {
 		return {
 			...state,
 			inputError: action.error,
 		};
 	}
-	if (action.type === 'ARTICLE_FETCH_ERROR')		 		{
+	if (action.type === 'ARTICLE_FETCH_ERROR') {
 		return {
 			...state,
 			fetchError: action.error,

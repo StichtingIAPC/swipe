@@ -43,12 +43,12 @@ export function connectMixin(requirements, state = null) {
 	 */
 	function func(_state) {
 		const missingRequirements = Object.entries(requirements)
-			.filter(entry => !!_state[entry[0]] && !_state[entry[0]][entry[0]]);
+			.filter(entry => !!_state[entry[0]] && !_state[entry[0]].populated);
 
 		return {
 			requirementsLoaded: missingRequirements.length === 0,
 			missingRequirements,
-			reloadRequirements: obj => Object.values(requirements).map(fun => obj.props.dispatch(fun)),
+			reloadRequirementsFor: obj => Object.values(requirements).map(fun => obj.props.dispatch(fun)),
 		};
 	}
 

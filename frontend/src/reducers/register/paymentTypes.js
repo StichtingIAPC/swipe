@@ -1,38 +1,14 @@
-const initialState = {
-	paymentTypes: null,
-	fetching: false,
-	fetchError: null,
-	inputError: null,
-};
+import { combineReducers } from "redux";
+import { booleanField, replaceField, reSetField } from "../tools/subReducers";
 
-export default function paymentTypeReducer(state = initialState, action) {
-	if (action.type === 'PAYMENT_TYPE_FETCH_START')		 		{
-		return {
-			...state,
-			fetching: true,
-			inputError: null,
-		};
-	}
-	if (action.type === 'PAYMENT_TYPE_FETCH_DONE')		 		{
-		return {
-			...state,
-			fetching: false,
-			paymentTypes: action.paymentTypes,
-			fetchError: null,
-		};
-	}
-	if (action.type === 'PAYMENT_TYPE_INPUT_ERROR')		 		{
-		return {
-			...state,
-			inputError: action.error,
-		};
-	}
-	if (action.type === 'PAYMENT_TYPE_FETCH_ERROR')		 		{
-		return {
-			...state,
-			fetchError: action.error,
-			fetching: false,
-		};
-	}
-	return state;
-}
+export default combineReducers({
+	paymentTypes: replaceField('PAYMENT_TYPE_FETCH_DONE', [], 'paymentTypes'),
+	fetching: booleanField({
+		PAYMENT_TYPE_FETCH_START: true,
+		PAYMENT_TYPE_FETCH_DONE: false,
+		PAYMENT_TYPE_FETCH_ERROR: false,
+	}, false),
+	fetchError: reSetField('PAYMENT_TYPE_FETCH_ERROR', 'PAYMENT_TYPE_FETCH_DONE', null, 'error'),
+	inputError: reSetField('PAYMENT_TYPE_INPUT_ERROR', 'PAYMENT_TYPE_FETCH_START', null, 'error'),
+	populated: booleanField({ PAYMENT_TYPE_FETCH_DONE: true }, false),
+});

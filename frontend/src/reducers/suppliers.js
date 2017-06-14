@@ -1,38 +1,14 @@
-const initialState = {
-	suppliers: null,
-	fetching: false,
-	fetchError: null,
-	inputError: null,
-};
+import { booleanField, replaceField, reSetField } from "./tools/subReducers";
+import { combineReducers } from "redux";
 
-export default function supplierReducer(state = initialState, action) {
-	if (action.type === 'SUPPLIER_FETCH_START')		 		{
-		return {
-			...state,
-			fetching: true,
-			inputError: null,
-		};
-	}
-	if (action.type === 'SUPPLIER_FETCH_DONE')		 		{
-		return {
-			...state,
-			fetching: false,
-			suppliers: action.suppliers,
-			fetchError: null,
-		};
-	}
-	if (action.type === 'SUPPLIER_INPUT_ERROR')		 		{
-		return {
-			...state,
-			inputError: action.error,
-		};
-	}
-	if (action.type === 'SUPPLIER_FETCH_ERROR')		 		{
-		return {
-			...state,
-			fetchError: action.error,
-			fetching: false,
-		};
-	}
-	return state;
-}
+export default combineReducers({
+	suppliers: replaceField('SUPPLIER_FETCH_DONE', [], 'suppliers'),
+	fetching: booleanField({
+		SUPPLIER_FETCH_START: true,
+		SUPPLIER_FETCH_DONE: false,
+		SUPPLIER_FETCH_ERROR: false,
+	}, false),
+	fetchError: reSetField('SUPPLIER_FETCH_ERROR', 'SUPPLIER_FETCH_DONE', null, 'error'),
+	inputError: reSetField('SUPPLIER_INPUT_ERROR', 'SUPPLIER_FETCH_START', null, 'error'),
+	populated: booleanField({ SUPPLIER_FETCH_DONE: true }, false),
+});

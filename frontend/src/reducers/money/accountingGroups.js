@@ -1,41 +1,14 @@
-const initialState = {
-	accountingGroups: null,
-	fetching: false,
-	inputError: null,
-	fetchError: null,
-};
+import { combineReducers } from "redux";
+import { booleanField, replaceField, reSetField } from "../tools/subReducers";
 
-export function accountingGroups(state = initialState, action) {
-	if (action.type === 'ACCOUNTING_GROUP_FETCH_START') {
-		return {
-			...state,
-			fetching: true,
-			inputError: null,
-		};
-	}
-	if (action.type === 'ACCOUNTING_GROUP_FETCH_DONE') {
-		return {
-			...state,
-			fetching: false,
-			accountingGroups: action.accountingGroups.map(accountingGroup => ({ ...accountingGroup })),
-			fetchError: null,
-		};
-	}
-
-	if (action.type === 'ACCOUNTING_GROUP_INPUT_ERROR') 		{
-		return {
-			...state,
-			inputError: action.error,
-		};
-	}
-	if (action.type === 'ACCOUNTING_GROUP_FETCH_ERROR') 		{
-		return {
-			...state,
-			fetching: false,
-			fetchError: action.error,
-		};
-	}
-	return state;
-}
-
-export default accountingGroups;
+export default combineReducers({
+	accountingGroups: replaceField('ACCOUNTING_GROUP_FETCH_DONE', [], 'accountingGroups'),
+	fetching: booleanField({
+		ACCOUNTING_GROUP_FETCH_START: true,
+		ACCOUNTING_GROUP_FETCH_DONE: false,
+		ACCOUNTING_GROUP_FETCH_ERROR: false,
+	}, false),
+	fetchError: reSetField('ACCOUNTING_GROUP_FETCH_ERROR', 'ACCOUNTING_GROUP_FETCH_DONE', null, 'error'),
+	inputError: reSetField('ACCOUNTING_GROUP_INPUT_ERROR', 'ACCOUNTING_GROUP_FETCH_START', null, 'error'),
+	populated: booleanField({ ACCOUNTING_GROUP_FETCH_DONE: true }, false),
+});

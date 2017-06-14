@@ -11,6 +11,8 @@ import labelTypes from "./assortment/labelTypes";
 import unitTypes from "./assortment/unitTypes";
 import registers from "./register/registers";
 import paymentTypes from "./register/paymentTypes";
+import closedRegisterCounts from "./register/closedRegisterCounts";
+import openRegisterCounts from "./register/openRegisterCounts";
 
 export default combineReducers({
 	accountingGroups,
@@ -25,4 +27,6 @@ export default combineReducers({
 	suppliers,
 	unitTypes,
 	VATs,
+	closedRegisterCounts,
+	openRegisterCounts,
 });
