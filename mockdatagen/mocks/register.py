@@ -1,11 +1,11 @@
 from _pydecimal import Decimal
 
-from mockdatagen.helpers import register
+from mockdatagen.helpers import register_mock_gen
 from money.models import Currency, CurrencyData, Denomination
 from register.models import PaymentType, Register, RegisterCount, SalesPeriod, DenominationCount, RegisterMaster
 
 
-@register
+@register_mock_gen
 class PaymentTypeGen:
     model = PaymentType
 
@@ -18,7 +18,7 @@ class PaymentTypeGen:
     requirements = {}
 
 
-@register
+@register_mock_gen
 class RegisterGen:
     model = Register
 
@@ -35,7 +35,7 @@ class RegisterGen:
     requirements = {PaymentType, CurrencyData}
 
 
-@register
+@register_mock_gen
 class RegisterOpenClose:
     model = "PRE"
 
@@ -52,7 +52,7 @@ class RegisterOpenClose:
     requirements = {Register}
 
 
-@register
+@register_mock_gen
 class IncoiceOpen:
     model = "invoiceOpen"
 
