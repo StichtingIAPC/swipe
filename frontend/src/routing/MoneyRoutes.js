@@ -1,5 +1,5 @@
 import React from "react";
-import {Route} from "react-router";
+import { Route } from "react-router";
 import MoneyBase from "../components/money/MoneyBase";
 import CurrencyCreate from "../components/money/currency/CurrencyCreate";
 import CurrencyEdit from "../components/money/currency/CurrencyEdit";
@@ -18,4 +18,4 @@ export default (
 		</Route>
 		<Route path="money/" />
 	</Route>
-)
+);

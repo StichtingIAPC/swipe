@@ -514,6 +514,7 @@ class Transaction(Blame):
                 customer_invoicing.models.ReceiptCustInvoiceHelper.create_customer_invoice_from_transaction(user, trans,
                                                                                                             payments)
 
+            return trans
 
 class StockCollections:
 

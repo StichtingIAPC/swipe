@@ -1,4 +1,5 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import FontAwesome from "../../tools/icons/FontAwesome";
@@ -12,9 +13,9 @@ class LabelTypeList extends React.Component {
 		]),
 	};
 
-	renderEntry({ activeID, labelType }) {
+	static RenderEntry({ activeID, labelType }) {
 		return (
-			<tr className={Number(activeID) == labelType.id ? 'active' : null}>
+			<tr className={+activeID === labelType.id ? 'active' : null}>
 				<td>
 					{labelType.name}
 				</td>
@@ -35,7 +36,7 @@ class LabelTypeList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	update(evt) {
@@ -55,7 +56,7 @@ class LabelTypeList extends React.Component {
 									className={`btn btn-sm ${this.props.invalid ? 'btn-danger' : 'btn-default'} ${this.props.fetching ? 'disabled' : ''}`}
 									to="#"
 									title="Refresh"
-									onClick={this.update.bind(this)}>
+									onClick={::this.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
@@ -81,11 +82,11 @@ class LabelTypeList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.labelTypes !== null ? this.props.labelTypes.map(
-								(labelType) => (
-									<this.renderEntry activeID={this.props.activeID} key={labelType.id} labelType={labelType} />
+							{this.props.labelTypes === null ? null : this.props.labelTypes.map(
+								labelType => (
+									<LabelTypeList.RenderEntry activeID={this.props.activeID} key={labelType.id} labelType={labelType} />
 								)
-							) : null}
+							)}
 						</tbody>
 					</table>
 				</div>
@@ -108,7 +109,5 @@ export default connect(
 		errorMsg: state.labelTypes.errorMsg,
 		fetching: state.labelTypes.fetching,
 	}),
-	dispatch => ({
-		update: () => dispatch(startFetchingLabelTypes()),
-	}),
-)(LabelTypeList)
+	dispatch => ({ update: () => dispatch(startFetchingLabelTypes()) }),
+)(LabelTypeList);

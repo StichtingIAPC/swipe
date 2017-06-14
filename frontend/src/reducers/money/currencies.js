@@ -25,8 +25,19 @@ export function currencies(state = initialState, action) {
 		};
 	}
 
-	if (action.type === 'CURRENCY_INPUT_ERROR') return { ...state, inputError: action.error };
-	if (action.type === 'CURRENCY_FETCH_ERROR') return { ...state, fetching: false, fetchError: action.error };
+	if (action.type === 'CURRENCY_INPUT_ERROR') 		{
+		return {
+			...state,
+			inputError: action.error,
+		};
+	}
+	if (action.type === 'CURRENCY_FETCH_ERROR') 		{
+		return {
+			...state,
+			fetching: false,
+			fetchError: action.error,
+		};
+	}
 	return state;
 }
 

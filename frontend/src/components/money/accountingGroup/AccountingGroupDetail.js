@@ -13,10 +13,11 @@ class AccountingGroupDetail extends React.Component {
 	}
 
 	render() {
-		const accountingGroup = this.props.accountingGroup;
-		if (!accountingGroup) {
+		const { accountingGroup } = this.props;
+
+		if (!accountingGroup)
 			return null;
-		}
+
 		return (
 			<div className="box">
 				<div className="box-header with-border">
@@ -25,15 +26,18 @@ class AccountingGroupDetail extends React.Component {
 						<div className="input-group">
 							<div className="btn-group">
 								<Link to={`/money/accountinggroup/${accountingGroup.id}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
-								<Link onClick={this.trash.bind(this)} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
+								<Link onClick={::this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
 							</div>
 						</div>
 					</div>
 				</div>
 				<div className="box-body">
 					<dl className="dl-horizontal">
-						{Object.entries({name: 'Name', accounting_number: 'Accounting number'}).map(
-							([key, name]) => (
+						{Object.entries({
+							name: 'Name',
+							accounting_number: 'Accounting number',
+						}).map(
+							([ key, name ]) => (
 								<div key={key}>
 									<dt>{name}</dt>
 									<dd>{String(accountingGroup[key])}</dd>
@@ -47,16 +51,17 @@ class AccountingGroupDetail extends React.Component {
 					</dl>
 				</div>
 			</div>
-		)
+		);
 	}
 }
 
 export default connect(
 	(state, props) => {
-		const accountingGroup = state.accountingGroups.accountingGroups.find((obj) => Number(obj.id) == Number(props.params.accountingGroupID));
+		const accountingGroup = state.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID);
+
 		return {
 			accountingGroup,
-			vatGroup: (state.VATs.VATs || []).find((el) => Number(el.id) == Number(accountingGroup.vat_group)),
-		}
+			vatGroup: (state.VATs.VATs || []).find(el => +el.id === +accountingGroup.vat_group),
+		};
 	}
 )(AccountingGroupDetail);

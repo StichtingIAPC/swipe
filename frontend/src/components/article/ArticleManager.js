@@ -16,7 +16,8 @@ class ArticleManager extends React.Component {
 	}
 
 	render() {
-		if (!this.props.requirementsLoaded) return null;
+		if (!this.props.requirementsLoaded)
+			return null;
 
 		return (
 			<div className="row">
@@ -34,7 +35,7 @@ class ArticleManager extends React.Component {
 					{this.props.children}
 				</div>
 			</div>
-		)
+		);
 	}
 }
 
@@ -48,7 +49,7 @@ export default connect(
 		}, state),
 	}),
 	dispatch => ({
-		dispatch: dispatch,
-		selectArticle: (article) => dispatch(push(`/articlemanager/${article.id}/`)),
+		dispatch,
+		selectArticle: article => dispatch(push(`/articlemanager/${article.id}/`)),
 	})
-)(ArticleManager)
+)(ArticleManager);

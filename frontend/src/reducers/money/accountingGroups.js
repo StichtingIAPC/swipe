@@ -17,15 +17,24 @@ export function accountingGroups(state = initialState, action) {
 		return {
 			...state,
 			fetching: false,
-			accountingGroups: action.accountingGroups.map(accountingGroup => ({
-				...accountingGroup,
-			})),
+			accountingGroups: action.accountingGroups.map(accountingGroup => ({ ...accountingGroup })),
 			fetchError: null,
 		};
 	}
 
-	if (action.type === 'ACCOUNTING_GROUP_INPUT_ERROR') return { ...state, inputError: action.error };
-	if (action.type === 'ACCOUNTING_GROUP_FETCH_ERROR') return { ...state, fetching: false, fetchError: action.error };
+	if (action.type === 'ACCOUNTING_GROUP_INPUT_ERROR') 		{
+		return {
+			...state,
+			inputError: action.error,
+		};
+	}
+	if (action.type === 'ACCOUNTING_GROUP_FETCH_ERROR') 		{
+		return {
+			...state,
+			fetching: false,
+			fetchError: action.error,
+		};
+	}
 	return state;
 }
 

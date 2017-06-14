@@ -1,6 +1,7 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 
-export default function StringField({name, className, value, onChange, ...rest}) {
+export default function StringField({ name, className, value, onChange, ...rest }) {
 	return (
 		<div className={className}>
 			<label className="col-sm-3 control-label" htmlFor={name}>{name}</label>
@@ -14,7 +15,7 @@ export default function StringField({name, className, value, onChange, ...rest})
 					{...rest} />
 			</div>
 		</div>
-	)
+	);
 }
 
 StringField.propTypes = {
@@ -23,6 +24,4 @@ StringField.propTypes = {
 	className: PropTypes.string,
 };
 
-StringField.defaultProps = {
-	className: 'form-group',
-};
+StringField.defaultProps = { className: 'form-group' };

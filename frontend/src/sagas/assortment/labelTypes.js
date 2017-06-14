@@ -8,28 +8,31 @@ import {
 	startFetchingLabelTypes
 } from "../../actions/assortment/labelTypes";
 
-export function* fetchLabelTypes({redirectTo} = {}) {
+export function* fetchLabelTypes({ redirectTo } = {}) {
+	let msg = null;
+
 	try {
 		const data = yield (yield call(
 			get,
-			"/assortment/labeltypes/",
+			'/assortment/labeltypes/',
 		)).json();
+
 		yield put(doneFetchingLabelTypes(data));
-		if (redirectTo) {
+		if (redirectTo)
 			yield put(push(redirectTo));
-		}
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
 			msg = e.json();
+
 		yield put(labelTypeFetchError(msg));
 	}
 }
 
 export function* createLabelType({ labelType } = {}) {
 	const document = { ...labelType };
+	let msg = null;
 
 	try {
 		yield (yield call(
@@ -38,21 +41,20 @@ export function* createLabelType({ labelType } = {}) {
 			document
 		)).json();
 
-		yield put(startFetchingLabelTypes({
-			redirectTo: `/assortment/`,
-		}));
+		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
 			msg = e.json();
+
 		yield put(labelTypeInputError(msg));
 	}
 }
 
 export function* updateLabelType({ labelType }) {
 	const document = { ...labelType };
+	let msg = null;
 
 	try {
 		const data = yield (yield call(
@@ -60,15 +62,14 @@ export function* updateLabelType({ labelType }) {
 			`/assortment/labeltypes/${document.id}/`,
 			document,
 		)).json();
-		yield put(startFetchingLabelTypes({
-			redirectTo: `/assortment/labeltype/${data.id}/`,
-		}));
+
+		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/labeltype/${data.id}/` }));
 	} catch (e) {
-		let msg;
 		if (e instanceof Error)
 			msg = e.message;
 		if (e instanceof Response)
 			msg = e.json();
+
 		yield put(labelTypeInputError(msg));
 	}
 }

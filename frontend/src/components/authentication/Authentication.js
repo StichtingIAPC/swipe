@@ -25,12 +25,12 @@ class Authentication extends React.Component {
 					<b>Swipe</b>
 				</div>
 				<div className="login-box-body">
-					<form onSubmit={this.onSubmit.bind(this)}>
+					<form onSubmit={::this.onSubmit}>
 						<p className="login-box-msg">Sign in to start your session</p>
 						<div className="form-group has-feedback">
 							<input
 								type="text"
-								onChange={e => this.setState({username: e.target.value})}
+								onChange={e => this.setState({ username: e.target.value })}
 								value={this.state.username}
 								className="form-control" />
 							<Glyphicon glyph="user form-control-feedback" />
@@ -38,7 +38,7 @@ class Authentication extends React.Component {
 						<div className="form-group has-feedback">
 							<input
 								type="password"
-								onChange={e => this.setState({password: e.target.value})}
+								onChange={e => this.setState({ password: e.target.value })}
 								value={this.state.password}
 								className="form-control" />
 							<Glyphicon glyph="lock form-control-feedback" />
@@ -52,7 +52,7 @@ class Authentication extends React.Component {
 					</form>
 				</div>
 			</div>
-		</div>
+		</div>;
 	}
 }
 
