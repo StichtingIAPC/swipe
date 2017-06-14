@@ -18,7 +18,6 @@ class PaymentTypeGen:
     requirements = {}
 
 
-
 @register
 class RegisterGen:
     model = Register
