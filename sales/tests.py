@@ -9,7 +9,7 @@ from crm.models import User, Person
 from logistics.models import SupplierOrder, StockWish
 from money.models import Currency, Cost, Money, VAT, Price, AccountingGroup, CurrencyData
 from order.models import Order, OrderLine
-from register.models import PaymentType, Register
+from register.models import PaymentType, Register, RegisterMaster, RegisterCount
 from sales import models
 from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughStockError, \
     OtherCostTransactionLine, OtherTransactionLine, TransactionLine, PaymentMisMatchError, NotEnoughOrderLinesError, \
@@ -680,6 +680,54 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
                                        customer=self.customer_person_2)
         st_level = Stock.objects.get(article=self.articletype_1, labeltype__isnull=True)
         self.assertEqual(st_level.count, 1)
+
+    def test_no_matching_currency(self):
+        rupee = CurrencyData(iso="INR", name="Indian Rupee", digits=2, symbol="₹")
+        rupee.save()
+        new_register = Register(name="Rupee Maestro", currency=rupee, payment_type=self.paymenttype_maestro)
+        new_register.save()
+        new_register.open(Decimal(0))
+        self.create_custorders()
+        oth_count = 2
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=oth_count,
+                                          other_cost_type=self.othercosttype_1, order=1)
+        money_3 = Money(amount=self.price_system_currency_1.amount * oth_count,
+                        currency=self.price_system_currency_1.currency)
+        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+        with self.assertRaises(PaymentTypeError):
+            Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                       customer=self.customer_person_2)
+
+    def test_mixing_payment_currency(self):
+        rupee = CurrencyData(iso="INR", name="Indian Rupee", digits=2, symbol="₹")
+        rupee.save()
+        new_register = Register(name="Rupee Maestro", currency=rupee, payment_type=self.paymenttype_maestro)
+        new_register.save()
+        new_register.open(Decimal(0))
+        # Fake transaction with indian rupees, this cannot be done without changing the USED_CURRENCY
+        # string which is not possible in this test environment
+        transaction = Transaction(salesperiod=RegisterMaster.get_open_sales_period(), customer=None,
+                                  user_modified=self.user_1)
+        super(Transaction, transaction).save()
+        price = Price(amount=Decimal(1), currency=Currency("INR"), vat=Decimal("1"))
+        money = Money(amount=Decimal(1), currency=Currency("INR"))
+        transaction_line = OtherCostTransactionLine(other_cost_type=self.othercosttype_1, transaction=transaction,
+                                                    num=self.othercosttype_1.pk, text="Foo", order=None,
+                                                    accounting_group=self.accounting_group_components, price=price,
+                                                    user_modified=self.user_1, count=1)
+        super(TransactionLine, transaction_line).save()
+        payment = Payment(transaction=transaction, amount=money, payment_type=self.paymenttype_maestro)
+        super(Payment, payment).save()
+        self.register_3.open(Decimal(0))
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=1,
+                                          other_cost_type=self.othercosttype_1, order=None)
+        money_3 = Money(amount=self.price_system_currency_1.amount * 1,
+                        currency=self.price_system_currency_1.currency)
+        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+        with self.assertRaises(PaymentTypeError):
+            Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                       customer=self.customer_person_2)
+
 
 
 class StockTests(TestCase, TestData):

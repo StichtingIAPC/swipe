@@ -1,4 +1,5 @@
-import React, { PropTypes } from "react";
+import React from "react";
+import PropTypes from "prop-types";
 import { Link } from "react-router";
 import { connect } from "react-redux";
 import { startFetchingCurrencies } from "../../../actions/money/currencies";
@@ -8,16 +9,18 @@ import FontAwesome from "../../tools/icons/FontAwesome";
  */
 
 class CurrencyList extends React.Component {
+	static propTypes = {
+		activeID: PropTypes.string,
+	};
+
 	constructor(props) {
 		super(props);
-		this.state = {
-			open: true,
-		}
+		this.state = { open: true };
 	}
 
-	renderEntry({activeID, currency}) {
+	static RenderEntry({ activeID, currency }) {
 		return (
-			<tr className={Number(activeID) == currency.iso ? 'active' : null}>
+			<tr className={activeID === currency.iso ? 'active' : null}>
 				<td>
 					{`${currency.name} (${currency.iso})`}
 				</td>
@@ -47,12 +50,12 @@ class CurrencyList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	toggle(evt) {
 		evt.preventDefault();
-		this.setState({open: !this.state.open});
+		this.setState({ open: !this.state.open });
 	}
 
 	render() {
@@ -79,13 +82,13 @@ class CurrencyList extends React.Component {
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
-									className="btn btn-default btn-sm"
+									className="btn btn-sm btn-default"
 									to="/money/currency/create/"
 									title="Create new currency">
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-box-tool" onClick={this.toggle.bind(this)} title={this.state.open ? 'Close box' : 'Open box'}>
+							<Link className="btn btn-sm btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
 							</Link>
 						</div>
@@ -104,11 +107,13 @@ class CurrencyList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.currencies.map(
-								(item) => (
-									<this.renderEntry activeID={this.props.currencyID} key={item.iso} currency={item} />
+							{
+								this.props.currencies === null ? null : this.props.currencies.map(
+									item => (
+										<CurrencyList.RenderEntry activeID={this.props.activeID} key={item.iso} currency={item} />
+									)
 								)
-							)}
+							}
 						</tbody>
 					</table>
 				</div>
@@ -121,23 +126,18 @@ class CurrencyList extends React.Component {
 					) : null
 				}
 			</div>
-		)
+		);
 	}
 }
 
-CurrencyList.propTypes = {
-	activeID: PropTypes.string,
-};
-
 export default connect(
-	(state, ownProps) => ({
-		...ownProps,
+	state => ({
 		errorMsg: state.currencies.fetchError,
-		currencies: state.currencies.currencies,
+		currencies: state.currencies.currencies || [],
 		fetching: state.currencies.fetching,
 	}),
-	(dispatch) => ({
-		update: (evt) => {
+	dispatch => ({
+		update: evt => {
 			evt.preventDefault();
 			dispatch(startFetchingCurrencies());
 		},

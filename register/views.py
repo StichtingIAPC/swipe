@@ -1,23 +1,44 @@
 from decimal import Decimal
 
-from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
-from django.core.urlresolvers import reverse_lazy
+import json
 from django.db.models import F
 from django.db.models import Prefetch, Count
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
-from django.utils.translation import ugettext_lazy as _
-from django.views.generic import View, ListView, CreateView, DetailView, UpdateView
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from rest_framework import mixins, generics
 
-from money.models import Denomination, Price, VAT
-from register.forms import CloseForm, OpenForm
+from money.models import Denomination
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
-    RegisterPeriod, PaymentType
-from register.serializers import RegisterSerializer, PaymentTypeSerializer, RegisterCountSerializer
-from sales.models import Transaction
-from tools.templatetags.tools.breadcrumbs import crumb
+ PaymentType, AlreadyOpenError, RegisterCountError
+from money.serializers import DenominationSerializer
+from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
+    RegisterCountSerializer, SalesPeriodSerializer
+from tools.json_parsers import ParseError, DictParsers
 
+
+class RegisterDictParsers:
+
+    @staticmethod
+    def denominationcount_parser(dictionary: dict):
+        count = dictionary.get("count", None)
+        if count is None:
+            raise ParseError("Count is missing")
+        if not type(count) == int:
+            raise ParseError("Count is not an int")
+        denomination = dictionary.get("denomination", None)
+        if denomination is None:
+            raise ParseError("Denomination is missing")
+        if not type(denomination) == int:
+            raise ParseError("Denomination is not an int")
+        db_denom = Denomination.objects.get(id=denomination)
+        return DenominationCount(denomination=db_denom, number=count)
+
+    @staticmethod
+    def register_parser(integer: int):
+        if integer is None:
+            raise ParseError("Register does not exist")
+        if not type(integer) == int:
+            raise ParseError("Register is not an int")
+        return Register.objects.get(id=integer)
 
 class RegisterListView(mixins.ListModelMixin,
                        mixins.CreateModelMixin,
@@ -25,15 +46,12 @@ class RegisterListView(mixins.ListModelMixin,
     queryset = Register.objects.select_related(
         'payment_type'
     ).annotate(
-        Count('registerperiod')
+        Count('registercount')
     ).prefetch_related(
-        Prefetch(
-            'registerperiod_set',
-            queryset=RegisterPeriod.objects.prefetch_related(
                 Prefetch(
                     'registercount_set',
                     queryset=RegisterCount.objects.filter(
-                        register_period__endTime__isnull=F('is_opening_count')
+                        sales_period__endTime__isnull=F('is_opening_count')
                     ).prefetch_related(
                         Prefetch(
                             'denominationcount_set',
@@ -43,8 +61,6 @@ class RegisterListView(mixins.ListModelMixin,
                         )
                     )
                 )
-            )
-        )
     ).prefetch_related(
         'currency__denomination_set'
     )  # Heavy prefetch query to optimize loading of objects, and prevent optional O(n) behaviour on the DB
@@ -57,6 +73,37 @@ class RegisterListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
+class RegisterOpenedView(mixins.ListModelMixin,
+                       generics.GenericAPIView):
+    serializer_class = RegisterCountSerializer
+    queryset = RegisterCount.objects\
+        .filter(sales_period__endTime__isnull=True,
+                is_opening_count=True,
+                register__is_active=True)
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        pass
+        #obj = RegisterOpenSerializer(request.data)
+        #obj.is_valid(raise_exception=True)
+        #counts = obj.validated_data['counts']
+
+        #return Response(obj)
+
+
+class RegisterClosedView(mixins.ListModelMixin,
+                        generics.GenericAPIView):
+    serializer_class = RegisterCountSerializer
+
+    def get_queryset(self):
+        return RegisterMaster.get_last_closed_register_counts()
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
 class RegisterView(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    generics.GenericAPIView):
@@ -66,7 +113,7 @@ class RegisterView(mixins.RetrieveModelMixin,
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
 
@@ -102,7 +149,7 @@ class RegisterCountListView(mixins.ListModelMixin,
     queryset = RegisterCount.objects.prefetch_related(
         'denominationcount_set__denomination'
     ).prefetch_related(
-        'register_period__register__currency__denomination_set'
+        'register__currency__denomination_set'
     )
     serializer_class = RegisterCountSerializer
 
@@ -123,187 +170,145 @@ class RegisterCountView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-@crumb(_('Open registers'), 'register_state')
-class OpenFormView(PermissionRequiredMixin, View):
-    permission_required = 'register.open_register'
-    form_class = OpenForm
-    initial = {'key': 'value'}
-    template_name = "register/open_count.html"
+class RegisterOpenView(mixins.RetrieveModelMixin,
+                       generics.GenericAPIView):
+    queryset = Register.objects.all()
+    serializer_class = RegisterSerializer
 
-    def get(self, request):
-        if RegisterMaster.sales_period_is_open():
-            return HttpResponse("ERROR, Register is already open")
+    @staticmethod
+    def deconstruct_post_body(body: dict):
+        memo = DictParsers.string_parser(body.get("memo", None))
+        amount = DictParsers.decimal_parser(body.get("amount", None))
+        denoms = DictParsers.list_parser(body.get("denoms", None))
+        denominations = []
+        for denom in denoms:
+            denominations.append(RegisterDictParsers.denominationcount_parser(denom))
+        params = type('', (), {})
+        params.memo = memo
+        params.amount = amount
+        params.denoms = denominations
+        return params
 
-        form = self.form_class(initial=self.initial)
-        return render(request, self.template_name, {'form': form})
+    def post(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        try:
+            register = Register.objects.get(pk=pk)
+        except Register.DoesNotExist:
+            raise Http404
+        json_data = request.data  #type: dict
+        try:
+            parsed_data = RegisterOpenView.deconstruct_post_body(json_data)
+        except ParseError as e:
+            return HttpResponseBadRequest(reason=str(e))
+
+        if not register.is_cash_register:
+            # We can ignore the denomination counts and use the counted amount
+            try:
+                count = register.open(counted_amount=parsed_data.amount, memo=parsed_data.memo)
+                ser = RegisterCountSerializer().to_representation(count)
+                return HttpResponse(content=json.dumps(ser),
+                                    content_type="application/json")
+            except AlreadyOpenError:
+                respo = HttpResponseBadRequest(reason="Register is already opened")
+                return respo
+        else:
+            try:
+                reg_count = register.open(counted_amount=parsed_data.amount,
+                                          memo=parsed_data.memo, denominations=parsed_data.denoms)
+                ser = RegisterCountSerializer().to_representation(reg_count)
+                return HttpResponse(content=json.dumps(ser),
+                                    content_type="application/json")
+            except AlreadyOpenError:
+                respo = HttpResponseBadRequest(reason="Register is already opened")
+                return respo
+            except RegisterCountError:
+                respo = HttpResponseBadRequest(reason="Counts did not add up")
+                return respo
+
+
+class SalesPeriodCloseView(mixins.RetrieveModelMixin,
+                           generics.GenericAPIView):
+    queryset = SalesPeriod.objects.all()
+    serializer_class = SalesPeriodSerializer
+
+    @staticmethod
+    def deconstruct_post_body(body: dict):
+        register_data = DictParsers.list_parser(body.get("register_infos"))
+        counts_and_denom_counts = []
+
+        for datum in register_data:
+            register = RegisterDictParsers.register_parser(datum.get("register", None))
+            amount = DictParsers.decimal_parser(datum.get("amount", None))
+            reg_count = RegisterCount(register=register, amount=amount)
+            denom_counts = []
+            denoms = DictParsers.list_parser(datum.get("denoms", None))
+            for denom in denoms:
+                denom_count = RegisterDictParsers.denominationcount_parser(denom)
+                denom_count.register_count = reg_count
+                denom_counts.append(denom_count)
+            counts_and_denom_counts.append((reg_count, denom_counts))
+
+        params = type('', (), {})
+        params.memo = body.get("memo", "")
+
+        params.registercounts_denominationcounts = counts_and_denom_counts
+        return params
 
     def post(self, request):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            for col in form.briefs:
-                if request.POST.get("brief_" + col, False):
-                    reg = Register.objects.get(name=col)
-                    reg.open(Decimal(0), "")
+        sales_period = RegisterMaster.get_open_sales_period()
+        if not sales_period:
+            return HttpResponseBadRequest(reason="Salesperiod is closed")
 
-            for col in form.columns:
-                if not request.POST.get("reg_{}_active".format(col.name), False):
-                    continue
-                reg = Register.objects.get(name=col.name)
-                denomination_counts = []
-                cnt = Decimal(0)
-                for denomination in Denomination.objects.filter(currency=reg.currency):
-                    denomination_counts.append(DenominationCount(denomination=denomination,
-                                                                 amount=int(request.POST["reg_{}_{}"
-                                                                            .format(col.name, denomination.amount)])))
+        json_data = request.data  # type: dict
+        try:
+            params = SalesPeriodCloseView.deconstruct_post_body(json_data)
+        except ParseError as e:
+            return HttpResponseBadRequest(reason=str(e))
 
-                    cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
-
-                reg.open(cnt, request.POST['memo_{}'.format(col.name)], denominations=denomination_counts)
-
-            # <process form cleaned data>
-            return HttpResponseRedirect('/register/state/')
-        return render(request, self.template_name, {'form': form})
+        period = sales_period.close(params.registercounts_denominationcounts, params.memo)
+        return HttpResponse(content=json.dumps(SalesPeriodSerializer().to_representation(period)),
+                            content_type="application/json")
 
 
-@crumb(_('Open check'), 'register_index')
-class IsOpenStateView(LoginRequiredMixin, View):
-    template_name = "register/is_open_view.html"
+class SalesPeriodListView(mixins.ListModelMixin,
+                          generics.GenericAPIView):
+    queryset = SalesPeriod.objects.all()
+    serializer_class = SalesPeriodSerializer
 
-    def get(self, request):
-        return render(request, self.template_name, {"is_open": RegisterMaster.sales_period_is_open()})
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
+class PaymentTypeOpenListView(mixins.ListModelMixin,
+                          generics.GenericAPIView):
+    serializer_class = PaymentTypeSerializer
 
-@crumb(_('Close registers'), 'register_state')
-class CloseFormView(PermissionRequiredMixin, View):
-    permission_required = 'register.close_register'
-    form_class = CloseForm
-    initial = {'key': 'value'}
-    template_name = "register/close_count.html"
+    def get_queryset(self):
+        return RegisterMaster.get_payment_types_for_open_registers()
 
-    def get_or_post_from_form(self, request, form):
-        transactions = {}
-        all_transactions = Transaction.objects.filter(salesperiod=RegisterMaster.get_open_sales_period())
-        for trans in all_transactions:
-            if transactions.get(trans.price.currency.iso, False):
-                transactions[trans.price.currency.iso] += trans.price
-            else:
-                transactions[trans.price.currency.iso] = trans.price
-        regs = RegisterMaster.get_open_registers()
-        used_currencies = []
-        for reg in regs:
-            if not used_currencies.__contains__(reg.currency):
-                used_currencies.append(reg.currency)
-                if not transactions.get(reg.currency.iso, False):
-                    transactions[reg.currency.iso] = Price(Decimal("0.00000"), VAT(Decimal("0.00000")),
-                                                           reg.currency.iso)
-
-        return render(request, self.template_name,
-                      {'form': form, "transactions": transactions, "currencies": used_currencies})
-
-    def get(self, request):
-        if not RegisterMaster.sales_period_is_open():
-            return HttpResponse("ERROR, Register isn't open")
-
-        form = self.form_class(initial=self.initial)
-        return self.get_or_post_from_form(request, form)
-
-    def post(self, request):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            denomination_counts = []
-            register_counts = []
-            for col in form.briefs:
-                reg = Register.objects.get(name=col)
-
-                register_counts.append(RegisterCount(register_period=reg.get_current_open_register_period(),
-                                                     amount=Decimal(request.POST["brief_{}".format(col)])))
-
-            for col in form.columns:
-                reg = Register.objects.get(name=col.name)
-
-                cnt = Decimal(0)
-
-                for denomination in Denomination.objects.filter(currency=reg.currency):
-                    cnt += denomination.amount * int(request.POST["reg_{}_{}".format(col.name, denomination.amount)])
-                rc = RegisterCount(register_period=reg.get_current_open_register_period(),
-                                   is_opening_count=False, amount=cnt)
-                register_counts.append(rc)
-                for denomination in Denomination.objects.filter(currency=reg.currency):
-                    denomination_counts.append(DenominationCount(register_count=rc, denomination=denomination,
-                                                                 amount=int(request.POST["reg_{}_{}"
-                                                                            .format(col.name, denomination.amount)])))
-
-            SalesPeriod.close(register_counts, denomination_counts, request.POST["MEMO"])
-            # <process form cleaned data>
-            return HttpResponseRedirect('/register/state/')
-
-        # Stupid user must again...
-        return self.get_or_post_from_form(request, form)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
-@crumb(_('Register list'), 'register_index')
-class RegisterList(LoginRequiredMixin, ListView):
-    model = Register
-    template_name = "register/register_list.html"
+class SalesPeriodView(mixins.RetrieveModelMixin,
+                      generics.GenericAPIView):
+    queryset = SalesPeriod.objects.all()
+    serializer_class = SalesPeriodSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
 
-@crumb(_('Detail'), 'register_list')
-class RegisterDetail(LoginRequiredMixin, DetailView):
-    model = Register
-    template_name = "register/register_detail.html"
+class SalesPeriodLatestView(mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin,
+                      generics.GenericAPIView):
+    serializer_class = SalesPeriodSerializer
 
+    def get_queryset(self):
+        if SalesPeriod.objects.exists():
+            return [SalesPeriod.objects.latest('beginTime')]
+        else:
+            return SalesPeriod.objects.none()
 
-@crumb(_('Edit'), 'register_detail', ['pk'])
-class RegisterEdit(PermissionRequiredMixin, UpdateView):
-    model = Register
-    template_name = 'register/register_form.html'
-    fields = ['name', 'is_active']
-    permission_required = 'register.edit_register'
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
-    def get_success_url(self):
-        return reverse_lazy('register_detail', kwargs=self.kwargs)
-
-
-@crumb(_('Register period list'), 'register_index')
-class RegisterPeriodList(LoginRequiredMixin, ListView):
-    model = RegisterPeriod
-
-
-@crumb(_('Create'), 'register_list')
-class RegisterCreate(PermissionRequiredMixin, CreateView):
-    permission_required = 'register.create_register'
-    template_name = "register/register_form.html"
-
-    model = Register
-    fields = ['name', 'currency', 'is_cash_register', 'is_active', 'payment_type']
-
-    def get_success_url(self):
-        return reverse_lazy('register_detail', kwargs={'pk': self.object.pk})
-
-
-@crumb(_('Register index'))
-def index(request):
-    return render(request, 'register/index.html')
-
-
-@crumb(_('Payment type list'), 'register_index')
-class PaymentTypeList(LoginRequiredMixin, ListView):
-    model = PaymentType
-    template_name = 'register/paymenttype_list.html'
-
-
-@crumb(_('Create'), 'paymenttype_list')
-class PaymentTypeCreate(PermissionRequiredMixin, CreateView):
-    model = PaymentType
-    fields = ['name']
-    permission_required = 'register.create_paymenttype'
-    template_name = 'register/paymenttype_form.html'
-
-    def get_success_url(self):
-        return reverse_lazy('paymenttype_detail', kwargs={'pk': self.object.pk})
-
-
-@crumb(_('Detail'), 'paymenttype_list')
-class PaymentTypeDetail(LoginRequiredMixin, DetailView):
-    model = PaymentType
-    template_name = 'register/paymenttype_detail.html'

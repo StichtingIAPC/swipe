@@ -11,9 +11,9 @@ class SupplierList extends React.Component {
 		return false;
 	}
 
-	renderEntry({ supplierID, supplier }) {
+	static RenderEntry({ supplierID, supplier }) {
 		return (
-			<tr className={Number(supplierID) == supplier.id ? 'active' : null}>
+			<tr className={+supplierID === supplier.id ? 'active' : null}>
 				<td>
 					{supplier.name}
 				</td>
@@ -44,7 +44,7 @@ class SupplierList extends React.Component {
 					</div>
 				</td>
 			</tr>
-		)
+		);
 	}
 
 	render() {
@@ -59,7 +59,7 @@ class SupplierList extends React.Component {
 									className={`btn btn-sm ${this.props.invalid ? 'btn-danger' : 'btn-default'} ${this.props.fetching ? 'disabled' : ''}`}
 									to="#"
 									title="Refresh"
-									onClick={this.update.bind(this)}>
+									onClick={::this.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
@@ -85,11 +85,13 @@ class SupplierList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{Object.keys(this.props.suppliers).filter((key) => this.props.suppliers[key]).map(
-								(id) => (
-									<this.renderEntry supplierID={this.props.supplierID} key={id} supplier={this.props.suppliers[id]} />
+							{
+								this.props.suppliers === null ? null : this.props.suppliers.map(
+									supplier => (
+										<SupplierList.RenderEntry supplierID={this.props.supplierID} key={supplier.id} supplier={supplier} />
+									)
 								)
-							)}
+							}
 						</tbody>
 					</table>
 				</div>
@@ -102,14 +104,14 @@ class SupplierList extends React.Component {
 					) : null
 				}
 			</div>
-		)
+		);
 	}
 }
 
 export default connect(
 	state => ({
 		errorMsg: state.suppliers.fetchError,
-		suppliers: state.suppliers.suppliers,
+		suppliers: state.suppliers.suppliers || [],
 		fetching: state.suppliers.fetching,
 	}),
 	dispatch => ({ update: () => dispatch(startFetchingSuppliers()) })

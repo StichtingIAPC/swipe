@@ -1,9 +1,9 @@
 from rest_framework import generics
 from rest_framework import mixins
 
-from assortment.models import AssortmentUnitType, AssortmentLabelType, AssortmentLabel
+from assortment.models import AssortmentUnitType, AssortmentLabelType
 from assortment.serializers import UnitTypeSerializer, LabelTypeSerializer, LabelTypeSerializerWithEdit, \
-    UnitTypeSerializerWithEdit, LabelSerializerWithEdit
+    UnitTypeSerializerWithEdit
 
 
 class UnitTypeListView(mixins.ListModelMixin,
@@ -56,16 +56,3 @@ class LabelTypeDetailView(mixins.RetrieveModelMixin,
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
-
-
-class LabelListView(mixins.ListModelMixin,
-                    mixins.CreateModelMixin,
-                    generics.GenericAPIView):
-    queryset = AssortmentLabel.objects.all()
-    serializer_class = LabelSerializerWithEdit
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)

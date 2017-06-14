@@ -1,6 +1,7 @@
-import React, {PropTypes} from "react";
-import {connect} from "react-redux";
-import {loginReset} from "../../../actions/auth";
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { loginReset } from "../../../actions/auth";
 import SidebarLink from "./SidebarLink";
 
 class Sidebar extends React.Component {
@@ -11,7 +12,13 @@ class Sidebar extends React.Component {
 					<ul className="sidebar-menu">
 						<SidebarLink to="/pos/register/" text="Register" icon="shopping-cart" />
 						<SidebarLink to="/supplier/" text="Supplier" icon="truck"  />
-						<SidebarLink to="/money/" text="Money config" icon="money" />
+						<SidebarLink text="Article manager" icon="cube" to="/articlemanager/" />
+						<SidebarLink text="Admin">
+						<SidebarLink text="Supplier" icon="truck" to="/supplier/" />
+							<SidebarLink text="Money config" icon="money" to="/money/" />
+							<SidebarLink text="Register" icon="credit-card" to="/register/" />
+							<SidebarLink text="Labels" icon="tag" to="/assortment/" />
+						</SidebarLink>
 						<li><br /></li>
 						<SidebarLink onClick={this.props.logout} text="Log out" glyph="log-out" />
 					</ul>
@@ -21,13 +28,11 @@ class Sidebar extends React.Component {
 	}
 }
 
-Sidebar.propTypes = {
-	children: PropTypes.node,
-};
+Sidebar.propTypes = { children: PropTypes.node };
 
 Sidebar.defaultProps = {};
 
 export default connect(
 	state => ({ isAuthenticated: state.auth.user !== null }),
-	dispatch => ({ logout: () => dispatch(loginReset())})
+	dispatch => ({ logout: () => dispatch(loginReset()) })
 )(Sidebar);

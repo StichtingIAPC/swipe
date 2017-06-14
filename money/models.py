@@ -1,5 +1,5 @@
+import datetime
 from decimal import Decimal
-from fractions import Fraction
 
 from django.core.validators import RegexValidator
 from django.db import models
@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy
 
 from swipe.settings import DECIMAL_PLACES, MAX_DIGITS, USED_CURRENCY
 from tools.util import raiseif
-import datetime
 
 
 class VAT(models.Model):
@@ -147,6 +146,8 @@ class Money:
     def __init__(self, amount: Decimal, currency: Currency=None, use_system_currency: bool=False):
         if use_system_currency:
             currency = Currency(iso=USED_CURRENCY)
+        raiseif(not isinstance(amount, Decimal), InvalidDataError, "amount must be a Decimal")
+        raiseif(not isinstance(currency, Currency), InvalidDataError, "currency must be a Currency")
         self._amount = amount.quantize(Decimal(10)**(-DECIMAL_PLACES))
         self._currency = currency
 
@@ -163,6 +164,9 @@ class Money:
 
     def __str__(self):
         return "{}: {}".format(self.currency.iso, self._amount)
+
+    def __repr__(self):
+        return self.__str__()
 
     def compare(self, item2):
         if type(self) != type(item2):
@@ -221,6 +225,8 @@ class MoneyProxy:
 
     # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
+        if obj is None:
+            return self
         amount, currency = self._get_values(obj)
         if amount is None:
             return None
@@ -271,7 +277,9 @@ class MoneyField(models.DecimalField):
             c_field = CurrencyField(max_length=3)
             c_field.creation_counter = self.creation_counter
             cls.add_to_class(currency_field_name(name), c_field)
+
         super(MoneyField, self).contribute_to_class(cls, name)
+
         setattr(cls, name, MoneyProxy(self, name, self.type))
 
     # The boiler needs some plating
@@ -444,6 +452,8 @@ class PriceProxy:
 
     # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
+        if obj is None:
+            return self
         amount, currency, vat = self._get_values(obj)
         if amount is None:
             return None
@@ -596,6 +606,8 @@ class SalesPriceProxy:
 
     # noinspection PyUnusedLocal
     def __get__(self, obj, *args):
+        if obj is None:
+            return self
         amount, currency, vat, cost = self._get_values(obj)
         if amount is None:
             return None
@@ -696,6 +708,9 @@ class CurrencyData(models.Model):
             return self.iso == other.iso
         else:
             return False
+
+    def as_currency(self):
+        return Currency(iso=self.iso)
 
     def __str__(self):
         return self.iso

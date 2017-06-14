@@ -1,9 +1,12 @@
 from decimal import Decimal
 
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import Serializer
 
-from money.models import CurrencyData as Currency, Denomination, AccountingGroup, Money, VAT, VATPeriod
+from money.models import CurrencyData as Currency, Denomination, \
+    AccountingGroup, Money, VAT, VATPeriod, Cost, Price
 
 
 class MoneySerializerField(serializers.Field):
@@ -12,7 +15,7 @@ class MoneySerializerField(serializers.Field):
             return None
         try:
             return Money(amount=Decimal(data['amount']),
-                         currency=Currency(data['currency']))
+                         currency=data['currency'])
         except Exception as e:
             raise ValidationError from e
 
@@ -23,11 +26,34 @@ class MoneySerializerField(serializers.Field):
         }
 
 
+class CostSerializerField(MoneySerializerField):
+    def to_internal_value(self, data):
+        if data is None:
+            return None
+        try:
+            return Cost(amount=Decimal(data['amount']),
+                        currency=data['currency'])
+        except Exception as e:
+            raise ValidationError from e
+
+
+class PriceSerializer(Serializer):
+    def to_representation(self, obj: Price):
+        if obj is None:
+            return None
+        return {
+            'amount': str(obj.amount),
+            'currency': obj.currency.iso,
+            'vat': str(obj.vat)
+        }
+
+
 class DenominationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Denomination
         fields = (
             'id',
+            'currency',
             'amount',
         )
 
@@ -106,12 +132,12 @@ class VATSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         vatperiods = validated_data.pop('vatperiod_set')
-        vat = VAT.objects.create(**validated_data)
-        vperiods = []
-        for vp_data in vatperiods:
-            vperiods.append(VATPeriod(**vp_data))
-        vat.vatperiod_set.set(vperiods)
-        return super().create(validated_data)
+        vat = None
+        with transaction.atomic():
+            vat = VAT.objects.create(**validated_data)
+            for vp_data in vatperiods:
+                VATPeriod.objects.create(vat=vat, **vp_data)
+        return vat
 
     def update(self, instance: VAT, validated_data):
         instance.name = validated_data.get('name', instance.name)

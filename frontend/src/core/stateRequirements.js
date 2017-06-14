@@ -43,18 +43,21 @@ export function connectMixin(requirements, state = null) {
 	 */
 	function func(_state) {
 		const missingRequirements = Object.entries(requirements)
-			.filter((entry) => _state[entry[0]][entry[0]].length == 0);
+			.filter(entry => !!_state[entry[0]] && !_state[entry[0]][entry[0]]);
+
 		return {
-			requirementsLoaded: missingRequirements.length == 0,
-			missingRequirements: missingRequirements,
-		}
+			requirementsLoaded: missingRequirements.length === 0,
+			missingRequirements,
+			reloadRequirements: obj => Object.values(requirements).map(fun => obj.props.dispatch(fun)),
+		};
 	}
 
-	if (state != null) { // case connect((state) => ({...connectMixin(requirements, state)}))
+	// case connect((state) => ({...connectMixin(requirements, state)}))
+	if (state !== null)
 		return func(state);
-	} else { // case connect(connectMixin(requirements))
-		return func;
-	}
+
+	// case connect(connectMixin(requirements))
+	return func;
 }
 
 /**
@@ -63,11 +66,11 @@ export function connectMixin(requirements, state = null) {
  * @param obj: Component
  */
 export function fetchStateRequirementsFor(obj) {
-	if (obj.props.requirementsLoaded) {
+	if (obj.props.requirementsLoaded)
 		return;
-	}
+
 	obj.props.missingRequirements
 		.forEach(
-			(entry) => obj.props.dispatch(entry[1]())
+			entry => obj.props.dispatch(entry[1]())
 		);
 }

@@ -7,12 +7,31 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 
 from crm.models import Customer, ContactOrganisation,\
     Person, PersonType, PersonTypeField, PersonTypeFieldValue,\
-    Organisation, OrganisationType, OrganisationTypeField, OrganisationTypeFieldValue
+    Organisation, OrganisationType, OrganisationTypeField, OrganisationTypeFieldValue, User
+from tools.json_parsers import ParseError
 
 
 def index(request):
     return render(request, 'crm/index.html')
 
+
+class CRMDictParsers:
+
+    @staticmethod
+    def user_parser(integer: int):
+        if integer is None:
+            raise ParseError("User does not exist")
+        if not isinstance(integer, int):
+            raise ParseError("User id is not integer")
+        return User.objects.get(id=integer)
+
+    @staticmethod
+    def customer_parser(integer: int):
+        if integer is None:
+            raise ParseError("Customer does not exist")
+        if not isinstance(integer, int):
+            raise ParseError("Customer id is not integer")
+        return Customer.objects.get(id=integer)
 
 ###
 # Customer related views
