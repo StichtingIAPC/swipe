@@ -6,40 +6,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Swipe - {% block page_title %}Page{% endblock %}</title>
-        <link rel="stylesheet" type="text/x-scss-once" href="{% static 'scss/www/../static/www/scss/framework.scss' %}" />
-        <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/www/../static/www/scss/main.scss' %}" />
-        <script type="text/javascript">
-            /**
-             * @type { {
-             *   local: Object|Array,
-             *   global: Object|Array
-             * }}
-             */
-        window.swipe = {
-        {% if swipe_local_vars %}local: {{ swipe_local_vars }},{% endif %}
-        {% if SWIPE_JS_GLOBAL_VARS %}global: {{ SWIPE_JS_GLOBAL_VARS }},{% endif %}
-        };
-        </script>
-        <script type="module" src="{% static 'js/main.js' %}"></script>
 </head>
-<body class="container horizontal">
-<div class="container horizontal grow">
-    {% include 'partials/sidebar.html' %}
-    <div id="page-container" data-sticky-container>
-        {% include 'partials/topbar.html' %}
-        <div class="page-content-container container grow">
-            {% block module_content %}
-                <div class="small-6 columns">
-                    <div class="card">
-                        {% trans 'This page intentionally left almost blank.' %}
-                    </div>
-                </div>
-            {% endblock module_content %}
-        </div>
-    </div>
-</div>
-<script type="text/javascript">
-    new Foundation.DropdownMenu($('[data-dropdown-menu]'));
-</script>
+<body>
+    {% block module_content %}
+        <p>Nothing to see here.</p>
+    {% endblock module_content %}
 </body>
 </html>

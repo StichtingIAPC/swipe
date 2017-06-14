@@ -1,16 +1,5 @@
-{% load i18n %}
-{% load staticfiles %}
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Swipe - Backend</title>
-
-</head>
-<body class="container horizontal">
-
-        Welcome to the backend of swipe. Things seem to be at the very least not disastrously wrong. Move along, nothing to see here. If you are a member of Syscom, you probably did your job well :).
-
-</body>
-</html>
+{% block module_content %}
+<p>Welcome to the backend of swipe. Things seem to be at the very least not disastrously wrong. Move along, nothing to see here. If you are a member of Syscom, you probably did your job well :).</p>
+{% endblock module_content %}

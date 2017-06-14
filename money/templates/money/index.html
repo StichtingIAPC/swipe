@@ -1,9 +1,0 @@
-{% extends 'money/money_base.html' %}
-
-{% load i18n %}
-
-{% block page_title%}{% trans 'Money'%}{% endblock %}`s
-
-{% block content %}
-    <p><a href="{% url 'currencydata_list' %}">List of currencies</a></p>
-{% endblock %}
