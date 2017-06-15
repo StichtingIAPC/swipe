@@ -33,4 +33,6 @@ urlpatterns = [
     # Main entry point of Swpie
     url(r'^', include('www.urls')),
 
+    url(r'^docs/', include('rest_framework_docs.urls')),
+
 ]

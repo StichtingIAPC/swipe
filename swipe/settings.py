@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django_gravatar',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_docs',
     'corsheaders',  # to enable the frontend to be hosted on another machine than the API.
 
     # our apps
