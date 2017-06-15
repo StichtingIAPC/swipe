@@ -4,62 +4,21 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse, JsonRespo
 from django.db.models import Sum
 import json
 
-from article.views import ArticleDictParsers
-from crm.views import CRMDictParsers
+from article.helpers import ArticleDictParsers
+from crm.helpers import CRMDictParsers
 from money.serializers import MoneySerializerField
-from money.views import MoneyDictParsers
+from money.helpers import MoneyDictParsers
 from register.views import ParseError
+from sales.helpers import SalesDictParsers
 from sales.models import Payment, Transaction, TransactionLine, SalesTransactionLine, OtherCostTransactionLine, \
     OtherTransactionLine, RefundTransactionLine
 from sales.serializers import PaymentSerializer, TransactionSerializer
 from register.models import RegisterMaster, SalesPeriod
 from tools.json_parsers import DictParsers
 
-class SalesDictParsers:
-
-    @staticmethod
-    def payment_parser(obj: dict):
-        if obj is None:
-            raise ParseError("Payment does not exist")
-        if not isinstance(obj, dict):
-            raise ParseError("Payment is not a dict")
-        payment_type = DictParsers.int_parser(obj.get("payment_type"))
-        amount = MoneyDictParsers.money_parser(obj.get("amount"))
-        return Payment(payment_type_id=payment_type, amount=amount)
-
-    @staticmethod
-    def transactionline_parser(obj: dict):
-        count = DictParsers.int_parser(obj.get("count"))
-        price = MoneyDictParsers.price_parser(obj.get("price"))
-        order = DictParsers.int_parser(obj.get("order"), optional=True)
-        clazz = DictParsers.string_parser(obj.get("class"))
-        if clazz == "SalesTransactionLine":
-            cost = MoneyDictParsers.cost_parser(obj.get("cost"))
-            article = ArticleDictParsers.article_parser(obj.get("article"))
-            return SalesTransactionLine(count=count, price=price, order=order, cost=cost, article=article)
-        elif clazz == "OtherCostTransactionLine":
-            other_cost_type = DictParsers.int_parser(obj.get("other_cost_type"))
-            return OtherCostTransactionLine(count=count, price=price, order=order, other_cost_type_id=other_cost_type)
-        elif clazz == "OtherTransactionLine":
-            text = DictParsers.string_parser(obj.get("text"))
-            accounting_group = DictParsers.int_parser(obj.get("accounting_group"))
-            return OtherTransactionLine(count=count, price=price, order=order, text=text, accounting_group_id=accounting_group)
-        elif clazz == "RefundTransactionLine":
-            sold_transaction_line = DictParsers.int_parser(obj.get("sold_transaction_line"))
-            test_rma = DictParsers.int_parser(obj.get("test_rma"), optional=True)
-            creates_rma = DictParsers.boolean_parser(obj.get("creates_rma"), optional=True)
-            if not creates_rma:
-                creates_rma = False
-            return RefundTransactionLine(count=count, price=price, order=order,
-                                         sold_transaction_line_id=sold_transaction_line, test_rma=test_rma,
-                                         creates_rma=creates_rma)
-        else:
-            raise ParseError("Class is not valid")
-
-
 
 class PaymentListView(mixins.ListModelMixin,
-                          generics.GenericAPIView):
+                      generics.GenericAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
 
@@ -68,7 +27,7 @@ class PaymentListView(mixins.ListModelMixin,
 
 
 class PaymentGroupView(mixins.RetrieveModelMixin,
-                          generics.GenericAPIView):
+                       generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         self.queryset = Payment.objects.filter(transaction__salesperiod__id=kwargs["pk"]).order_by("payment_type")
@@ -77,11 +36,11 @@ class PaymentGroupView(mixins.RetrieveModelMixin,
         first_of_type = True
         current_type = None
         for element in self.queryset:
-            if (first_of_type):
+            if first_of_type:
                 type_list = []
                 current_type = element.payment_type
                 first_of_type = False
-            if (current_type == element.payment_type):
+            if current_type == element.payment_type:
                 type_list.append(PaymentSerializer().to_representation(element))
             else:
                 first_of_type=True
@@ -91,7 +50,7 @@ class PaymentGroupView(mixins.RetrieveModelMixin,
 
 
 class PaymentGroupOpenedView(mixins.RetrieveModelMixin,
-                          generics.GenericAPIView):
+                             generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         self.queryset = Payment.objects.filter(transaction__salesperiod__endTime=None).order_by("payment_type")
@@ -100,11 +59,11 @@ class PaymentGroupOpenedView(mixins.RetrieveModelMixin,
         first_of_type = True
         current_type = None
         for element in self.queryset:
-            if (first_of_type):
+            if first_of_type:
                 type_list = []
                 current_type = element.payment_type
                 first_of_type = False
-            if (current_type == element.payment_type):
+            if current_type == element.payment_type:
                 type_list.append(PaymentSerializer().to_representation(element))
             else:
                 first_of_type=True
@@ -121,7 +80,7 @@ class PaymentOpenListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
-        if (not RegisterMaster.sales_period_is_open()):
+        if not RegisterMaster.sales_period_is_open():
             return Payment.objects.none()
         else:
             opensalesperiod = RegisterMaster.get_open_sales_period()
@@ -187,6 +146,7 @@ class PaymentTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
                                   'amount': MoneySerializerField().to_representation(payment_type_aggregation[key])})
         return serialization
 
+
 class PaymentsLatestTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
 
     def get(self, request, *args, **kwargs):
@@ -194,6 +154,7 @@ class PaymentsLatestTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
         payments = Payment.objects.filter(transaction__salesperiod=sp)
         serialization = PaymentTotalsView.get_aggregation_and_serialize(payments)
         return HttpResponse(content=json.dumps(serialization, indent=4), content_type="application/json")
+
 
 class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
 
@@ -229,7 +190,8 @@ class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
             return HttpResponseBadRequest(reason=str(e))
         try:
             transaction = Transaction.create_transaction(user=data.user, payments=data.payments,
-                                           transaction_lines=data.transaction_lines, customer=data.customer)
+                                                         transaction_lines=data.transaction_lines,
+                                                         customer=data.customer)
         except Exception as e:
             return HttpResponseBadRequest(reason=str(e))
         return HttpResponse(content=json.dumps(TransactionSerializer().to_representation(transaction), indent=4),
