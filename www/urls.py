@@ -3,6 +3,8 @@ WWW URL Configuration
 """
 
 from django.conf.urls import url, include
+from rest_framework.documentation import include_docs_urls
+
 
 from www.views import home
 
@@ -10,6 +12,8 @@ from www.views import home
 urlpatterns = [
     # Home page
     url(r'^$', home, name='home'),
+
+    url(r'^docs/', include_docs_urls(title='My API title')),
 
     url(r'^auth/', include('authorization.urls')),
 
