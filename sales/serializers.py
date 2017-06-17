@@ -64,6 +64,7 @@ class TransactionLineSerializer(serializers.Serializer):
         data['text'] = instance.text
         data['order'] = instance.order
         data['accounting_group'] = instance.accounting_group_id
+        data['original_price'] = PriceSerializer().to_representation(instance.original_price)
         data['class'] = "TransactionLine"
         return data
 

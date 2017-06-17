@@ -36,6 +36,8 @@ class TransactionLine(Blame):
     order = models.IntegerField(null=True)
     # The accounting group to indicate where the money flow should be booked.
     accounting_group = models.ForeignKey(AccountingGroup)
+    # The original pieceprice in case of a price override. Null if no override
+    original_price = PriceField(default=None, blank=True)
 
     def save(self, **kwargs):
         if type(self) == TransactionLine:

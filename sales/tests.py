@@ -728,6 +728,33 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
             Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                        customer=self.customer_person_2)
 
+    def test_original_pricing_price_override(self):
+        self.create_externalisation()
+        self.register_3.open(Decimal(0))
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=1,
+                                          other_cost_type=self.othercosttype_1, order=None,
+                                          original_price=self.price_systen_currency_2)
+        money_3 = Money(amount=self.price_system_currency_1.amount * 1,
+                        currency=self.price_system_currency_1.currency)
+        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+        Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                       customer=self.customer_person_2)
+        octl = OtherCostTransactionLine.objects.get()
+        self.assertEqual(octl.original_price, self.price_systen_currency_2)
+
+    def test_no_price_override_returns_null(self):
+        self.create_externalisation()
+        self.register_3.open(Decimal(0))
+        octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=1,
+                                          other_cost_type=self.othercosttype_1, order=None)
+        money_3 = Money(amount=self.price_system_currency_1.amount * 1,
+                        currency=self.price_system_currency_1.currency)
+        pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
+        Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
+                                       customer=self.customer_person_2)
+        octl = OtherCostTransactionLine.objects.get()
+        self.assertIsNone(octl.original_price)
+
 
 
 class StockTests(TestCase, TestData):
