@@ -33,7 +33,10 @@ class VAT(models.Model):
             return current_period[0].vatrate
 
     def __str__(self):
-        return "{}:{}".format(self.name, self.getvatrate())
+        try:
+            return "{}:{}".format(self.name, self.getvatrate())
+        except VATError:
+            return "{}:{}".format(self.name, "No VAT Period Yet")
 
     def to_rate_string(self):
         num = (self.getvatrate() - 1) * 100

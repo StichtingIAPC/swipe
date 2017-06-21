@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -17,9 +19,12 @@ class JSONResponse(HttpResponse):
         super().__init__(content, **kwargs)
 
 
-@csrf_exempt
-def logout(request):
-    if request.method == 'POST':
+class Logout(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        super(Logout, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request):
         Token.objects.filter(key=request.POST['token']).delete()
         return JSONResponse({})
 

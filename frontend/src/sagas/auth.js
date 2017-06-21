@@ -10,7 +10,7 @@ export function* login({ username, password }) {
 	form.append('username', username);
 	form.append('password', password);
 	try {
-		const result = yield call(fetch, `${config.baseurl}/auth/login/`, {
+		const result = yield call(fetch, `${config.backendUrl}/auth/login/`, {
 			method: 'POST',
 			body: form,
 		});

@@ -6,37 +6,13 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from rest_framework import mixins, generics
 
 from money.models import Denomination
+from register.helpers import RegisterDictParsers
 from register.models import RegisterMaster, Register, DenominationCount, SalesPeriod, RegisterCount, \
     PaymentType, AlreadyOpenError, RegisterCountError
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
     RegisterCountSerializer, SalesPeriodSerializer
 from tools.json_parsers import ParseError, DictParsers
 
-
-class RegisterDictParsers:
-
-    @staticmethod
-    def denominationcount_parser(dictionary: dict):
-        count = dictionary.get("count", None)
-        if count is None:
-            raise ParseError("Count is missing")
-        if not type(count) == int:
-            raise ParseError("Count is not an int")
-        denomination = dictionary.get("denomination", None)
-        if denomination is None:
-            raise ParseError("Denomination is missing")
-        if not type(denomination) == int:
-            raise ParseError("Denomination is not an int")
-        db_denom = Denomination.objects.get(id=denomination)
-        return DenominationCount(denomination=db_denom, number=count)
-
-    @staticmethod
-    def register_parser(integer: int):
-        if integer is None:
-            raise ParseError("Register does not exist")
-        if not type(integer) == int:
-            raise ParseError("Register is not an int")
-        return Register.objects.get(id=integer)
 
 class RegisterListView(mixins.ListModelMixin,
                        mixins.CreateModelMixin,
@@ -72,7 +48,7 @@ class RegisterListView(mixins.ListModelMixin,
 
 
 class RegisterOpenedView(mixins.ListModelMixin,
-                       generics.GenericAPIView):
+                         generics.GenericAPIView):
     serializer_class = RegisterCountSerializer
     queryset = RegisterCount.objects\
         .filter(sales_period__endTime__isnull=True,
@@ -82,17 +58,9 @@ class RegisterOpenedView(mixins.ListModelMixin,
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        pass
-        #obj = RegisterOpenSerializer(request.data)
-        #obj.is_valid(raise_exception=True)
-        #counts = obj.validated_data['counts']
-
-        #return Response(obj)
-
 
 class RegisterClosedView(mixins.ListModelMixin,
-                        generics.GenericAPIView):
+                         generics.GenericAPIView):
     serializer_class = RegisterCountSerializer
 
     def get_queryset(self):
@@ -276,8 +244,9 @@ class SalesPeriodListView(mixins.ListModelMixin,
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+
 class PaymentTypeOpenListView(mixins.ListModelMixin,
-                          generics.GenericAPIView):
+                              generics.GenericAPIView):
     serializer_class = PaymentTypeSerializer
 
     def get_queryset(self):
@@ -298,7 +267,7 @@ class SalesPeriodView(mixins.RetrieveModelMixin,
 
 class SalesPeriodLatestView(mixins.ListModelMixin,
                             mixins.RetrieveModelMixin,
-                      generics.GenericAPIView):
+                            generics.GenericAPIView):
     serializer_class = SalesPeriodSerializer
 
     def get_queryset(self):

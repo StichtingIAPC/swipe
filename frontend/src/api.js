@@ -27,7 +27,7 @@ export function getToken() {
 export async function get(url, { headers = {}, ...rest } = {}) {
 	const token = await getToken();
 	const result = await fetch(
-		config.baseurl + url,
+		config.backendUrl + url,
 		{
 			method: 'GET',
 			headers: {
@@ -47,7 +47,7 @@ export async function get(url, { headers = {}, ...rest } = {}) {
 export async function post(url, object, { headers = {}, ...rest } = {}) {
 	const token = await getToken();
 	const result = await fetch(
-		config.baseurl + url,
+		config.backendUrl + url,
 		{
 			method: 'POST',
 			headers: {
@@ -68,7 +68,7 @@ export async function post(url, object, { headers = {}, ...rest } = {}) {
 export async function put(url, object, { headers = {}, ...rest } = {}) {
 	const token = await getToken();
 	const result = await fetch(
-		config.baseurl + url,
+		config.backendUrl + url,
 		{
 			method: 'PUT',
 			headers: {
@@ -90,7 +90,7 @@ export async function put(url, object, { headers = {}, ...rest } = {}) {
 export async function del(url, object, { headers = {}, ...rest } = {}) {
 	const token = await getToken();
 	const result = await fetch(
-		config.baseurl + url,
+		config.backendUrl + url,
 		{
 			method: 'DELETE',
 			headers: {
@@ -111,7 +111,7 @@ export async function del(url, object, { headers = {}, ...rest } = {}) {
 export async function patch(url, object, { headers = {}, ...rest } = {}) {
 	const token = await getToken();
 	const result = fetch(
-		config.baseurl + url,
+		config.backendUrl + url,
 		{
 			method: 'PATCH',
 			headers: {
