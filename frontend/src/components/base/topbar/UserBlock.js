@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router";
-import autoBind from "react-autobind";
 import { connect } from "react-redux";
 import { loginReset } from "../../../actions/auth";
 
@@ -9,7 +8,6 @@ class UserBlock extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = { open: false };
-		autoBind(this);
 	}
 
 	toggleDropdown(evt) {

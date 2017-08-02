@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from supplier.models import Supplier
+from money.serializers import CostSerializerField
+from supplier.models import Supplier, ArticleTypeSupplier
 
 
 class SupplierSerializer(serializers.ModelSerializer):
@@ -14,3 +15,19 @@ class SupplierSerializer(serializers.ModelSerializer):
             'is_used',
             'is_backup',
         )
+
+
+class ArticleTypeSupplierSerializer(serializers.ModelSerializer):
+    cost = CostSerializerField()
+
+    class Meta:
+        model = ArticleTypeSupplier
+        fields = (
+            'supplier',
+            'article_type',
+            'cost',
+            'minimum_number_to_order',
+            'supplier_string',
+            'availability',
+        )
+
