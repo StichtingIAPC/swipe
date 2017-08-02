@@ -4,10 +4,10 @@
   "description": "Swipe Frontend Environment",
   "main": "index.js",
   "scripts": {
-    "build": "webpack -p",
-    "dev": "webpack-dev-server --inline --hot --history-api-fallback --content-base frontend/",
-    "lint": "eslint frontend/src",
-    "lint-fix": "eslint frontend/src --fix"
+    "build": "yarn && webpack -p",
+    "dev": "yarn && webpack-dev-server --inline --hot --history-api-fallback --content-base frontend/",
+    "lint": "yarn && eslint frontend/src",
+    "lint-fix": "yarn && eslint frontend/src --fix"
   },
   "contributors": [
     "Rick Lubbers <rlubbers@iapc.utwente.nl>",
@@ -50,6 +50,7 @@
     "style-loader": "^0.18.1",
     "url-loader": "^0.5.8",
     "webpack": "^2.2.0-rc.0",
-    "webpack-dev-server": "^2.1.0-beta.12"
+    "webpack-dev-server": "^2.1.0-beta.12",
+    "yarn": "0.17.5"
   }
 }
