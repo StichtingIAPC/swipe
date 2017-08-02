@@ -15,7 +15,7 @@ class MoneySerializerField(serializers.Field):
         if data is None:
             return None
         try:
-            return Cost(amount=Decimal(data['amount']),
+            return Money(amount=Decimal(data['amount']),
                          currency=data['currency'])
         except Exception as e:
             raise ValidationError from e
@@ -32,7 +32,7 @@ class CostSerializerField(MoneySerializerField):
         if data is None:
             return None
         try:
-            return Cost(Decimal(data["amount"]),
+            return Cost(amount=Decimal(data["amount"]),
                         currency=Currency(data["currency"]))
         except Exception as e:
             raise ValidationError from e
