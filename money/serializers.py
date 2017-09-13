@@ -49,6 +49,17 @@ class PriceSerializer(Serializer):
         }
 
 
+class SalesPriceSerializer(Serializer):
+    def to_representation(self, obj: Price):
+        if obj is None:
+            return None
+        return {
+            'amount': str(obj.amount),
+            'currency': obj.currency.iso,
+            'vat': str(obj.vat)
+        }
+
+
 class DenominationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Denomination
