@@ -1,3 +1,4 @@
+/* eslint-disable no-undefined */
 import fetch from 'isomorphic-fetch';
 import config from './config';
 
@@ -17,24 +18,24 @@ export function getToken() {
 		accept => {
 			if (TOKEN === null)
 				listeners.append(accept);
-			 else
+			else
 				accept(TOKEN);
 		}
 	);
 }
 
-
-export async function get(url, { headers = {}, ...rest } = {}) {
+async function request(method, url, { headers = {}, ...rest } = {}, object) {
 	const token = await getToken();
 	const result = await fetch(
 		config.backendUrl + url,
 		{
-			method: 'GET',
+			method,
 			headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Token ${token}`,
 				...headers,
 			},
+			body: object ? JSON.stringify(object) : undefined,
 			...rest,
 		}
 	);
@@ -44,87 +45,23 @@ export async function get(url, { headers = {}, ...rest } = {}) {
 	throw result;
 }
 
-export async function post(url, object, { headers = {}, ...rest } = {}) {
-	const token = await getToken();
-	const result = await fetch(
-		config.backendUrl + url,
-		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Token ${token}`,
-				...headers,
-			},
-			body: JSON.stringify(object),
-			...rest,
-		}
-	);
-
-	if (result.ok)
-		return result;
-	throw result;
+export async function get(url, info) {
+	return request('GET', url, info);
 }
 
-export async function put(url, object, { headers = {}, ...rest } = {}) {
-	const token = await getToken();
-	const result = await fetch(
-		config.backendUrl + url,
-		{
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Token ${token}`,
-				...headers,
-			},
-			body: JSON.stringify(object),
-			...rest,
-		}
-	);
+export async function post(url, object, info) {
+	return request('POST', url, info, object);
+}
 
-	if (result.ok)
-		return result;
-	throw result;
+export async function put(url, object, info) {
+	return request('PUT', url, info, object);
 }
 
 /* named `del` as `delete` is a keyword in js */
-export async function del(url, object, { headers = {}, ...rest } = {}) {
-	const token = await getToken();
-	const result = await fetch(
-		config.backendUrl + url,
-		{
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Token ${token}`,
-				...headers,
-			},
-			body: JSON.stringify(object),
-			...rest,
-		}
-	);
-
-	if (result.ok)
-		return result;
-	throw result;
+export async function del(url, object, info) {
+	return request('DELETE', url, info, object);
 }
 
-export async function patch(url, object, { headers = {}, ...rest } = {}) {
-	const token = await getToken();
-	const result = fetch(
-		config.backendUrl + url,
-		{
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Token ${token}`,
-				...headers,
-			},
-			body: JSON.stringify(object),
-			...rest,
-		}
-	);
-
-	if (result.ok)
-		return result;
-	throw result;
+export async function patch(url, object, info) {
+	return request('PATCH', url, info, object);
 }
