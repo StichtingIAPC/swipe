@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack -p",
     "dev": "webpack-dev-server --inline --hot --history-api-fallback --content-base frontend/",
-    "lint": "eslint frontend/src",
+    "lint": "yarn && eslint frontend/src",
     "lint-fix": "eslint frontend/src --fix"
   },
   "contributors": [
