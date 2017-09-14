@@ -27,7 +27,7 @@ class OrderView(mixins.RetrieveModelMixin,
 
 
 class CustomerOrderView(mixins.RetrieveModelMixin,
-                generics.GenericAPIView):
+                    generics.GenericAPIView):
     queryset = Order.objects.all().prefetch_related('customer')
     serializer_class = OrderSerializer
 
@@ -39,6 +39,25 @@ class OrderLineListView(mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     generics.GenericAPIView):
     queryset = OrderLine.objects.all()
+    serializer_class = OrderLineSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class OrderLineView(mixins.RetrieveModelMixin,
+                    generics.GenericAPIView):
+    queryset = OrderLine.objects.all()
+    serializer_class = OrderLineSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+class OrderLineByStateView(mixins.ListModelMixin,
+                    mixins.CreateModelMixin,
+                    generics.GenericAPIView):
+    queryset = OrderLine.objects.all().prefetch_related('state')
     serializer_class = OrderLineSerializer
 
     def get(self, request, *args, **kwargs):
