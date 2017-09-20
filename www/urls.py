@@ -21,14 +21,10 @@ urlpatterns = [
 
     url(r'^crm/', include('crm.urls')),
 
-    # Include Money URLs
     url(r'^money/', include("money.urls")),
 
-    # Include Supplier URLs
     url(r'^supplier/', include('supplier.urls')),
 
-    # Include CRM URLs
-    # Include Register URLs
     url(r'^register/', include('register.urls')),
 
     url(r'^sales/', include('sales.urls')),
@@ -40,4 +36,6 @@ urlpatterns = [
     url(r'^public/', include('public_info.urls')),
 
     url(r'^auth/', include('authorization.urls')),
+
+    url(r'^externalise/', include('externalise.urls')),
 ]

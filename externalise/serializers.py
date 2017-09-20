@@ -1,19 +1,11 @@
 from rest_framework import serializers
-
-
-class ExternaliseDocumentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        fields = (
-            'id',
-            'memo',
-            'externalise_line_set'
-        )
+from externalise.models import ExternaliseDocument, ExternaliseLine
 
 
 class ExternaliseLineSerializer(serializers.ModelSerializer):
 
     class Meta:
+        model = ExternaliseLine
         fields = (
             'id',
             'externalise_document',
@@ -21,3 +13,19 @@ class ExternaliseLineSerializer(serializers.ModelSerializer):
             'count',
             'cost'
         )
+
+
+class ExternaliseDocumentSerializer(serializers.ModelSerializer):
+    externaliseline_set = ExternaliseLineSerializer(many=True)
+
+    class Meta:
+        model = ExternaliseDocument
+        fields = (
+            'id',
+            'memo',
+            'externaliseline_set'
+        )
+        depth = 2
+
+
+
