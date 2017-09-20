@@ -97,7 +97,7 @@ module.exports = {
 		'no-implicit-coercion': OFF, // !!obj is easier and better optimized than Boolean(something), same for all other options.
 		'no-implicit-globals': ERROR,
 		'no-implied-eval': ERROR,
-		'no-invalid-this': WARN,
+		'no-invalid-this': OFF,
 		'no-iterator': ERROR,
 		'no-labels': ERROR, // was here before I got here, no hard feelings either way
 		'no-lone-blocks': ERROR,

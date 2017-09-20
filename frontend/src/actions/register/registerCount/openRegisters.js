@@ -32,6 +32,21 @@ export function openRegisterCountInputError(error) {
 		error };
 }
 
+export function openUpdateAmount(register, amount) {
+	return { type: 'REGISTERCOUNT_OPEN_UPDATE_AMOUNT',
+		register,
+		amount,
+	};
+}
+
+export function openUpdateDenomAmount(register, denom, amount) {
+	return { type: 'REGISTERCOUNT_OPEN_UPDATE_DENOM_AMOUNT',
+		register,
+		denom,
+		amount,
+	};
+}
+
 
 export {
 	fetchOpenRegisterCounts as openRegisterCounts,

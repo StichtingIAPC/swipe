@@ -32,6 +32,21 @@ export function closedRegisterCountInputError(error) {
 		error };
 }
 
+export function closedUpdateAmount(register, amount) {
+	return { type: 'REGISTERCOUNT_CLOSED_UPDATE_AMOUNT',
+		register,
+		amount,
+	};
+}
+
+export function closedUpdateDenomAmount(register, amount, number) {
+	return { type: 'REGISTERCOUNT_CLOSED_UPDATE_DENOM_AMOUNT',
+		register,
+		amount,
+		number,
+	};
+}
+
 export {
 	fetchClosedRegisterCounts as closedRegisterCounts,
 };

@@ -18,8 +18,20 @@ export default class RegisterOpenComponent extends React.Component {
 		};
 	}
 
+	updateDenomAmount = (amount, number) => {
+		this.props.updateDenomAmount(this.props.register.id, amount, number);
+	};
+
+	updateAmount = event => {
+		console.log(event.target.value, typeof event.target.value);
+		this.props.updateAmount(this.props.register.id, event.target.value);
+	};
+
 	render() {
 		const { register, registerCount, currency } = this.props;
+		const value = registerCount ? +registerCount.amount : 0;
+
+		console.log(value.toFixed(currency.digits));
 
 		return (
 			<div className="box">
@@ -35,13 +47,21 @@ export default class RegisterOpenComponent extends React.Component {
 						<input
 							className="form-control"
 							type="number"
-							min={0}
+							min={'0.00'}
+							step={10 ** -currency.digits}
 							disabled={!this.state.selected || register.is_cash_register}
-							value={registerCount.amount} />
+							onChange={this.updateAmount}
+							value={value.toFixed(currency.digits)} />
 					</div>
 					{
 						register.is_cash_register ? currency.denomination_set.map(
-							denom => <DenominationCount disabled={!this.state.selected} key={denom.amount} currency={currency} registerCount={registerCount} amount={denom.amount} />
+							denom => <DenominationCount
+								disabled={!this.state.selected}
+								key={denom.amount}
+								currency={currency}
+								registerCount={registerCount}
+								amount={denom.amount}
+								updateDenomAmount={this.updateDenomAmount} />
 						) : null
 					}
 				</div>

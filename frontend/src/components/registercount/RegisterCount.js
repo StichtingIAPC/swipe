@@ -3,45 +3,121 @@ import { connect } from 'react-redux';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import { currencies } from '../../actions/money/currencies';
 import { registers } from '../../actions/register/registers';
-import { openRegisterCounts } from '../../actions/register/registerCount/openRegisters';
-import { closedRegisterCounts } from '../../actions/register/registerCount/closedRegisters';
+import {
+	openRegisterCounts,
+	openUpdateAmount,
+	openUpdateDenomAmount
+} from '../../actions/register/registerCount/openRegisters';
+import {
+	closedRegisterCounts,
+	closedUpdateAmount,
+	closedUpdateDenomAmount
+} from '../../actions/register/registerCount/closedRegisters';
 import RegisterOpenComponent from './RegisterOpenComponent';
+
+const logExceptions = func => (...args) => {
+	console.log('called ', func, ...args);
+	try {
+		return func(...args);
+	} catch (e) {
+		console.log('caught ', e);
+		throw e;
+	}
+};
 
 class RegisterCount extends React.Component {
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
 	}
 
-	render() {
-		if (!this.props.requirementsLoaded)
-			return null;
+	static CurrencyName = ({ currencyName }) => (
+		<h2 className="page-header">{currencyName}</h2>
+	);
 
-		const { CountComponent, registers: regs, registerCounts, currencies: currs } = this.props;
+	static CurrencyRegisters = ({
+		registers: regs,
+		registerCounts,
+		Component,
+		updateDenomAmount,
+		updateAmount,
+		currency,
+	}) => {
+		const regCounts = regs.map(register => [
+			register,
+			registerCounts.find(count => count.register === register.id),
+		]).filter(entry => typeof entry[1] !== 'undefined');
 
-		const regCounts = regs.map(register => [ register, registerCounts.find(count => count.register === register.id) ])
-			.filter(entry => typeof entry[1] !== 'undefined');
-
-		const briefRegs = regCounts.filter(entry => !entry[0].is_cash_register);
-		const cashRegs = regCounts.filter(entry => !!entry[0].is_cash_register);
+		const briefs = regCounts.filter(([ register ]) => !register.is_cash_register);
+		const cash = regCounts.filter(([ register ]) => !!register.is_cash_register);
 
 		return (
 			<div className="row">
-				<div className="col-md-3">
+				<div className="col-md-4">
 					{
-						briefRegs.map(([ register, count ]) => (
-							<CountComponent key={register.id} register={register} registerCount={count} currency={currs.find(curr => curr.iso === register.currency)} />
+						briefs.map(([ register, count ]) => (
+							<Component
+								key={register.id}
+								updateDenomAmount={updateDenomAmount}
+								updateAmount={updateAmount}
+								register={register}
+								registerCount={count}
+								currency={currency} />
 						))
 					}
 				</div>
-				<div className="col-md-9 brief-register-container">
+				<div className="col-md-8">
 					{
-						cashRegs.map(([ register, count ]) => (
+						cash.map(([ register, count ]) => (
 							<div key={register.id} className="brief-register">
-								<CountComponent register={register} registerCount={count} currency={currs.find(curr => curr.iso === register.currency)} />
+								<Component
+									updateDenomAmount={updateDenomAmount}
+									updateAmount={updateAmount}
+									register={register}
+									registerCount={count}
+									currency={currency} />
 							</div>
 						))
 					}
 				</div>
+			</div>
+		);
+	};
+
+	render() {
+		if (!this.props.requirementsLoaded)
+			return null;
+
+		const { CountComponent, registers: regs, registerCounts, currencies: currs, updateDenomAmount, updateAmount } = this.props;
+
+		const currencyRegisterMap = regs.reduce((product, register) => ({
+			...product,
+			[register.currency]: [ ...product[register.currency] || [], register ],
+		}), {});
+
+		return (
+			<div className="col">
+				{
+					Object.entries(currencyRegisterMap)
+						.reduce(
+							(all, [ currency, regis ]) => {
+								const curr = currs.find(cur => cur.iso === currency);
+
+								return [
+									...all,
+									<RegisterCount.CurrencyName
+										currencyName={curr.name}
+										key={`${currency}:name`} />,
+									<RegisterCount.CurrencyRegisters
+										key={`${currency}:regs`}
+										registers={regis}
+										registerCounts={registerCounts}
+										Component={CountComponent}
+										updateDenomAmount={updateDenomAmount}
+										updateAmount={updateAmount}
+										currency={curr} />,
+								];
+							}, [])
+				}
 			</div>
 		);
 	}
@@ -58,6 +134,12 @@ export const OpenRegisterCount = connect(
 		registerCounts: state.closedRegisterCounts.closedRegisterCounts,
 		currencies: state.currencies.currencies,
 		CountComponent: RegisterOpenComponent,
+	}),
+	dispatch => ({
+		dispatch,
+		updateAmount: (...args) => dispatch(closedUpdateAmount(...args)),
+		updateDenomAmount:  (...args) => dispatch(closedUpdateDenomAmount(...args)),
+		emptyMessage: 'There are no closed registers',
 	})
 )(RegisterCount);
 
@@ -72,5 +154,11 @@ export const CloseRegisterCount = connect(
 		registerCounts: state.openRegisterCounts.openRegisterCounts,
 		currencies: state.currencies.currencies,
 		CountComponent: RegisterOpenComponent,
+	}),
+	dispatch => ({
+		dispatch,
+		updateAmount: (...args) => dispatch(openUpdateAmount(...args)),
+		updateDenomAmount: (...args) => dispatch(openUpdateDenomAmount(...args)),
+		emptyMessage: 'There are no open registers',
 	})
 )(RegisterCount);
