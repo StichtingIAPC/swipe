@@ -22,9 +22,9 @@ class OrderListView(mixins.ListModelMixin,
 
     def post(self, request, *args, **kwargs):
         # customer, user, wishable_type_number_price_combinations(List[List[WishableType, number, Price]])
-        print("request", request.data)
         order_request = OrderRequest(request.data.get('customer'), request.data.get('user'), request.data.get('wishable_type_number_price_combinations'))
-        return HttpResponse(content=order_request.__str__(), content_type="application/json")
+        order_result = order_request.create_order()
+        return HttpResponse(content=order_result, content_type="application/json")
 
 
 class OrderRequest():
@@ -41,7 +41,7 @@ class OrderRequest():
         for tuple in self.wishable_type_number_price_combinations:
             list_contents = []
             # append the WishableType
-            list_contents.append(WishableType.objects.get(tuple[0]))
+            list_contents.append(WishableType.objects.get(id=tuple[0]))
             # append the number
             list_contents.append(tuple[1])
             # append the price
@@ -49,7 +49,6 @@ class OrderRequest():
             wishable_type_number_price_combination_result_set.append(list_contents)
         created_order = Order.create_order_from_wishables_combinations(user=user, customer=customer, wishable_type_number_price_combinations=wishable_type_number_price_combination_result_set)
         return OrderSerializer().to_representation(created_order)
-
 
     def __str__(self):
         return "customer: {}, user: {} , wishable_type_number_price_combinations: {}".format(self.customer, self.user, self.wishable_type_number_price_combinations)

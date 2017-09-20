@@ -49,7 +49,7 @@ class PriceSerializer(Serializer):
         }
 
     def to_internal_value(self, data):
-        return Price(Decimal(data.amount), data.currency, Decimal(data.vat))
+        return Price(Decimal(data.get('amount')), Decimal(data.get('vat')), Currency(data.get('currency')))
 
 
 class SalesPriceSerializer(Serializer):
