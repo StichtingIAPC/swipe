@@ -13,7 +13,7 @@ class LabelField extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = this.getResetState();
+		this.state = LabelField.getResetState();
 		this.cache = {};
 	}
 

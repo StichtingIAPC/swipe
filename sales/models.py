@@ -15,6 +15,18 @@ from swipe.settings import USED_CURRENCY
 import customer_invoicing.models
 
 
+class PriceOverride(models.Model):
+    """
+    Indicates that there was a price override done by a user
+    """
+    # The user who did/authorized the override
+    user = models.ForeignKey(User)
+    # The reason for the override
+    reason = models.CharField(null=False, blank=False, max_length=255)
+    # The price per unit before the override
+    original_price = PriceField()
+
+
 class TransactionLine(Blame):
     """
     Superclass of transaction line. Contains all the shared information of all transaction line types. Creation in the database
@@ -36,6 +48,8 @@ class TransactionLine(Blame):
     order = models.IntegerField(null=True)
     # The accounting group to indicate where the money flow should be booked.
     accounting_group = models.ForeignKey(AccountingGroup)
+    # The original pieceprice in case of a price override. Null if no override
+    original_price = models.OneToOneField(PriceOverride, null=True)
 
     def save(self, **kwargs):
         if type(self) == TransactionLine:
@@ -67,9 +81,13 @@ class TransactionLine(Blame):
             ordr = "Unset"
         else:
             ordr = self.order
+        if not hasattr(self, 'original_price') or self.original_price is None:
+            org = "Unset"
+        else:
+            org = str(self.original_price.original_price)
         return "Transaction: {}, Item_number: {}, " \
-               "Count: {}, PricePP: {}, Refunded: {}, Order: {}, Text: {}, AccGroup: {}".format(trans, num, count, price, refun,
-                                                                                  ordr, self.text, self.accounting_group)
+               "Count: {}, PricePP: {}, Refunded: {}, Order: {}, Text: {}, AccGroup: {}, Original Price: {}".format(trans, num, count, price, refun,
+                                                                                  ordr, self.text, self.accounting_group, org)
 
 
 # noinspection PyShadowingBuiltins
@@ -491,6 +509,11 @@ class Transaction(Blame):
 
             for i in range(0, len(transaction_lines)):
                 transaction_lines[i].transaction = trans
+                if transaction_lines[i].original_price:
+                    # Django bullshit, don't change this
+                    org_price = transaction_lines[i].original_price
+                    org_price.save()
+                    transaction_lines[i].original_price = org_price
                 transaction_lines[i].save()
 
             # The post signal of the StockChangeSet should solve the problems of the OrderLines

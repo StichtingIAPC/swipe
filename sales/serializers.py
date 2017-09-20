@@ -3,7 +3,7 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from sales.models import Payment, TransactionLine, SalesTransactionLine, Transaction, \
-    OtherCostTransactionLine, OtherTransactionLine, RefundTransactionLine
+    OtherCostTransactionLine, OtherTransactionLine, RefundTransactionLine, PriceOverride
 from money.serializers import MoneySerializerField, PriceSerializer, CostSerializerField
 
 
@@ -19,6 +19,17 @@ class PaymentSerializer(serializers.ModelSerializer):
             'amount',
             'transaction'
         )
+
+
+class PriceOverrideSerializer(serializers.Serializer):
+    def to_representation(self, instance: PriceOverride):
+        if instance is None:
+            return None
+        data = OrderedDict()
+        data["user"] = instance.user_id
+        data["reason"] = instance.reason
+        data["original_price"] = PriceSerializer().to_representation(instance.original_price)
+        return data
 
 
 class TransactionSerializer(serializers.Serializer):
@@ -64,6 +75,7 @@ class TransactionLineSerializer(serializers.Serializer):
         data['text'] = instance.text
         data['order'] = instance.order
         data['accounting_group'] = instance.accounting_group_id
+        data['original_price'] = PriceOverrideSerializer().to_representation(instance.original_price)
         data['class'] = "TransactionLine"
         return data
 

@@ -35,3 +35,4 @@ List of contributors
 - Simon Struck
 - Mauk Muller
 - Niels Overkamp
+- Rolf van Kleef

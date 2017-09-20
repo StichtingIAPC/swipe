@@ -5,8 +5,9 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer
 
-from money.models import CurrencyData as Currency, Denomination, \
-    AccountingGroup, Money, VAT, VATPeriod, Cost, Price
+from money.models import CurrencyData, Denomination, \
+    AccountingGroup, Money, VAT, VATPeriod, Cost, Price, Currency
+from swipe.settings import DECIMAL_PLACES
 
 
 class MoneySerializerField(serializers.Field):
@@ -31,8 +32,8 @@ class CostSerializerField(MoneySerializerField):
         if data is None:
             return None
         try:
-            return Cost(amount=Decimal(data['amount']),
-                        currency=data['currency'])
+            return Cost(amount=Decimal(data["amount"]),
+                        currency=Currency(data["currency"]))
         except Exception as e:
             raise ValidationError from e
 
@@ -62,7 +63,7 @@ class CurrencySerializer(serializers.ModelSerializer):
     denomination_set = DenominationSerializer(many=True)
 
     class Meta:
-        model = Currency
+        model = CurrencyData
         fields = (
             'iso',
             'name',
@@ -74,7 +75,7 @@ class CurrencySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         denomination_data = validated_data.pop('denomination_set')
-        currency = Currency.objects.create(**validated_data)
+        currency = CurrencyData.objects.create(**validated_data)
         for denom in denomination_data:
             Denomination.objects.create(currency=currency, **denom)
         return currency

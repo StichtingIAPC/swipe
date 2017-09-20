@@ -25,9 +25,12 @@ class MoneyDictParsers:
         return Cost(amount=amount, currency=currency)
 
     @staticmethod
-    def price_parser(obj: dict):
+    def price_parser(obj: dict, optional=False):
         if obj is None:
-            raise ParseError("Price does not exist")
+            if optional:
+                return None
+            else:
+                raise ParseError("Price does not exist")
         if not isinstance(obj, dict):
             raise ParseError("Object cannot be a Price as it is not a dict")
         amount = DictParsers.decimal_parser(obj.get("amount"))
