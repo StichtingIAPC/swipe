@@ -5,6 +5,7 @@ from rest_framework import generics
 from rest_framework import mixins
 import json
 
+from money.serializers import PriceSerializer
 from order.models import *
 from order.serializers import OrderSerializer, OrderLineSerializer, OrderLineStateSerializer
 
@@ -20,8 +21,39 @@ class OrderListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        # customer, user, wishable
-        pass
+        # customer, user, wishable_type_number_price_combinations(List[List[WishableType, number, Price]])
+        print("request", request.data)
+        order_request = OrderRequest(request.data.get('customer'), request.data.get('user'), request.data.get('wishable_type_number_price_combinations'))
+        return HttpResponse(content=order_request.__str__(), content_type="application/json")
+
+
+class OrderRequest():
+
+    def __init__(self, customer: int, user: int, wishable_type_number_price_combinations):
+        self.customer = customer
+        self.user = user
+        self.wishable_type_number_price_combinations = wishable_type_number_price_combinations
+
+    def create_order(self):
+        customer = Customer.objects.get(id=self.customer)
+        user = User.objects.get(id=self.user)
+        wishable_type_number_price_combination_result_set = []
+        for tuple in self.wishable_type_number_price_combinations:
+            list_contents = []
+            # append the WishableType
+            list_contents.append(WishableType.objects.get(tuple[0]))
+            # append the number
+            list_contents.append(tuple[1])
+            # append the price
+            list_contents.append(PriceSerializer().to_internal_value(tuple[2]))
+            wishable_type_number_price_combination_result_set.append(list_contents)
+        created_order = Order.create_order_from_wishables_combinations(user=user, customer=customer, wishable_type_number_price_combinations=wishable_type_number_price_combination_result_set)
+        return OrderSerializer().to_representation(created_order)
+
+
+    def __str__(self):
+        return "customer: {}, user: {} , wishable_type_number_price_combinations: {}".format(self.customer, self.user, self.wishable_type_number_price_combinations)
+
 
 class OrderView(mixins.RetrieveModelMixin,
                 generics.GenericAPIView):

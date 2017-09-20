@@ -48,6 +48,9 @@ class PriceSerializer(Serializer):
             'vat': str(obj.vat)
         }
 
+    def to_internal_value(self, data):
+        return Price(Decimal(data.amount), data.currency, Decimal(data.vat))
+
 
 class SalesPriceSerializer(Serializer):
     def to_representation(self, obj: Price):
