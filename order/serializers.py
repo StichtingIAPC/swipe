@@ -3,9 +3,9 @@ from rest_framework import serializers
 from money.serializers import SalesPriceSerializer
 from order.models import Order, OrderLine, OrderLineState
 
+
 class OrderLineSerializer(serializers.ModelSerializer):
     expected_sales_price = SalesPriceSerializer()
-    final_sales_price = SalesPriceSerializer()
 
     class Meta:
         model = OrderLine
@@ -15,7 +15,6 @@ class OrderLineSerializer(serializers.ModelSerializer):
             'wishable',
             'state',
             'expected_sales_price',
-            'final_sales_price'
         )
 
 
