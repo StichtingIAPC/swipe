@@ -24,20 +24,21 @@ class OrderListView(mixins.ListModelMixin,
         # customer, user, wishable_type_number_price_combinations(List[List[WishableType, number, Price]])
         order_request = OrderRequest(request.data.get('customer'), request.data.get('user'), request.data.get('wishable_type_number_price_combinations'))
         order_result = order_request.create_order()
-        return HttpResponse(content=order_result, content_type="application/json")
+        return HttpResponse(content=json.dumps(order_result), content_type="application/json")
 
 
 class OrderRequest:
 
     class ArticleInformation:
 
-        def __init__(self, wishable_type: int, amount: int, price: Price):
+        def __init__(self, wishable_type: int, amount: int, price):
             self.wishable_type = wishable_type
             self.amount = amount
-            self.price = price
+            self.price = Price(amount=Decimal(price.get("amount")), vat=Decimal(price.get("vat")),
+                               use_system_currency=True)
 
         def to_model_format(self):
-            return [WishableType.objects.get(id=self.wishable_type), self.amount, self.price]
+            return (SellableType.objects.get(id=self.wishable_type), self.amount, self.price)
 
     def __init__(self, customer: int, user: int, wishable_type_number_price_combinations):
         self.customer = customer
@@ -54,7 +55,7 @@ class OrderRequest:
                                                                   price=article_information_data.get("price"))
             wishable_type_number_price_combination_result_set.append(article_information.to_model_format())
         created_order = Order.create_order_from_wishables_combinations(user=user, customer=customer, wishable_type_number_price_combinations=wishable_type_number_price_combination_result_set)
-        return OrderSerializer().to_representation(created_order)
+        return OrderSerializer(created_order).data
 
     def __str__(self):
         return "customer: {}, user: {} , wishable_type_number_price_combinations: {}".format(self.customer, self.user, self.wishable_type_number_price_combinations)

@@ -35,18 +35,18 @@ class Order(Blame, Shared):
         raiseif(not isinstance(customer, Customer), InvalidDataError, "customer must be a Customer")
         for wishable, number, price in wishable_type_number_price_combinations:
             raiseif(not isinstance(wishable, WishableType), InvalidDataError,
-                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price]")
+                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price], but wishable was not a WishableType")
             raiseif(not isinstance(number, int) and number > 0, InvalidDataError,
-                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price]")
+                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price] but amount wasn't an int")
             raiseif(not isinstance(price, Price), InvalidDataError,
-                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price]")
+                    "wishable_type_number_price_combinations must be Iterable of Tuple[WishableType, int, Price] but price wasn't a Price")
 
         order = Order(user_created=user, customer=customer)
         orderlines = []
         for wishable, number, price in wishable_type_number_price_combinations:
             OrderLine.add_orderlines_to_list(orderlines, wishable_type=wishable,
                                              number=number, user=user, price=price)
-        Order.make_order(order, orderlines, user)
+        return Order.make_order(order, orderlines, user)
 
     @staticmethod
     @transaction.atomic()
@@ -64,6 +64,7 @@ class Order(Blame, Shared):
         order.user_modified = user
         order.save()
         OrderLine.bulk_create_orderlines(orderlines, order, user)
+        return order
 
     @staticmethod
     @transaction.atomic()
