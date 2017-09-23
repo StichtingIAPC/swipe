@@ -27,7 +27,17 @@ class OrderListView(mixins.ListModelMixin,
         return HttpResponse(content=order_result, content_type="application/json")
 
 
-class OrderRequest():
+class OrderRequest:
+
+    class ArticleInformation:
+
+        def __init__(self, wishable_type: int, amount: int, price: Price):
+            self.wishable_type = wishable_type
+            self.amount = amount
+            self.price = price
+
+        def to_model_format(self):
+            return [WishableType.objects.get(id=self.wishable_type), self.amount, self.price]
 
     def __init__(self, customer: int, user: int, wishable_type_number_price_combinations):
         self.customer = customer
@@ -38,15 +48,11 @@ class OrderRequest():
         customer = Customer.objects.get(id=self.customer)
         user = User.objects.get(id=self.user)
         wishable_type_number_price_combination_result_set = []
-        for tuple in self.wishable_type_number_price_combinations:
-            list_contents = []
-            # append the WishableType
-            list_contents.append(WishableType.objects.get(id=tuple[0]))
-            # append the number
-            list_contents.append(tuple[1])
-            # append the price
-            list_contents.append(PriceSerializer().to_internal_value(tuple[2]))
-            wishable_type_number_price_combination_result_set.append(list_contents)
+        for article_information_data in self.wishable_type_number_price_combinations:
+            article_information = OrderRequest.ArticleInformation(wishable_type=article_information_data.get("wishable_type"),
+                                                                  amount=article_information_data.get("amount"),
+                                                                  price=article_information_data.get("price"))
+            wishable_type_number_price_combination_result_set.append(article_information.to_model_format())
         created_order = Order.create_order_from_wishables_combinations(user=user, customer=customer, wishable_type_number_price_combinations=wishable_type_number_price_combination_result_set)
         return OrderSerializer().to_representation(created_order)
 

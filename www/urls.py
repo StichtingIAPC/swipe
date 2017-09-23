@@ -24,7 +24,7 @@ urlpatterns = [
     # Include Money URLs
     url(r'^money/', include("money.urls")),
 
-    url(r'^orders/', include('order.urls')),
+    url(r'^order/', include('order.urls')),
 
     # Include Supplier URLs
     url(r'^supplier/', include('supplier.urls')),
