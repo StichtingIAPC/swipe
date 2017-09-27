@@ -23,6 +23,8 @@ urlpatterns = [
 
     url(r'^money/', include("money.urls")),
 
+    url(r'^order/', include('order.urls')),
+
     url(r'^supplier/', include('supplier.urls')),
 
     url(r'^register/', include('register.urls')),

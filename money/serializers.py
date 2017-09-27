@@ -48,6 +48,20 @@ class PriceSerializer(Serializer):
             'vat': str(obj.vat)
         }
 
+    def to_internal_value(self, data):
+        return Price(Decimal(data.get('amount')), Decimal(data.get('vat')), Currency(data.get('currency')))
+
+
+class SalesPriceSerializer(Serializer):
+    def to_representation(self, obj: Price):
+        if obj is None:
+            return None
+        return {
+            'amount': str(obj.amount),
+            'currency': obj.currency.iso,
+            'vat': str(obj.vat)
+        }
+
 
 class DenominationSerializer(serializers.ModelSerializer):
     class Meta:
