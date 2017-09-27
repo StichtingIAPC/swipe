@@ -21,6 +21,8 @@ urlpatterns = [
 
     url(r'^crm/', include('crm.urls')),
 
+    url(r'^logistics/', include('logistics.urls')),
+
     # Include Money URLs
     url(r'^money/', include("money.urls")),
 
