@@ -1,10 +1,10 @@
-import React from "react";
-import { connect } from "react-redux";
-import DatePicker from "react-datepicker";
-import { createVAT, updateVAT } from "../../../actions/money/VATs";
-import Form from "../../forms/Form";
-import { BoolField, StringField } from "../../forms/fields";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import { connect } from 'react-redux';
+import DatePicker from 'react-datepicker';
+import { createVAT, updateVAT } from '../../../actions/money/VATs';
+import Form from '../../forms/Form';
+import { BoolField, StringField } from '../../forms/fields';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 class VATEdit extends React.Component {
 	constructor(props) {
@@ -75,7 +75,7 @@ class VATEdit extends React.Component {
 									minDate={VATPeriod.start_date}
 									dateFormat="YYYY-MM-DD"
 									onChange={val => updateValue('end_date', val)} />
-								)
+							)
 						}
 					</td>
 					<td>{VATPeriod.vatrate}</td>
