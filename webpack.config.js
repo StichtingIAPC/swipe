@@ -22,7 +22,7 @@ let defaults = {
 
 module.exports = {
 	entry: [
-		'babel-polyfill',
+		'react-hot-loader/patch',
 		path.join(APP_DIR, 'app.js'),
 	],
 	output: {
