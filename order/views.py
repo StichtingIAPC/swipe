@@ -5,7 +5,6 @@ from rest_framework import generics
 from rest_framework import mixins
 import json
 
-from money.serializers import PriceSerializer
 from order.models import *
 from order.serializers import OrderSerializer, OrderLineSerializer, OrderLineStateSerializer
 
@@ -21,7 +20,6 @@ class OrderListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        # customer, user, wishable_type_number_price_combinations(List[List[WishableType, number, Price]])
         order_request = OrderRequest(request.data.get('customer'), request.data.get('user'), request.data.get('wishable_type_number_price_combinations'))
         order_result = order_request.create_order()
         return HttpResponse(content=json.dumps(order_result), content_type="application/json")
@@ -41,18 +39,43 @@ class OrderRequest:
             return (SellableType.objects.get(id=self.wishable_type), self.amount, self.price)
 
     def __init__(self, customer: int, user: int, wishable_type_number_price_combinations):
+        raiseif(not isinstance(customer, int), InvalidDataError,
+                "customer must be of type int, but it wasn't")
+        raiseif(not isinstance(user, int), InvalidDataError,
+                "user must be of type int, but it wasn't")
+        raiseif(not isinstance(wishable_type_number_price_combinations, list), InvalidDataError,
+                "wishable_type_number_price_combinations must be of type list, but it wasn't")
         self.customer = customer
         self.user = user
         self.wishable_type_number_price_combinations = wishable_type_number_price_combinations
 
     def create_order(self):
         customer = Customer.objects.get(id=self.customer)
+        raiseif(customer is None, InvalidDataError,
+                "the customer related to this order does not exist")
         user = User.objects.get(id=self.user)
+        raiseif(customer is None, InvalidDataError,
+                "the user to this order does not exist")
         wishable_type_number_price_combination_result_set = []
         for article_information_data in self.wishable_type_number_price_combinations:
-            article_information = OrderRequest.ArticleInformation(wishable_type=article_information_data.get("wishable_type"),
-                                                                  amount=article_information_data.get("amount"),
-                                                                  price=article_information_data.get("price"))
+            wishable_type = article_information_data.get("wishable_type")
+            amount = article_information_data.get("amount")
+            price = article_information_data.get("price")
+            raiseif(wishable_type is None, InvalidDataError,
+                    "wishable_type in wishable_type_number_price_combinations is None, but it should exist")
+            raiseif(not isinstance(wishable_type, int), InvalidDataError,
+                    "wishable_type in wishable_type_number_price_combinations should be of type int, but wishable_type was not int")
+            raiseif(amount is None, InvalidDataError,
+                    "amount in wishable_type_number_price_combinations is None, but it should exist")
+            raiseif(not isinstance(amount, int), InvalidDataError,
+                    "amount in wishable_type_number_price_combinations should be of type int, but amount was not int")
+            raiseif(not amount > 0, InvalidDataError,
+                    "amount in wishable_type_number_price_combinations should be larger than 0, but it isn't")
+            raiseif(price is None, InvalidDataError,
+                    "price in wishable_type_number_price_combinations is None, but it should exist")
+            article_information = OrderRequest.ArticleInformation(wishable_type=wishable_type,
+                                                                  amount=amount,
+                                                                  price=price)
             wishable_type_number_price_combination_result_set.append(article_information.to_model_format())
         created_order = Order.create_order_from_wishables_combinations(user=user, customer=customer, wishable_type_number_price_combinations=wishable_type_number_price_combination_result_set)
         return OrderSerializer(created_order).data
