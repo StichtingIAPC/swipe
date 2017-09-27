@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from externalise.models import ExternaliseDocument, ExternaliseLine
+from money.serializers import CostSerializerField
 
 
 class ExternaliseLineSerializer(serializers.ModelSerializer):
+    cost = CostSerializerField()
 
     class Meta:
         model = ExternaliseLine
