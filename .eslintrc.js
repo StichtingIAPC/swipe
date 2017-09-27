@@ -195,7 +195,7 @@ module.exports = {
 		'func-declarations': [ OFF, 'declaration', { // This one doesn't work with 'export function something', apparently
 			allowArrowFunctions: true,
 		}],
-		'id-blacklist': [ ERROR, 'undefined' ],
+		'id-blacklist': OFF,
 		'id-length': OFF,
 		'id-match': OFF,
 		'indent': [ ERROR, 'tab' ],
