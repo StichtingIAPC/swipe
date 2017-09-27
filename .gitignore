@@ -108,7 +108,7 @@ docs/_build/
 target/
 
 # Ignore local settings.
-/swipe/local.py
+backend/swipe/local.py
 
 # Ignore local sqlite database
 *.sqlite3
