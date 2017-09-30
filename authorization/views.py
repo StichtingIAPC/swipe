@@ -22,11 +22,12 @@ class JSONResponse(HttpResponse):
 class Logout(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        super(Logout, self).dispatch(request, *args, **kwargs)
+        return super(Logout, self).dispatch(request, *args, **kwargs)
 
     def post(self, request):
         Token.objects.filter(key=request.POST['token']).delete()
-        return JSONResponse({})
+
+        return HttpResponse('', content_type='text/plain')
 
 
 class Login(ObtainAuthToken):

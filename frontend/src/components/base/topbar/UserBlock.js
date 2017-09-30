@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router";
 import { connect } from "react-redux";
-import { loginReset } from "../../../actions/auth";
+import { loginReset, logout } from "../../../actions/auth";
 
 class UserBlock extends React.Component {
 	constructor(props) {
@@ -59,5 +59,5 @@ export default connect(
 		user: state.auth.currentUser,
 		isAuthenticated: state.auth.currentUser !== null,
 	}),
-	dispatch => ({ logout: () => dispatch(loginReset()) })
+	dispatch => ({ logout: () => dispatch(logout()) })
 )(UserBlock);
