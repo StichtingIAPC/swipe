@@ -73,7 +73,7 @@ module.exports = {
 		}],
 		'complexity': [ ERROR, { 'max': 10 } ],
 		'consistent-return': WARN,
-		'curly': [ WARN, 'all' ],
+		'curly': [ WARN, 'multi-or-nest' ],
 		'default-case': WARN,
 		'dot-location': [ ERROR, 'property' ],
 		'dot-notation': OFF,
