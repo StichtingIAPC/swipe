@@ -26,8 +26,7 @@ class Logout(View):
 
     def post(self, request):
         Token.objects.filter(key=request.POST['token']).delete()
-
-        return JSONResponse('{}')
+        return JSONResponse({})
 
 
 class Login(ObtainAuthToken):
