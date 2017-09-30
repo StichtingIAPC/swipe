@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "yarn && webpack -p",
-    "dev": "yarn && webpack-dev-server --inline --hot --history-api-fallback --content-base frontend/",
-    "lint": "yarn && eslint frontend/src",
-    "lint-fix": "yarn && eslint frontend/src --fix"
+    "dev": "yarn && webpack-dev-server --inline --hot --history-api-fallback",
+    "lint": "yarn && eslint src",
+    "lint-fix": "yarn && eslint src --fix"
   },
   "contributors": [
     "Rick Lubbers <rlubbers@iapc.utwente.nl>",

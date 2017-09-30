@@ -3,8 +3,8 @@
 const path = require('path');
 const webpack = require('webpack');
 
-const APP_DIR = path.resolve(path.join(__dirname, 'frontend', 'src'));
-const BUILD_DIR = path.resolve(path.join(__dirname, 'frontend', 'dist'));
+const APP_DIR = path.resolve(path.join(__dirname, 'src'));
+const BUILD_DIR = path.resolve(path.join(__dirname, 'dist'));
 
 let replacements = {};
 try {
