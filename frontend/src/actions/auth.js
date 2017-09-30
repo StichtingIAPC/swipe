@@ -33,7 +33,7 @@ export function logoutSuccess() {
 
 export function logoutError(error) {
 	return {
-		type: 'AUTH_LoGOUT_ERROR',
+		type: 'AUTH_LOGOUT_ERROR',
 		error,
 	};
 }
