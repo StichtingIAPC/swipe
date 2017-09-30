@@ -21,8 +21,21 @@ export function loginError(error) {
 	};
 }
 
-export function loginReset() {
-	return { type: 'AUTH_LOGIN_RESET' };
+export function logout() {
+	return { type: 'AUTH_START_LOGOUT' };
+}
+
+export function logoutSuccess() {
+	return {
+		type: 'AUTH_LOGOUT_SUCCESS',
+	};
+}
+
+export function logoutError(error) {
+	return {
+		type: 'AUTH_LOGOUT_ERROR',
+		error,
+	};
 }
 
 export function setRouteAfterAuthentication(route) {
