@@ -4,7 +4,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 const APP_DIR = path.resolve(path.join(__dirname, 'src'));
-const BUILD_DIR = path.resolve(path.join(__dirname, 'dist'));
+const BUILD_DIR = path.resolve(path.join(__dirname, 'public', 'dist'));
 
 let replacements = {};
 try {
@@ -27,7 +27,7 @@ module.exports = {
 	],
 	output: {
 		path: BUILD_DIR,
-		publicPath: '/dist/',
+		publicPath: '/public/dist/',
 		filename: 'bundle.js',
 	},
 	module: {
