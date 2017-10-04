@@ -83,7 +83,10 @@ class SupplierOrder(ImmutableBlame):
             if not hasattr(line.wishable, 'sellabletype') or \
                             line.wishable.sellabletype is None:
                 raise UnimplementedError("Or products are not yet supported")
-
+            print("line:", line)
+            print("line.wishable:", line.wishable)
+            print("line.wishable.sellabletyoe:", line.wishable.sellabletype)
+            print("line.wishable.sellabletype.articletype", line.wishable.sellabletype.articletype)
             to_order[line.wishable.sellabletype.articletype] += line.number
 
         for article, number in articles_ordered.items():
