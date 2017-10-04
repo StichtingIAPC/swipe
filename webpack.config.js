@@ -59,7 +59,7 @@ module.exports = {
 		new webpack.DefinePlugin(Object.assign({}, defaults, replacements)),
 	],
 	resolve: {
-		modules: [ 'node_modules', APP_DIR ],
+		modules: [ 'node_modules' ],
 	},
 	//devtool: 'cheap-module-source-map',
 	devServer: {

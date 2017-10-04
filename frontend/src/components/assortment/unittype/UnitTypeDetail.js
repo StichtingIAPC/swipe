@@ -1,8 +1,8 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import FontAwesome from "../../tools/icons/FontAwesome";
-import { incrementalTypes, valueTypes } from "../../../constants/assortment";
+import React from 'react';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { incrementalTypes, valueTypes } from '../../../state/assortment/constants.js';
 
 class UnitTypeDetail extends React.Component {
 	render() {
@@ -47,5 +47,7 @@ class UnitTypeDetail extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({ unitType: (state.unitTypes.unitTypes || []).find(el => el.id === Number(props.params.unitTypeID)) }),
+	(state, props) => ({
+		unitType: state.assortment.unitTypes.unitTypes.find(el => el.id === +props.params.unitTypeID),
+	}),
 )(UnitTypeDetail);

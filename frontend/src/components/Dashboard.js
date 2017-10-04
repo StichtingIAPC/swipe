@@ -16,5 +16,7 @@ class Dashboard extends React.Component {
 
 export default connect(
 	null,
-	dispatch => ({ toHw: () => dispatch(push('/helloworld')) })
+	{
+		toHw: () => push('/helloworld'),
+	}
 )(Dashboard);

@@ -1,10 +1,10 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import { createCurrency, updateCurrency } from "../../../actions/money/currencies";
-import Form from "../../forms/Form";
-import { CharField, IntegerField, MoneyField, StringField } from "../../forms/fields";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import { createCurrency, updateCurrency } from '../../../state/money/currencies/actions.js';
+import Form from '../../forms/Form';
+import { CharField, IntegerField, MoneyField, StringField } from '../../forms/fields';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -156,8 +156,8 @@ class CurrencyEdit extends React.Component {
 export default connect(
 	(state, ownProps) => ({
 		...ownProps,
-		errorMsg: state.currencies.inputError,
-		currency: (state.currencies.currencies || []).find(obj => obj.iso === ownProps.params.currencyID) || null,
+		errorMsg: state.money.currencies.inputError,
+		currency: (state.money.currencies.currencies || []).find(obj => obj.iso === ownProps.params.currencyID) || null,
 	}),
 	dispatch => ({
 		updateCurrency: currency => dispatch(updateCurrency(currency)),

@@ -1,3 +1,37 @@
+const isAvailableRecursively = ([ name, functor ], state = {}) => {
+	const stateComponent = state[name];
+
+	if (typeof functor === 'function')
+		return !!stateComponent && !!stateComponent.populated;
+
+	return Object.entries(functor)
+		.map(entry => [ entry[0], isAvailableRecursively(entry, stateComponent) ])
+		.reduce((sum, [ _name, _value ]) => ({
+			...sum,
+			[_name]: _value,
+		}), {});
+};
+
+const fetchMissingRecursively = ([ name, functor ], tree = {}, dispatch) => {
+	const treeComponent = tree[name];
+
+	if (typeof functor === 'function') {
+		if (!treeComponent)
+			dispatch(functor());
+		return;
+	}
+
+	Object.entries(functor)
+		.map(entry => fetchMissingRecursively(entry, treeComponent, dispatch));
+};
+
+const hasMissingDependencies = obj => Object.entries(obj)
+	.some(([ , value ]) => {
+		if (typeof value === 'boolean')
+			return value;
+		return hasMissingDependencies(value);
+	});
+
 /**
  * This function checks if the requirements of a component are loaded, and
  * returns the following:
@@ -32,29 +66,37 @@
  * )
  *
  * @param requirements: {Object<String, Function>}
- * @param state: {Object?}
+ * @param _state: {Object?}
  * @returns {Func|{requirementsLoaded: boolean, missingRequirements: Array<[String, Function]>}}
  */
-export function connectMixin(requirements, state = null) {
+export function connectMixin(requirements, _state = null) {
 	/**
 	 * @callback Func
-	 * @param _state: {Object}
+	 * @param state: {Object}
 	 * @returns {{requirementsLoaded: boolean, missingRequirements: Array<[String, Function]>}}
 	 */
-	function func(_state) {
-		const missingRequirements = Object.entries(requirements)
-			.filter(entry => !!_state[entry[0]] && !_state[entry[0]][entry[0]]);
+	function func(state) {
+		const availableRequirements = isAvailableRecursively([ 'state', requirements ], { state });
 
 		return {
-			requirementsLoaded: missingRequirements.length === 0,
-			missingRequirements,
-			reloadRequirements: obj => Object.values(requirements).map(fun => obj.props.dispatch(fun)),
+			availableRequirements,
+			requirementsLoaded: hasMissingDependencies(availableRequirements),
+			fetchMissingFor: obj => fetchMissingRecursively(
+				[ 'availableRequirements', requirements ],
+				{ availableRequirements },
+				obj.props.dispatch
+			),
+			fetchAllFor: obj => fetchMissingRecursively(
+				[ 'all', requirements ],
+				{},
+				obj.props.dispatch,
+			),
 		};
 	}
 
 	// case connect((state) => ({...connectMixin(requirements, state)}))
-	if (state !== null)
-		return func(state);
+	if (_state !== null)
+		return func(_state);
 
 	// case connect(connectMixin(requirements))
 	return func;
@@ -69,8 +111,5 @@ export function fetchStateRequirementsFor(obj) {
 	if (obj.props.requirementsLoaded)
 		return;
 
-	obj.props.missingRequirements
-		.forEach(
-			entry => obj.props.dispatch(entry[1]())
-		);
+	obj.props.fetchMissingFor(obj);
 }

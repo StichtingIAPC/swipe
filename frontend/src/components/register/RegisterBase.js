@@ -1,11 +1,11 @@
-import React from "react";
-import { connect } from "react-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import { registers } from "../../actions/register/registers";
-import RegisterList from "./register/RegisterList";
-import PaymentTypeList from "./paymentType/PaymentTypeList";
-import { currencies } from "../../actions/money/currencies";
-import { paymentTypes } from "../../actions/register/paymentTypes";
+import React from 'react';
+import { connect } from 'react-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { registers } from '../../state/register/registers/actions.js';
+import RegisterList from './register/RegisterList';
+import PaymentTypeList from './paymentType/PaymentTypeList';
+import { currencies } from '../../state/money/currencies/actions.js';
+import { paymentTypes } from '../../state/register/payment-types/actions.js';
 
 class RegisterBase extends React.Component {
 	componentWillMount() {
@@ -29,8 +29,12 @@ class RegisterBase extends React.Component {
 
 export default connect(
 	connectMixin({
-		registers,
-		paymentTypes,
-		currencies,
+		register: {
+			registers,
+			paymentTypes,
+		},
+		money: {
+			currencies,
+		},
 	})
 )(RegisterBase);

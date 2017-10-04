@@ -1,8 +1,8 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { loginReset } from "../../../actions/auth";
-import SidebarLink from "./SidebarLink";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { loginReset } from '../../../state/auth/actions.js';
+import SidebarLink from './SidebarLink';
 
 class Sidebar extends React.Component {
 	render() {

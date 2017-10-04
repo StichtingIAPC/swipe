@@ -54,11 +54,12 @@ RegisterDetail.propTypes = { params: PropTypes.shape({ registerID: PropTypes.str
 
 export default connect(
 	(state, ownProps) => {
-		const register = state.registers.registers.filter(s => +s.id === parseInt(ownProps.params.registerID || '-1', 10))[0];
+		// TODO: use fetch method
+		const register = state.register.registers.registers.filter(s => +s.id === +ownProps.params.registerID)[0];
 
 		return {
 			register,
-			paymentType: (state.paymentTypes.paymentTypes || []).find(s => +s.id === register.payment_type),
+			paymentType: state.register.paymentTypes.paymentTypes.find(s => +s.id === register.payment_type),
 		};
 	}
 )(RegisterDetail);

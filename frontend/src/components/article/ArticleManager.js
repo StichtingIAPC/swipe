@@ -1,14 +1,14 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import { push } from "react-router-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import { articles } from "../../actions/articles";
-import { labelTypes } from "../../actions/assortment/labelTypes";
-import { unitTypes } from "../../actions/assortment/unitTypes";
-import ArticleSelector from "./ArticleSelector";
-import FontAwesome from "../tools/icons/FontAwesome";
-import { accountingGroups } from "../../actions/money/accountingGroups";
+import React from 'react';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import { push } from 'react-router-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { articles } from '../../state/assortment/articles/actions.js';
+import { labelTypes } from '../../state/assortment/label-types/actions.js';
+import { unitTypes } from '../../state/assortment/unit-types/actions.js';
+import ArticleSelector from './ArticleSelector';
+import FontAwesome from '../tools/icons/FontAwesome';
+import { accountingGroups } from '../../state/money/accounting-groups/actions.js';
 
 class ArticleManager extends React.Component {
 	componentWillMount() {
@@ -40,16 +40,18 @@ class ArticleManager extends React.Component {
 }
 
 export default connect(
-	state => ({
-		...connectMixin({
+	connectMixin({
+		assortment: {
 			articles,
 			labelTypes,
 			unitTypes,
+		},
+		money: {
 			accountingGroups,
-		}, state),
+		},
 	}),
-	dispatch => ({
-		dispatch,
-		selectArticle: article => dispatch(push(`/articlemanager/${article.id}/`)),
-	})
+	{
+		dispatch: evt => evt,
+		selectArticle: article => push(`/articlemanager/${article.id}/`),
+	}
 )(ArticleManager);

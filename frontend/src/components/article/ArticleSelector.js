@@ -1,12 +1,12 @@
-import React from "react";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import { articles } from "../../actions/articles";
-import { labelTypes } from "../../actions/assortment/labelTypes";
-import { unitTypes } from "../../actions/assortment/unitTypes";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import FontAwesome from "../tools/icons/FontAwesome";
-import LabelList from "../assortment/LabelList";
+import React from 'react';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import { articles } from '../../state/assortment/articles/actions.js';
+import { labelTypes } from '../../state/assortment/label-types/actions.js';
+import { unitTypes } from '../../state/assortment/unit-types/actions.js';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import FontAwesome from '../tools/icons/FontAwesome';
+import LabelList from '../assortment/LabelList';
 
 class ArticleSelector extends React.Component {
 	constructor(props) {
@@ -77,11 +77,15 @@ class ArticleSelector extends React.Component {
 export default connect(
 	state => ({
 		...connectMixin({
-			articles,
-			labelTypes,
-			unitTypes,
+			assortment: {
+				articles,
+				labelTypes,
+				unitTypes,
+			},
 		}, state),
-		articles: state.articles.articles || [],
+		articles: state.assortment.articles.articles,
 	}),
-	dispatch => ({ updateList: () => dispatch(articles()) })
+	{
+		updateList: articles,
+	}
 )(ArticleSelector);

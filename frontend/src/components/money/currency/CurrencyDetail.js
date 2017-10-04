@@ -70,5 +70,5 @@ class CurrencyDetail extends React.Component {
 }
 
 export default connect(
-	(state, ownProps) => ({ currency: state.currencies.currencies.find(obj => obj.iso === ownProps.params.currencyID) })
+	(state, ownProps) => ({ currency: state.money.currencies.currencies.find(obj => obj.iso === ownProps.params.currencyID) })
 )(CurrencyDetail);

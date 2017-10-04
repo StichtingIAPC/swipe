@@ -26,7 +26,10 @@ AssortmentLabel.propTypes = {
 	labelValue: PropTypes.string.isRequired,
 };
 
-export default connect(state => ({
-	labelTypes: state.labelTypes.labelTypes,
-	unitTypes: state.unitTypes.unitTypes,
-}))(AssortmentLabel);
+export default connect(
+	state => ({
+		labelTypes: state.assortment.labelTypes.labelTypes,
+		unitTypes: state.assortment.unitTypes.unitTypes,
+	}),
+	null
+)(AssortmentLabel);
