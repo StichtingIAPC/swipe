@@ -5,7 +5,7 @@ import {
 	doneFetchingPaymentTypes,
 	paymentTypeFetchError,
 	paymentTypeInputError,
-	startFetchingPaymentTypes
+	startFetchingPaymentTypes,
 } from "../../actions/register/paymentTypes";
 
 export function* fetchPaymentTypes({ redirectTo } = {}) {
@@ -14,7 +14,7 @@ export function* fetchPaymentTypes({ redirectTo } = {}) {
 	try {
 		const data = yield (yield call(
 			get,
-			'/register/paymenttype/',
+			'/register/paymenttypes/',
 		)).json();
 
 		yield put(doneFetchingPaymentTypes(data));
@@ -37,7 +37,7 @@ export function* createPaymentType({ paymentType } = {}) {
 	try {
 		const data = yield (yield call(
 			post,
-			'/register/paymenttype/',
+			'/register/paymenttypes/',
 			document,
 		)).json();
 
@@ -59,7 +59,7 @@ export function* updatePaymentType({ paymentType } = {}) {
 	try {
 		const data = yield (yield call(
 			api_put,
-			`/register/paymenttype/${paymentType.id}/`,
+			`/register/paymenttypes/${paymentType.id}/`,
 			document,
 		)).json();
 
