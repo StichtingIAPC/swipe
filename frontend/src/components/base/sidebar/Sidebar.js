@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { loginReset } from "../../../actions/auth";
+import { logout as doLogout } from "../../../actions/auth";
 import SidebarLink from "./SidebarLink";
 
 class Sidebar extends React.Component {
@@ -32,5 +32,5 @@ Sidebar.defaultProps = {};
 
 export default connect(
 	state => ({ isAuthenticated: state.auth.user !== null }),
-	dispatch => ({ logout: () => dispatch(loginReset()) })
+	dispatch => ({ logout: () => dispatch(doLogout()) })
 )(Sidebar);
