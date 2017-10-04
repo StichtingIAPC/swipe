@@ -27,7 +27,7 @@ module.exports = {
 	],
 	output: {
 		path: BUILD_DIR,
-		publicPath: '/public/dist/',
+		publicPath: '/dist/',
 		filename: 'bundle.js',
 	},
 	module: {
@@ -64,5 +64,6 @@ module.exports = {
 	//devtool: 'cheap-module-source-map',
 	devServer: {
 		headers: { "Access-Control-Allow-Origin": "*" },
+		contentBase: './public/',
 	},
 };
