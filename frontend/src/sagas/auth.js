@@ -58,7 +58,6 @@ export function* logout() {
 		if (!result.ok) {
 			throw result;
 		}
-		saveLogoutDetails();
 		yield put(logoutSuccess());
 		yield put(push('/authentication/login'));
 	} catch (e) {
