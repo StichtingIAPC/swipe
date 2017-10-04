@@ -36,3 +36,4 @@ List of contributors
 - Mauk Muller
 - Niels Overkamp
 - Rolf van Kleef
+- Myrthe Hultermans
