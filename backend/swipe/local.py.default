@@ -15,64 +15,6 @@ DEBUG = True
 #     'debug_toolbar.middleware.DebugToolbarMiddleware',
 # ]
 
-## uncomment for Windows installs.
-# COMPRESS_ES6_COMPILER_CMD = (
-#     'set NODE_PATH={paths}; && '
-#     'browserify "{infile}" -o "{outfile}" --full-paths ' +
-#     ('-d ' if DEBUG else '') +
-#     '-t [ babelify '
-#     '--presets [ es2016 ] ]'
-# )
-
-###
-# Logging settings
-###
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'verbose': {
-#             'format': '[%(asctime)s] %(levelname)s %(name)s %(funcName)s (%(filename)s:%(lineno)d) %(message)s',
-#         },
-#     },
-#     'handlers': {
-#         'swipe-file': {
-#             'level': 'INFO',
-#             'class': 'logging.handlers.WatchedFileHandler',
-#             'filename': '/tmp/swipe-debug.log',
-#             'formatter': 'verbose',
-#         },
-#         'console': {
-#             'level': 'ERROR',
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'verbose'
-#         },
-#     },
-#     'root': {  # all other errors go to the console and the general log file
-#         'level': 'DEBUG',
-#         'handlers': ['console', 'swipe-file'],
-#     },
-#     'loggers': {
-#         'swipe': {
-#             'level': 'DEBUG',
-#             'handlers': ['console', 'swipe-file'],
-#             'propagate': False,
-#         },
-#         'django': {
-#             'handlers': ['console', 'swipe-file'],
-#             'level': 'DEBUG',
-#         },
-#         'django.request': {
-#             'handlers': ['console', 'swipe-file'],
-#             'level': 'DEBUG',
-#             'propagate': False,
-#         },
-#         'py.warnings': {
-#             'handlers': ['console', 'swipe-file'],
-#         },
-#     },
-# }
-
 ###
 # LDAP Settings
 # Uncomment and edit if you want LDAP authentication
@@ -134,7 +76,7 @@ DEBUG = True
 # BASE_URL = "https://swipe.iapc.utwente.nl/"
 
 # Whitelist for CORS. Set this to the URLS/ports the frontend runs on.
-# CORS_ORIGIN_WHITELIST = [
-#     'localhost:8080',
-#     '127.0.0.1:8080',
-# ]
+CORS_ORIGIN_WHITELIST = [
+    'localhost:8080',
+    '127.0.0.1:8080',
+]
