@@ -13,12 +13,13 @@ from tools.util import raiseif
 
 
 class ExternaliseDocumentView(mixins.RetrieveModelMixin,
-                      generics.GenericAPIView):
+                              generics.GenericAPIView):
     queryset = ExternaliseDocument.objects.all()
     serializer_class = ExternaliseDocumentSerializer
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
 
 class ExternaliseRequest:
 
@@ -60,7 +61,7 @@ class ExternaliseRequest:
 
 
 class ExternaliseDocumentListView(mixins.ListModelMixin,
-                      generics.GenericAPIView):
+                                  generics.GenericAPIView):
     queryset = ExternaliseDocument.objects.all()
     serializer_class = ExternaliseDocumentSerializer
 
