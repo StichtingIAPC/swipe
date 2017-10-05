@@ -1,7 +1,7 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../api";
-import { articleFetchError, articleInputError, doneFetchingArticles, startFetchingArticles } from "../actions/articles";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../api';
+import { articleFetchError, articleInputError, doneFetchingArticles, startFetchingArticles } from '../actions/articles';
 
 export function* fetchArticles({ redirectTo } = {}) {
 	let msg = null;

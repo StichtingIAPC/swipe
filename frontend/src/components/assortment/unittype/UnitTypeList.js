@@ -1,9 +1,9 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import FontAwesome from "../../tools/icons/FontAwesome";
-import { startFetchingUnitTypes } from "../../../actions/assortment/unitTypes";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { startFetchingUnitTypes } from '../../../actions/assortment/unitTypes';
 
 class UnitTypeList extends React.Component {
 	static propTypes = {

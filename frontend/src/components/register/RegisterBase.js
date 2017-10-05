@@ -1,11 +1,11 @@
-import React from "react";
-import { connect } from "react-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import { registers } from "../../actions/register/registers";
-import RegisterList from "./register/RegisterList";
-import PaymentTypeList from "./paymentType/PaymentTypeList";
-import { currencies } from "../../actions/money/currencies";
-import { paymentTypes } from "../../actions/register/paymentTypes";
+import React from 'react';
+import { connect } from 'react-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { registers } from '../../actions/register/registers';
+import RegisterList from './register/RegisterList';
+import PaymentTypeList from './paymentType/PaymentTypeList';
+import { currencies } from '../../actions/money/currencies';
+import { paymentTypes } from '../../actions/register/paymentTypes';
 
 class RegisterBase extends React.Component {
 	componentWillMount() {

@@ -1,6 +1,6 @@
-import { takeEvery, takeLatest } from "redux-saga";
-import { createLabelType, fetchLabelTypes, updateLabelType } from "./labelTypes";
-import { createUnitType, fetchUnitTypes, updateUnitType } from "./unitTypes";
+import { takeEvery, takeLatest } from 'redux-saga';
+import { createLabelType, fetchLabelTypes, updateLabelType } from './labelTypes';
+import { createUnitType, fetchUnitTypes, updateUnitType } from './unitTypes';
 
 export default function* assortmentSagas() {
 	yield takeLatest('LABEL_TYPE_FETCH_START', fetchLabelTypes);

@@ -1,8 +1,8 @@
-import React from "react";
-import { connect } from "react-redux";
-import Form from "../../forms/Form";
-import { IntegerField, SelectField, StringField } from "../../forms/fields";
-import { createAccountingGroup, updateAccountingGroup } from "../../../actions/money/accountingGroups";
+import React from 'react';
+import { connect } from 'react-redux';
+import Form from '../../forms/Form';
+import { IntegerField, SelectField, StringField } from '../../forms/fields';
+import { createAccountingGroup, updateAccountingGroup } from '../../../actions/money/accountingGroups';
 
 /**
  * Created by Matthias on 26/11/2016.

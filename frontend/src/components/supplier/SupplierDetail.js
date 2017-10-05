@@ -1,8 +1,8 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import FontAwesome from "../tools/icons/FontAwesome";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import FontAwesome from '../tools/icons/FontAwesome';
 
 class SupplierDetail extends React.Component {
 	static propTypes = {

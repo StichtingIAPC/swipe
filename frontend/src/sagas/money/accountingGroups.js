@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
 import {
 	accountingGroupFetchError,
 	accountingGroupInputError,
 	doneFetchingAccountingGroups,
 	startFetchingAccountingGroups
-} from "../../actions/money/accountingGroups";
-import { get, post, put as api_put } from "../../api";
+} from '../../actions/money/accountingGroups';
+import { get, post, put as api_put } from '../../api';
 
 export function* fetchAccountingGroups({ redirectTo }) {
 	let msg = null;

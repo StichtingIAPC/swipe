@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../api';
 import {
 	doneFetchingSuppliers,
 	startFetchingSuppliers,
 	supplierFetchError,
 	supplierInputError
-} from "../actions/suppliers";
+} from '../actions/suppliers';
 
 function renameProp(item, original, target) {
 	const newitem = { ...item };

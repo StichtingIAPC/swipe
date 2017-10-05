@@ -1,12 +1,12 @@
-import React from "react";
-import { connect } from "react-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import CurrencyList from "./currency/CurrencyList";
-import AccountingGroupList from "./accountingGroup/AccountingGroupList";
-import VATList from "./VAT/VATList";
-import { currencies } from "../../actions/money/currencies";
-import { VATs } from "../../actions/money/VATs";
-import { accountingGroups } from "../../actions/money/accountingGroups";
+import React from 'react';
+import { connect } from 'react-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import CurrencyList from './currency/CurrencyList';
+import AccountingGroupList from './accountingGroup/AccountingGroupList';
+import VATList from './VAT/VATList';
+import { currencies } from '../../actions/money/currencies';
+import { VATs } from '../../actions/money/VATs';
+import { accountingGroups } from '../../actions/money/accountingGroups';
 /**
  * Created by Matthias on 26/11/2016.
  */

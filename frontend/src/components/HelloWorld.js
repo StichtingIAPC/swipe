@@ -1,6 +1,6 @@
-import React from "react";
-import { connect } from "react-redux";
-import { push } from "react-router-redux";
+import React from 'react';
+import { connect } from 'react-redux';
+import { push } from 'react-router-redux';
 
 class HelloWorld extends React.Component {
 	toDash(event) {

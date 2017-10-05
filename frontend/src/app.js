@@ -1,22 +1,23 @@
 'use strict';
+
 // System dependencies
-import React from "react";
-import ReactDOM from "react-dom";
-import { applyMiddleware, compose, createStore } from "redux";
-import { Provider } from "react-redux";
-import createSagaMiddleware from "redux-saga";
-import Routes from "./Routes.js";
-import { browserHistory } from "react-router";
-import { routerMiddleware, syncHistoryWithStore } from "react-router-redux";
-import "font-awesome/css/font-awesome.min.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "admin-lte/dist/css/AdminLTE.min.css";
-import "admin-lte/dist/css/skins/skin-blue.min.css";
-import "react-datepicker/dist/react-datepicker.css";
-import "./styles/main.scss";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { applyMiddleware, compose, createStore } from 'redux';
+import { Provider } from 'react-redux';
+import createSagaMiddleware from 'redux-saga';
+import Routes from './Routes.js';
+import { browserHistory } from 'react-router';
+import { routerMiddleware, syncHistoryWithStore } from 'react-router-redux';
+import 'font-awesome/css/font-awesome.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'admin-lte/dist/css/AdminLTE.min.css';
+import 'admin-lte/dist/css/skins/skin-blue.min.css';
+import 'react-datepicker/dist/react-datepicker.css';
+import './styles/main.scss';
 // Pages
-import rootReducer from "./reducers/root";
-import saga from "./saga.js";
+import rootReducer from './reducers/root';
+import saga from './saga.js';
 
 // Set up the Redux store
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

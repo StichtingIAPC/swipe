@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../../api';
 import {
 	doneFetchingPaymentTypes,
 	paymentTypeFetchError,
 	paymentTypeInputError,
 	startFetchingPaymentTypes,
-} from "../../actions/register/paymentTypes";
+} from '../../actions/register/paymentTypes';
 
 export function* fetchPaymentTypes({ redirectTo } = {}) {
 	let msg = null;
