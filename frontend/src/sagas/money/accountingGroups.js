@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
 import {
 	accountingGroupFetchError,
 	accountingGroupInputError,
 	doneFetchingAccountingGroups,
 	startFetchingAccountingGroups
-} from "../../actions/money/accountingGroups";
-import { get, post, put as api_put } from "../../api";
+} from '../../actions/money/accountingGroups';
+import { get, post, put as api_put } from '../../api';
 
 export function* fetchAccountingGroups({ redirectTo }) {
 	let msg = null;
@@ -18,13 +18,16 @@ export function* fetchAccountingGroups({ redirectTo }) {
 		)).json();
 
 		yield put(doneFetchingAccountingGroups(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = yield e.json();
+		}
 
 		yield put(accountingGroupFetchError(msg));
 	}
@@ -43,10 +46,12 @@ export function* createAccountingGroup({ accGrp }) {
 
 		yield put(startFetchingAccountingGroups({ redirectTo: `/money/accountinggroup/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = yield e.json();
+		}
 
 		yield put(accountingGroupInputError(msg));
 	}
@@ -65,10 +70,12 @@ export function* updateAccountingGroup({ accGrp }) {
 
 		yield put(startFetchingAccountingGroups({ redirectTo: `/money/accountinggroup/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = yield e.json();
+		}
 
 		yield put(accountingGroupInputError(msg));
 	}

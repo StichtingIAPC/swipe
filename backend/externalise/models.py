@@ -65,6 +65,8 @@ class ExternaliseDocument(Blame):
             line.user_modified = user
             line.save(mod_stock=False)
 
+        return doc
+
 
 class ExternaliseLine(ImmutableBlame):
     """
@@ -94,8 +96,13 @@ class ExternaliseLine(ImmutableBlame):
                 else:
                     raise IncorrectStockDataError("Either stock is non-positive or cost is non-positive. "
                                                   "Count: {}, Cost: {}".format(self.count, self.cost.amount))
-        else:
-            super(ExternaliseLine, self).save()
+
+        super(ExternaliseLine, self).save()
+
+    def __str__(self):
+        result = "Id: {}, Article Type: {}, Count: {}, Cost: {}".format(self.id, self.article_type_id, self.count,
+                                                                        str(self.cost))
+        return result
 
 
 class IncorrectStockDataError(Exception):

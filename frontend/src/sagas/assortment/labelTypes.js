@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../../api';
 import {
 	doneFetchingLabelTypes,
 	labelTypeFetchError,
 	labelTypeInputError,
 	startFetchingLabelTypes
-} from "../../actions/assortment/labelTypes";
+} from '../../actions/assortment/labelTypes';
 
 export function* fetchLabelTypes({ redirectTo } = {}) {
 	let msg = null;
@@ -18,13 +18,16 @@ export function* fetchLabelTypes({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingLabelTypes(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(labelTypeFetchError(msg));
 	}
@@ -43,10 +46,12 @@ export function* createLabelType({ labelType } = {}) {
 
 		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(labelTypeInputError(msg));
 	}
@@ -65,10 +70,12 @@ export function* updateLabelType({ labelType }) {
 
 		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/labeltype/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(labelTypeInputError(msg));
 	}

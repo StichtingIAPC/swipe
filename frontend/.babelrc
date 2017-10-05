@@ -1,0 +1,19 @@
+{
+	"presets": [
+		["env", {
+			"debug": true,
+			"modules": false,
+			"targets": {
+				"browsers": [
+					"FF >=54",
+					"FF 52",
+					"chrome >=60",
+					"edge >=14"
+				]
+			},
+			"exclude": [ "transform-regenerator" ]
+		}],
+		"stage-0-without-async",
+		"react"
+	]
+}

@@ -1,6 +1,6 @@
-import React from "react";
-import PropTypes from "prop-types";
-import UserBlock from "./UserBlock";
+import React from 'react';
+import PropTypes from 'prop-types';
+import UserBlock from './UserBlock';
 
 export class Topbar extends React.Component {
 	render() {

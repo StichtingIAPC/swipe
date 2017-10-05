@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
 import {
 	currencyFetchError,
 	currencyInputError,
 	doneFetchingCurrencies,
 	startFetchingCurrencies
-} from "../../actions/money/currencies";
-import { get, post, put as api_put } from "../../api";
+} from '../../actions/money/currencies';
+import { get, post, put as api_put } from '../../api';
 
 export function* fetchCurrencies({ redirectTo }) {
 	let msg = null;
@@ -18,13 +18,16 @@ export function* fetchCurrencies({ redirectTo }) {
 		)).json();
 
 		yield put(doneFetchingCurrencies(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(currencyFetchError(msg));
 	}
@@ -43,10 +46,12 @@ export function* createCurrency({ curr }) {
 
 		yield put(startFetchingCurrencies({ redirectTo: `/money/currency/${data.iso}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = yield e.json();
+		}
 
 		yield put(currencyInputError(msg));
 	}
@@ -65,10 +70,12 @@ export function* updateCurrency({ curr }) {
 
 		yield put(startFetchingCurrencies({ redirectTo: `/money/currency/${data.iso}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = yield e.json();
+		}
 
 		yield put(currencyInputError(msg));
 	}

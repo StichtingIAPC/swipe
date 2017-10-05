@@ -1,7 +1,7 @@
-import React from "react";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -15,8 +15,9 @@ class AccountingGroupDetail extends React.Component {
 	render() {
 		const { accountingGroup } = this.props;
 
-		if (!accountingGroup)
+		if (!accountingGroup) {
 			return null;
+		}
 
 		return (
 			<div className="box">

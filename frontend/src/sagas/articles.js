@@ -1,7 +1,7 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../api";
-import { articleFetchError, articleInputError, doneFetchingArticles, startFetchingArticles } from "../actions/articles";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../api';
+import { articleFetchError, articleInputError, doneFetchingArticles, startFetchingArticles } from '../actions/articles';
 
 export function* fetchArticles({ redirectTo } = {}) {
 	let msg = null;
@@ -13,13 +13,16 @@ export function* fetchArticles({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingArticles(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	}	catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 		yield put(articleFetchError(msg));
 	}
 }
@@ -37,10 +40,12 @@ export function* createArticle({ article } = {}) {
 
 		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(articleInputError(msg));
 	}
@@ -59,10 +64,12 @@ export function* updateArticle({ article } = {}) {
 
 		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(articleInputError(msg));
 	}

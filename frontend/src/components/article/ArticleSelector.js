@@ -1,12 +1,12 @@
-import React from "react";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import { articles } from "../../actions/articles";
-import { labelTypes } from "../../actions/assortment/labelTypes";
-import { unitTypes } from "../../actions/assortment/unitTypes";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import FontAwesome from "../tools/icons/FontAwesome";
-import LabelList from "../assortment/LabelList";
+import React from 'react';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import { articles } from '../../actions/articles';
+import { labelTypes } from '../../actions/assortment/labelTypes';
+import { unitTypes } from '../../actions/assortment/unitTypes';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import FontAwesome from '../tools/icons/FontAwesome';
+import LabelList from '../assortment/LabelList';
 
 class ArticleSelector extends React.Component {
 	constructor(props) {

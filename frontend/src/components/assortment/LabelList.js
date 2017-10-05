@@ -1,5 +1,5 @@
-import React from "react";
-import AssortmentLabel from "./AssortmentLabel";
+import React from 'react';
+import AssortmentLabel from './AssortmentLabel';
 
 export default function LabelList({ labels, insert, ...rest }) {
 	const Insert = insert;

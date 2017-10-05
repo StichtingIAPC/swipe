@@ -1,15 +1,17 @@
-import { takeEvery, takeLatest } from "redux-saga";
-import { login, saveLoginDetails } from "./sagas/auth.js";
-import { createSupplier, fetchSuppliers, updateSupplier } from "./sagas/suppliers";
-import { createArticle, fetchArticles, updateArticle } from "./sagas/articles";
-import assortment from "./sagas/assortment/assortment";
-import money from "./sagas/money/money";
-import register from "./sagas/register/register";
+import { takeEvery, takeLatest } from 'redux-saga';
+import { login, saveLoginDetails, logout, saveLogoutDetails } from './sagas/auth.js';
+import { createSupplier, fetchSuppliers, updateSupplier } from './sagas/suppliers';
+import { createArticle, fetchArticles, updateArticle } from './sagas/articles';
+import assortment from './sagas/assortment/assortment';
+import money from './sagas/money/money';
+import register from './sagas/register/register';
 
 export default function* rootSaga() {
 	// Auth sagas
 	yield takeEvery('AUTH_START_LOGIN', login);
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
+	yield takeEvery('AUTH_START_LOGOUT', logout);
+	yield takeEvery('AUTH_LOGOUT_SUCCESS', saveLogoutDetails);
 
 	// Supplier sagas
 	yield takeLatest('SUPPLIER_FETCH_START', fetchSuppliers);
@@ -22,7 +24,6 @@ export default function* rootSaga() {
 	yield takeEvery('ARTICLE_CREATE', createArticle);
 	yield takeEvery('ARTICLE_UPDATE', updateArticle);
 	yield takeEvery('ARTICLE_DELETE', updateArticle);
-
 
 	yield* assortment();
 	yield* money();

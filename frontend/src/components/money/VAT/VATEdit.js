@@ -1,10 +1,10 @@
-import React from "react";
-import { connect } from "react-redux";
-import DatePicker from "react-datepicker";
-import { createVAT, updateVAT } from "../../../actions/money/VATs";
-import Form from "../../forms/Form";
-import { BoolField, StringField } from "../../forms/fields";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import { connect } from 'react-redux';
+import DatePicker from 'react-datepicker';
+import { createVAT, updateVAT } from '../../../actions/money/VATs';
+import Form from '../../forms/Form';
+import { BoolField, StringField } from '../../forms/fields';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 class VATEdit extends React.Component {
 	constructor(props) {
@@ -14,8 +14,9 @@ class VATEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.VAT !== null)
+		if (props.VAT !== null) {
 			return { ...props.VAT };
+		}
 		return {
 			name: '',
 			active: true,
@@ -33,10 +34,11 @@ class VATEdit extends React.Component {
 
 	save(evt) {
 		evt.preventDefault();
-		if (this.state.id)
+		if (this.state.id) {
 			this.props.updateVAT(this.state);
-		 else
+		} else {
 			this.props.createVAT(this.state);
+		}
 	}
 
 	renderVATPeriodRow({ VATPeriod }) {
@@ -75,7 +77,7 @@ class VATEdit extends React.Component {
 									minDate={VATPeriod.start_date}
 									dateFormat="YYYY-MM-DD"
 									onChange={val => updateValue('end_date', val)} />
-								)
+							)
 						}
 					</td>
 					<td>{VATPeriod.vatrate}</td>
@@ -141,8 +143,12 @@ class VATEdit extends React.Component {
 				onReset={::this.reset}
 				onSubmit={::this.save}
 				error={this.props.errorMsg}>
-				<StringField name="Name" value={this.state.name} onChange={evt => this.setState({ name: evt.target.value })} />
-				<BoolField name="Active" value={this.state.active} onChange={() => this.setState(({ active }) => ({ active: !active }))} />
+				<StringField
+					name="Name" value={this.state.name}
+					onChange={evt => this.setState({ name: evt.target.value })} />
+				<BoolField
+					name="Active" value={this.state.active}
+					onChange={() => this.setState(({ active }) => ({ active: !active }))} />
 				<div className="form-group">
 					<label className="col-sm-3 control-label">VAT periods</label>
 					<div className="col-sm-9">

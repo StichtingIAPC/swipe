@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../../api';
 import {
 	doneFetchingRegisters,
 	registerFetchError,
 	registerInputError,
 	startFetchingRegisters
-} from "../../actions/register/registers";
+} from '../../actions/register/registers';
 
 export function* fetchRegisters({ redirectTo } = {}) {
 	let msg = null;
@@ -18,13 +18,16 @@ export function* fetchRegisters({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingRegisters(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	}	catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(registerFetchError(msg));
 	}
@@ -43,10 +46,12 @@ export function* createRegister({ register } = {}) {
 
 		yield put(startFetchingRegisters({ redirectTo: `/register/register/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(registerInputError(msg));
 	}
@@ -65,10 +70,12 @@ export function* updateRegister({ register } = {}) {
 
 		yield put(startFetchingRegisters({ redirectTo: `/register/register/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(registerInputError(msg));
 	}
