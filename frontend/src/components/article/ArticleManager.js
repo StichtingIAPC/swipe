@@ -16,7 +16,9 @@ class ArticleManager extends React.Component {
 	}
 
 	render() {
-		if (!this.props.requirementsLoaded)			{ return null; }
+		if (!this.props.requirementsLoaded) {
+			return null;
+		}
 
 		return (
 			<div className="row">

@@ -16,7 +16,9 @@ class SupplierDetail extends React.Component {
 	}
 
 	render() {
-		if (!this.props.supplier)			{ return null; }
+		if (!this.props.supplier) {
+			return null;
+		}
 
 
 		const { supplier } = this.props;

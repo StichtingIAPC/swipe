@@ -15,7 +15,9 @@ class SupplierEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.supplier !== null)			{ return { ...props.supplier }; }
+		if (props.supplier !== null) {
+			return { ...props.supplier };
+		}
 		return {
 			id: null,
 			name: '',
@@ -25,7 +27,9 @@ class SupplierEdit extends React.Component {
 	}
 
 	reset(evt, props) {
-		if (evt)			{ evt.preventDefault(); }
+		if (evt) {
+			evt.preventDefault();
+		}
 		this.setState(this.getResetState(props));
 	}
 
@@ -45,7 +49,9 @@ class SupplierEdit extends React.Component {
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.supplier !== props.supplier)			{ this.reset(null, props); }
+		if (this.props.supplier !== props.supplier) {
+			this.reset(null, props);
+		}
 	}
 
 	render() {
@@ -68,7 +74,9 @@ class SupplierEdit extends React.Component {
 }
 
 function mapStateToProps(state, ownProps) {
-	return {	supplier: (state.suppliers.suppliers || []).filter(s => s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0] };
+	return {
+		supplier: (state.suppliers.suppliers || []).filter(s => s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0]
+	};
 }
 
 export default connect(

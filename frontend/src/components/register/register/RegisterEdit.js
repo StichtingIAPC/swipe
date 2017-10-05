@@ -15,7 +15,9 @@ class RegisterEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.register !== null)			{ return { ...props.register }; }
+		if (props.register !== null) {
+			return { ...props.register };
+		}
 		return {
 			name: '',
 			currency: '',
@@ -26,7 +28,9 @@ class RegisterEdit extends React.Component {
 	}
 
 	reset(evt, props) {
-		if (evt)			{ evt.preventDefault(); }
+		if (evt) {
+			evt.preventDefault();
+		}
 		this.setState(this.getResetState(props));
 	}
 
@@ -46,7 +50,9 @@ class RegisterEdit extends React.Component {
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.register !== props.register)			{ this.reset(null, props); }
+		if (this.props.register !== props.register) {
+			this.reset(null, props);
+		}
 	}
 
 	render() {

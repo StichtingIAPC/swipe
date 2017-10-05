@@ -21,7 +21,9 @@ class VATDetail extends React.Component {
 	render() {
 		const vat = this.props.VAT;
 
-		if (!vat)			{ return null; }
+		if (!vat) {
+			return null;
+		}
 
 		return (
 			<div className="box">

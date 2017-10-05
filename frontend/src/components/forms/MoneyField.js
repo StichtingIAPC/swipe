@@ -24,7 +24,9 @@ export default class MoneyField extends React.Component {
 	}
 
 	static valueToString(value, currency) {
-		if (isNaN(Number(value.replace('.', ''))))			{ return value; }
+		if (isNaN(Number(value.replace('.', '')))) {
+			return value;
+		}
 
 		let _value = value.replace('.', '');
 

@@ -12,7 +12,9 @@ class RegisterDetail extends React.Component {
 	render() {
 		const { register } = this.props;
 
-		if (!register)			{ return null; }
+		if (!register) {
+			return null;
+		}
 
 		return (
 			<div className="box">

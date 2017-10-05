@@ -31,12 +31,16 @@ class LabelField extends React.Component {
 	}
 
 	getUnitTypeCached(id) {
-		if (!this.cache[id])			{ this.cache[id] = this.props.unitTypes.find(el => el.id === id); }
+		if (!this.cache[id]) {
+			this.cache[id] = this.props.unitTypes.find(el => el.id === id);
+		}
 		return this.cache[id];
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.unitTypes !== props.unitTypes)			{ this.cache = {}; }
+		if (this.props.unitTypes !== props.unitTypes) {
+			this.cache = {};
+		}
 	}
 
 	findLabelTypes(desc) {

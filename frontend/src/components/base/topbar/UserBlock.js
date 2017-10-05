@@ -16,7 +16,9 @@ class UserBlock extends React.Component {
 	}
 
 	componentWillReceiveProps(newProps) {
-		if (!newProps.isAuthenticated && this.state.open)			{ this.setState({ open: false }); }
+		if (!newProps.isAuthenticated && this.state.open) {
+			this.setState({ open: false });
+		}
 	}
 
 	render() {
