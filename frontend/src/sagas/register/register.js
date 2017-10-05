@@ -1,6 +1,6 @@
-import { takeEvery, takeLatest } from "redux-saga";
-import { createRegister, fetchRegisters, updateRegister } from "./registers";
-import { createPaymentType, fetchPaymentTypes, updatePaymentType } from "./paymentTypes";
+import { takeEvery, takeLatest } from 'redux-saga';
+import { createRegister, fetchRegisters, updateRegister } from './registers';
+import { createPaymentType, fetchPaymentTypes, updatePaymentType } from './paymentTypes';
 
 export default function* registerSagas() {
 	// Register sagas

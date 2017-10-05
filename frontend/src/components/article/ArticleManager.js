@@ -1,14 +1,14 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import { push } from "react-router-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import { articles } from "../../actions/articles";
-import { labelTypes } from "../../actions/assortment/labelTypes";
-import { unitTypes } from "../../actions/assortment/unitTypes";
-import ArticleSelector from "./ArticleSelector";
-import FontAwesome from "../tools/icons/FontAwesome";
-import { accountingGroups } from "../../actions/money/accountingGroups";
+import React from 'react';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import { push } from 'react-router-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { articles } from '../../actions/articles';
+import { labelTypes } from '../../actions/assortment/labelTypes';
+import { unitTypes } from '../../actions/assortment/unitTypes';
+import ArticleSelector from './ArticleSelector';
+import FontAwesome from '../tools/icons/FontAwesome';
+import { accountingGroups } from '../../actions/money/accountingGroups';
 
 class ArticleManager extends React.Component {
 	componentWillMount() {
@@ -16,8 +16,9 @@ class ArticleManager extends React.Component {
 	}
 
 	render() {
-		if (!this.props.requirementsLoaded)
+		if (!this.props.requirementsLoaded) {
 			return null;
+		}
 
 		return (
 			<div className="row">

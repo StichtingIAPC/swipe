@@ -1,7 +1,7 @@
-import { takeEvery, takeLatest } from "redux-saga";
-import { createCurrency, fetchCurrencies, updateCurrency } from "./currencies";
-import { createVAT, fetchVATs, updateVAT } from "./VATs";
-import { createAccountingGroup, fetchAccountingGroups, updateAccountingGroup } from "./accountingGroups";
+import { takeEvery, takeLatest } from 'redux-saga';
+import { createCurrency, fetchCurrencies, updateCurrency } from './currencies';
+import { createVAT, fetchVATs, updateVAT } from './VATs';
+import { createAccountingGroup, fetchAccountingGroups, updateAccountingGroup } from './accountingGroups';
 
 export default function* moneySagas() {
 	// Currency

@@ -1,5 +1,5 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
 export default class AsyncSelectBox extends React.Component {
 	static propTypes = {
@@ -35,18 +35,20 @@ export default class AsyncSelectBox extends React.Component {
 		} else if (this.props.results) {
 			const amt = this.props.results.length;
 
-			if (evt.key === 'ArrowUp')
+			if (evt.key === 'ArrowUp') {
 				this.setState({ selected: amt - 1 });
-			 else if (evt.key === 'ArrowDown')
+			} else if (evt.key === 'ArrowDown') {
 				this.setState({ selected: 0 });
-			 else if (evt.key === 'Enter' && amt === 1)
+			} else if (evt.key === 'Enter' && amt === 1) {
 				this.props.onSelect(this.props.results[0].key);
+			}
 		}
 	}
 
 	componentWillReceiveProps(props) {
-		if (props.results && this.state.selected !== null && props.results.length < this.state.selected)
+		if (props.results && this.state.selected !== null && props.results.length < this.state.selected) {
 			this.setState({ selected: props.results.length });
+		}
 	}
 
 	render() {
@@ -66,12 +68,15 @@ export default class AsyncSelectBox extends React.Component {
 					onBlur={() => this.setState({ focused: false })}
 					placeholder={this.props.placeholder}
 					value={this.props.query} />
-				<div className={`async-select-box-results-wrapper${this.state.focused ? ' async-select-box-results-wrapper-visible' : ''}`}>
+				<div
+					className={`async-select-box-results-wrapper${this.state.focused ? ' async-select-box-results-wrapper-visible' : ''}`}>
 					<div className="async-select-box-results">
 						{
 							this.props.results && this.props.results.length > 0 ? this.props.results.map(
 								(result, index) =>
-									<div className={index === this.state.selected ? 'selected' : ''} key={result.key} onClick={() => this.props.onSelect(result.key)}>
+									<div
+										className={index === this.state.selected ? 'selected' : ''} key={result.key}
+										 onClick={() => this.props.onSelect(result.key)}>
 										<span>{result.label}</span>
 									</div>
 							) : (

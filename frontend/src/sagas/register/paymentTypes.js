@@ -1,12 +1,12 @@
-import { call, put } from "redux-saga/effects";
-import { push } from "react-router-redux";
-import { get, post, put as api_put } from "../../api";
+import { call, put } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+import { get, post, put as api_put } from '../../api';
 import {
 	doneFetchingPaymentTypes,
 	paymentTypeFetchError,
 	paymentTypeInputError,
 	startFetchingPaymentTypes,
-} from "../../actions/register/paymentTypes";
+} from '../../actions/register/paymentTypes';
 
 export function* fetchPaymentTypes({ redirectTo } = {}) {
 	let msg = null;
@@ -18,13 +18,16 @@ export function* fetchPaymentTypes({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingPaymentTypes(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	}	catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(paymentTypeFetchError(msg));
 	}
@@ -43,10 +46,12 @@ export function* createPaymentType({ paymentType } = {}) {
 
 		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(paymentTypeInputError(msg));
 	}
@@ -65,10 +70,12 @@ export function* updatePaymentType({ paymentType } = {}) {
 
 		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(paymentTypeInputError(msg));
 	}
