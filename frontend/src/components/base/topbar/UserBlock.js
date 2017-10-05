@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
-import { loginReset, logout } from '../../../actions/auth';
+import { logout } from '../../../actions/auth';
 
 class UserBlock extends React.Component {
 	constructor(props) {
@@ -16,8 +16,7 @@ class UserBlock extends React.Component {
 	}
 
 	componentWillReceiveProps(newProps) {
-		if (!newProps.isAuthenticated && this.state.open)
-			this.setState({ open: false });
+		if (!newProps.isAuthenticated && this.state.open)			{ this.setState({ open: false }); }
 	}
 
 	render() {

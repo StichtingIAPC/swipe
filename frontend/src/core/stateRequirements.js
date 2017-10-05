@@ -53,8 +53,7 @@ export function connectMixin(requirements, state = null) {
 	}
 
 	// case connect((state) => ({...connectMixin(requirements, state)}))
-	if (state !== null)
-		return func(state);
+	if (state !== null)		{ return func(state); }
 
 	// case connect(connectMixin(requirements))
 	return func;
@@ -66,8 +65,7 @@ export function connectMixin(requirements, state = null) {
  * @param obj: Component
  */
 export function fetchStateRequirementsFor(obj) {
-	if (obj.props.requirementsLoaded)
-		return;
+	if (obj.props.requirementsLoaded)		{ return; }
 
 	obj.props.missingRequirements
 		.forEach(

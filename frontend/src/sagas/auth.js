@@ -17,8 +17,7 @@ export function* login({ username, password }) {
 			body: form,
 		});
 
-		if (!result.ok)
-			throw yield result.json();
+		if (!result.ok)			{ throw yield result.json(); }
 
 
 		const data = yield result.json();
@@ -37,8 +36,7 @@ export function* login({ username, password }) {
 }
 
 export function saveLogoutDetails() {
-	if (!window || !window.localStorage)
-		return;
+	if (!window || !window.localStorage)		{ return; }
 
 	window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
 }
@@ -55,8 +53,7 @@ export function* logout() {
 			body: form,
 		});
 
-		if (!result.ok)
-			throw result;
+		if (!result.ok)			{ throw result; }
 
 		yield put(logoutSuccess());
 		yield put(push('/authentication/login'));
@@ -66,8 +63,7 @@ export function* logout() {
 }
 
 export function saveLoginDetails(action) {
-	if (!window || !window.localStorage)
-		return;
+	if (!window || !window.localStorage)		{ return; }
 
 	window.localStorage.setItem('LAST_LOGIN_SUCCESS_ACTION', JSON.stringify(action));
 }

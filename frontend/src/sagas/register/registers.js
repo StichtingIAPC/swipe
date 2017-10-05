@@ -18,13 +18,10 @@ export function* fetchRegisters({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingRegisters(data));
-		if (redirectTo)
-			yield put(push(redirectTo));
+		if (redirectTo)			{ yield put(push(redirectTo)); }
 	}	catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 
 		yield put(registerFetchError(msg));
 	}
@@ -43,10 +40,8 @@ export function* createRegister({ register } = {}) {
 
 		yield put(startFetchingRegisters({ redirectTo: `/register/register/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 
 		yield put(registerInputError(msg));
 	}
@@ -65,10 +60,8 @@ export function* updateRegister({ register } = {}) {
 
 		yield put(startFetchingRegisters({ redirectTo: `/register/register/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 
 		yield put(registerInputError(msg));
 	}

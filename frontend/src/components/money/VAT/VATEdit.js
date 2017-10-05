@@ -14,8 +14,9 @@ class VATEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.VAT !== null)
+		if (props.VAT !== null) {
 			return { ...props.VAT };
+		}
 		return {
 			name: '',
 			active: true,
@@ -33,10 +34,11 @@ class VATEdit extends React.Component {
 
 	save(evt) {
 		evt.preventDefault();
-		if (this.state.id)
+		if (this.state.id) {
 			this.props.updateVAT(this.state);
-		 else
+		} else {
 			this.props.createVAT(this.state);
+		}
 	}
 
 	renderVATPeriodRow({ VATPeriod }) {
@@ -141,8 +143,12 @@ class VATEdit extends React.Component {
 				onReset={::this.reset}
 				onSubmit={::this.save}
 				error={this.props.errorMsg}>
-				<StringField name="Name" value={this.state.name} onChange={evt => this.setState({ name: evt.target.value })} />
-				<BoolField name="Active" value={this.state.active} onChange={() => this.setState(({ active }) => ({ active: !active }))} />
+				<StringField
+					name="Name" value={this.state.name}
+					onChange={evt => this.setState({ name: evt.target.value })} />
+				<BoolField
+					name="Active" value={this.state.active}
+					onChange={() => this.setState(({ active }) => ({ active: !active }))} />
 				<div className="form-group">
 					<label className="col-sm-3 control-label">VAT periods</label>
 					<div className="col-sm-9">
@@ -163,12 +169,12 @@ class VATEdit extends React.Component {
 							</thead>
 							<tbody>
 								{
-									this.state.vatperiod_set.map(
-										(vp, i) => (
-											<this.renderVATPeriodRow key={vp.id || `new${i}`} VATPeriod={vp} />
-										)
+								this.state.vatperiod_set.map(
+									(vp, i) => (
+										<this.renderVATPeriodRow key={vp.id || `new${i}`} VATPeriod={vp} />
 									)
-								}
+								)
+							}
 							</tbody>
 						</table>
 					</div>

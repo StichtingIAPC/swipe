@@ -54,5 +54,4 @@ function render() {
 
 // First render + register hot loader for hot reloading in a dev environment
 render();
-if (module.hot)
-	module.hot.accept('./components/Application.js', render);
+if (module.hot)	{ module.hot.accept('./components/Application.js', render); }

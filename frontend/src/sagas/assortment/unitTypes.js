@@ -18,13 +18,10 @@ export function* fetchUnitTypes({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingUnitTypes(data));
-		if (redirectTo)
-			yield put(push(redirectTo));
+		if (redirectTo)			{ yield put(push(redirectTo)); }
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 
 		yield put(unitTypeFetchError(msg));
 	}
@@ -43,10 +40,8 @@ export function* createUnitType({ unitType } = {}) {
 
 		yield put(startFetchingUnitTypes({ redirectTo: `/assortment/unittypes/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 
 		yield put(unitTypeInputError(msg));
 	}
@@ -65,10 +60,8 @@ export function* updateUnitType({ unitType }) {
 
 		yield put(startFetchingUnitTypes({ redirectTo: `/assortment/unittypes/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 
 		yield put(unitTypeInputError(msg));
 	}

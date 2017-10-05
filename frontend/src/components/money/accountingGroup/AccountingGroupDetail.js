@@ -15,8 +15,7 @@ class AccountingGroupDetail extends React.Component {
 	render() {
 		const { accountingGroup } = this.props;
 
-		if (!accountingGroup)
-			return null;
+		if (!accountingGroup)			{ return null; }
 
 		return (
 			<div className="box">

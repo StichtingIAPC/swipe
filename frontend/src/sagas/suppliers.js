@@ -26,13 +26,10 @@ export function* fetchSuppliers({ redirectTo }) {
 		)).json();
 
 		yield put(doneFetchingSuppliers(data.map(s => renameProp(s, 'search_url', 'searchUrl'))));
-		if (redirectTo)
-			yield put(push(redirectTo));
+		if (redirectTo)			{ yield put(push(redirectTo)); }
 	}	catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 		yield put(supplierFetchError(msg));
 	}
 }
@@ -56,10 +53,8 @@ export function* createSupplier({ supplier }) {
 
 		yield put(startFetchingSuppliers({ redirectTo: `/supplier/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 		yield put(supplierInputError(msg));
 	}
 }
@@ -83,10 +78,8 @@ export function* updateSupplier({ supplier }) {
 
 		yield put(startFetchingSuppliers({ redirectTo: `/supplier/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 		yield put(supplierInputError(msg));
 	}
 }

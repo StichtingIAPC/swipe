@@ -18,13 +18,10 @@ export function* fetchCurrencies({ redirectTo }) {
 		)).json();
 
 		yield put(doneFetchingCurrencies(data));
-		if (redirectTo)
-			yield put(push(redirectTo));
+		if (redirectTo)			{ yield put(push(redirectTo)); }
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = e.json(); }
 
 		yield put(currencyFetchError(msg));
 	}
@@ -43,10 +40,8 @@ export function* createCurrency({ curr }) {
 
 		yield put(startFetchingCurrencies({ redirectTo: `/money/currency/${data.iso}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = yield e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = yield e.json(); }
 
 		yield put(currencyInputError(msg));
 	}
@@ -65,10 +60,8 @@ export function* updateCurrency({ curr }) {
 
 		yield put(startFetchingCurrencies({ redirectTo: `/money/currency/${data.iso}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = yield e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = yield e.json(); }
 
 		yield put(currencyInputError(msg));
 	}

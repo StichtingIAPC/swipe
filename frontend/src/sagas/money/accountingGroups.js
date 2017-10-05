@@ -18,13 +18,10 @@ export function* fetchAccountingGroups({ redirectTo }) {
 		)).json();
 
 		yield put(doneFetchingAccountingGroups(data));
-		if (redirectTo)
-			yield put(push(redirectTo));
+		if (redirectTo)			{ yield put(push(redirectTo)); }
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = yield e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = yield e.json(); }
 
 		yield put(accountingGroupFetchError(msg));
 	}
@@ -43,10 +40,8 @@ export function* createAccountingGroup({ accGrp }) {
 
 		yield put(startFetchingAccountingGroups({ redirectTo: `/money/accountinggroup/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = yield e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = yield e.json(); }
 
 		yield put(accountingGroupInputError(msg));
 	}
@@ -65,10 +60,8 @@ export function* updateAccountingGroup({ accGrp }) {
 
 		yield put(startFetchingAccountingGroups({ redirectTo: `/money/accountinggroup/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
-			msg = e.message;
-		if (e instanceof Response)
-			msg = yield e.json();
+		if (e instanceof Error)			{ msg = e.message; }
+		if (e instanceof Response)			{ msg = yield e.json(); }
 
 		yield put(accountingGroupInputError(msg));
 	}

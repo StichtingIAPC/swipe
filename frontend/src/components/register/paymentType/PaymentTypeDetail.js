@@ -18,8 +18,7 @@ class PaymentTypeDetail extends React.Component {
 	render() {
 		const { paymentType } = this.props;
 
-		if (!paymentType)
-			return null;
+		if (!paymentType)			{ return null; }
 
 		return (
 			<div className="box">

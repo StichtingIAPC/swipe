@@ -15,8 +15,7 @@ class CurrencyDetail extends React.Component {
 	render() {
 		const { currency } = this.props;
 
-		if (!currency)
-			return null;
+		if (!currency)			{ return null; }
 
 		return (
 			<div className="box">

@@ -16,8 +16,9 @@ class LabelTypeEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.labelType !== null)
+		if (props.labelType !== null) {
 			return { ...props.labelType };
+		}
 		return {
 			id: null,
 			name: '',
@@ -28,17 +29,19 @@ class LabelTypeEdit extends React.Component {
 	}
 
 	reset(evt, props) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		this.setState(this.getResetState(props));
 	}
 
 	submit(evt) {
 		evt.preventDefault();
-		if (this.state.id === null)
+		if (this.state.id === null) {
 			this.props.addLabelType({ ...this.state });
-		 else
+		} else {
 			this.props.editLabelType({ ...this.state });
+		}
 	}
 
 	componentWillReceiveProps(props) {
