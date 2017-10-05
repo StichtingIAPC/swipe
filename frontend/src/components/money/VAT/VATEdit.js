@@ -169,12 +169,12 @@ class VATEdit extends React.Component {
 							</thead>
 							<tbody>
 								{
-								this.state.vatperiod_set.map(
-									(vp, i) => (
-										<this.renderVATPeriodRow key={vp.id || `new${i}`} VATPeriod={vp} />
+									this.state.vatperiod_set.map(
+										(vp, i) => (
+											<this.renderVATPeriodRow key={vp.id || `new${i}`} VATPeriod={vp} />
+										)
 									)
-								)
-							}
+								}
 							</tbody>
 						</table>
 					</div>

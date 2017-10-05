@@ -55,8 +55,8 @@ class UserBlock extends React.Component {
 				<ul className="dropdown-menu">
 					<li className="user-header">
 						<p>
-								User not found!
-							</p>
+							User not found!
+						</p>
 					</li>
 					<li className="user-footer">
 						<div className="pull-right">
