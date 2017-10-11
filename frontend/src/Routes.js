@@ -9,6 +9,7 @@ import Authentication from './components/authentication/Authentication.js';
 import Application from './components/Application.js';
 import Dashboard from './components/Dashboard.js';
 import HelloWorld from './components/HelloWorld.js';
+import Profile from './components/authentication/Profile.js';
 // Supplier components
 import SupplierBase from 'components/supplier/SupplierBase';
 import SupplierEdit from 'components/supplier/SupplierEdit';
@@ -50,6 +51,7 @@ class Routes extends React.Component {
 				<IndexRedirect to="/dashboard" />
 				<Route path="dashboard" component={Dashboard} />
 				<Route path="helloworld" component={HelloWorld} />
+				<Route path="profile" component={Profile} />
 
 				<Route path="supplier/" component={SupplierBase}>
 					<Route path="create/" component={SupplierEdit} />
