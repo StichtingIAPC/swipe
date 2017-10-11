@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from article.serializers import ArticleTypeSerializer
-from logistics.models import SupplierOrder, SupplierOrderLine, SupplierOrderState, StockWishTableLog
+from logistics.models import SupplierOrder, SupplierOrderLine, SupplierOrderState, StockWishTableLog, StockWish
 from money.serializers import CostSerializerField
 from supplier.serializers import ArticleTypeSupplierSerializer
 
@@ -44,6 +44,15 @@ class SupplierOrderStateSerializer(serializers.ModelSerializer):
             'timestamp',
             'supplier_order_line',
             'state',
+        )
+
+
+class StockWishSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StockWish
+        fields = (
+            'timestamp',
         )
 
 

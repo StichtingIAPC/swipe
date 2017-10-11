@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^supplierorderstate/(?P<pk>\d+)/$', views.SupplierOrderStateView.as_view()),
     url(r'^supplierorderstate/state/(?P<state>[OLACST])/', views.SupplierOrderStateByStateView.as_view()),
     url(r'^supplierorderstate/supplierorderline/(?P<supplier_order_line_pk>\d+)/$', views.SupplierOrderStateBySupplierOrderLineView.as_view()),
+    url(r'^stockwish/$', views.StockWishView.as_view()),
     url(r'^stockwishtablelog/$', views.StockWishTableLogListView.as_view()),
     url(r'^stockwishtablelog/(?P<pk>\d+)/$', views.StockWishTableLogView.as_view()),
     url(r'^stockwishtablelog/stockwish/(?P<stock_wish_id>\d+)/$', views.StockWishTableLogViewByStockWish.as_view()),

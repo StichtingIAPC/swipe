@@ -1,11 +1,16 @@
 # Create your views here.
+import json
+
+from django.contrib.auth.models import User
 from django.core import serializers
 from django.http import HttpResponse
 from rest_framework import generics
 from rest_framework import mixins
 
-from logistics.models import SupplierOrder, SupplierOrderLine, SupplierOrderState, StockWishTableLog
-from logistics.serializers import SupplierOrderSerializer, SupplierOrderLineSerializer, SupplierOrderStateSerializer, StockWishTableLogSerializer
+from article.models import ArticleType
+from logistics.models import SupplierOrder, SupplierOrderLine, SupplierOrderState, StockWishTableLog, StockWish
+from logistics.serializers import SupplierOrderSerializer, SupplierOrderLineSerializer, SupplierOrderStateSerializer, StockWishTableLogSerializer, \
+    StockWishSerializer
 
 
 class SupplierOrderListView(mixins.ListModelMixin,
@@ -15,6 +20,7 @@ class SupplierOrderListView(mixins.ListModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
 
 class SupplierOrderView(mixins.RetrieveModelMixin,
                         generics.GenericAPIView):
@@ -65,6 +71,7 @@ class SupplierOrderStateByStateView(mixins.ListModelMixin,
             return HttpResponse(content=serializers.serialize('json', resultset, indent=4),
                                 content_type="application/json")
 
+
 class SupplierOrderStateBySupplierOrderLineView(mixins.ListModelMixin,
                                mixins.CreateModelMixin,
                                generics.GenericAPIView):
@@ -78,6 +85,7 @@ class SupplierOrderStateBySupplierOrderLineView(mixins.ListModelMixin,
             return HttpResponse(content=serializers.serialize('json', resultset, indent=4),
                                 content_type="application/json")
 
+
 class SupplierOrderStateView(mixins.RetrieveModelMixin,
                             generics.GenericAPIView):
     queryset = SupplierOrderState.objects.all()
@@ -85,6 +93,25 @@ class SupplierOrderStateView(mixins.RetrieveModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class StockWishView(mixins.CreateModelMixin,
+                    generics.GenericAPIView):
+    serializer_class = StockWish
+
+    def post(self, request, *args, **kwargs):
+        self.user = User.objects.get(id=request.data.get("user_modified"))
+        self.articles_ordered = request.data.get("articles_ordered")
+        resultset = []
+        for article_id, number in self.articles_ordered:
+            entry = []
+            article = ArticleType.objects.get(id=article_id)
+            entry.append(article)
+            entry.append(number)
+            resultset.append(entry)
+        stockwish = StockWishSerializer(StockWish.create_stock_wish(self.user, resultset)).data
+        return HttpResponse(content=json.dumps(stockwish), content_type="application/json")
+
 
 
 class StockWishTableLogListView(mixins.ListModelMixin,
