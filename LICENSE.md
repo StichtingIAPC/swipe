@@ -38,3 +38,4 @@ List of contributors
 - Rolf van Kleef
 - Myrthe Hultermans
 - Marije Mulder
+- Tim Kerkhoven
