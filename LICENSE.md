@@ -37,3 +37,7 @@ List of contributors
 - Niels Overkamp
 - Rolf van Kleef
 - Myrthe Hultermans
+- Marije Mulder
+- Tim Kerkhoven
+- Tjalling Hoogendoorn
+- Christiaan Biesterbosch
