@@ -39,3 +39,4 @@ List of contributors
 - Myrthe Hultermans
 - Marije Mulder
 - Tim Kerkhoven
+- Tjalling Hoogendoorn
