@@ -40,30 +40,8 @@ class Login(ObtainAuthToken):
                 'username': user.username,
                 'permissions': user.get_all_permissions(),
                 'gravatarUrl': 'https://www.gravatar.com/avatar/00000000000000000000000000000000',
-            },
-        })
-
-
-class UserProfile(View):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super(UserProfile, self).dispatch(request, *args, **kwargs)
-
-    def post(self, request):
-        tok = Token.objects.filter(key=request.POST['token']).all()
-        if len(tok) <= 0:
-            return JSONResponse({
-                'error': 'No user found',
-                'token': request.POST['token'],
-            })
-
-        user = tok.get().user
-        return JSONResponse({
-            'user': {
-                'username': user.username,
                 'firstName': user.first_name,
                 'lastName': user.last_name,
                 'email': user.email,
-                'gravatarUrl': 'https://www.gravatar.com/avatar/00000000000000000000000000000000',
             },
         })
