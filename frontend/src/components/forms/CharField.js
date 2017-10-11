@@ -29,7 +29,7 @@ export default class CharField extends React.Component {
 
 CharField.propTypes = {
 	name: PropTypes.string.isRequired,
-	value: PropTypes.string.isRequired,
+	value: PropTypes.string,
 	minLength: PropTypes.number.isRequired,
 	maxLength: PropTypes.number.isRequired,
 	className: PropTypes.string,

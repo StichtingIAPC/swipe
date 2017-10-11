@@ -20,7 +20,7 @@ export default function StringField({ name, className, value, onChange, ...rest 
 
 StringField.propTypes = {
 	name: PropTypes.string.isRequired,
-	value: PropTypes.string.isRequired,
+	value: PropTypes.string,
 	className: PropTypes.string,
 };
 
