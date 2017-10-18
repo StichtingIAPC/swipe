@@ -14,7 +14,6 @@ from logistics.serializers import SupplierOrderSerializer, SupplierOrderLineSeri
     StockWishSerializer
 from money.models import Cost
 from supplier.models import Supplier
-from supplier.serializers import SupplierSerializer
 
 
 class SupplierOrderListView(mixins.ListModelMixin,
@@ -25,6 +24,7 @@ class SupplierOrderListView(mixins.ListModelMixin,
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+    # move this post method to SupplierOrderView?
     def post(self, request, *args, **kwargs):
         self.user = User.objects.get(id=request.data.get("user_modified"))
         self.articles_ordered = request.data.get("articles_ordered")
@@ -43,6 +43,7 @@ class SupplierOrderListView(mixins.ListModelMixin,
                                                             supplier=self.supplier,
                                                             articles_ordered=resultset,
                                                             allow_different_currency=self.allow_different_currency)
+        # was not able to directly serialize... maybe try to find a better way to do this?
         supplierorder_json = json.dumps({"user_created": supplierorder.user_created.id,
                                         "supplier": supplierorder.supplier.id})
         return HttpResponse(content=supplierorder_json, content_type="application/json")
