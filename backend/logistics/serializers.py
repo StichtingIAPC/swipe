@@ -32,6 +32,7 @@ class SupplierOrderSerializer(serializers.ModelSerializer):
             'id',
             'supplier',
             'supplierorderline_set',
+            'user_created_id',
         )
 
 

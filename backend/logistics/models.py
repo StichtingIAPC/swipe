@@ -56,7 +56,7 @@ class SupplierOrder(ImmutableBlame):
         distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLIERORDER_STRATEGY)\
             .get_distribution(articles_ordered)
 
-        DistributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
+        return DistributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
 
     @staticmethod
     def verify_article_demand(articles_ordered=None):
@@ -654,10 +654,12 @@ class DistributionStrategy:
                                          "have an ArticleTypeSupplier".format(supplier_order_line.article_type))
             supplier_order_line.supplier_article_type = ats
 
-        # We've checked everyting, now we start saving
+        # We've checked everything, now we start saving
         with transaction.atomic():
             supplier_order.save()
             SupplierOrderLine.bulk_create_supplierorders(distribution, supplier_order, user)
+
+        return supplier_order
 
     @staticmethod
     def get_distribution(article_type_number_combos):

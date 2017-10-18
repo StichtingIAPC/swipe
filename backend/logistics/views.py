@@ -1,6 +1,7 @@
 # Create your views here.
 import json
 
+from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.http import HttpResponse
@@ -11,6 +12,9 @@ from article.models import ArticleType
 from logistics.models import SupplierOrder, SupplierOrderLine, SupplierOrderState, StockWishTableLog, StockWish
 from logistics.serializers import SupplierOrderSerializer, SupplierOrderLineSerializer, SupplierOrderStateSerializer, StockWishTableLogSerializer, \
     StockWishSerializer
+from money.models import Cost
+from supplier.models import Supplier
+from supplier.serializers import SupplierSerializer
 
 
 class SupplierOrderListView(mixins.ListModelMixin,
@@ -20,6 +24,28 @@ class SupplierOrderListView(mixins.ListModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.user = User.objects.get(id=request.data.get("user_modified"))
+        self.articles_ordered = request.data.get("articles_ordered")
+        resultset = []
+        for article_id, number, cost in self.articles_ordered:
+            entry = []
+            article = ArticleType.objects.get(id=article_id)
+            cost = Cost(amount=Decimal(cost.get("amount")), currency=cost.get("currency"), use_system_currency=cost.get("use_system_currency"))
+            entry.append(article)
+            entry.append(number)
+            entry.append(cost)
+            resultset.append(entry)
+        self.allow_different_currency = request.data.get("allow_different_currency")
+        self.supplier = Supplier.objects.get(id=request.data.get("supplier"))
+        supplierorder = SupplierOrder.create_supplier_order(user_modified=self.user,
+                                                            supplier=self.supplier,
+                                                            articles_ordered=resultset,
+                                                            allow_different_currency=self.allow_different_currency)
+        supplierorder_json = json.dumps({"user_created": supplierorder.user_created.id,
+                                        "supplier": supplierorder.supplier.id})
+        return HttpResponse(content=supplierorder_json, content_type="application/json")
 
 
 class SupplierOrderView(mixins.RetrieveModelMixin,
@@ -109,7 +135,7 @@ class StockWishView(mixins.CreateModelMixin,
             entry.append(article)
             entry.append(number)
             resultset.append(entry)
-        stockwish = StockWishSerializer(StockWish.create_stock_wish(self.user, resultset)).data
+        stockwish = StockWishSerializer(StockWish.create_stock_wish(user_modified=self.user, articles_ordered=resultset)).data
         return HttpResponse(content=json.dumps(stockwish), content_type="application/json")
 
 
