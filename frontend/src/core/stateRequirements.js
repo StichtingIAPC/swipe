@@ -1,8 +1,7 @@
 const isAvailableRecursively = ([ name, functor ], state = {}) => {
 	const stateComponent = state[name];
 
-	if (typeof functor === 'function')
-		return !!stateComponent && !!stateComponent.populated;
+	if (typeof functor === 'function') { return !!stateComponent && !!stateComponent.populated; }
 
 	return Object.entries(functor)
 		.map(entry => [ entry[0], isAvailableRecursively(entry, stateComponent) ])
@@ -16,8 +15,7 @@ const fetchMissingRecursively = ([ name, functor ], tree = {}, dispatch) => {
 	const treeComponent = tree[name];
 
 	if (typeof functor === 'function') {
-		if (!treeComponent)
-			dispatch(functor());
+		if (!treeComponent) { dispatch(functor()); }
 		return;
 	}
 
@@ -27,8 +25,7 @@ const fetchMissingRecursively = ([ name, functor ], tree = {}, dispatch) => {
 
 const hasMissingDependencies = obj => Object.entries(obj)
 	.some(([ , value ]) => {
-		if (typeof value === 'boolean')
-			return value;
+		if (typeof value === 'boolean') { return value; }
 		return hasMissingDependencies(value);
 	});
 

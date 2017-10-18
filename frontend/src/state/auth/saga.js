@@ -3,8 +3,8 @@ import { push } from 'react-router-redux';
 import { loginError, loginSuccess, setRouteAfterAuthentication } from './actions.js';
 import config from '../../config.js';
 import fetch from 'isomorphic-fetch';
-import { getToken } from '../api';
-import { logoutError, logoutSuccess } from '../actions/auth';
+import { getToken } from '../../api';
+import { logoutError, logoutSuccess } from './actions';
 
 function* login({ username, password }) {
 	const form = new FormData();
