@@ -15,8 +15,9 @@ class PaymentTypeEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.paymentType !== null)
+		if (props.paymentType !== null) {
 			return { ...props.paymentType };
+		}
 		return {
 			name: '',
 			is_invoicing: false,
@@ -24,8 +25,9 @@ class PaymentTypeEdit extends React.Component {
 	}
 
 	reset(evt, props) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		this.setState(this.getResetState(props));
 	}
 
@@ -45,8 +47,9 @@ class PaymentTypeEdit extends React.Component {
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.paymentType !== props.paymentType)
+		if (this.props.paymentType !== props.paymentType) {
 			this.reset(null, props);
+		}
 	}
 
 	render() {

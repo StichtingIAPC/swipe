@@ -30,8 +30,9 @@ class CurrencyEdit extends React.Component {
 	}
 
 	reset(evt, props = this.props) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		this.setState({
 			workingCopy: {
 				...defaultCurrency,
@@ -41,8 +42,9 @@ class CurrencyEdit extends React.Component {
 	}
 
 	update(evt) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		const obj = { ...this.state.workingCopy };
 
 		obj.lastModified = new Date();
@@ -50,8 +52,9 @@ class CurrencyEdit extends React.Component {
 	}
 
 	create(evt) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		const obj = { ...this.state.workingCopy };
 
 		obj.lastModified = new Date();
@@ -59,8 +62,9 @@ class CurrencyEdit extends React.Component {
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.currency !== props.currency)
+		if (this.props.currency !== props.currency) {
 			this.reset(null, props);
+		}
 	}
 
 	render() {

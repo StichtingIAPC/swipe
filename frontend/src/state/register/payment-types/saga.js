@@ -18,13 +18,16 @@ function* fetchPaymentTypes({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingPaymentTypes(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	}	catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(paymentTypeFetchError(msg));
 	}
@@ -43,10 +46,12 @@ function* createPaymentType({ paymentType } = {}) {
 
 		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(paymentTypeInputError(msg));
 	}
@@ -65,10 +70,12 @@ function* updatePaymentType({ paymentType } = {}) {
 
 		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(paymentTypeInputError(msg));
 	}

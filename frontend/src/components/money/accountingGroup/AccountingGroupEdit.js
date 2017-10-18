@@ -15,8 +15,9 @@ class AccountingGroupEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.accountingGroup !== null)
+		if (props.accountingGroup !== null) {
 			return { ...props.accountingGroup };
+		}
 		return {
 			name: '',
 			vat_group: '',
@@ -34,10 +35,11 @@ class AccountingGroupEdit extends React.Component {
 
 	save(evt) {
 		evt.preventDefault();
-		if (this.props.accountingGroup)
+		if (this.props.accountingGroup) {
 			this.props.updateAccountingGroup(this.state);
-		 else
+		} else {
 			this.props.createAccountingGroup(this.state);
+		}
 	}
 
 	render() {
@@ -51,9 +53,16 @@ class AccountingGroupEdit extends React.Component {
 				error={this.props.errorMsg}
 				returnLink={this.props.accountingGroup ? `/money/accountinggroup/${accountingGroup.id}/` : '/money/'}
 				closeLink="/money/">
-				<StringField name="Name" value={accountingGroup.name} onChange={evt => this.setState({ name: evt.target.value })} />
-				<IntegerField name="Accounting number" value={accountingGroup.accounting_number} onChange={evt => this.setState({ accounting_number: Number(evt.target.value) })} />
-				<SelectField name="VAT group" value={accountingGroup.vat_group} onChange={evt => this.setState({ vat_group: evt.target.value })} selector="id" options={this.props.VATs} />
+				<StringField
+					name="Name" value={accountingGroup.name}
+					onChange={evt => this.setState({ name: evt.target.value })} />
+				<IntegerField
+					name="Accounting number" value={accountingGroup.accounting_number}
+					onChange={evt => this.setState({ accounting_number: Number(evt.target.value) })} />
+				<SelectField
+					name="VAT group" value={accountingGroup.vat_group}
+					onChange={evt => this.setState({ vat_group: evt.target.value })} selector="id"
+					options={this.props.VATs} />
 			</Form>
 		);
 	}

@@ -3,8 +3,8 @@
 const path = require('path');
 const webpack = require('webpack');
 
-const APP_DIR = path.resolve(path.join(__dirname, 'frontend', 'src'));
-const BUILD_DIR = path.resolve(path.join(__dirname, 'frontend', 'dist'));
+const APP_DIR = path.resolve(path.join(__dirname, 'src'));
+const BUILD_DIR = path.resolve(path.join(__dirname, 'public', 'dist'));
 
 let replacements = {};
 try {
@@ -64,5 +64,6 @@ module.exports = {
 	//devtool: 'cheap-module-source-map',
 	devServer: {
 		headers: { "Access-Control-Allow-Origin": "*" },
+		contentBase: './public/',
 	},
 };

@@ -13,13 +13,16 @@ function* fetchArticles({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingArticles(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	}	catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 		yield put(articleFetchError(msg));
 	}
 }
@@ -37,10 +40,12 @@ function* createArticle({ article } = {}) {
 
 		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(articleInputError(msg));
 	}
@@ -59,10 +64,12 @@ function* updateArticle({ article } = {}) {
 
 		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(articleInputError(msg));
 	}

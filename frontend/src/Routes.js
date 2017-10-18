@@ -38,8 +38,7 @@ import UnitTypeDetail from './components/assortment/unittype/UnitTypeDetail';
 
 class Routes extends React.Component {
 	checkAuthentication(nextState) {
-		if (this.props.user === null)
-			this.props.authenticate(nextState.location.pathname);
+		if (this.props.user === null)			{ this.props.authenticate(nextState.location.pathname); }
 	}
 
 	render() {
@@ -107,8 +106,7 @@ export default connect(
 	state => ({ user: state.auth.currentUser }),
 	dispatch => ({
 		authenticate: route => {
-			if (route !== null)
-				dispatch(setRouteAfterAuthentication(route));
+			if (route !== null)				{ dispatch(setRouteAfterAuthentication(route)); }
 			dispatch(push('/authentication/login'));
 		},
 	})

@@ -1,8 +1,8 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 class RegisterDetail extends React.Component {
 	trash(evt) {
@@ -12,8 +12,9 @@ class RegisterDetail extends React.Component {
 	render() {
 		const { register } = this.props;
 
-		if (!register)
+		if (!register) {
 			return null;
+		}
 
 		return (
 			<div className="box">

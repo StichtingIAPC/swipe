@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 /**
  * Created by Matthias on 30/11/2016.
@@ -24,8 +24,9 @@ export default class MoneyField extends React.Component {
 	}
 
 	static valueToString(value, currency) {
-		if (isNaN(Number(value.replace('.', ''))))
+		if (isNaN(Number(value.replace('.', '')))) {
 			return value;
+		}
 
 		let _value = value.replace('.', '');
 

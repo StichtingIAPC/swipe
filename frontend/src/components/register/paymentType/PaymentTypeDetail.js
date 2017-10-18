@@ -1,8 +1,8 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 class PaymentTypeDetail extends React.Component {
 	static propTypes = {
@@ -18,8 +18,9 @@ class PaymentTypeDetail extends React.Component {
 	render() {
 		const { paymentType } = this.props;
 
-		if (!paymentType)
+		if (!paymentType) {
 			return null;
+		}
 
 		return (
 			<div className="box">

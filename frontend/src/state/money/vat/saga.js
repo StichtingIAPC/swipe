@@ -4,8 +4,7 @@ import { doneFetchingVATs, startFetchingVATs, VATFetchError, VATInputError } fro
 import { get, post, put as api_put } from '../../../api.js';
 
 const format_date = date => {
-	if (date)
-		return date instanceof Object ? date.format('YYYY-MM-DD') : date;
+	if (date)		{ return date instanceof Object ? date.format('YYYY-MM-DD') : date; }
 	return null;
 };
 
@@ -19,13 +18,16 @@ function* fetchVATs({ redirectTo }) {
 		)).json();
 
 		yield put(doneFetchingVATs(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(VATFetchError(msg));
 	}
@@ -53,10 +55,12 @@ function* createVAT({ vat }) {
 
 		yield put(startFetchingVATs({ redirectTo: `/money/vat/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = yield e.json();
+		}
 
 		yield put(VATInputError(msg));
 	}
@@ -84,10 +88,12 @@ function* updateVAT({ vat }) {
 
 		yield put(startFetchingVATs({ redirectTo: `/money/vat/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = yield e.json();
+		}
 
 		yield put(VATInputError(msg));
 	}

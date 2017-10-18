@@ -18,13 +18,16 @@ function* fetchLabelTypes({ redirectTo } = {}) {
 		)).json();
 
 		yield put(doneFetchingLabelTypes(data));
-		if (redirectTo)
+		if (redirectTo) {
 			yield put(push(redirectTo));
+		}
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(labelTypeFetchError(msg));
 	}
@@ -43,10 +46,12 @@ function* createLabelType({ labelType } = {}) {
 
 		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(labelTypeInputError(msg));
 	}
@@ -65,10 +70,12 @@ function* updateLabelType({ labelType }) {
 
 		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/labeltype/${data.id}/` }));
 	} catch (e) {
-		if (e instanceof Error)
+		if (e instanceof Error) {
 			msg = e.message;
-		if (e instanceof Response)
+		}
+		if (e instanceof Response) {
 			msg = e.json();
+		}
 
 		yield put(labelTypeInputError(msg));
 	}

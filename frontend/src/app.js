@@ -1,4 +1,5 @@
 'use strict';
+
 // System dependencies
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -53,5 +54,6 @@ function render() {
 
 // First render + register hot loader for hot reloading in a dev environment
 render();
-if (module.hot)
+if (module.hot) {
 	module.hot.accept('./components/Application.js', render);
+}
