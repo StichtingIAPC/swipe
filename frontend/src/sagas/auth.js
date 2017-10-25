@@ -68,6 +68,37 @@ export function* logout() {
 	}
 }
 
+export function* loginRestore({ loginAction }) {
+	const token = loginAction.token;
+	const username = loginAction.user.username;
+
+	const form = new FormData();
+
+	form.append('token', token);
+	form.append('username', username);
+
+	try {
+		const result = yield call(fetch, `${config.backendUrl}/auth/validate/`, {
+			method: 'POST',
+			body: form,
+		});
+
+		if (!result.ok) {
+			throw result;
+		}
+
+		const data = yield result.json();
+
+		if (!data.valid) {
+			throw data;
+		}
+
+		yield put(loginAction);
+	} catch (e) {
+		yield put(loginError(e));
+	}
+}
+
 export function saveLoginDetails(action) {
 	if (!window || !window.localStorage) {
 		return;

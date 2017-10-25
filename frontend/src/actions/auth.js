@@ -6,6 +6,13 @@ export function startLogin(username, password) {
 	};
 }
 
+export function loginRestore(loginAction) {
+	return {
+		type: 'AUTH_LOGIN_RESTORE',
+		loginAction,
+	};
+}
+
 export function loginSuccess(token, user) {
 	return {
 		type: 'AUTH_LOGIN_SUCCESS',

@@ -18,6 +18,7 @@ import './styles/main.scss';
 // Pages
 import rootReducer from './reducers/root';
 import saga from './saga.js';
+import * as auth from "./actions/auth";
 
 // Set up the Redux store
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
@@ -33,7 +34,7 @@ sagaMiddleware.run(saga);
 // Check if there is auth info to be restored
 if (window && window.localStorage && window.localStorage.getItem('LAST_LOGIN_SUCCESS_ACTION')) {
 	try {
-		store.dispatch(JSON.parse(window.localStorage.getItem('LAST_LOGIN_SUCCESS_ACTION')));
+		store.dispatch(auth.loginRestore(JSON.parse(window.localStorage.getItem('LAST_LOGIN_SUCCESS_ACTION'))));
 	} catch (e) {
 		console.error(e);
 	}

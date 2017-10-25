@@ -1,5 +1,5 @@
 import { takeEvery, takeLatest } from 'redux-saga';
-import { login, saveLoginDetails, logout, saveLogoutDetails } from './sagas/auth.js';
+import { login, saveLoginDetails, logout, saveLogoutDetails, loginRestore } from './sagas/auth.js';
 import { createSupplier, fetchSuppliers, updateSupplier } from './sagas/suppliers';
 import { createArticle, fetchArticles, updateArticle } from './sagas/articles';
 import assortment from './sagas/assortment/assortment';
@@ -12,6 +12,7 @@ export default function* rootSaga() {
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
 	yield takeEvery('AUTH_START_LOGOUT', logout);
 	yield takeEvery('AUTH_LOGOUT_SUCCESS', saveLogoutDetails);
+	yield takeEvery('AUTH_LOGIN_RESTORE', loginRestore);
 
 	// Supplier sagas
 	yield takeLatest('SUPPLIER_FETCH_START', fetchSuppliers);
