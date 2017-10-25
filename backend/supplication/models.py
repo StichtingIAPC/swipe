@@ -24,7 +24,7 @@ class PackingDocument(ImmutableBlame):
     @staticmethod
     @transaction.atomic
     def create_packing_document(user, supplier, packing_document_name,
-                                article_type_cost_combinations, invoice_name=None, serial_numbers=None):
+                                article_type_cost_combinations, serial_numbers=None):
         """
         Creates a packing document from the supplied information. This registers that the products have arrived
         at the store. It is linked to a single supplier, since that is the way you process packing documents.
@@ -32,17 +32,13 @@ class PackingDocument(ImmutableBlame):
         :param supplier: Supplier for this packing document
         :param packing_document_name: Name of the packing document. Obligatory
         :param article_type_cost_combinations: A list containing lists containing a combination of an ArticleType,
-                a number of those ArticleTypes, and potentially a cost if provided by an invoice.
+                a number of those ArticleTypes,
         :type article_type_cost_combinations: list[tuple[ArticleType, number, [Cost]]]
-        :param invoice_name: Name of an invoice. If None, no invoice is to be expected
         :param serial_numbers: A list of serial number strings packed together by article
         :type serial_numbers: dict(articleType,list[SerialNumberStrings])
         :return:
         """
         use_invoice = False
-        if invoice_name is not None:
-            use_invoice = True
-            raiseif(not isinstance(invoice_name, str), InvalidDataError, "Invoice name must be string")
         raiseif(not isinstance(user, User), InvalidDataError, "user must be a User")
         raiseif(not isinstance(supplier, Supplier), InvalidDataError, "supplier must be a Supplier")
         raiseif(not isinstance(packing_document_name, str), InvalidDataError, "packing document name must be a string")
@@ -56,11 +52,7 @@ class PackingDocument(ImmutableBlame):
             raiseif(not isinstance(atcc[ARTICLETYPE_LOCATION], ArticleType), InvalidDataError,
                     "a28s[n] is not an ArticleType")
             raiseif(not isinstance(atcc[NUMBER_LOCATION], int), InvalidDataError, "a28s[n] is not a number")
-            if use_invoice:
-                raiseif(len(atcc) != 2 and atcc[COST_LOCATION] is not None and
-                        not isinstance(atcc[COST_LOCATION], Cost), InvalidDataError, "a28s[n] is not a Cost")
-            else:
-                raiseif(len(atcc) != 2 and atcc[COST_LOCATION] is not None, InvalidDataError, "a28s[n] is not None")
+            raiseif(len(atcc) != 2 and atcc[COST_LOCATION] is not None, InvalidDataError, "a28s[n] is not None")
 
         errors = PackingDocument.verify_article_demand(supplier, article_type_cost_combinations, use_invoice)
         if len(errors) > 0:
@@ -85,7 +77,6 @@ class PackingDocument(ImmutableBlame):
         DistributionStrategy.distribute(user=user, supplier=supplier,
                                         distribution=distribution,
                                         document_identifier=packing_document_name,
-                                        invoice_identifier=invoice_name,
                                         mod_stock=False,
                                         serial_numbers=serial_numbers,
                                         indirect=True
@@ -95,7 +86,7 @@ class PackingDocument(ImmutableBlame):
                                  source=StockChangeSet.SOURCE_SUPPLICATION)
 
     @staticmethod
-    def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=True):
+    def verify_article_demand(supplier, article_type_cost_combinations=None, use_invoice=False):
         raiseif(not article_type_cost_combinations and not isinstance(article_type_cost_combinations, list),
                 InvalidDataError, )
 
@@ -109,11 +100,7 @@ class PackingDocument(ImmutableBlame):
                     InvalidDataError, "attc[n] must be Tuple[ArticleType, integer]")
             raiseif(not isinstance(atcc[1], int),
                     InvalidDataError, "attc[n] must be Tuple[ArticleType, integer]")
-            if not use_invoice:
-                raiseif(len(atcc) != 2, InvalidDataError, "attc[n] must be a Tuple[ArticleType, integer]")
-            else:
-                raiseif(len(atcc) != 2 and atcc[2] is not None and not isinstance(atcc[2], Cost),
-                        InvalidDataError, "attc[n] must be a Tuple[ArticleType, integer]")
+            raiseif(len(atcc) != 2, InvalidDataError, "attc[n] must be a Tuple[ArticleType, integer]")
             supplied_articles[atcc[0]] += atcc[1]
 
         errors = []
@@ -162,17 +149,6 @@ class SerialNumber(models.Model):
         return "Identifier: {}, ArticleType: {}, Packing Document: {}".format(self.identifier, at, pd)
 
 
-class Invoice(ImmutableBlame):
-    """
-    An invoice for products delivered. Supplied after a packing document and not essential to the process. Can technically
-    used to correct errors made by the person ordering the products and setting the prices.
-    """
-    # The supplier name for the invoice
-    supplier_identifier = models.CharField(max_length=30)
-    # The supplier of the packing document and products of this invoice
-    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
-
-
 class PackingDocumentLine(Blame):
     """
     An important part of the logistical process. This document line indicates that products have arrived from the supplier.
@@ -188,10 +164,6 @@ class PackingDocumentLine(Blame):
     article_type = models.ForeignKey(ArticleType)
     # The cost from the supplierOrderLine
     line_cost = CostField()
-    # Final cost after retrieving it from the Invoice
-    line_cost_after_invoice = CostField(null=True, default=None)
-    # Link to the invoice if available
-    invoice = models.ForeignKey(Invoice, null=True, on_delete=models.PROTECT)
 
     @transaction.atomic
     def save(self, mod_stock=True):
@@ -212,11 +184,6 @@ class PackingDocumentLine(Blame):
             raiseif(not isinstance(self.line_cost, Cost), InvalidDataError, "line_cost must be a Cost")
 
         # All assertions done, now we check the cost
-        # Line_cost_after_invoice should be connected to an invoice. Therefore, we cannot have an invoice
-        # without the other
-        if hasattr(self, 'invoice') and self.invoice is not None:
-            raiseif(self.line_cost_after_invoice is None,
-                    InvalidDataError, "line_cost_after_invoice must be present if invoice is present")
 
         # Retrieve Cost from SupplierOrderLine
         self.line_cost = self.supplier_order_line.line_cost
@@ -258,14 +225,6 @@ class PackingDocumentLine(Blame):
             cost = "None"
         else:
             cost = str(self.line_cost)
-        if not hasattr(self, 'invoice') or self.invoice is None:
-            invoice = "None"
-        else:
-            invoice = self.invoice.pk
-        if not hasattr(self, 'line_cost_after_invoice') or self.line_cost_after_invoice is None:
-            final_cost = "None"
-        else:
-            final_cost = str(self.line_cost_after_invoice)
         if not hasattr(self, 'packing_document') or self.packing_document is None:
             packing_doc = "None"
         else:
@@ -274,8 +233,8 @@ class PackingDocumentLine(Blame):
             sol = "None"
         else:
             sol = self.supplier_order_line.pk
-        return "Packing Document: {}, SupplierOrderLine: {}, ArticleType: {}, SupOrdCost: {}, InvoiceCost: {}, " \
-               "Invoice: {}".format(packing_doc, sol, self.article_type, cost, final_cost, invoice)
+        return "Packing Document: {}, SupplierOrderLine: {}, ArticleType: {}, SupOrdCost: {}"\
+            .format(packing_doc, sol, self.article_type, cost)
 
 
 class DistributionStrategy:
@@ -286,7 +245,7 @@ class DistributionStrategy:
 
     @staticmethod
     @transaction.atomic
-    def distribute(user, supplier, distribution, document_identifier, invoice_identifier=False, serial_numbers=None,
+    def distribute(user, supplier, distribution, document_identifier, serial_numbers=None,
                    indirect=False, mod_stock=True):
         """
         Distributes the actual packing document. A line_cost_after invoice should never be used if there is not direct
@@ -295,7 +254,6 @@ class DistributionStrategy:
         :param supplier: The supplier that ships the products
         :param distribution: List[PackingDocumentLine], with each PackingDocumentLine
         :param document_identifier: String, name of the packing document
-        :param invoice_identifier: String, can be empty if there is no invoice
         :param serial_numbers
         :param indirect: Indirection flag. Function is only meant to be called indirectly. Change at your own peril.
         :param mod_stock: Indicates whether the function actually
@@ -308,11 +266,7 @@ class DistributionStrategy:
         raiseif(not (supplier and isinstance(supplier, Supplier)), IncorrectDataError, "")
         raiseif(not (distribution and isinstance(distribution, list)), IncorrectDataError)
         raiseif(not (document_identifier and isinstance(document_identifier, str)), IncorrectDataError)
-        # Indicates that we are using an invoice in the process
-        if invoice_identifier:
-            raiseif(not isinstance(invoice_identifier, str), IncorrectDataError)
 
-        found_final_cost = False
         for pac_doc_line in distribution:
             raiseif(not pac_doc_line and not isinstance(pac_doc_line, PackingDocumentLine),
                     InvalidDataError, )
@@ -323,18 +277,8 @@ class DistributionStrategy:
                     "Article types are not matching")
             raiseif(supplier.id != pac_doc_line.supplier_order_line.supplier_order.supplier_id, IncorrectDataError,
                     "suppliers are not matching")
-            # There cannot be a final cost without an invoice
-            if not invoice_identifier:
-                raiseif(hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice,
-                        InvalidDataError, "You must not have a line_cost_after_invoice if you ")
-            if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice is not None:
-                found_final_cost = True
 
         invoice = None
-        if invoice_identifier:
-            # Checks if there is an actual final_line_cost for a pac_doc_line to create an invoice for
-            raiseif(not found_final_cost, IncorrectDataError, "The invoice specified does not have this one's cost")
-            invoice = Invoice(supplier=supplier, supplier_identifier=invoice_identifier, user_modified=user)
 
         serial_number_list = []
         if serial_numbers:
@@ -347,25 +291,8 @@ class DistributionStrategy:
         packing_document = PackingDocument(supplier=supplier, supplier_identifier=document_identifier,
                                            user_modified=user)
         packing_document.save()
-
-        if invoice_identifier:
-            invoice.save()
-        else:
-            invoice = None
-
         DistributionStrategy.bulk_create_for_packing_document(serial_number_list, distribution, user,
                                                               packing_document, invoice, mod_stock)
-        # if serial_numbers:
-        #     for sn in serial_number_list:
-        #         sn.packing_document = packing_document
-        #         sn.save()
-        # # Saves and final parameter settings of packing document lines
-        # for pac_doc_line in distribution:
-        #     pac_doc_line.packing_document = packing_document
-        #     if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
-        #         pac_doc_line.invoice = invoice
-        #     pac_doc_line.user_modified = user
-        #     pac_doc_line.save(mod_stock=mod_stock)
 
     @staticmethod
     def get_distribution(article_type_number_combos, supplier):
@@ -449,7 +376,7 @@ class DistributionStrategy:
 
     @staticmethod
     def bulk_create_for_packing_document(serial_number_list, packing_document_lines, user: User,
-                                         packing_document: PackingDocument, invoice: Invoice, mod_stock: bool=False):
+                                         packing_document: PackingDocument, mod_stock: bool=False):
         """
         Stores the packing document lines for the packing document in one go. This should be faster than separate
         insertion. There is no checks done, so don't run unchecked dqtq through this function.
@@ -467,8 +394,6 @@ class DistributionStrategy:
 
         for pac_doc_line in packing_document_lines:
             pac_doc_line.packing_document = packing_document
-            if hasattr(pac_doc_line, 'line_cost_after_invoice') and pac_doc_line.line_cost_after_invoice:
-                pac_doc_line.invoice = invoice
 
             pac_doc_line.user_modified = user
             pac_doc_line.user_created = user
