@@ -1,0 +1,104 @@
+#set($NAME = $Name.toUpperCase());
+#set($name = $Name.toLowerCase());
+import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
+
+import * as actions from './actions.js';
+
+function* fetchAll${Name}s({ redirectTo }) {
+	try {
+		const ${name} = yield (yield call(
+			api.get,
+			'/__FILL_IN__/',
+		)).json();
+
+		yield put(actions.fetchAll${Name}sDone(${name}));
+		if (redirectTo) {
+			yield put(push(redirectTo));
+		}
+	} catch (e) {
+		yield put(actions.fetchAll${Name}sFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.fetchAll${Name}sFinally());
+	}
+}
+
+function* fetch${Name}({ id }) {
+	try {
+		const new${Name} = yield (yield call(
+			api.get,
+			`/__FILL_IN__/${DS}{id}`,
+		)).json();
+
+		yield put(actions.fetch${Name}Done(new${Name}));
+	} catch (e) {
+		yield put(actions.fetch${Name}Failed(e));
+	} finally {
+		yield put(actions.fetch${Name}Finally());
+	}
+}
+
+function* create${Name}({ ${name} }) {
+	const document = { ...${name} };
+
+	try {
+		const new${Name} = yield (yield call(
+			api.post,
+			'/__FILL_IN__/',
+			document,
+		)).json();
+
+		yield put(actions.create${Name}Done(new${Name}));
+		yield put(actions.fetchAll${Name}s(`/__FILL_IN__/${DS}{new${Name}.id}/`));
+	} catch (e) {
+		yield put(actions.create${Name}Failed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.create${Name}Finally());
+	}
+}
+
+function* update${Name}({ ${name} }) {
+	const document = { ...${name} };
+
+	try {
+		const new${Name} = yield (yield call(
+			api.put
+			`/__FILL_IN__/${DS}{${name}.id}/`,
+			document,
+		)).json();
+
+		yield put(actions.update${Name}Done(new${Name}));
+		yield put(actions.fetchAll${Name}s(`/__FILL_IN__/${DS}{new${Name}.id}/`));
+	} catch (e) {
+		yield put(actions.update${Name}Failed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.update${Name}Finally());
+	}
+}
+
+function* delete${Name}({ ${name} }) {
+	const document = { ...${name} };
+
+	try {
+		const new${Name} = yield (yield call(
+			api.del,
+			`/__FILL_IN__/${DS}{${name}.id}/`,
+			document,
+		)).json();
+
+		yield put(actions.delete${Name}Done(new${Name}));
+		yield put(actions.fetchAll${Name}s(`/__FILL_IN__/${DS}{new${Name}.id}/`));
+	} catch (e) {
+		yield put(actions.delete${Name}Failed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.delete${Name}Finally());
+	}
+}
+
+export default function* saga() {
+	yield takeLatest('${path}/FETCH_ALL', fetchAll${Name}s);
+	yield takeLatest('${path}/FETCH', fetch${Name});
+	yield takeEvery('${path}/CREATE', create${Name});
+	yield takeEvery('${path}/UPDATE', update${Name});
+	yield takeEvery('${path}/DELETE', delete${Name});
+}

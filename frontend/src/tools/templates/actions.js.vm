@@ -1,0 +1,75 @@
+#set($NAME = $Name.toUpperCase());
+#set($name = $Name.toLowerCase());
+export function fetchAll${Name}s(redirectTo) {
+	return { type: '${path}/FETCH_ALL', redirectTo };
+}
+export function fetchAll${Name}sDone(redirectTo) {
+	return { type: '${path}/FETCH_ALL', redirectTo };
+}
+export function fetchAll${Name}sFailed(reason) {
+	return { type: '${path}/FETCH_ALL', reason };
+}
+export function fetchAll${Name}sFinally() {
+	return { type: '${path}/FETCH_ALL' };
+}
+
+export function fetch${Name}(id) {
+	return { type: '${path}/FETCH', id };
+}
+export function fetch${Name}Done(${name}) {
+	return { type: '${path}/FETCH_DONE', ${name} };
+}
+export function fetch${Name}Failed(id, reason) {
+	return { type: '${path}/FETCH_FAILED', id, reason };
+}
+export function fetch${Name}Finally() {
+	return { type: '${path}/FETCH_FINALLY' };
+}
+
+export function create${Name}(${name}) {
+	return { type: '${path}/CREATE', ${name} };
+}
+export function create${Name}Done(${name}) {
+	return { type: '${path}/CREATE_DONE', ${name} };
+}
+export function create${Name}Failed(${name}, reason) {
+	return { type: '${path}/CREATE_FAILED', ${name}, reason };
+}
+export function create${Name}Finally() {
+	return { type: '${path}/CREATE_FINALLY' };
+}
+
+export function update${Name}(${name}) {
+	return { type: '${path}/UPDATE', ${name} };
+}
+export function update${Name}Done(${name}) {
+	return { type: '${path}/UPDATE_DONE', ${name} };
+}
+export function update${Name}Failed(${name}, reason) {
+	return { type: '${path}/UPDATE_FAILED', ${name}, reason };
+}
+export function update${Name}Finally() {
+	return { type: '${path}/UPDATE_FINALLY' };
+}
+
+export function delete${Name}(id) {
+	return { type: '${path}/DELETE', id };
+}
+export function delete${Name}Done(id) {
+	return { type: '${path}/DELETE_DONE', id };
+}
+export function delete${Name}Failed(id, reason) {
+	return { type: '${path}/DELETE_FAILED', id, reason };
+}
+export function delete${Name}Finally() {
+	return { type: '${path}/DELETE_FINALLY' };
+}
+
+export function set${Name}Field(field, value) {
+    return { type: '${path}/SET_FIELD', field, value };
+}
+
+export default fetchAll${Name}s;
+export {
+    fetchAll${Name}s as ${name}s
+};
