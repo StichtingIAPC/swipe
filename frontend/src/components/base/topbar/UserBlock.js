@@ -10,10 +10,10 @@ class UserBlock extends React.Component {
 		this.state = { open: false };
 	}
 
-	toggleDropdown(evt) {
+	toggleDropdown = evt => {
 		this.setState({ open: !this.state.open });
 		evt.preventDefault();
-	}
+	};
 
 	componentWillReceiveProps(newProps) {
 		if (!newProps.isAuthenticated && this.state.open) {
@@ -25,7 +25,7 @@ class UserBlock extends React.Component {
 		if (this.props.user !== null) {
 			return (
 				<li className={`dropdown user user-menu${this.state.open ? ' open' : ''}`}>
-					<a className="dropdown-toggle" onClick={::this.toggleDropdown}>
+					<a className="dropdown-toggle" onClick={this.toggleDropdown}>
 						<img className="user-image" title={this.props.user.username} src={this.props.user.gravatarUrl} />
 						<span className="hidden-xs">{this.props.user.username}</span>
 					</a>
@@ -51,7 +51,7 @@ class UserBlock extends React.Component {
 		}
 		return (
 			<li className={`dropdown user user-menu${this.state.open ? ' open' : ''}`}>
-				<a className="dropdown-toggle" onClick={::this.toggleDropdown}>
+				<a className="dropdown-toggle" onClick={this.toggleDropdown}>
 					<span className="hidden-xs">User not found!</span>
 				</a>
 				<ul className="dropdown-menu">

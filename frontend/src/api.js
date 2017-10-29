@@ -45,7 +45,7 @@ async function request(method, url, { headers = {}, ...rest } = {}, object) {
 	if (result.ok) {
 		return result;
 	}
-	throw result;
+	throw result.json();
 }
 
 export function get(url, info) {

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import { push } from 'react-router-redux';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { articles } from '../../state/assortment/articles/actions.js';
+import articles from '../../state/assortment/articles/actions.js';
 import { labelTypes } from '../../state/assortment/label-types/actions.js';
 import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 import ArticleSelector from './ArticleSelector';

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingLabelTypes } from '../../../state/assortment/label-types/actions.js';
+import { fetchAllLabelTypes } from '../../../state/assortment/label-types/actions.js';
 
 class LabelTypeList extends React.Component {
 	static propTypes = {
@@ -110,6 +110,6 @@ export default connect(
 		fetching: state.assortment.labelTypes.fetching,
 	}),
 	{
-		update: startFetchingLabelTypes,
+		update: fetchAllLabelTypes,
 	}
 )(LabelTypeList);
