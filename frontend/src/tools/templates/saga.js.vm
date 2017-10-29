@@ -1,5 +1,5 @@
 #set($NAME = $Name.toUpperCase());
-#set($name = $Name.toLowerCase());
+#set($name = $Name.subString(0,1).toLowerCase() + $Name.subString(1));
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 
@@ -62,7 +62,7 @@ function* update${Name}({ ${name} }) {
 
 	try {
 		const new${Name} = yield (yield call(
-			api.put
+			api.put,
 			`/__FILL_IN__/${DS}{${name}.id}/`,
 			document,
 		)).json();
