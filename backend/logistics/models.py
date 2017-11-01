@@ -486,15 +486,17 @@ class StockWishTable:
 
 class StockWishTableLog(ImmutableBlame):
     """
-    Log of all edits of the stock wish.
+    Log of all edits of the stock wish. This logs which articleType is modified and by what amount and for which reason.
     """
-
+    # The modification count to the stock
     number = models.IntegerField()
-
+    # The article type which is modified
     article_type = models.ForeignKey(ArticleType)
-
+    # A possible reason of the modification of the StockWishTable. If set, a SupplierOrder modded the StockWishTable.
+    # If set, stock_wish must be unset
     supplier_order = models.ForeignKey(SupplierOrder, null=True)
-
+    # A possible reason of the modification of the StockWishTable. If set, a StockWish modded the StockWishTable.
+    # If set, supplier_order must be unset
     stock_wish = models.ForeignKey(StockWish, null=True)
 
     def save(self, indirect=False):
