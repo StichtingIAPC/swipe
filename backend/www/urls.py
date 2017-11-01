@@ -44,4 +44,6 @@ urlpatterns = [
     url(r'^public/', include('public_info.urls')),
 
     url(r'^auth/', include('authorization.urls')),
+
+    url(r'^externalise/', include('externalise.urls')),
 ]

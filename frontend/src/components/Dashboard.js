@@ -1,6 +1,6 @@
-import React from "react";
-import { connect } from "react-redux";
-import { push } from "react-router-redux";
+import React from 'react';
+import { connect } from 'react-redux';
+import { push } from 'react-router-redux';
 
 class Dashboard extends React.Component {
 	toHw(event) {
@@ -16,5 +16,7 @@ class Dashboard extends React.Component {
 
 export default connect(
 	null,
-	dispatch => ({ toHw: () => dispatch(push('/helloworld')) })
+	{
+		toHw: () => push('/helloworld'),
+	}
 )(Dashboard);

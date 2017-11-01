@@ -1,8 +1,8 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 class VATDetail extends React.Component {
 	static propTypes = {
@@ -21,8 +21,9 @@ class VATDetail extends React.Component {
 	render() {
 		const vat = this.props.VAT;
 
-		if (!vat)
+		if (!vat) {
 			return null;
+		}
 
 		return (
 			<div className="box">
@@ -89,5 +90,5 @@ class VATDetail extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({ VAT: (state.VATs.VATs || []).find(el => +el.id === +props.params.VATID) })
+	(state, props) => ({ vat: (state.money.vat.vats || []).find(el => +el.id === +props.params.vatID) })
 )(VATDetail);

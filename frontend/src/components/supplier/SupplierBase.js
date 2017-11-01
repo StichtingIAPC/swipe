@@ -1,8 +1,8 @@
-import React from "react";
-import { connect } from "react-redux";
-import { connectMixin, fetchStateRequirementsFor } from "../../core/stateRequirements";
-import { suppliers } from "../../actions/suppliers";
-import SupplierList from "./SupplierList";
+import React from 'react';
+import { connect } from 'react-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { suppliers } from '../../state/suppliers/actions.js';
+import SupplierList from './SupplierList';
 
 class SupplierBase extends React.Component {
 	componentWillMount() {

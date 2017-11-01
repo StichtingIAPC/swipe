@@ -1,9 +1,9 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { Link } from "react-router";
-import FontAwesome from "../../tools/icons/FontAwesome";
-import { startFetchingRegisters } from "../../../actions/register/registers";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { startFetchingRegisters } from '../../../state/register/registers/actions.js';
 
 class RegisterList extends React.Component {
 	static propTypes = {
@@ -127,9 +127,9 @@ class RegisterList extends React.Component {
 
 export default connect(
 	state => ({
-		errorMsg: state.registers.fetchError,
-		registers: state.registers.registers || [],
-		fetching: state.registers.fetching,
+		errorMsg: state.register.registers.fetchError,
+		registers: state.register.registers.registers || [],
+		fetching: state.register.registers.fetching,
 	}),
 	dispatch => ({
 		dispatch,

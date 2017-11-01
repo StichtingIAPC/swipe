@@ -2,16 +2,18 @@
 	"presets": [
 		["env", {
 			"debug": true,
+			"modules": false,
 			"targets": {
 				"browsers": [
-					"last 2 ff versions",
-					"Firefox ESR",
-					"last 2 chrome versions",
-					"last 2 edge versions"
+					"FF >=54",
+					"FF 52",
+					"chrome >=60",
+					"edge >=14"
 				]
-			}
+			},
+			"exclude": [ "transform-regenerator" ]
 		}],
-		"stage-0",
+		"stage-0-without-async",
 		"react"
 	]
 }

@@ -1,8 +1,8 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import FontAwesome from "../tools/icons/FontAwesome";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import FontAwesome from '../tools/icons/FontAwesome';
 
 class SupplierDetail extends React.Component {
 	static propTypes = {
@@ -16,8 +16,9 @@ class SupplierDetail extends React.Component {
 	}
 
 	render() {
-		if (!this.props.supplier)
+		if (!this.props.supplier) {
 			return null;
+		}
 
 
 		const { supplier } = this.props;
@@ -56,6 +57,7 @@ class SupplierDetail extends React.Component {
 export default connect(
 	(state, ownProps) => ({
 		...ownProps,
-		supplier: state.suppliers.suppliers.filter(s => +s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0],
+		// TODO: Replace this filter with a fetch I guess
+		supplier: state.suppliers.suppliers.filter(s => +s.id === +(ownProps.params.supplierID || '0'))[0],
 	})
 )(SupplierDetail);

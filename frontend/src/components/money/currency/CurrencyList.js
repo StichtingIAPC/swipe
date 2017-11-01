@@ -1,9 +1,10 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { Link } from "react-router";
-import { connect } from "react-redux";
-import { startFetchingCurrencies } from "../../../actions/money/currencies";
-import FontAwesome from "../../tools/icons/FontAwesome";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import { startFetchingCurrencies } from '../../../state/money/currencies/actions.js';
+import FontAwesome from '../../tools/icons/FontAwesome';
+
 /**
  * Created by Matthias on 26/11/2016.
  */
@@ -132,9 +133,9 @@ class CurrencyList extends React.Component {
 
 export default connect(
 	state => ({
-		errorMsg: state.currencies.fetchError,
-		currencies: state.currencies.currencies || [],
-		fetching: state.currencies.fetching,
+		errorMsg: state.money.currencies.fetchError,
+		currencies: state.money.currencies.currencies || [],
+		fetching: state.money.currencies.fetching,
 	}),
 	dispatch => ({
 		update: evt => {

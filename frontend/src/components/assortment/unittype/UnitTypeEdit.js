@@ -1,10 +1,10 @@
-import React from "react";
-import { connect } from "react-redux";
-import { createUnitType, updateUnitType } from "../../../actions/assortment/unitTypes";
-import Form from "../../forms/Form";
-import StringField from "../../forms/StringField";
-import SelectField from "../../forms/SelectField";
-import { incrementalTypes, valueTypes } from "../../../constants/assortment";
+import React from 'react';
+import { connect } from 'react-redux';
+import { createUnitType, updateUnitType } from '../../../state/assortment/unit-types/actions.js';
+import Form from '../../forms/Form';
+import StringField from '../../forms/StringField';
+import SelectField from '../../forms/SelectField';
+import { incrementalTypes, valueTypes } from '../../../state/assortment/constants';
 
 class UnitTypeEdit extends React.Component {
 	constructor(props) {
@@ -17,8 +17,9 @@ class UnitTypeEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.unitType !== null)
+		if (props.unitType !== null) {
 			return { ...props.unitType };
+		}
 		return {
 			id: null,
 			type_long: '',
@@ -29,17 +30,19 @@ class UnitTypeEdit extends React.Component {
 	}
 
 	reset(evt, props) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		this.setState(this.getResetState(props));
 	}
 
 	submit(evt) {
 		evt.preventDefault();
-		if (this.state.id === null)
+		if (this.state.id === null) {
 			this.props.addUnitType({ ...this.state });
-		 else
+		} else {
 			this.props.editUnitType({ ...this.state });
+		}
 	}
 
 	componentWillReceiveProps(props) {
@@ -81,11 +84,12 @@ class UnitTypeEdit extends React.Component {
 
 export default connect(
 	(state, props) => ({
-		errorMsg: state.unitTypes.inputError,
-		unitType: (state.unitTypes.unitTypes || []).find(el => el.id === +props.params.unitTypeID),
+		errorMsg: state.assortment.unitTypes.inputError,
+		// TODO: replace filter with fetch of object
+		unitType: state.assortment.unitTypes.unitTypes.find(el => el.id === +props.params.unitTypeID),
 	}),
-	dispatch => ({
-		addUnitType: arg => dispatch(createUnitType(arg)),
-		editUnitType: arg => dispatch(updateUnitType(arg)),
-	}),
+	{
+		addUnitType: createUnitType,
+		editUnitType: updateUnitType,
+	},
 )(UnitTypeEdit);

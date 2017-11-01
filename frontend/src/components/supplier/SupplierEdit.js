@@ -1,8 +1,8 @@
-import React from "react";
-import { connect } from "react-redux";
-import { createSupplier, updateSupplier } from "../../actions/suppliers";
-import Form from "../forms/Form";
-import { StringField } from "../forms/fields";
+import React from 'react';
+import { connect } from 'react-redux';
+import { createSupplier, updateSupplier } from '../../state/suppliers/actions.js';
+import Form from '../forms/Form';
+import { StringField } from '../forms/fields';
 
 class SupplierEdit extends React.Component {
 	constructor(props) {
@@ -15,8 +15,9 @@ class SupplierEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.supplier !== null)
+		if (props.supplier !== null) {
 			return { ...props.supplier };
+		}
 		return {
 			id: null,
 			name: '',
@@ -26,8 +27,9 @@ class SupplierEdit extends React.Component {
 	}
 
 	reset(evt, props) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		this.setState(this.getResetState(props));
 	}
 
@@ -47,8 +49,9 @@ class SupplierEdit extends React.Component {
 	}
 
 	componentWillReceiveProps(props) {
-		if (this.props.supplier !== props.supplier)
+		if (this.props.supplier !== props.supplier) {
 			this.reset(null, props);
+		}
 	}
 
 	render() {
@@ -71,7 +74,9 @@ class SupplierEdit extends React.Component {
 }
 
 function mapStateToProps(state, ownProps) {
-	return {	supplier: (state.suppliers.suppliers || []).filter(s => s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0] };
+	return {
+		supplier: (state.suppliers.suppliers || []).filter(s => s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0],
+	};
 }
 
 export default connect(

@@ -1,6 +1,6 @@
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 let cache = {};
 let lastUnitTypes = null;
@@ -26,7 +26,10 @@ AssortmentLabel.propTypes = {
 	labelValue: PropTypes.string.isRequired,
 };
 
-export default connect(state => ({
-	labelTypes: state.labelTypes.labelTypes,
-	unitTypes: state.unitTypes.unitTypes,
-}))(AssortmentLabel);
+export default connect(
+	state => ({
+		labelTypes: state.assortment.labelTypes.labelTypes,
+		unitTypes: state.assortment.unitTypes.unitTypes,
+	}),
+	null
+)(AssortmentLabel);

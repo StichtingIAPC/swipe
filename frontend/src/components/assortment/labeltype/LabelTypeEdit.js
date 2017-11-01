@@ -1,9 +1,9 @@
-import React from "react";
-import { connect } from "react-redux";
-import { createLabelType, updateLabelType } from "../../../actions/assortment/labelTypes";
-import Form from "../../forms/Form";
-import StringField from "../../forms/StringField";
-import SelectField from "../../forms/SelectField";
+import React from 'react';
+import { connect } from 'react-redux';
+import { createLabelType, updateLabelType } from '../../../state/assortment/label-types/actions.js';
+import Form from '../../forms/Form';
+import StringField from '../../forms/StringField';
+import SelectField from '../../forms/SelectField';
 
 class LabelTypeEdit extends React.Component {
 	constructor(props) {
@@ -16,8 +16,9 @@ class LabelTypeEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.labelType !== null)
+		if (props.labelType !== null) {
 			return { ...props.labelType };
+		}
 		return {
 			id: null,
 			name: '',
@@ -28,17 +29,19 @@ class LabelTypeEdit extends React.Component {
 	}
 
 	reset(evt, props) {
-		if (evt)
+		if (evt) {
 			evt.preventDefault();
+		}
 		this.setState(this.getResetState(props));
 	}
 
 	submit(evt) {
 		evt.preventDefault();
-		if (this.state.id === null)
+		if (this.state.id === null) {
 			this.props.addLabelType({ ...this.state });
-		 else
+		} else {
 			this.props.editLabelType({ ...this.state });
+		}
 	}
 
 	componentWillReceiveProps(props) {
@@ -76,12 +79,13 @@ class LabelTypeEdit extends React.Component {
 
 export default connect(
 	(state, props) => ({
-		errorMsg: state.labelTypes.inputError,
-		labelType: (state.labelTypes.labelTypes || []).find(el => el.id === +props.params.labelTypeID),
-		unitTypes: state.unitTypes.unitTypes,
+		errorMsg: state.assortment.labelTypes.inputError,
+		// TODO: Replace find with object fetch
+		labelType: state.assortment.labelTypes.labelTypes.find(el => el.id === +props.params.labelTypeID),
+		unitTypes: state.assortment.unitTypes.unitTypes,
 	}),
-	dispatch => ({
-		addLabelType: arg => dispatch(createLabelType(arg)),
-		editLabelType: arg => dispatch(updateLabelType(arg)),
-	})
+	{
+		addLabelType: createLabelType,
+		editLabelType: updateLabelType,
+	}
 )(LabelTypeEdit);
