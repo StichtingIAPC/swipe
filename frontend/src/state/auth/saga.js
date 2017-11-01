@@ -37,14 +37,6 @@ function* login({ username, password }) {
 	}
 }
 
-export function saveLogoutDetails() {
-	if (!window || !window.localStorage) {
-		return;
-	}
-
-	window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
-}
-
 export function* logout() {
 	const token = yield getToken();
 
@@ -76,7 +68,17 @@ export function saveLoginDetails(action) {
 	window.localStorage.setItem('LAST_LOGIN_SUCCESS_ACTION', JSON.stringify(action));
 }
 
+export function saveLogoutDetails() {
+	if (!window || !window.localStorage) {
+		return;
+	}
+
+	window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
+}
+
 export default function* saga() {
 	yield takeEvery('AUTH_START_LOGIN', login);
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
+	yield takeEvery('AUTH_START_LOGOUT', logout);
+	yield takeEvery('AUTH_LOGOUT_SUCCESS', saveLogoutDetails);
 }
