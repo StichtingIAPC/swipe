@@ -51,7 +51,6 @@ class Validate(View):
         return super(Validate, self).dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        # TODO: Make sure page doesn't 500 when incorrect
         tokens = Token.objects.filter(key=request.POST['token']).filter(user__username=request.POST['username'])
 
         if tokens.count() == 1:
