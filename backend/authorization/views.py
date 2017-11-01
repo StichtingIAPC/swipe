@@ -55,13 +55,17 @@ class Validate(View):
         tokens = Token.objects.filter(key=request.POST['token']).filter(user__username=request.POST['username'])
 
         if tokens.count() == 1:
+            token = tokens.first()
+            user = token.user
+
+            # TODO: Token expiry seems to be too fast
             return JSONResponse({
                 'valid': True,
-                'expiry': (tokens.first().created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS))
+                'expiry': (token.created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS))
                     .strftime('%Y-%m-%d %H:%M'),
                 'user': {
-                    'username': tokens.first().user.username,
-                    'permissions': tokens.first().user.get_all_permissions(),
+                    'username': user.username,
+                    'permissions': user.get_all_permissions(),
                     'gravatarUrl': '//failurl',
                 }
             })
