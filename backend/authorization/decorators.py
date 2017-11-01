@@ -7,7 +7,7 @@ from rest_framework.authtoken.models import Token
 from swipe import settings
 
 
-def authenticate(mode, perm):
+def authenticate(mode, perm=None):
     def _auth_wrapper_func(view):
         def _wrapper_func(request, *args, **kwargs):
             if mode == 'username,token' or mode == 'token,username':
