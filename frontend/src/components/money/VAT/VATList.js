@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingVATs } from '../../../actions/money/VATs';
+import { startFetchingVATs } from '../../../state/money/vat/actions.js';
 
 class VATList extends React.Component {
 	static propTypes = {
@@ -15,16 +15,16 @@ class VATList extends React.Component {
 		this.state = { open: true };
 	}
 
-	static RenderEntry({ activeID, VAT }) {
+	static RenderEntry({ activeID, vat }) {
 		return (
-			<tr className={+activeID === VAT.id ? 'active' : null}>
+			<tr className={+activeID === vat.id ? 'active' : null}>
 				<td>
-					{VAT.name}
+					{vat.name}
 				</td>
 				<td>
 					<div className="btn-group pull-right">
 						{
-							VAT.updating ? (
+							vat.updating ? (
 								<Link
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
@@ -33,13 +33,13 @@ class VATList extends React.Component {
 							) : null
 						}
 						<Link
-							to={`/money/vat/${VAT.id}/`}
+							to={`/money/vat/${vat.id}/`}
 							className="btn btn-default btn-xs"
 							title="Details">
 							<FontAwesome icon="crosshairs" />
 						</Link>
 						<Link
-							to={`/money/vat/${VAT.id}/edit/`}
+							to={`/money/vat/${vat.id}/edit/`}
 							className="btn btn-default btn-xs"
 							title="Edit">
 							<FontAwesome icon="edit" />
@@ -104,9 +104,9 @@ class VATList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.VATs.map(
+							{this.props.vats.map(
 								item => (
-									<VATList.RenderEntry activeID={this.props.VATID} key={item.id} VAT={item} />
+									<VATList.RenderEntry activeID={this.props.VATID} key={item.id} vat={item} />
 								)
 							)}
 						</tbody>
@@ -127,9 +127,9 @@ class VATList extends React.Component {
 
 export default connect(
 	state => ({
-		errorMsg: state.VATs.fetchError,
-		VATs: state.VATs.VATs || [],
-		fetching: state.VATs.fetching,
+		errorMsg: state.money.vat.fetchError,
+		vats: state.money.vat.vats || [],
+		fetching: state.money.vat.fetching,
 	}),
 	dispatch => ({
 		update: evt => {

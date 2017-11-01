@@ -90,5 +90,5 @@ class VATDetail extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({ VAT: (state.VATs.VATs || []).find(el => +el.id === +props.params.VATID) })
+	(state, props) => ({ vat: (state.money.vat.vats || []).find(el => +el.id === +props.params.vatID) })
 )(VATDetail);

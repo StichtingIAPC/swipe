@@ -16,9 +16,9 @@ import 'admin-lte/dist/css/skins/skin-blue.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import './styles/main.scss';
 // Pages
-import rootReducer from './reducers/root';
-import saga from './saga.js';
-import * as auth from "./actions/auth";
+import rootReducer from './state/reducer.js';
+import saga from './state/saga.js';
+import * as auth from "./state/auth/actions";
 
 // Set up the Redux store
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingAccountingGroups } from '../../../actions/money/accountingGroups';
+import { startFetchingAccountingGroups } from '../../../state/money/accounting-groups/actions.js';
 
 class AccountingGroupList extends React.Component {
 	constructor(props) {
@@ -125,9 +125,9 @@ AccountingGroupList.propTypes = { activeID: PropTypes.string };
 
 export default connect(
 	state => ({
-		errorMsg: state.accountingGroups.fetchError,
-		accountingGroups: state.accountingGroups.accountingGroups || [],
-		fetching: state.accountingGroups.fetching,
+		errorMsg: state.money.accountingGroups.fetchError,
+		accountingGroups: state.money.accountingGroups.accountingGroups || [],
+		fetching: state.money.accountingGroups.fetching,
 	}),
 	dispatch => ({
 		update: evt => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import DatePicker from 'react-datepicker';
-import { createVAT, updateVAT } from '../../../actions/money/VATs';
+import { createVAT, updateVAT } from '../../../state/money/vat/actions.js';
 import Form from '../../forms/Form';
 import { BoolField, StringField } from '../../forms/fields';
 import FontAwesome from '../../tools/icons/FontAwesome';
@@ -14,8 +14,8 @@ class VATEdit extends React.Component {
 	}
 
 	getResetState(props = this.props) {
-		if (props.VAT !== null) {
-			return { ...props.VAT };
+		if (props.vat !== null) {
+			return { ...props.vat };
 		}
 		return {
 			name: '',
@@ -186,8 +186,8 @@ class VATEdit extends React.Component {
 
 export default connect(
 	(state, ownProps) => ({
-		errorMsg: state.VATs.inputError,
-		VAT: state.VATs.VATs.find(obj => obj.id === ownProps.params.VATID) || null,
+		errorMsg: state.money.vat.inputError,
+		vat: state.money.vat.vats.find(obj => obj.id === ownProps.params.VATID) || null,
 	}),
 	dispatch => ({
 		updateVAT: VAT => dispatch(updateVAT(VAT)),

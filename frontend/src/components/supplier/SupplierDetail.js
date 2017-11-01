@@ -57,6 +57,7 @@ class SupplierDetail extends React.Component {
 export default connect(
 	(state, ownProps) => ({
 		...ownProps,
-		supplier: state.suppliers.suppliers.filter(s => +s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0],
+		// TODO: Replace this filter with a fetch I guess
+		supplier: state.suppliers.suppliers.filter(s => +s.id === +(ownProps.params.supplierID || '0'))[0],
 	})
 )(SupplierDetail);

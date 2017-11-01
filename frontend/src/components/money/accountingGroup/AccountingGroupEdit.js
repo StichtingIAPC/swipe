@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import Form from '../../forms/Form';
 import { IntegerField, SelectField, StringField } from '../../forms/fields';
-import { createAccountingGroup, updateAccountingGroup } from '../../../actions/money/accountingGroups';
+import { createAccountingGroup, updateAccountingGroup } from '../../../state/money/accounting-groups/actions.js';
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -70,9 +70,9 @@ class AccountingGroupEdit extends React.Component {
 
 export default connect(
 	(state, props) => ({
-		errorMsg: state.currencies.inputError,
-		accountingGroup: state.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID),
-		VATs: state.VATs.VATs || [],
+		errorMsg: state.money.currencies.inputError,
+		accountingGroup: state.money.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID),
+		vats: state.money.vat.vats || [],
 	}),
 	dispatch => ({
 		updateAccountingGroup: currency => dispatch(updateAccountingGroup(currency)),
