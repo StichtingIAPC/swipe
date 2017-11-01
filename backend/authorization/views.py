@@ -1,4 +1,5 @@
 import datetime
+
 from django.conf import settings
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
@@ -10,8 +11,6 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
-from authorization.mixins import CheckPermissionMixin
-
 User = settings.AUTH_USER_MODEL
 
 
@@ -22,7 +21,7 @@ class JSONResponse(HttpResponse, PermissionRequiredMixin):
         super().__init__(content, **kwargs)
 
 
-class Logout(View, CheckPermissionMixin('token')):
+class Logout(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(Logout, self).dispatch(request, *args, **kwargs)
