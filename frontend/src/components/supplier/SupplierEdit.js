@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createSupplier, updateSupplier } from '../../actions/suppliers';
+import { createSupplier, updateSupplier } from '../../state/suppliers/actions.js';
 import Form from '../forms/Form';
 import { StringField } from '../forms/fields';
 

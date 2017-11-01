@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { IndexRedirect, Route, Router } from 'react-router';
 import { push } from 'react-router-redux';
-import { setRouteAfterAuthentication } from 'actions/auth.js';
+import { setRouteAfterAuthentication } from './state/auth/actions.js';
 // Subrouters
 import { Error404 } from './components/base/Error404';
 import Authentication from './components/authentication/Authentication.js';
@@ -10,9 +10,9 @@ import Application from './components/Application.js';
 import Dashboard from './components/Dashboard.js';
 import HelloWorld from './components/HelloWorld.js';
 // Supplier components
-import SupplierBase from 'components/supplier/SupplierBase';
-import SupplierEdit from 'components/supplier/SupplierEdit';
-import SupplierDetail from 'components/supplier/SupplierDetail';
+import SupplierBase from './components/supplier/SupplierBase';
+import SupplierEdit from './components/supplier/SupplierEdit';
+import SupplierDetail from './components/supplier/SupplierDetail';
 // Money components
 import MoneyBase from './components/money/MoneyBase';
 import CurrencyDetail from './components/money/currency/CurrencyDetail';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createRegister, updateRegister } from '../../../actions/register/registers';
+import { createRegister, updateRegister } from '../../../state/register/registers/actions.js';
 import Form from '../../forms/Form';
 import { BoolField, SelectField, StringField } from '../../forms/fields';
 
@@ -97,12 +97,13 @@ class RegisterEdit extends React.Component {
 
 export default connect(
 	(state, props) => ({
-		register: (state.registers.registers || []).filter(s => s.id === parseInt(props.params.registerID || '-1', 10))[0],
-		currencies: state.currencies.currencies || [],
-		paymentTypes: state.paymentTypes.paymentTypes || [],
+		// TODO: replace with fetch
+		register: state.register.registers.registers.filter(s => s.id === +props.params.registerID)[0],
+		currencies: state.money.currencies.currencies,
+		paymentTypes: state.register.paymentTypes.paymentTypes,
 	}),
-	dispatch => ({
-		addRegister: register => dispatch(createRegister(register)),
-		editRegister: register => dispatch(updateRegister(register)),
-	})
+	{
+		addRegister: createRegister,
+		editRegister: updateRegister,
+	}
 )(RegisterEdit);

@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import LabelTypeList from './labeltype/LabelTypeList';
 import UnitTypeList from './unittype/UnitTypeList';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { labelTypes } from '../../actions/assortment/labelTypes';
-import { unitTypes } from '../../actions/assortment/unitTypes';
+import { labelTypes } from '../../state/assortment/label-types/actions.js';
+import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 
 class LabelsModal extends React.Component {
 	componentWillMount() {
@@ -28,7 +28,9 @@ class LabelsModal extends React.Component {
 
 export default connect(
 	connectMixin({
-		labelTypes,
-		unitTypes,
+		assortment: {
+			labelTypes,
+			unitTypes,
+		},
 	}),
 )(LabelsModal);

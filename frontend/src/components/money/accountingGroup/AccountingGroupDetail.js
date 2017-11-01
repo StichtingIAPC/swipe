@@ -58,11 +58,11 @@ class AccountingGroupDetail extends React.Component {
 
 export default connect(
 	(state, props) => {
-		const accountingGroup = state.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID);
+		const accountingGroup = state.money.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID);
 
 		return {
 			accountingGroup,
-			vatGroup: (state.VATs.VATs || []).find(el => +el.id === +accountingGroup.vat_group),
+			vatGroup: (state.vats.vats || []).find(el => +el.id === +accountingGroup.vat_group),
 		};
 	}
 )(AccountingGroupDetail);
