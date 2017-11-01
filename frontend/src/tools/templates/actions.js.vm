@@ -1,5 +1,5 @@
-#set($NAME = $Name.toUpperCase());
-#set($name = $Name.subString(0,1).toLowerCase() + $Name.subString(1));
+#set($NAME = $Name.toUpperCase())
+#set($name = $Name.substring(0,1).toLowerCase() + $Name.substring(1))
 export function fetchAll${Name}s(redirectTo) {
 	return { type: '${path}/FETCH_ALL', redirectTo };
 }

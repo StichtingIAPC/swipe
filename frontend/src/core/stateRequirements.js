@@ -1,7 +1,12 @@
 const isAvailableRecursively = ([ name, functor ], state = {}) => {
 	const stateComponent = state[name];
 
-	if (typeof functor === 'function') { return !!stateComponent && !!stateComponent.populated; }
+	if (typeof functor === 'function') {
+		const loaded = !!stateComponent && !!stateComponent.populated;
+
+		console.log(`name: "${name}" loaded: ${loaded}`);
+		return loaded;
+	}
 
 	return Object.entries(functor)
 		.map(entry => [ entry[0], isAvailableRecursively(entry, stateComponent) ])

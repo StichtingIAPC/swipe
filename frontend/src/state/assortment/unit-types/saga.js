@@ -1,81 +1,104 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { get, post, put as api_put } from '../../../api.js';
-import {
-	doneFetchingUnitTypes,
-	startFetchingUnitTypes,
-	unitTypeFetchError,
-	unitTypeInputError,
-} from '../../../state/assortment/unit-types/actions';
 
-function* fetchUnitTypes({ redirectTo } = {}) {
-	let msg = null;
+import * as actions from './actions.js';
+import * as api from '../../../api';
+import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
+function* fetchAllUnitTypes({ redirectTo }) {
 	try {
-		const data = yield (yield call(
-			get,
+		const unitType = yield (yield call(
+			api.get,
 			'/assortment/unittypes/',
 		)).json();
 
-		yield put(doneFetchingUnitTypes(data));
+		yield put(actions.fetchAllUnitTypesDone(unitType));
 		if (redirectTo) {
 			yield put(push(redirectTo));
 		}
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = e.json();
-		}
-
-		yield put(unitTypeFetchError(msg));
+		yield put(actions.fetchAllUnitTypesFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.fetchAllUnitTypesFinally());
 	}
 }
 
-function* createUnitType({ unitType } = {}) {
-	const document = { ...unitType };
-	let msg = null;
-
+function* fetchUnitType({ id }) {
 	try {
-		const data = yield (yield call(
-			post,
-			'/assortment/unittypes/',
-			document
+		const newUnitType = yield (yield call(
+			api.get,
+			`/assortment/unittypes/${id}`,
 		)).json();
 
-		yield put(startFetchingUnitTypes({ redirectTo: `/assortment/unittypes/${data.id}/` }));
+		yield put(actions.fetchUnitTypeDone(newUnitType));
 	} catch (e) {
-		if (e instanceof Error)			{ msg = e.message; }
-		if (e instanceof Response)			{ msg = e.json(); }
+		yield put(actions.fetchUnitTypeFailed(e));
+	} finally {
+		yield put(actions.fetchUnitTypeFinally());
+	}
+}
 
-		yield put(unitTypeInputError(msg));
+function* createUnitType({ unitType }) {
+	const document = { ...unitType };
+
+	try {
+		const newUnitType = yield (yield call(
+			api.post,
+			'/assortment/unittypes/',
+			document,
+		)).json();
+
+		yield put(actions.createUnitTypeDone(newUnitType));
+		yield put(actions.fetchAllUnitTypes(`/assortment/`));
+	} catch (e) {
+		yield put(actions.createUnitTypeFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.createUnitTypeFinally());
 	}
 }
 
 function* updateUnitType({ unitType }) {
 	const document = { ...unitType };
-	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			api_put,
-			`/assortment/unittypes/`,
+		const newUnitType = yield (yield call(
+			api.put,
+			`/assortment/unittypes/${unitType.id}/`,
 			document,
 		)).json();
 
-		yield put(startFetchingUnitTypes({ redirectTo: `/assortment/unittypes/${data.id}/` }));
+		yield put(actions.updateUnitTypeDone(newUnitType));
+		yield put(actions.fetchAllUnitTypes(`/assortment/`));
 	} catch (e) {
-		if (e instanceof Error)			{ msg = e.message; }
-		if (e instanceof Response)			{ msg = e.json(); }
-
-		yield put(unitTypeInputError(msg));
+		yield put(actions.updateUnitTypeFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.updateUnitTypeFinally());
 	}
 }
 
+function* deleteUnitType({ unitType }) {
+	const document = { ...unitType };
 
-export default function* () {
-	yield takeLatest('UNIT_TYPE_FETCH_START', fetchUnitTypes);
-	yield takeEvery('UNIT_TYPE_CREATE', createUnitType);
-	yield takeEvery('UNIT_TYPE_UPDATE', updateUnitType);
+	try {
+		const newUnitType = yield (yield call(
+			api.del,
+			`/assortment/unittypes/${unitType.id}/`,
+			document,
+		)).json();
+
+		yield put(actions.deleteUnitTypeDone(newUnitType));
+		yield put(actions.fetchAllUnitTypes(`/assortment/`));
+	} catch (e) {
+		yield put(actions.deleteUnitTypeFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.deleteUnitTypeFinally());
+	}
+}
+
+export default function* saga() {
+	yield takeLatest('assortment/unit-types/FETCH_ALL', fetchAllUnitTypes);
+	yield takeLatest('assortment/unit-types/FETCH', fetchUnitType);
+	yield takeEvery('assortment/unit-types/CREATE', createUnitType);
+	yield takeEvery('assortment/unit-types/UPDATE', updateUnitType);
+	yield takeEvery('assortment/unit-types/DELETE', deleteUnitType);
 }

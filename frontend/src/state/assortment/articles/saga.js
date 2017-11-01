@@ -1,83 +1,104 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { get, post, put as api_put } from '../../../api.js';
-import { articleFetchError, articleInputError, doneFetchingArticles, startFetchingArticles } from './actions.js';
 
-function* fetchArticles({ redirectTo } = {}) {
-	let msg = null;
+import * as actions from './actions.js';
+import * as api from '../../../api';
+import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
+function* fetchAllArticles({ redirectTo }) {
 	try {
-		const data = yield (yield call(
-			get,
-			'/article/',
+		const article = yield (yield call(
+			api.get,
+			'/__FILL_IN__/',
 		)).json();
 
-		yield put(doneFetchingArticles(data));
+		yield put(actions.fetchAllArticlesDone(article));
 		if (redirectTo) {
 			yield put(push(redirectTo));
 		}
-	}	catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = e.json();
-		}
-		yield put(articleFetchError(msg));
+	} catch (e) {
+		yield put(actions.fetchAllArticlesFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.fetchAllArticlesFinally());
 	}
 }
 
-function* createArticle({ article } = {}) {
-	const document = { ...article };
-	let msg = null;
-
+function* fetchArticle({ id }) {
 	try {
-		const data = yield (yield call(
-			post,
-			'/article/',
-			document,
+		const newArticle = yield (yield call(
+			api.get,
+			`/__FILL_IN__/${id}`,
 		)).json();
 
-		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
+		yield put(actions.fetchArticleDone(newArticle));
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = e.json();
-		}
-
-		yield put(articleInputError(msg));
+		yield put(actions.fetchArticleFailed(e));
+	} finally {
+		yield put(actions.fetchArticleFinally());
 	}
 }
 
-function* updateArticle({ article } = {}) {
+function* createArticle({ article }) {
 	const document = { ...article };
-	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			api_put,
-			`/article/${article.id}/`,
+		const newArticle = yield (yield call(
+			api.post,
+			'/__FILL_IN__/',
 			document,
 		)).json();
 
-		yield put(startFetchingArticles({ redirectTo: `/articlemanager/${data.id}/` }));
+		yield put(actions.createArticleDone(newArticle));
+		yield put(actions.fetchAllArticles(`/__FILL_IN__/${newArticle.id}/`));
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = e.json();
-		}
+		yield put(actions.createArticleFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.createArticleFinally());
+	}
+}
 
-		yield put(articleInputError(msg));
+function* updateArticle({ article }) {
+	const document = { ...article };
+
+	try {
+		const newArticle = yield (yield call(
+			api.put,
+			`/__FILL_IN__/${article.id}/`,
+			document,
+		)).json();
+
+		yield put(actions.updateArticleDone(newArticle));
+		yield put(actions.fetchAllArticles(`/__FILL_IN__/${newArticle.id}/`));
+	} catch (e) {
+		yield put(actions.updateArticleFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.updateArticleFinally());
+	}
+}
+
+function* deleteArticle({ article }) {
+	const document = { ...article };
+
+	try {
+		const newArticle = yield (yield call(
+			api.del,
+			`/__FILL_IN__/${article.id}/`,
+			document,
+		)).json();
+
+		yield put(actions.deleteArticleDone(newArticle));
+		yield put(actions.fetchAllArticles(`/__FILL_IN__/${newArticle.id}/`));
+	} catch (e) {
+		yield put(actions.deleteArticleFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.deleteArticleFinally());
 	}
 }
 
 export default function* saga() {
-	yield takeLatest('ARTICLE_FETCH_START', fetchArticles);
-	yield takeEvery('ARTICLE_CREATE', createArticle);
-	yield takeEvery('ARTICLE_UPDATE', updateArticle);
-	yield takeEvery('ARTICLE_DELETE', updateArticle);
+	yield takeLatest('assortment/articles/FETCH_ALL', fetchAllArticles);
+	yield takeLatest('assortment/articles/FETCH', fetchArticle);
+	yield takeEvery('assortment/articles/CREATE', createArticle);
+	yield takeEvery('assortment/articles/UPDATE', updateArticle);
+	yield takeEvery('assortment/articles/DELETE', deleteArticle);
 }
