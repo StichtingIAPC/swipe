@@ -58,7 +58,6 @@ class Validate(View):
             token = tokens.first()
             user = token.user
 
-            # TODO: Token expiry seems to be too fast
             return JSONResponse({
                 'valid': True,
                 'expiry': (token.created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS))

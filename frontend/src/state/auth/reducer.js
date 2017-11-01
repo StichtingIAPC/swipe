@@ -31,7 +31,6 @@ export default function authenticationReducer(state = initialState, action) {
 		};
 	}
 	if (action.type === 'AUTH_LOGIN_ERROR') {
-		console.log(action.error);
 		setToken(null);
 		return {
 			...state,

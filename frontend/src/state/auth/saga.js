@@ -106,9 +106,14 @@ export function saveLogoutDetails() {
 	window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
 }
 
+export function* redirectLogin() {
+	yield put(push('/authentication/login'));
+}
+
 export default function* saga() {
 	yield takeEvery('AUTH_START_LOGIN', login);
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
+	yield takeEvery('AUTH_LOGIN_ERROR', redirectLogin);
 	yield takeEvery('AUTH_LOGIN_RESTORE', loginRestore);
 	yield takeEvery('AUTH_START_LOGOUT', logout);
 	yield takeEvery('AUTH_LOGOUT_SUCCESS', saveLogoutDetails);
