@@ -60,6 +60,36 @@ export function* logout() {
 	}
 }
 
+export function* loginRestore({ loginAction }) {
+	const { data: { token, user: { username } } } = loginAction;
+
+	const form = new FormData();
+
+	form.append('token', token);
+	form.append('username', username);
+
+	try {
+		const result = yield call(fetch, `${config.backendUrl}/auth/validate/`, {
+			method: 'POST',
+			body: form,
+		});
+
+		if (!result.ok) {
+			throw result;
+		}
+
+		const data = yield result.json();
+
+		if (!data.valid) {
+			throw data;
+		}
+
+		yield put(loginSuccess(token, data.user));
+	} catch (e) {
+		yield put(loginError(e));
+	}
+}
+
 export function saveLoginDetails(action) {
 	if (!window || !window.localStorage) {
 		return;
@@ -76,9 +106,15 @@ export function saveLogoutDetails() {
 	window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
 }
 
+export function* redirectLogin() {
+	yield put(push('/authentication/login'));
+}
+
 export default function* saga() {
 	yield takeEvery('AUTH_START_LOGIN', login);
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
+	yield takeEvery('AUTH_LOGIN_ERROR', redirectLogin);
+	yield takeEvery('AUTH_LOGIN_RESTORE', loginRestore);
 	yield takeEvery('AUTH_START_LOGOUT', logout);
 	yield takeEvery('AUTH_LOGOUT_SUCCESS', saveLogoutDetails);
 }

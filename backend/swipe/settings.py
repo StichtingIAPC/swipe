@@ -306,6 +306,9 @@ SWIPE_JS_GLOBAL_VARS = {
 REST_FRAMEWORK = {
 }
 
+# Token validity time
+AUTH_TOKEN_VALID_TIME_HOURS = 24
+
 ##
 # WARNING: Add own settings ABOVE this comment.
 # The following lines are to load local settings.

@@ -9,25 +9,25 @@ const initialState = {
 };
 
 export default function authenticationReducer(state = initialState, action) {
-	if (action.type === 'AUTH_SET_ROUTE_AFTER_AUTH') 		{
+	if (action.type === 'AUTH_SET_ROUTE_AFTER_AUTH') {
 		return {
 			...state,
 			nextRoute: action.route,
 		};
 	}
-	if (action.type === 'AUTH_START_LOGIN') 		{
+	if (action.type === 'AUTH_START_LOGIN') {
 		return {
 			...state,
 			loading: true,
 		};
 	}
 	if (action.type === 'AUTH_LOGIN_SUCCESS') {
-		setToken(action.token);
+		setToken(action.data.token);
 		return {
 			...state,
-			token: action.token,
+			token: action.data.token,
 			loading: false,
-			currentUser: action.user,
+			currentUser: action.data.user,
 		};
 	}
 	if (action.type === 'AUTH_LOGIN_ERROR') {
