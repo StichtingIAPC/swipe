@@ -1,7 +1,5 @@
 import datetime
-
 from django.conf import settings
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -14,7 +12,7 @@ from rest_framework.response import Response
 User = settings.AUTH_USER_MODEL
 
 
-class JSONResponse(HttpResponse, PermissionRequiredMixin):
+class JSONResponse(HttpResponse):
     def __init__(self, data, **kwargs):
         content = JSONRenderer().render(data)
         kwargs['content_type'] = 'application/json'
