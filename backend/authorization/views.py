@@ -51,13 +51,19 @@ class Validate(View):
         return super(Validate, self).dispatch(request, *args, **kwargs)
 
     def post(self, request):
+        # TODO: Make sure page doesn't 500 when incorrect
         tokens = Token.objects.filter(key=request.POST['token']).filter(user__username=request.POST['username'])
 
         if tokens.count() == 1:
             return JSONResponse({
                 'valid': True,
                 'expiry': (tokens.first().created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS))
-                    .strftime('%Y-%m-%d %H:%M')
+                    .strftime('%Y-%m-%d %H:%M'),
+                'user': {
+                    'username': tokens.first().user.username,
+                    'permissions': tokens.first().user.get_all_permissions(),
+                    'gravatarUrl': '//failurl',
+                }
             })
 
         return JSONResponse({

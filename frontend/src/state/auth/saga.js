@@ -61,8 +61,7 @@ export function* logout() {
 }
 
 export function* loginRestore({ loginAction }) {
-	const token = loginAction.token;
-	const username = loginAction.user.username;
+	const { data: { token, user: { username } } } = loginAction;
 
 	const form = new FormData();
 
@@ -85,7 +84,7 @@ export function* loginRestore({ loginAction }) {
 			throw data;
 		}
 
-		yield put(loginAction);
+		yield put(loginSuccess(token, data.user));
 	} catch (e) {
 		yield put(loginError(e));
 	}
@@ -110,6 +109,7 @@ export function saveLogoutDetails() {
 export default function* saga() {
 	yield takeEvery('AUTH_START_LOGIN', login);
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
+	yield takeEvery('AUTH_LOGIN_RESTORE', loginRestore);
 	yield takeEvery('AUTH_START_LOGOUT', logout);
 	yield takeEvery('AUTH_LOGOUT_SUCCESS', saveLogoutDetails);
 }

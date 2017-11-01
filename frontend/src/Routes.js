@@ -37,16 +37,12 @@ import LabelTypeDetail from './components/assortment/labeltype/LabelTypeDetail';
 import UnitTypeDetail from './components/assortment/unittype/UnitTypeDetail';
 
 class Routes extends React.Component {
-	checkAuthentication(nextState) {
-		if (this.props.user === null)			{ this.props.authenticate(nextState.location.pathname); }
-	}
-
 	render() {
 		return <Router history={this.props.history}>
 			<Route path="/authentication">
 				<Route path="login" component={Authentication} />
 			</Route>
-			<Route path="/" component={Application} onEnter={::this.checkAuthentication}>
+			<Route path="/" component={Application}>
 				<IndexRedirect to="/dashboard" />
 				<Route path="dashboard" component={Dashboard} />
 				<Route path="helloworld" component={HelloWorld} />
@@ -102,12 +98,4 @@ class Routes extends React.Component {
 	}
 }
 
-export default connect(
-	state => ({ user: state.auth.currentUser }),
-	dispatch => ({
-		authenticate: route => {
-			if (route !== null)				{ dispatch(setRouteAfterAuthentication(route)); }
-			dispatch(push('/authentication/login'));
-		},
-	})
-)(Routes);
+export default Routes;

@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 import createSagaMiddleware from 'redux-saga';
 import Routes from './Routes.js';
 import { browserHistory } from 'react-router';
-import { routerMiddleware, syncHistoryWithStore } from 'react-router-redux';
+import { routerMiddleware, syncHistoryWithStore, push } from 'react-router-redux';
 import 'font-awesome/css/font-awesome.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'admin-lte/dist/css/AdminLTE.min.css';
@@ -38,6 +38,8 @@ if (window && window.localStorage && window.localStorage.getItem('LAST_LOGIN_SUC
 	} catch (e) {
 		console.error(e);
 	}
+} else {
+	store.dispatch(push('/authentication/login'));
 }
 
 // Create enhanced history

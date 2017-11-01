@@ -16,8 +16,10 @@ export function loginRestore(loginAction) {
 export function loginSuccess(token, user) {
 	return {
 		type: 'AUTH_LOGIN_SUCCESS',
-		token,
-		user,
+		data: {
+			token,
+			user,
+		},
 	};
 }
 
