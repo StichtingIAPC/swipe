@@ -6,7 +6,7 @@ const defaultLabelType = {};
 export default combineReducers({
 	labelTypes: setFieldReducer([
 		'assortment/label-types/FETCH_ALL_DONE',
-	], [], 'labelType'),
+	], [], 'labelTypes'),
 	activeObject: objectControlReducer([
 		'assortment/label-types/SET_FIELD',
 	], defaultLabelType),

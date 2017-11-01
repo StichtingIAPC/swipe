@@ -3,14 +3,14 @@
 export function fetchAll${Name}s(redirectTo) {
 	return { type: '${path}/FETCH_ALL', redirectTo };
 }
-export function fetchAll${Name}sDone(redirectTo) {
-	return { type: '${path}/FETCH_ALL', redirectTo };
+export function fetchAll${Name}sDone(${name}s) {
+	return { type: '${path}/FETCH_ALL_DONE', ${name}s };
 }
 export function fetchAll${Name}sFailed(reason) {
-	return { type: '${path}/FETCH_ALL', reason };
+	return { type: '${path}/FETCH_ALL_FAILED', reason };
 }
 export function fetchAll${Name}sFinally() {
-	return { type: '${path}/FETCH_ALL' };
+	return { type: '${path}/FETCH_ALL_FINALLY' };
 }
 
 export function fetch${Name}(id) {

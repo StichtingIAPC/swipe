@@ -3,18 +3,18 @@ export function fetchAllUnitTypes(redirectTo) {
 		redirectTo };
 }
 
-export function fetchAllUnitTypesDone(redirectTo) {
-	return { type: 'assortment/unit-types/FETCH_ALL',
-		redirectTo };
+export function fetchAllUnitTypesDone(unitTypes) {
+	return { type: 'assortment/unit-types/FETCH_ALL_DONE',
+		unitTypes };
 }
 
 export function fetchAllUnitTypesFailed(reason) {
-	return { type: 'assortment/unit-types/FETCH_ALL',
+	return { type: 'assortment/unit-types/FETCH_ALL_FAILED',
 		reason };
 }
 
 export function fetchAllUnitTypesFinally() {
-	return { type: 'assortment/unit-types/FETCH_ALL' };
+	return { type: 'assortment/unit-types/FETCH_ALL_FINALLY' };
 }
 
 export function fetchUnitType(id) {

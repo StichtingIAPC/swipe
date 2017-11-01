@@ -9,7 +9,7 @@ function* fetchAllArticles({ redirectTo }) {
 	try {
 		const article = yield (yield call(
 			api.get,
-			'/__FILL_IN__/',
+			'/article/',
 		)).json();
 
 		yield put(actions.fetchAllArticlesDone(article));
@@ -27,7 +27,7 @@ function* fetchArticle({ id }) {
 	try {
 		const newArticle = yield (yield call(
 			api.get,
-			`/__FILL_IN__/${id}`,
+			`/article/${id}`,
 		)).json();
 
 		yield put(actions.fetchArticleDone(newArticle));
@@ -44,12 +44,12 @@ function* createArticle({ article }) {
 	try {
 		const newArticle = yield (yield call(
 			api.post,
-			'/__FILL_IN__/',
+			'/article/',
 			document,
 		)).json();
 
 		yield put(actions.createArticleDone(newArticle));
-		yield put(actions.fetchAllArticles(`/__FILL_IN__/${newArticle.id}/`));
+		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
 	} catch (e) {
 		yield put(actions.createArticleFailed(cleanErrorMessage(e)));
 	} finally {
@@ -63,12 +63,12 @@ function* updateArticle({ article }) {
 	try {
 		const newArticle = yield (yield call(
 			api.put,
-			`/__FILL_IN__/${article.id}/`,
+			`/article/${article.id}/`,
 			document,
 		)).json();
 
 		yield put(actions.updateArticleDone(newArticle));
-		yield put(actions.fetchAllArticles(`/__FILL_IN__/${newArticle.id}/`));
+		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
 	} catch (e) {
 		yield put(actions.updateArticleFailed(cleanErrorMessage(e)));
 	} finally {
@@ -82,12 +82,12 @@ function* deleteArticle({ article }) {
 	try {
 		const newArticle = yield (yield call(
 			api.del,
-			`/__FILL_IN__/${article.id}/`,
+			`/articles/${article.id}/`,
 			document,
 		)).json();
 
 		yield put(actions.deleteArticleDone(newArticle));
-		yield put(actions.fetchAllArticles(`/__FILL_IN__/${newArticle.id}/`));
+		yield put(actions.fetchAllArticles(`/articlemanager/`));
 	} catch (e) {
 		yield put(actions.deleteArticleFailed(cleanErrorMessage(e)));
 	} finally {

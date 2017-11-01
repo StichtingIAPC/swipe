@@ -3,18 +3,18 @@ export function fetchAllArticles(redirectTo) {
 		redirectTo };
 }
 
-export function fetchAllArticlesDone(redirectTo) {
-	return { type: 'assortment/articles/FETCH_ALL',
-		redirectTo };
+export function fetchAllArticlesDone(articles) {
+	return { type: 'assortment/articles/FETCH_ALL_DONE',
+		articles };
 }
 
 export function fetchAllArticlesFailed(reason) {
-	return { type: 'assortment/articles/FETCH_ALL',
+	return { type: 'assortment/articles/FETCH_ALL_FAILED',
 		reason };
 }
 
 export function fetchAllArticlesFinally() {
-	return { type: 'assortment/articles/FETCH_ALL' };
+	return { type: 'assortment/articles/FETCH_ALL_FINALLY' };
 }
 
 export function fetchArticle(id) {

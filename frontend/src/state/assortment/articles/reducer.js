@@ -6,7 +6,7 @@ const defaultArticle = {};
 export default combineReducers({
 	articles: setFieldReducer([
 		'assortment/articles/FETCH_ALL_DONE',
-	], [], 'article'),
+	], [], 'articles'),
 	activeObject: objectControlReducer([
 		'assortment/articles/SET_FIELD',
 	], defaultArticle),

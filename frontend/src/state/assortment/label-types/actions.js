@@ -3,18 +3,18 @@ export function fetchAllLabelTypes(redirectTo) {
 		redirectTo };
 }
 
-export function fetchAllLabelTypesDone(redirectTo) {
-	return { type: 'assortment/label-types/FETCH_ALL',
-		redirectTo };
+export function fetchAllLabelTypesDone(labelTypes) {
+	return { type: 'assortment/label-types/FETCH_ALL_DONE',
+		labelTypes };
 }
 
 export function fetchAllLabelTypesFailed(reason) {
-	return { type: 'assortment/label-types/FETCH_ALL',
+	return { type: 'assortment/label-types/FETCH_ALL_FAILED',
 		reason };
 }
 
 export function fetchAllLabelTypesFinally() {
-	return { type: 'assortment/label-types/FETCH_ALL' };
+	return { type: 'assortment/label-types/FETCH_ALL_FINALLY' };
 }
 
 export function fetchLabelType(id) {

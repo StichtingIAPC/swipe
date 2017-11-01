@@ -7,12 +7,12 @@ import * as actions from './actions.js';
 
 function* fetchAll${Name}s({ redirectTo }) {
 	try {
-		const ${name} = yield (yield call(
+		const ${name}s = yield (yield call(
 			api.get,
 			'/__FILL_IN__/',
 		)).json();
 
-		yield put(actions.fetchAll${Name}sDone(${name}));
+		yield put(actions.fetchAll${Name}sDone(${name}s));
 		if (redirectTo) {
 			yield put(push(redirectTo));
 		}

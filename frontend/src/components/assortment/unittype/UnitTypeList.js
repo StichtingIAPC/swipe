@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingUnitTypes } from '../../../state/assortment/unit-types/actions.js';
+import { fetchAllUnitTypes } from '../../../state/assortment/unit-types/actions.js';
 
 class UnitTypeList extends React.Component {
 	static propTypes = {
@@ -39,11 +39,6 @@ class UnitTypeList extends React.Component {
 		);
 	}
 
-	update(evt) {
-		evt.preventDefault();
-		this.props.update();
-	}
-
 	render() {
 		return (
 			<div className="box">
@@ -56,7 +51,7 @@ class UnitTypeList extends React.Component {
 									className={`btn btn-sm ${this.props.invalid ? 'btn-danger' : 'btn-default'} ${this.props.fetching ? 'disabled' : ''}`}
 									to="#"
 									title="Refresh"
-									onClick={::this.update}>
+									onClick={this.props.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
@@ -110,6 +105,6 @@ export default connect(
 		fetching: state.assortment.labelTypes.fetching,
 	}),
 	{
-		update: startFetchingUnitTypes,
+		update: fetchAllUnitTypes,
 	},
 )(UnitTypeList);

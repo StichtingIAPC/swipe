@@ -7,7 +7,7 @@ const default${Name} = {};
 export default combineReducers({
   ${name}s: setFieldReducer([
     '${path}/FETCH_ALL_DONE',
-  ], [], '${name}'),
+  ], [], '${name}s'),
   activeObject: objectControlReducer([
     '${path}/SET_FIELD',
   ], default${Name}),

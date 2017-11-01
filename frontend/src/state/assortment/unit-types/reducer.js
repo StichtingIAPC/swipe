@@ -6,7 +6,7 @@ const defaultUnitType = {};
 export default combineReducers({
 	unitTypes: setFieldReducer([
 		'assortment/unit-types/FETCH_ALL_DONE',
-	], [], 'unitType'),
+	], [], 'unitTypes'),
 	activeObject: objectControlReducer([
 		'assortment/unit-types/SET_FIELD',
 	], defaultUnitType),

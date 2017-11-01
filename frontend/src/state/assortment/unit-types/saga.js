@@ -7,12 +7,12 @@ import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
 function* fetchAllUnitTypes({ redirectTo }) {
 	try {
-		const unitType = yield (yield call(
+		const unitTypes = yield (yield call(
 			api.get,
 			'/assortment/unittypes/',
 		)).json();
 
-		yield put(actions.fetchAllUnitTypesDone(unitType));
+		yield put(actions.fetchAllUnitTypesDone(unitTypes));
 		if (redirectTo) {
 			yield put(push(redirectTo));
 		}
