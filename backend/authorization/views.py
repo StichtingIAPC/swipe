@@ -1,13 +1,15 @@
 import datetime
+
 from django.conf import settings
 from django.http import HttpResponse
-from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
+
+from tools.mixins import MethodDecoratorMixin
 
 User = settings.AUTH_USER_MODEL
 
@@ -19,11 +21,7 @@ class JSONResponse(HttpResponse):
         super().__init__(content, **kwargs)
 
 
-class Logout(View):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super(Logout, self).dispatch(request, *args, **kwargs)
-
+class Logout(View, MethodDecoratorMixin(csrf_exempt)):
     def post(self, request):
         Token.objects.filter(key=request.POST['token']).delete()
         return JSONResponse({})
@@ -45,11 +43,7 @@ class Login(ObtainAuthToken):
         })
 
 
-class Validate(View):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super(Validate, self).dispatch(request, *args, **kwargs)
-
+class Validate(View, MethodDecoratorMixin(csrf_exempt)):
     def post(self, request):
         tokens = Token.objects.filter(key=request.POST['token']).filter(user__username=request.POST['username'])
 
