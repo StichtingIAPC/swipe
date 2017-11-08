@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { createArticle, updateArticle } from '../../state/assortment/articles/actions.js';
 import { BoolField, IntegerField, SelectField, StringField } from '../forms/fields';
 import FontAwesome from '../tools/icons/FontAwesome';

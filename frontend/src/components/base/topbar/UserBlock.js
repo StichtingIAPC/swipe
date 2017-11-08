@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { logout } from '../../../state/auth/actions.js';
 
@@ -42,7 +42,7 @@ class UserBlock extends React.Component {
 								<Link to="/profile" className="btn btn-default btn-flat">Profile</Link>
 							</div>
 							<div className="pull-right">
-								<Link onClick={this.props.logout} className="btn btn-default btn-flat">Logout</Link>
+								<a onClick={this.props.logout} className="btn btn-default btn-flat">Logout</a>
 							</div>
 						</li>
 					</ul>
@@ -62,7 +62,7 @@ class UserBlock extends React.Component {
 					</li>
 					<li className="user-footer">
 						<div className="pull-right">
-							<Link onClick={this.props.logout} className="btn btn-default btn-flat">Logout</Link>
+							<a onClick={this.props.logout} className="btn btn-default btn-flat">Logout</a>
 						</div>
 					</li>
 				</ul>
