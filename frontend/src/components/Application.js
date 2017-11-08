@@ -22,6 +22,7 @@ import LabelsBase from '../components/assortment/LabelsBase';
 class Application extends React.Component {
 	render() {
 		const { match } = this.props;
+
 		return (
 			<div
 				className={`wrapper fixed${this.props.sidebarOpen ? ' sidebar-collapse sidebar-mini' : ' sidebar-open'}`}>
@@ -30,31 +31,15 @@ class Application extends React.Component {
 				<div className="content-wrapper">
 					<div className="content">
 						<Switch>
-							<Route path={`${match.path}/dashboard/`} component={Dashboard} />
-							<Route path={`${match.path}/helloworld/`} component={HelloWorld} />
-							<Route path={`${match.path}/supplier/`} component={SupplierBase} />
-							<Route path={`${match.path}/money/`} component={MoneyBase} />
-							<Route path={`${match.path}/articlemanager/`} component={ArticleManager} />
-							<Route path={`${match.path}/register/`} component={RegisterBase} />
-							<Route path={`${match.path}/assortment/`} component={LabelsBase} />
-							<Route path="pos">
-								<Switch>
-									<Route path="register">
-										<Switch>
-											<Route path="state" />
-											<Route path="open" />
-											<Route path="close" />
-											<Route path="/" strict={true}>
-												<Redirect to="state" />
-											</Route>
-										</Switch>
-									</Route>
-									<Route path="/" strict={true}>
-										<Redirect to="register" />
-									</Route>
-								</Switch>
-							</Route>
-							<Route path="*" component={Error404} />
+							<Route path={`${match.path}dashboard`} component={Dashboard} />
+							<Route path={`${match.path}helloworld`} component={HelloWorld} />
+							<Route path={`${match.path}supplier`} component={SupplierBase} />
+							<Route path={`${match.path}money`} component={MoneyBase} />
+							<Route path={`${match.path}articlemanager`} component={ArticleManager} />
+							<Route path={`${match.path}register`} component={RegisterBase} />
+							<Route path={`${match.path}assortment`} component={LabelsBase} />
+							{/* <Route path={`${match.path}/pos/register/state`} /> */}
+							<Route component={Error404} />
 						</Switch>
 					</div>
 				</div>

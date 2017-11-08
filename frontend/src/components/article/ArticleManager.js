@@ -37,8 +37,8 @@ class ArticleManager extends React.Component {
 				</div>
 				<div className="col-sm-8">
 					<Switch>
-						<Route path={`${match.path}/create/`} component={ArticleEdit} />
-						<Route path={`${match.path}/:articleID/`} component={ArticleEdit} />
+						<Route path={`${match.path}/create`} component={ArticleEdit} />
+						<Route path={`${match.path}/:articleID`} component={ArticleEdit} />
 					</Switch>
 				</div>
 			</div>

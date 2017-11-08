@@ -18,6 +18,8 @@ class RegisterBase extends React.Component {
 	}
 
 	render() {
+		const { match } = this.props;
+
 		return (
 			<div className="row">
 				<div className="col-xs-4 col-md-4">
@@ -28,12 +30,12 @@ class RegisterBase extends React.Component {
 					{
 						this.props.requirementsLoaded ? (
 							<Switch>
-								<Route path="register/create/" component={RegisterEdit} />
-								<Route path="register/:registerID/edit/" component={RegisterEdit} />
-								<Route path="register/:registerID/" component={RegisterDetail} />
-								<Route path="paymenttype/create/" component={PaymentTypeEdit} />
-								<Route path="paymenttype/:paymentTypeID/edit/" component={PaymentTypeEdit} />
-								<Route path="paymenttype/:paymentTypeID/" component={PaymentTypeDetail} />
+								<Route path={`${match.path}/register/create`} component={RegisterEdit} />
+								<Route path={`${match.path}/register/:registerID/edit`} component={RegisterEdit} />
+								<Route path={`${match.path}/register/:registerID`} component={RegisterDetail} />
+								<Route path={`${match.path}/paymenttype/create`} component={PaymentTypeEdit} />
+								<Route path={`${match.path}/paymenttype/:paymentTypeID/edit`} component={PaymentTypeEdit} />
+								<Route path={`${match.path}/paymenttype/:paymentTypeID`} component={PaymentTypeDetail} />
 							</Switch>
 						) : null
 					}

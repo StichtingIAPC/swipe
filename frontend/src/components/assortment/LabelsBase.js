@@ -17,6 +17,8 @@ class LabelsModal extends React.Component {
 	}
 
 	render() {
+		const { match } = this.props;
+
 		return (
 			<div className="row">
 				<div className="col-sm-4">
@@ -27,12 +29,12 @@ class LabelsModal extends React.Component {
 					{
 						this.props.requirementsLoaded ? (
 							<Switch>
-								<Route path="labeltype/create/" component={LabelTypeEdit} />
-								<Route path="labeltype/:labelTypeID/edit" component={LabelTypeEdit} />
-								<Route path="labeltype/:labelTypeID/" component={LabelTypeDetail} />
-								<Route path="unittype/create/" component={UnitTypeEdit} />
-								<Route path="unittype/:unitTypeID/edit" component={UnitTypeEdit} />
-								<Route path="unittype/:unitTypeID/" component={UnitTypeDetail} />
+								<Route path={`${match.path}labeltype/create`} component={LabelTypeEdit} />
+								<Route path={`${match.path}labeltype/:labelTypeID/edit`} component={LabelTypeEdit} />
+								<Route path={`${match.path}labeltype/:labelTypeID`} component={LabelTypeDetail} />
+								<Route path={`${match.path}unittype/create`} component={UnitTypeEdit} />
+								<Route path={`${match.path}unittype/:unitTypeID/edit`} component={UnitTypeEdit} />
+								<Route path={`${match.path}unittype/:unitTypeID`} component={UnitTypeDetail} />
 							</Switch>
 						) : null
 					}
