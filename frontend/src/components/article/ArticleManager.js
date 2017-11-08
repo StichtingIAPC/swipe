@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Switch, Route, Link } from 'react-router-dom';
 import { push } from 'react-router-redux';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import articles from '../../state/assortment/articles/actions.js';
@@ -9,6 +9,7 @@ import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 import ArticleSelector from './ArticleSelector';
 import FontAwesome from '../tools/icons/FontAwesome';
 import { accountingGroups } from '../../state/money/accounting-groups/actions.js';
+import ArticleEdit from './ArticleEdit';
 
 class ArticleManager extends React.Component {
 	componentWillMount() {
@@ -16,6 +17,8 @@ class ArticleManager extends React.Component {
 	}
 
 	render() {
+		const { match } = this.props;
+
 		if (!this.props.requirementsLoaded) {
 			return null;
 		}
@@ -33,7 +36,10 @@ class ArticleManager extends React.Component {
 						} />
 				</div>
 				<div className="col-sm-8">
-					{this.props.children}
+					<Switch>
+						<Route path={`${match.path}/create/`} component={ArticleEdit} />
+						<Route path={`${match.path}/:articleID/`} component={ArticleEdit} />
+					</Switch>
 				</div>
 			</div>
 		);
