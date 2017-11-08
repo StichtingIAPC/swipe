@@ -3,7 +3,7 @@ import { push } from 'react-router-redux';
 import { loginError, loginSuccess, setRouteAfterAuthentication } from './actions.js';
 import config from '../../config.js';
 import fetch from 'isomorphic-fetch';
-import { getToken } from '../../api';
+import { __getTokenDangerous, getToken } from '../../api';
 import { logoutError, logoutSuccess } from './actions';
 
 function* login({ username, password }) {
@@ -38,7 +38,7 @@ function* login({ username, password }) {
 }
 
 export function* logout() {
-	const token = yield getToken();
+	const token = __getTokenDangerous();
 
 	const form = new FormData();
 

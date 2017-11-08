@@ -25,6 +25,8 @@ class Logout(View):
         return super(Logout, self).dispatch(request, *args, **kwargs)
 
     def post(self, request):
+        if not request.POST.has_key('token') or request.POST['token'] is None:
+            return JSONResponse({})
         Token.objects.filter(key=request.POST['token']).delete()
         return JSONResponse({})
 

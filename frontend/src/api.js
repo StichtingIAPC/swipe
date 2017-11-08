@@ -14,6 +14,10 @@ export function setToken(token) {
 	listeners = [];
 }
 
+export function __getTokenDangerous() {
+	return TOKEN;
+}
+
 export function getToken() {
 	return new Promise(
 		accept => {
