@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { IndexRedirect, Route, Router } from 'react-router';
+import { Switch, Route } from 'react-router-dom';
 import { push } from 'react-router-redux';
 import { setRouteAfterAuthentication } from './state/auth/actions.js';
 // Subrouters
@@ -42,7 +42,7 @@ class Routes extends React.Component {
 	}
 
 	render() {
-		return <Router history={this.props.history}>
+		return <Switch>
 			<Route path="/authentication">
 				<Route path="login" component={Authentication} />
 			</Route>
@@ -98,7 +98,7 @@ class Routes extends React.Component {
 				</Route>
 				<Route path="*" component={Error404} />
 			</Route>
-		</Router>;
+		</Switch>;
 	}
 }
 
@@ -106,7 +106,7 @@ export default connect(
 	state => ({ user: state.auth.currentUser }),
 	dispatch => ({
 		authenticate: route => {
-			if (route !== null)				{ dispatch(setRouteAfterAuthentication(route)); }
+			if (route !== null) { dispatch(setRouteAfterAuthentication(route)); }
 			dispatch(push('/authentication/login'));
 		},
 	})
