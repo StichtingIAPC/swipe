@@ -1,10 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createUnitType, updateUnitType } from '../../../actions/assortment/unitTypes';
+import { createUnitType, updateUnitType } from '../../../state/assortment/unit-types/actions.js';
 import Form from '../../forms/Form';
 import StringField from '../../forms/StringField';
 import SelectField from '../../forms/SelectField';
-import { incrementalTypes, valueTypes } from '../../../constants/assortment';
+import { incrementalTypes, valueTypes } from '../../../state/assortment/constants';
 
 class UnitTypeEdit extends React.Component {
 	constructor(props) {
@@ -84,11 +84,12 @@ class UnitTypeEdit extends React.Component {
 
 export default connect(
 	(state, props) => ({
-		errorMsg: state.unitTypes.inputError,
-		unitType: (state.unitTypes.unitTypes || []).find(el => el.id === +props.params.unitTypeID),
+		errorMsg: state.assortment.unitTypes.inputError,
+		// TODO: replace filter with fetch of object
+		unitType: state.assortment.unitTypes.unitTypes.find(el => el.id === +props.params.unitTypeID),
 	}),
-	dispatch => ({
-		addUnitType: arg => dispatch(createUnitType(arg)),
-		editUnitType: arg => dispatch(updateUnitType(arg)),
-	}),
+	{
+		addUnitType: createUnitType,
+		editUnitType: updateUnitType,
+	},
 )(UnitTypeEdit);

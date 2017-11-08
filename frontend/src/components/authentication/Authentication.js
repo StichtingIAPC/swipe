@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { startLogin } from '../../actions/auth.js';
+import { startLogin } from '../../state/auth/actions.js';
 import Glyphicon from '../tools/icons/Glyphicon';
 
 class Authentication extends React.Component {

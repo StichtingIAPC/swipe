@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingPaymentTypes } from '../../../actions/register/paymentTypes';
+import { startFetchingPaymentTypes } from '../../../state/register/payment-types/actions.js';
 
 class PaymentTypeList extends React.Component {
 	constructor(props) {
@@ -100,7 +100,7 @@ class PaymentTypeList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.paymentTypes.map(
+							{(this.props.paymentTypes || []).map(
 								item => (
 									<PaymentTypeList.RenderEntry registerID={this.props.paymentTypeID} key={item.id} register={item} />
 								)
@@ -125,15 +125,12 @@ PaymentTypeList.propTypes = { paymentTypeID: PropTypes.string };
 
 export default connect(
 	state => ({
-		errorMsg: state.registers.fetchError,
-		paymentTypes: state.paymentTypes.paymentTypes || [],
-		fetching: state.registers.fetching,
+		errorMsg: state.register.registers.fetchError,
+		paymentTypes: state.register.paymentTypes.paymentTypes,
+		fetching: state.register.registers.fetching,
 	}),
-	dispatch => ({
-		dispatch,
-		update: evt => {
-			evt.preventDefault();
-			dispatch(startFetchingPaymentTypes());
-		},
-	}),
+	{
+		dispatch: evt => evt,
+		update: startFetchingPaymentTypes,
+	}
 )(PaymentTypeList);

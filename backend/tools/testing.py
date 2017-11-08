@@ -229,7 +229,6 @@ class TestData:
                 arts_ordered.append([self.articletype_1, self.SUPPLIERORDERED_ARTICLE_1, self.cost_system_currency_1])
             if article_2 > 0:
                 arts_ordered.append([self.articletype_2, self.SUPPLIERORDERED_ARTICLE_2, self.cost_system_currency_2])
-
             SupplierOrder.create_supplier_order(user_modified=self.user_1, supplier=self.supplier_1,
                                                 articles_ordered=arts_ordered)
 

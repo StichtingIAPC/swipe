@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
-import { createArticle, updateArticle } from '../../actions/articles';
+import { createArticle, updateArticle } from '../../state/assortment/articles/actions.js';
 import { BoolField, IntegerField, SelectField, StringField } from '../forms/fields';
 import FontAwesome from '../tools/icons/FontAwesome';
 import LabelField from '../forms/LabelField';
@@ -177,14 +177,14 @@ class ArticleEdit extends React.Component {
 
 export default connect(
 	(state, ownProps) => ({
-		...ownProps,
-		defaultCurrency: state.defaultCurrency || {
+		defaultCurrency: (state.settings || {}).defaultCurrency || {
 			symbol: '€',
 			digits: 2,
 			iso: 'EUR',
 		},
-		article: (state.articles.articles || []).find(article => article.id === +ownProps.params.articleID),
-		accountingGroups: state.accountingGroups.accountingGroups,
+		// TODO: replace with fetching
+		article: state.assortment.articles.articles.find(article => article.id === +ownProps.params.articleID),
+		accountingGroups: state.money.accountingGroups.accountingGroups,
 	}),
 	dispatch => ({
 		addArticle: article => {

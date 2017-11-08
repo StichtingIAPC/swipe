@@ -4,9 +4,10 @@ import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequire
 import CurrencyList from './currency/CurrencyList';
 import AccountingGroupList from './accountingGroup/AccountingGroupList';
 import VATList from './VAT/VATList';
-import { currencies } from '../../actions/money/currencies';
-import { VATs } from '../../actions/money/VATs';
-import { accountingGroups } from '../../actions/money/accountingGroups';
+import { currencies } from '../../state/money/currencies/actions.js';
+import { vats } from '../../state/money/vat/actions.js';
+import { accountingGroups } from '../../state/money/accounting-groups/actions.js';
+
 /**
  * Created by Matthias on 26/11/2016.
  */
@@ -34,8 +35,10 @@ class MoneyBase extends React.Component {
 
 export default connect(
 	connectMixin({
-		currencies,
-		accountingGroups,
-		VATs,
+		money: {
+			currencies,
+			accountingGroups,
+			vats,
+		},
 	})
 )(MoneyBase);
