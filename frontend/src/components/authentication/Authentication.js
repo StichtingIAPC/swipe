@@ -45,7 +45,7 @@ class Authentication extends React.Component {
 						</div>
 						<div className="row">
 							<div className="col-xs-8">
-								<span id="login-error">{}</span>
+								<span id="login-error">{this.props.errorMsg}</span>
 							</div>
 							<div className="col-xs-4">
 								<button type="submit" className="btn btn-primary btn-block btn-flat">Sign In</button>
@@ -59,6 +59,6 @@ class Authentication extends React.Component {
 }
 
 export default connect(
-	state => ({ auth: state.auth }),
+	state => ({ auth: state.auth, errorMsg: state.auth.error }),
 	dispatch => ({ login: (username, password) => dispatch(startLogin(username, password)) }),
 )(Authentication);

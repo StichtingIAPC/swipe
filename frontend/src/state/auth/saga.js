@@ -33,14 +33,14 @@ function* login({ username, password }) {
 			yield put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
-		yield put.resolve(loginError(e));
-		let err = yield select(state => state.auth.error.non_field_errors && state.auth.error.non_field_errors[0]);
+		yield put.resolve(loginError(e.non_field_errors || null));
+		let err = yield select(state => state.auth.error && state.auth.error[0]);
 
 		// eslint-disable-next-line
-		if (err === undefined) {
+		if (err == null ||err === undefined) {
 			err = 'Server not connected, please try again later.';
+			yield put(loginError(err));
 		}
-		document.getElementById('login-error').innerHTML = err;
 	}
 }
 
