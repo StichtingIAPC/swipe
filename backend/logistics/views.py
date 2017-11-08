@@ -3,7 +3,6 @@ import json
 
 from decimal import Decimal
 from django.contrib.auth.models import User
-from django.core import serializers
 from django.http import HttpResponse
 from rest_framework import generics
 from rest_framework import mixins
@@ -125,13 +124,11 @@ class SupplierOrderStateByStateView(mixins.ListModelMixin,
                                generics.GenericAPIView):
         serializer_class = SupplierOrderStateSerializer
 
+        def get_queryset(self):
+            return SupplierOrderState.objects.filter(state=self.kwargs['state'])
+
         def get(self, request, *args, **kwargs):
-            self.queryset = SupplierOrderState.objects.filter(state=kwargs['state'])
-            resultset = []
-            for element in self.queryset:
-                resultset.append(element)
-            return HttpResponse(content=serializers.serialize('json', resultset, indent=4),
-                                content_type="application/json")
+            return self.list(request, *args, **kwargs)
 
 
 class SupplierOrderStateBySupplierOrderLineView(mixins.ListModelMixin,
@@ -139,13 +136,11 @@ class SupplierOrderStateBySupplierOrderLineView(mixins.ListModelMixin,
                                generics.GenericAPIView):
         serializer_class = SupplierOrderStateSerializer
 
+        def get_queryset(self):
+            return SupplierOrderState.objects.filter(supplier_order_line_id=self.kwargs['supplier_order_line_pk'])
+
         def get(self, request, *args, **kwargs):
-            self.queryset = SupplierOrderState.objects.filter(supplier_order_line_id=kwargs['supplier_order_line_pk'])
-            resultset = []
-            for element in self.queryset:
-                resultset.append(element)
-            return HttpResponse(content=serializers.serialize('json', resultset, indent=4),
-                                content_type="application/json")
+            return self.list(request, *args, **kwargs)
 
 
 class SupplierOrderStateView(mixins.RetrieveModelMixin,
@@ -227,13 +222,10 @@ class StockWishTableLogViewByStockWish(mixins.ListModelMixin,
                                 generics.GenericAPIView):
     serializer_class = StockWishTableLogSerializer
 
+    def get_queryset(self):
+        return StockWishTableLog.objects.filter(stock_wish_id=self.kwargs.get("stock_wish_id"))
+
     def get(self, request, *args, **kwargs):
-        print(kwargs)
-        self.queryset = StockWishTableLog.objects.filter(stock_wish_id=kwargs.get("stock_wish_id"))
-        resultset = []
-        for element in self.queryset:
-            resultset.append(element)
-        return HttpResponse(content=serializers.serialize('json', resultset, indent=4),
-                            content_type="application/json")
+        return self.list(request, *args, **kwargs)
 
 
