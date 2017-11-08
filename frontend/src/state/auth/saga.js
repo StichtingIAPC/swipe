@@ -34,12 +34,13 @@ function* login({ username, password }) {
 		}
 	} catch (e) {
 		yield put.resolve(loginError(e));
-		var err = yield select(state => state.auth.error.non_field_errors && state.auth.error.non_field_errors[0]);
-		if (err === undefined) {
-			err = "Server not connected, please try again later."
-		}
-		document.getElementById('login-error').innerHTML=err;
+		let err = yield select(state => state.auth.error.non_field_errors && state.auth.error.non_field_errors[0]);
 
+		// eslint-disable-next-line
+		if (err === undefined) {
+			err = 'Server not connected, please try again later.';
+		}
+		document.getElementById('login-error').innerHTML = err;
 	}
 }
 
@@ -67,7 +68,7 @@ export function* logout() {
 }
 
 export function* loginRestore({ loginAction }) {
-	const { data: { token, user: { username } } } = loginAction;
+	const { data: { token, user: { username }}} = loginAction;
 
 	const form = new FormData();
 
