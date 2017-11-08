@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Switch, Route } from 'react-router-redux';
+import { Switch, Route } from 'react-router-dom';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import CurrencyList from './currency/CurrencyList';
 import AccountingGroupList from './accountingGroup/AccountingGroupList';
@@ -38,15 +38,15 @@ class MoneyBase extends React.Component {
 					{
 						this.props.requirementsLoaded ? (
 							<Switch>
-								<Route path={`${match.path}/currency/create/`} component={CurrencyEdit} />
-								<Route path={`${match.path}/currency/:currencyID/edit/`} component={CurrencyEdit} />
-								<Route path={`${match.path}/currency/:currencyID/`} component={CurrencyDetail} />
-								<Route path={`${match.path}/vat/create/`} component={VATEdit} />
-								<Route path={`${match.path}/vat/:VATID/edit/`} component={VATEdit} />
-								<Route path={`${match.path}/vat/:VATID/`} component={VATDetail} />
-								<Route path={`${match.path}/accountinggroup/create/`} component={AccountingGroupEdit} />
-								<Route path={`${match.path}/accountinggroup/:accountingGroupID/edit/`} component={AccountingGroupEdit} />
-								<Route path={`${match.path}/accountinggroup/:accountingGroupID/`} component={AccountingGroupDetail} />
+								<Route path={`${match.path}/currency/create`} component={CurrencyEdit} />
+								<Route path={`${match.path}/currency/:currencyID/edit`} component={CurrencyEdit} />
+								<Route path={`${match.path}/currency/:currencyID`} component={CurrencyDetail} />
+								<Route path={`${match.path}/vat/create`} component={VATEdit} />
+								<Route path={`${match.path}/vat/:VATID/edit`} component={VATEdit} />
+								<Route path={`${match.path}/vat/:VATID`} component={VATDetail} />
+								<Route path={`${match.path}/accountinggroup/create`} component={AccountingGroupEdit} />
+								<Route path={`${match.path}/accountinggroup/:accountingGroupID/edit`} component={AccountingGroupEdit} />
+								<Route path={`${match.path}/accountinggroup/:accountingGroupID`} component={AccountingGroupDetail} />
 							</Switch>
 						) : null
 					}

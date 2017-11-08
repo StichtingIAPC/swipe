@@ -15,7 +15,7 @@ class Routes extends React.Component {
 	render() {
 		return <Switch>
 			<Route path="/authentication/login" component={Authentication} />
-			<Route path="/" component={Application} />
+			<Route component={Application} />
 		</Switch>;
 	}
 }
