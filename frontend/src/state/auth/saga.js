@@ -33,7 +33,14 @@ function* login({ username, password }) {
 			yield put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
-		yield put(loginError(e));
+		yield put.resolve(loginError(e.non_field_errors || null));
+		let err = yield select(state => state.auth.error && state.auth.error[0]);
+
+		// eslint-disable-next-line
+		if (err == null ||err === undefined) {
+			err = 'Server not connected, please try again later.';
+			yield put(loginError(err));
+		}
 	}
 }
 
@@ -61,7 +68,7 @@ export function* logout() {
 }
 
 export function* loginRestore({ loginAction }) {
-	const { data: { token, user: { username } } } = loginAction;
+	const { data: { token, user: { username }}} = loginAction;
 
 	const form = new FormData();
 

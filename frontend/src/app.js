@@ -18,7 +18,7 @@ import './styles/main.scss';
 // Pages
 import rootReducer from './state/reducer.js';
 import saga from './state/saga.js';
-import * as auth from "./state/auth/actions";
+import * as auth from './state/auth/actions';
 
 // Set up the Redux store
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
