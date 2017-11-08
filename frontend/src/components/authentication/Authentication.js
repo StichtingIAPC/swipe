@@ -44,7 +44,9 @@ class Authentication extends React.Component {
 							<Glyphicon glyph="lock form-control-feedback" />
 						</div>
 						<div className="row">
-							<div className="col-xs-8" />
+							<div className="col-xs-8">
+								<span id="login-error">{}</span>
+							</div>
 							<div className="col-xs-4">
 								<button type="submit" className="btn btn-primary btn-block btn-flat">Sign In</button>
 							</div>

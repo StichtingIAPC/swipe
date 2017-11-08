@@ -33,7 +33,13 @@ export function* login({ username, password }) {
 			yield put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
-		yield put(loginError(e));
+		yield put.resolve(loginError(e));
+		var err = yield select(state => state.auth.error.non_field_errors && state.auth.error.non_field_errors[0]);
+		if (err === undefined) {
+			err = "Server not connected, please try again later."
+		}
+		document.getElementById('login-error').innerHTML=err;
+
 	}
 }
 
