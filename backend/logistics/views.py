@@ -19,8 +19,10 @@ from tools.util import raiseif
 
 class SupplierOrderListView(mixins.ListModelMixin,
                       generics.GenericAPIView):
-    queryset = SupplierOrder.objects.all()
     serializer_class = SupplierOrderSerializer
+
+    def get_queryset(self):
+        return SupplierOrder.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -76,8 +78,10 @@ class SupplierOrderRequest:
 
 class SupplierOrderView(mixins.RetrieveModelMixin,
                         generics.GenericAPIView):
-    queryset = SupplierOrder.objects.all()
     serializer_class = SupplierOrderSerializer
+
+    def get_queryset(self):
+        return SupplierOrder.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -85,8 +89,10 @@ class SupplierOrderView(mixins.RetrieveModelMixin,
 
 class SupplierOrderLineListView(mixins.ListModelMixin,
                                 generics.GenericAPIView):
-    queryset = SupplierOrderLine.objects.all()
     serializer_class = SupplierOrderLineSerializer
+
+    def get_queryset(self):
+        return SupplierOrderLine.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -94,8 +100,10 @@ class SupplierOrderLineListView(mixins.ListModelMixin,
 
 class SupplierOrderLineView(mixins.RetrieveModelMixin,
                                 generics.GenericAPIView):
-    queryset = SupplierOrderLine.objects.all()
     serializer_class = SupplierOrderLineSerializer
+
+    def get_queryset(self):
+        return SupplierOrderLine.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -103,8 +111,10 @@ class SupplierOrderLineView(mixins.RetrieveModelMixin,
 
 class SupplierOrderStateListView(mixins.ListModelMixin,
                                 generics.GenericAPIView):
-    queryset = SupplierOrderState.objects.all()
     serializer_class = SupplierOrderStateSerializer
+
+    def get_queryset(self):
+        return SupplierOrderState.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -140,8 +150,10 @@ class SupplierOrderStateBySupplierOrderLineView(mixins.ListModelMixin,
 
 class SupplierOrderStateView(mixins.RetrieveModelMixin,
                             generics.GenericAPIView):
-    queryset = SupplierOrderState.objects.all()
     serializer_class = SupplierOrderStateSerializer
+
+    def get_queryset(self):
+        return SupplierOrderState.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -149,7 +161,7 @@ class SupplierOrderStateView(mixins.RetrieveModelMixin,
 
 class StockWishView(mixins.CreateModelMixin,
                     generics.GenericAPIView):
-    serializer_class = StockWish
+    serializer_class = StockWishSerializer
 
     def post(self, request, *args, **kwargs):
         stockwish_request = StockWishRequest(user=request.data.get("user_modified"),
@@ -191,8 +203,10 @@ class StockWishRequest:
 
 class StockWishTableLogListView(mixins.ListModelMixin,
                                 generics.GenericAPIView):
-    queryset = StockWishTableLog.objects.all()
     serializer_class = StockWishTableLogSerializer
+
+    def get_queryset(self):
+        return StockWishTableLog.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -200,8 +214,10 @@ class StockWishTableLogListView(mixins.ListModelMixin,
 
 class StockWishTableLogView(mixins.RetrieveModelMixin,
                                 generics.GenericAPIView):
-    queryset = StockWishTableLog.objects.all()
     serializer_class = StockWishTableLogSerializer
+
+    def get_queryset(self):
+        return StockWishTableLog.objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
