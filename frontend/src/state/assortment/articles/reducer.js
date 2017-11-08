@@ -1,7 +1,15 @@
 import { combineReducers } from 'redux';
 import { booleanControlReducer, objectControlReducer, setFieldReducer } from '../../../tools/reducerComponents';
 
-const defaultArticle = {};
+const defaultArticle = {
+	id: null,
+	fixed_price: null,
+	accounting_group: null,
+	name: '',
+	labels: [],
+	ean: null,
+	serial_number: false,
+};
 
 export default combineReducers({
 	articles: setFieldReducer([
