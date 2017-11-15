@@ -7,6 +7,7 @@ import money from './money/reducer.js';
 import register from './register/reducer.js';
 import sidebar from './sidebar/reducer.js';
 import suppliers from './suppliers/reducer.js';
+import sales from './sales/reducer.js';
 
 export default combineReducers({
 	routing: routerReducer,
@@ -16,4 +17,5 @@ export default combineReducers({
 	register,
 	sidebar,
 	suppliers,
+	sales,
 });

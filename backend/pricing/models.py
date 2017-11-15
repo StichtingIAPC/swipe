@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from article.models import SellableType, OtherCostType
 from tools.util import raiseifnot
-from money.models import Price, Money, Cost
+from money.models import Price, Money, Cost, Currency
 from decimal import Decimal
 from crm.models import Customer
 from stock.models import Stock
@@ -30,7 +30,7 @@ class PricingModel(models.Model):
     margin = models.DecimalField(null=True, blank=True, decimal_places=10, max_digits=16)
 
     def __str__(self):
-        return "Id: {}, Name: {}, Position: {}".format(self.id, self.name, self.position)
+        return "Id: {}, Name: {}, Position: {}".format(self.pk, self.name, self.position)
 
     def save(self, *args, **kwargs):
         validate_bigger_than_0(self.position)
@@ -83,6 +83,8 @@ class Functions:
         raiseifnot(isinstance(sellable_type, SellableType), TypeError, "sellableType should be sellableType")
         if hasattr(sellable_type, 'fixed_price'):
             fixed = sellable_type.fixed_price  # type: Money
+            if fixed is None:
+                fixed= Cost(amount=Decimal(100000000), currency=Currency("EUR"))
             price = Price(amount=fixed.amount, currency=fixed.currency, vat=sellable_type.get_vat_rate())
             return price
         else:

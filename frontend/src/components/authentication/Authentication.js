@@ -45,7 +45,8 @@ class Authentication extends React.Component {
 						</div>
 						<div className="row">
 							<div className="col-xs-8">
-								<span id="login-error">{this.props.errorMsg}</span>
+								<span id="login-error">{`${this.props.errorMsg}`}</span>
+
 							</div>
 							<div className="col-xs-4">
 								<button type="submit" className="btn btn-primary btn-block btn-flat">Sign In</button>

@@ -18,7 +18,7 @@ export function getToken() {
 	return new Promise(
 		accept => {
 			if (TOKEN === null) {
-				listeners.append(accept);
+				listeners.push(accept);
 			} else {
 				accept(TOKEN);
 			}

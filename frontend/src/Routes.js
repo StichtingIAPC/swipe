@@ -35,6 +35,7 @@ import LabelTypeEdit from './components/assortment/labeltype/LabelTypeEdit';
 import UnitTypeEdit from './components/assortment/unittype/UnitTypeEdit';
 import LabelTypeDetail from './components/assortment/labeltype/LabelTypeDetail';
 import UnitTypeDetail from './components/assortment/unittype/UnitTypeDetail';
+import SalesExp from "./components/sales/SalesExp";
 
 class Routes extends React.Component {
 	render() {
@@ -63,6 +64,8 @@ class Routes extends React.Component {
 					<Route path="accountinggroup/:accountingGroupID/edit/" component={AccountingGroupEdit} />
 					<Route path="accountinggroup/:accountingGroupID/" component={AccountingGroupDetail} />
 				</Route>
+				<Route path="sales/" component={SalesExp} />
+
 				<Route path="articlemanager/" component={ArticleManager}>
 					<Route path="create/" component={ArticleEdit} />
 					<Route path=":articleID/" component={ArticleEdit} />

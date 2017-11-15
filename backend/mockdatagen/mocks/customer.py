@@ -64,4 +64,4 @@ class ContactOrganisationGen:
                                                             organisation=organisation)
         customer_contact_organisation.save()
 
-    requirements = {}
+    requirements = {Organisation}
