@@ -2,6 +2,7 @@ import datetime
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
@@ -57,10 +58,17 @@ class Validate(View):
             token = tokens.first()
             user = token.user
 
+            expiry = token.created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS)
+
+            if expiry < timezone.now():
+                return JSONResponse({
+                    'valid': False,
+                    'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
+                })
+
             return JSONResponse({
                 'valid': True,
-                'expiry': (token.created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS))
-                    .strftime('%Y-%m-%d %H:%M'),
+                'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
                 'user': {
                     'username': user.username,
                     'permissions': user.get_all_permissions(),
