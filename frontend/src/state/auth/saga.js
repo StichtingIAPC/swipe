@@ -37,7 +37,7 @@ function* login({ username, password }) {
 		let err = yield select(state => state.auth.error && state.auth.error[0]);
 
 		// eslint-disable-next-line
-		if (err == null ||err === undefined) {
+		if (err == null || err === undefined) {
 			err = 'Server not connected, please try again later.';
 			yield put(loginError(err));
 		}
@@ -68,7 +68,16 @@ export function* logout() {
 }
 
 export function* loginRestore({ loginAction }) {
-	const { data: { token, user: { username }}} = loginAction;
+	if (!loginAction) {
+		return put(loginError('Login restore failed'));
+	}
+	const action = loginAction.data;
+
+	if (!(action && action.token && action.user && action.user.username)) {
+		return put(loginError('Login restore failed'));
+	}
+
+	const { token, user: { username }} = action;
 
 	const form = new FormData();
 

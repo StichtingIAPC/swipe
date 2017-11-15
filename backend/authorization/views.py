@@ -35,6 +35,11 @@ class Login(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+
+        # TODO: Change! This line causes a user only being able  to be logged in on one place
+        # TODO:         at the same time. I do not know if this a desired feature. If it is, this
+        # TODO:         ought to be done differently. This is just a hotfix by a lazy programmer.
+        Token.objects.filter(user=user).delete()
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
