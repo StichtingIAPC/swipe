@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from crm.models import Customer, Person, Organisation
+from crm.models import Customer, Person, Organisation, ContactOrganisation
 
 
 class CustomerSerializer(serializers.Serializer):
@@ -66,3 +66,25 @@ class OrganisationSerializer(serializers.ModelSerializer):
             'types'
         )
 
+
+class DetailedContactOrganisationSerializer(serializers.ModelSerializer):
+
+    contact = PersonSerializer()
+    organisation = OrganisationSerializer()
+
+    class Meta:
+        model = ContactOrganisation
+        fields = (
+            'contact',
+            'organisation'
+        )
+
+
+class ContactOrganisationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ContactOrganisation
+        fields = (
+            'contact',
+            'organisation'
+        )
