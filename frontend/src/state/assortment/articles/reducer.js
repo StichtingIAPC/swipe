@@ -1,5 +1,5 @@
 const initialState = {
-	articles: null,
+	articles: [],
 	fetching: false,
 	fetchError: null,
 	inputError: null,

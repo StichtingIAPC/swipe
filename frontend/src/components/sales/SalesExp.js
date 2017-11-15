@@ -1,13 +1,15 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { registers } from '../../state/register/registers/actions.js';
+import {connect} from 'react-redux';
+import {connectMixin, fetchStateRequirementsFor} from '../../core/stateRequirements';
+import {registers} from '../../state/register/registers/actions.js';
 
-import { currencies } from '../../state/money/currencies/actions.js';
-import { paymentTypes } from '../../state/register/payment-types/actions.js';
-import { articles } from '../../state/assortment/articles/actions';
-import { stock } from '../../state/sales/stock/actions';
+import {currencies} from '../../state/money/currencies/actions.js';
+import {paymentTypes} from '../../state/register/payment-types/actions.js';
+import {articles} from '../../state/assortment/articles/actions';
+import {stock} from '../../state/sales/stock/actions';
 import {getArticleById} from "../../state/assortment/articles/selectors";
+import Selector from "./productselector/Selector";
+import Receipt from "./receipt/Receipt";
 
 class RegisterBase extends React.Component {
 	componentWillMount() {
@@ -19,10 +21,13 @@ class RegisterBase extends React.Component {
 		console.log(stock)
 		return (
 			<div className="row">
-				<div className="col-xs-12 col-md-12">
-					{stock.map(e => getArticleById(state, e.article).name + ": " + e.count + " FOR " + e.price.amount + " " + e.price.currency)}
+				<div className="col-xs-6 col-md-6">
+					<Selector />
 				</div>
-				<div className="col-xs-8 col-md-8">
+				<div className="col-xs-6 col-md-6">
+					<Receipt />
+				</div>
+				<div className="col-xs-6 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
 			</div>
@@ -33,21 +38,19 @@ class RegisterBase extends React.Component {
 export default connect(
 	state => ({
 		...connectMixin({
-			 register: {
-				 registers,
-				 paymentTypes,
-			 },
-			 money: {
-				 currencies,
-			 },
-			 article: {
-				 articles,
-			 },
-			 sales: {
-				 stock,
-			 },
-
-		 }, state
+			register: {
+				registers,
+				paymentTypes,
+			},
+			money: {
+				currencies,
+			},
+			article: {
+				articles,
+			}, sales: {
+				stock,
+			},
+		}, state
 		),
 		stock: state.sales.stock.stock,
 		state: state,

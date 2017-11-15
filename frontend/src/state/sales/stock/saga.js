@@ -5,7 +5,6 @@ import {doneFetchingStockList, fetchingStockListError} from "./actions";
 
 function* fetchStock({ redirectTo } = {}) {
 	let msg = null;
-	console.log("PENIS");
 	try {
 		const data = yield (yield call(
 			get,
