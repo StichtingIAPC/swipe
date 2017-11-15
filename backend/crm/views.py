@@ -1,3 +1,5 @@
+from django.http import HttpRequest
+from django.http import HttpResponse
 from rest_framework import generics
 from rest_framework import mixins
 
@@ -17,6 +19,10 @@ class CustomerView(mixins.RetrieveModelMixin,
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+    def delete(self, request, *args, **kwargs):
+        Customer.objects.filter(id=kwargs['pk']).delete()
+        return HttpResponse(content={'deleted':True}, status=200)
+
 
 class PersonView(mixins.RetrieveModelMixin,
                  mixins.UpdateModelMixin,
@@ -34,7 +40,10 @@ class PersonView(mixins.RetrieveModelMixin,
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
-    # TODO: Implement delete
+    def delete(self, request, *args, **kwargs):
+        Person.objects.filter(id=kwargs['pk']).delete()
+        return HttpResponse(content={'deleted':True}, status=200)
+
 
 
 class PersonCreateView(mixins.CreateModelMixin,
@@ -62,7 +71,9 @@ class OrganisationView(mixins.RetrieveModelMixin,
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
-    # TODO: Implement delete
+    def delete(self, request, *args, **kwargs):
+        Organisation.objects.filter(id=kwargs['pk']).delete()
+        return HttpResponse(content={'deleted':True}, status=200)
 
 class OrganisationCreateView(mixins.CreateModelMixin,
                        generics.GenericAPIView):
@@ -89,7 +100,9 @@ class ContactOrganisationView(mixins.RetrieveModelMixin,
         self.serializer_class = ContactOrganisationSerializer
         return self.update(request, *args, **kwargs)
 
-    # TODO: Implement delete
+    def delete(self, request, *args, **kwargs):
+        ContactOrganisation.objects.filter(id=kwargs['pk']).delete()
+        return HttpResponse(content={'deleted':True}, status=200)
 
 
 class ContactOrganisationCreateView(mixins.CreateModelMixin,

@@ -67,6 +67,8 @@ class OrganisationSerializer(serializers.ModelSerializer):
         )
 
 
+# This serializer is different from the ContactOrganisationSerializer as this serializer also serializes the contact
+# and the organisation instead of returning their id's
 class DetailedContactOrganisationSerializer(serializers.ModelSerializer):
 
     contact = PersonSerializer()
