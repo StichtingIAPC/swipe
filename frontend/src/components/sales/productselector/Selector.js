@@ -16,7 +16,6 @@ class Selector extends React.Component {
 
 	render() {
 		const {stock, state} = this.props;
-		console.log(stock)
 		return (
 			<div className="row">
 				{stock.map(e => <div key={e.article} className="col-xs-12 col-md-12">{getArticleById(state, e.article).name}: {e.count} FOR {e.price.amount} {e.price.currency}</div>)}
