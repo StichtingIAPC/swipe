@@ -7,26 +7,21 @@ import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { stock } from '../../../state/sales/stock/actions';
-import PaymentTypes from "./PaymentTypes";
-import Customer from "./Customer";
 
-class Receipt extends React.Component {
+class PaymentTypes extends React.Component {
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
 	}
 
 	render() {
-		const { stock, state } = this.props;
+		const {  paymentTypes} = this.props;
 
 		return (
 			<div className="row">
-				<Customer />
-				<PaymentTypes />
-
+				{paymentTypes.map(e => <div key={e.id} className="col-xs-12 col-md-12">{e.name}</div>)}
 				<div className="col-xs-8 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
-
 			</div>
 		);
 	}
@@ -35,19 +30,15 @@ class Receipt extends React.Component {
 export default connect(
 	state => ({
 		...connectMixin({
+			 register: {
+				 registers,
+				 paymentTypes,
+			 },
 			 money: {
 				 currencies,
 			 },
-			 article: {
-				 articles,
-			 },
-			 sales: {
-				 stock,
-			 },
-
 		 }, state
 		),
-		stock: state.sales.stock.stock,
-		state,
+		paymentTypes: state.register.paymentTypes.paymentTypes,
 	})
-)(Receipt);
+)(PaymentTypes);

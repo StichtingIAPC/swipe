@@ -1,5 +1,5 @@
 const initialState = {
-	paymentTypes: null,
+	paymentTypes: [],
 	fetching: false,
 	fetchError: null,
 	inputError: null,

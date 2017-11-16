@@ -18,7 +18,6 @@ class RegisterBase extends React.Component {
 
 	render() {
 		const {stock, state} = this.props;
-		console.log(stock)
 		return (
 			<div className="row">
 				<div className="col-xs-6 col-md-6">
