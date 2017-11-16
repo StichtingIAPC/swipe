@@ -20,7 +20,7 @@ class Customer extends React.Component {
 
 		return (
 			<div className="row">
-				{stock.map(e => <div key={e.article} className="col-xs-12 col-md-12">{getArticleById(state, e.article).name}: {e.count} FOR {e.price.amount} {e.price.currency}</div>)}
+				This component does not as of yet exist. Sorry.
 
 				<div className="col-xs-8 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
