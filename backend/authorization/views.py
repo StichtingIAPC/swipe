@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
@@ -35,6 +35,9 @@ class Login(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+
+        Token.objects.filter(user=user).filter(
+            created__lt=timezone.now() - timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS)).delete()
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
@@ -58,7 +61,8 @@ class Validate(View):
             token = tokens.first()
             user = token.user
 
-            expiry = token.created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS)
+            expiry = (timezone.now() if token.created is None else token.created) + timedelta(
+                hours=settings.AUTH_TOKEN_VALID_TIME_HOURS)
 
             if expiry < timezone.now():
                 return JSONResponse({
