@@ -1,15 +1,29 @@
 import { combineReducers } from 'redux';
-import { booleanControlReducer, objectControlReducer, setFieldReducer } from '../../../tools/reducerComponents';
+import {
+	booleanControlReducer, collectReducers, objectControlReducer,
+	setFieldReducer,
+} from '../../../tools/reducerComponents';
 
-const defaultUnitType = {};
+const defaultUnitType = {
+	id: null,
+	type_long: '',
+	type_short: '',
+	value_type: null,
+	incremental_type: null,
+};
 
 export default combineReducers({
 	unitTypes: setFieldReducer([
 		'assortment/unit-types/FETCH_ALL_DONE',
 	], [], 'unitTypes'),
-	activeObject: objectControlReducer([
-		'assortment/unit-types/SET_FIELD',
-	], defaultUnitType),
+	activeObject: collectReducers(
+		objectControlReducer([
+			'assortment/unit-types/SET_FIELD',
+		], defaultUnitType),
+		setFieldReducer([
+			'assortment/unit-types/FETCH_DONE',
+		], defaultUnitType, 'unitType'),
+	),
 	loading: booleanControlReducer({
 		'assortment/unit-types/FETCH_ALL': true,
 		'assortment/unit-types/FETCH_ALL_FINALLY': false,

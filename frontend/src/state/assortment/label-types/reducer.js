@@ -1,7 +1,13 @@
 import { combineReducers } from 'redux';
 import { booleanControlReducer, objectControlReducer, setFieldReducer } from '../../../tools/reducerComponents';
 
-const defaultLabelType = {};
+const defaultLabelType = {
+	id: null,
+	name: '',
+	description: '',
+	unit_type: null,
+	labels: [],
+};
 
 export default combineReducers({
 	labelTypes: setFieldReducer([

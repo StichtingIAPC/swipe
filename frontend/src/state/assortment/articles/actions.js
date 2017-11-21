@@ -103,6 +103,10 @@ export function setArticleField(field, value) {
 		value };
 }
 
+export function newArticle() {
+	return { type: 'assortment/articles/NEW_ARTICLE' };
+}
+
 export default fetchAllArticles;
 export {
 	fetchAllArticles as articles

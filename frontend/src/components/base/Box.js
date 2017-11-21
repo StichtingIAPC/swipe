@@ -22,7 +22,24 @@ export default class Box extends React.Component {
 		<div className="box-body">{ children }</div>
 	);
 
+	constructor(props) {
+		super(props);
+		this.state = {
+			err: false,
+		};
+	}
+
+	componentWillCatch(err) {
+		console.log(err);
+		this.setState(() => ({ err: true }));
+	}
+
 	render() {
+		if (this.state.err) return (
+			<div className="box">
+				<this.Header title='Error in this component' />
+			</div>
+		)
 		return (
 			<div className="box">
 				{ this.props.children }

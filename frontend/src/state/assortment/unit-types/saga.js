@@ -32,7 +32,7 @@ function* fetchUnitType({ id }) {
 
 		yield put(actions.fetchUnitTypeDone(newUnitType));
 	} catch (e) {
-		yield put(actions.fetchUnitTypeFailed(e));
+		yield put(actions.fetchUnitTypeFailed(id, e));
 	} finally {
 		yield put(actions.fetchUnitTypeFinally());
 	}

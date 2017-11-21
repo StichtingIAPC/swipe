@@ -2,16 +2,25 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-function AssortmentLabel({ labelTypes, unitTypes, labelTypeID, labelValue, children, ...rest }) {
-	const labelType = labelTypes.find(label => label.id === labelTypeID);
+class AssortmentLabel extends React.Component {
+	render() {
+		const {
+			labelTypes,
+			unitTypes,
+			labelTypeID,
+			labelValue,
+			children,
+		} = this.props;
 
-	const unitType = unitTypes.find(el => el.id === +labelType.unit_type);
+		const labelType = labelTypes.find(label => label.id === labelTypeID) || {};
+		const unitType = unitTypes.find(el => el.id === +labelType.unit_type) || {};
 
-	return <span className="article-label default" {...rest}>
-		<span>{labelType.name}</span>
-		<span>{labelValue}{unitType.type_short}</span>
-		{children}
-	</span>;
+		return <span className="article-label default">
+			<span>{labelType.name}</span>
+			<span>{labelValue}{unitType.type_short}</span>
+			{children}
+		</span>;
+	}
 }
 
 AssortmentLabel.propTypes = {

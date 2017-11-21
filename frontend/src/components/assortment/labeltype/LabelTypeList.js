@@ -39,7 +39,7 @@ class LabelTypeList extends React.Component {
 		);
 	}
 
-	update(evt) {
+	update = evt => {
 		evt.preventDefault();
 		this.props.update();
 	}
@@ -56,7 +56,7 @@ class LabelTypeList extends React.Component {
 									className={`btn btn-sm ${this.props.invalid ? 'btn-danger' : 'btn-default'} ${this.props.fetching ? 'disabled' : ''}`}
 									to="#"
 									title="Refresh"
-									onClick={::this.update}>
+									onClick={this.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link

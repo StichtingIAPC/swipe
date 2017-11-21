@@ -32,7 +32,7 @@ function* fetchLabelType({ id }) {
 
 		yield put(actions.fetchLabelTypeDone(newLabelType));
 	} catch (e) {
-		yield put(actions.fetchLabelTypeFailed(e));
+		yield put(actions.fetchLabelTypeFailed(id, e));
 	} finally {
 		yield put(actions.fetchLabelTypeFinally());
 	}

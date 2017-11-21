@@ -7,11 +7,12 @@ import { BoolField, IntegerField, SelectField, StringField } from '../forms/fiel
 import FontAwesome from '../tools/icons/FontAwesome';
 import LabelField from '../forms/LabelField';
 import LabelList from '../assortment/LabelList';
-import { fetchArticle, setArticleField } from '../../state/assortment/articles/actions';
+import { fetchArticle, newArticle, setArticleField } from '../../state/assortment/articles/actions';
 import Box from '../base/Box';
-import { connectMixin } from '../../core/stateRequirements';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import { accountingGroups } from '../../state/money/accounting-groups/actions';
 import { labelTypes } from '../../state/assortment/label-types/actions';
+import { unitTypes } from '../../state/assortment/unit-types/actions';
 
 class ArticleEdit extends React.Component {
 	static propTypes = {
@@ -24,8 +25,8 @@ class ArticleEdit extends React.Component {
 	};
 
 	componentWillMount() {
-		this.props.fetchArticle(this.props.id);
-		this.props.fetchRequirementsFor(this);
+		this.props.fetchArticle(this.props.match.params.articleID);
+		fetchStateRequirementsFor(this);
 	}
 
 	save = () => {
@@ -38,20 +39,26 @@ class ArticleEdit extends React.Component {
 		}
 	};
 
-	reset = () => this.props.fetchArticle(this.props.id);
+	reset = () => {
+		if (typeof this.props.match.params.articleID !== 'undefined') {
+			this.props.fetchArticle(this.props.match.params.articleID);
+		} else {
+			this.props.newArticle();
+		}
+	}
 
-	componentWillReceiveProps(props) {
-		if (this.props.article !== props.article) {
-			this.reset(null, props);
+	componentWillReceiveProps({ match }) {
+		if (this.props.match.params.id !== match.params.id) {
+			this.props.fetchArticle(match.params.id);
 		}
 	}
 
 	setName = ({ target: { value }}) => this.props.setArticleField('name', value);
-	setEAN = ({ target: { value }}) => this.props.setArticleField('name', +value);
+	setEAN = ({ target: { value }}) => this.props.setArticleField('ean', +value);
 	setSerialNumber = () => this.props.setArticleField('serial_number', !this.props.article.serial_number);
 	setAccountingGroup = ({ target: { value }}) => this.props.setArticleField('accounting_group', value);
 
-	addLabel = (typeID, value) => this.setArticleField(
+	addLabel = (typeID, value) => this.props.setArticleField(
 		'labels',
 		{
 			...this.props.article.labels,
@@ -61,7 +68,7 @@ class ArticleEdit extends React.Component {
 		},
 	);
 
-	removeLabel = (typeID, value) => this.setArticleField(
+	removeLabel = (typeID, value) => this.props.setArticleField(
 		'labels',
 		{
 			...this.props.article.labels,
@@ -70,10 +77,18 @@ class ArticleEdit extends React.Component {
 		},
 	);
 
-	render() {
-		const { article } = this.props;
+	renderInsert = ({ value, typeID }) => (
+		<a
+			className="btn btn-danger btn-xs"
+			onClick={() => this.removeLabel(typeID, value)}>
+			<FontAwesome icon="close" />
+		</a>
+	);
 
-		if (!article) {
+	render() {
+		const { article, requirementsLoaded } = this.props;
+
+		if (!requirementsLoaded) {
 			return null;
 		}
 
@@ -83,8 +98,8 @@ class ArticleEdit extends React.Component {
 					title={`${article.id ? article.name : 'New article'} - Properties`}
 					buttons={[
 						<Link key="close" to="/articlemanager/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>,
-						<Link key="repeat" onClick={this.reset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></Link>,
-						<Link key="save" onClick={this.save} className="btn btn-success btn-sm" title="Save">Save</Link>,
+						<a key="repeat" onClick={this.reset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>,
+						<a key="save" onClick={this.save} className="btn btn-success btn-sm" title="Save">Save</a>,
 					]} />
 				<Box.Body>
 					<div className="form-horizontal">
@@ -113,13 +128,7 @@ class ArticleEdit extends React.Component {
 							<LabelList
 								className="col-sm-9 col-sm-offset-3"
 								labels={article.labels}
-								insert={({ value, typeID }) => (
-									<a
-										className="btn btn-danger btn-xs"
-										onClick={() => this.removeLabel(typeID, value)}>
-										<FontAwesome icon="close" />
-									</a>
-								)} />
+								insert={this.renderInsert} />
 						</div>
 					</div>
 				</Box.Body>
@@ -155,11 +164,12 @@ export default connect(
 		...connectMixin({
 			assortment: {
 				labelTypes,
+				unitTypes,
 			},
 			money: {
 				accountingGroups,
 			},
-		}),
+		}, state),
 		defaultCurrency: (state.settings || {}).defaultCurrency || { // get default currency from settings, or otherwise a hardcoded default 'EURO',
 			symbol: '€',
 			digits: 2,
@@ -171,6 +181,7 @@ export default connect(
 	{
 		fetchArticle,
 		setArticleField,
+		newArticle,
 		createArticle: article => {
 			const copy = { ...article };
 
@@ -189,5 +200,6 @@ export default connect(
 			delete copy['useFixedPrice'];
 			return updateArticle(copy);
 		},
+		dispatch: e => e,
 	}
 )(ArticleEdit);

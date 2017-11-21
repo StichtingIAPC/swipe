@@ -22,19 +22,19 @@ class LabelsModal extends React.Component {
 		return (
 			<div className="row">
 				<div className="col-sm-4">
-					<LabelTypeList activeID={this.props.labelTypeID} />
-					<UnitTypeList activeID={this.props.unitTypeID} />
+					<Route route={`${match.path}/labeltype/:id`} render={({ id }) => <LabelTypeList activeID={id} /> } />
+					<Route route={`${match.path}/unittype/:id`} render={({ id }) => <UnitTypeList activeID={id} /> } />
 				</div>
 				<div className="col-sm-8">
 					{
 						this.props.requirementsLoaded ? (
 							<Switch>
-								<Route path={`${match.path}labeltype/create`} component={LabelTypeEdit} />
-								<Route path={`${match.path}labeltype/:labelTypeID/edit`} component={LabelTypeEdit} />
-								<Route path={`${match.path}labeltype/:labelTypeID`} component={LabelTypeDetail} />
-								<Route path={`${match.path}unittype/create`} component={UnitTypeEdit} />
-								<Route path={`${match.path}unittype/:unitTypeID/edit`} component={UnitTypeEdit} />
-								<Route path={`${match.path}unittype/:unitTypeID`} component={UnitTypeDetail} />
+								<Route path={`${match.path}/labeltype/create`} component={LabelTypeEdit} />
+								<Route path={`${match.path}/labeltype/:id/edit`} component={LabelTypeEdit} />
+								<Route path={`${match.path}/labeltype/:id`} component={LabelTypeDetail} />
+								<Route path={`${match.path}/unittype/create`} component={UnitTypeEdit} />
+								<Route path={`${match.path}/unittype/:id/edit`} component={UnitTypeEdit} />
+								<Route path={`${match.path}/unittype/:id`} component={UnitTypeDetail} />
 							</Switch>
 						) : null
 					}

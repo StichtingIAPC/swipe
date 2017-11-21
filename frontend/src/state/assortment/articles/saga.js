@@ -32,7 +32,7 @@ function* fetchArticle({ id }) {
 
 		yield put(actions.fetchArticleDone(newArticle));
 	} catch (e) {
-		yield put(actions.fetchArticleFailed(e));
+		yield put(actions.fetchArticleFailed(id, e));
 	} finally {
 		yield put(actions.fetchArticleFinally());
 	}

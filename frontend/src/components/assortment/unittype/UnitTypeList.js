@@ -77,7 +77,7 @@ class UnitTypeList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.unitTypes === null ? null : this.props.unitTypes.map(
+							{this.props.unitTypes === null ? null : this.props.unitTypes.filter(el => !!el).map(
 								unitType => (
 									<UnitTypeList.RenderEntry activeID={this.props.activeID} key={unitType.id} unitType={unitType} />
 								)

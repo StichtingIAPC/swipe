@@ -17,7 +17,7 @@ export default class Form extends React.Component {
 										<Link to={this.props.closeLink} className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
 									) : null}
 								<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Return"><FontAwesome icon="arrow-left" /></Link>
-								<Link onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></Link>
+								<a onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>
 							</div>
 						</div>
 					</div>

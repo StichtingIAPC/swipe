@@ -1,5 +1,8 @@
 import { combineReducers } from 'redux';
-import { booleanControlReducer, objectControlReducer, setFieldReducer } from '../../../tools/reducerComponents';
+import {
+	booleanControlReducer, collectReducers, objectControlReducer, resetFieldReducer,
+	setFieldReducer,
+} from '../../../tools/reducerComponents';
 
 const defaultArticle = {
 	id: null,
@@ -15,9 +18,17 @@ export default combineReducers({
 	articles: setFieldReducer([
 		'assortment/articles/FETCH_ALL_DONE',
 	], [], 'articles'),
-	activeObject: objectControlReducer([
-		'assortment/articles/SET_FIELD',
-	], defaultArticle),
+	activeObject: collectReducers(
+		resetFieldReducer([
+			'assortment/articles/NEW_ARTICLE',
+		], defaultArticle),
+		objectControlReducer([
+			'assortment/articles/SET_FIELD',
+		], defaultArticle),
+		setFieldReducer([
+			'assortment/articles/FETCH_DONE',
+		], defaultArticle, 'article'),
+	),
 	loading: booleanControlReducer({
 		'assortment/articles/FETCH_ALL': true,
 		'assortment/articles/FETCH_ALL_FINALLY': false,

@@ -28,12 +28,13 @@ class ArticleManager extends React.Component {
 				<div className="col-sm-4">
 					<ArticleSelector
 						onSelect={this.props.selectArticle}
-						toolButtons={
+						toolButtons={[
 							<Link
+								key='hello'
 								to="/articlemanager/create/"
 								className="btn btn-success btn-sm"
 								title="Create"><FontAwesome icon="plus" /></Link>
-						} />
+						]} />
 				</div>
 				<div className="col-sm-8">
 					<Switch>

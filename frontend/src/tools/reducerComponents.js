@@ -29,3 +29,6 @@ export const booleanControlReducer = (types, defaultValue) =>
 
 export const collectReducers = (...reducers) =>
 	(state, action) => reducers.reduce((_state, reducer) => reducer(_state, action), state);
+
+export const resetFieldReducer = (types, defaultValue) =>
+	(state = defaultValue, action) => types.includes(action.type) ? defaultValue : state;

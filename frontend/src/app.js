@@ -3,6 +3,7 @@
 // System dependencies
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { AppContainer } from 'react-hot-loader';
 import { applyMiddleware, compose, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import createSagaMiddleware from 'redux-saga';
@@ -26,9 +27,12 @@ const sagaMiddleware = createSagaMiddleware();
 
 export const history = createBrowserHistory();
 
+const routingMiddleware = routerMiddleware(history);
+
 const store = createStore(
 	rootReducer,
-	composeEnhancers(applyMiddleware(routerMiddleware(history), sagaMiddleware))
+	{},
+	composeEnhancers(applyMiddleware(routingMiddleware, sagaMiddleware))
 );
 
 // Run the main saga
@@ -50,17 +54,20 @@ if (window && window.localStorage && window.localStorage.getItem('LAST_LOGIN_SUC
 // Render function
 function render() {
 	ReactDOM.render(
-		<Provider store={store}>
-			<ConnectedRouter history={history}>
-				<Routes />
-			</ConnectedRouter>
-		</Provider>
+		<AppContainer>
+			<Provider store={store}>
+				<ConnectedRouter history={history}>
+					<Routes />
+				</ConnectedRouter>
+			</Provider>
+		</AppContainer>
 		, document.getElementById('app')
 	);
 }
 
 // First render + register hot loader for hot reloading in a dev environment
 render();
+
 if (module.hot) {
-	module.hot.accept('./components/Application.js', render);
+	module.hot.accept('./Routes.js', render);
 }
