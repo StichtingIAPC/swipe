@@ -79,7 +79,10 @@ class Validate(View):
                 'user': {
                     'username': user.username,
                     'permissions': user.get_all_permissions(),
-                    'gravatarUrl': '//failurl',
+                    'gravatarUrl': 'https://www.gravatar.com/avatar/00000000000000000000000000000000',
+                    'firstName': user.first_name,
+                    'lastName': user.last_name,
+                    'email': user.email,
                 }
             })
 

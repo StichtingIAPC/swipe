@@ -3,6 +3,9 @@ import { connect } from 'react-redux';
 
 class Profile extends React.Component {
 	render() {
+		if (this.props.user === null) {
+			return <div />;
+		}
 		return (
 			<div className="row">
 				<div className="col-sm-1">
