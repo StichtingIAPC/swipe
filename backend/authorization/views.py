@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
@@ -39,12 +40,19 @@ class Login(ObtainAuthToken):
         Token.objects.filter(user=user).filter(
             created__lt=timezone.now() - timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS)).delete()
         token, created = Token.objects.get_or_create(user=user)
+
+        m = hashlib.md5()
+        m.update(user.email.encode('utf-8'))
+
         return Response({
             'token': token.key,
             'user': {
                 'username': user.username,
                 'permissions': user.get_all_permissions(),
-                'gravatarUrl': '//failurl',
+                'gravatarUrl': 'https://www.gravatar.com/avatar/' + m.hexdigest(),
+                'firstName': user.first_name,
+                'lastName': user.last_name,
+                'email': user.email,
             },
         })
 
@@ -70,13 +78,19 @@ class Validate(View):
                     'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
                 })
 
+            m = hashlib.md5()
+            m.update(user.email.encode('utf-8'))
+
             return JSONResponse({
                 'valid': True,
                 'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
                 'user': {
                     'username': user.username,
                     'permissions': user.get_all_permissions(),
-                    'gravatarUrl': '//failurl',
+                    'gravatarUrl': 'https://www.gravatar.com/avatar/' + m.hexdigest(),
+                    'firstName': user.first_name,
+                    'lastName': user.last_name,
+                    'email': user.email,
                 }
             })
 
