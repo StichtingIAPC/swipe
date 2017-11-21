@@ -6,7 +6,7 @@ import fetch from 'isomorphic-fetch';
 import { getToken } from '../../api';
 import { logoutError, logoutSuccess } from './actions';
 
-function* login({ username, password }) {
+export function* login({ username, password }) {
 	const form = new FormData();
 
 	form.append('username', username);
@@ -24,7 +24,7 @@ function* login({ username, password }) {
 
 		const data = yield result.json();
 
-		yield put(loginSuccess(data.token, data.user));
+		yield call(put, loginSuccess(data.token, data.user));
 
 		const nextRoute = yield select(state => state.auth.nextRoute);
 
@@ -110,7 +110,7 @@ export function* redirectLogin() {
 	yield put(push('/authentication/login'));
 }
 
-export default function* saga() {
+export function* saga() {
 	yield takeEvery('AUTH_START_LOGIN', login);
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
 	yield takeEvery('AUTH_LOGIN_ERROR', redirectLogin);
