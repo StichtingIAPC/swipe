@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { IndexRedirect, Route, Router } from 'react-router';
 import { push } from 'react-router-redux';
-import { setRouteAfterAuthentication } from 'actions/auth.js';
+import { setRouteAfterAuthentication } from './state/auth/actions.js';
 // Subrouters
 import { Error404 } from './components/base/Error404';
 import Authentication from './components/authentication/Authentication.js';
@@ -11,9 +11,9 @@ import Dashboard from './components/Dashboard.js';
 import HelloWorld from './components/HelloWorld.js';
 import Profile from './components/authentication/Profile.js';
 // Supplier components
-import SupplierBase from 'components/supplier/SupplierBase';
-import SupplierEdit from 'components/supplier/SupplierEdit';
-import SupplierDetail from 'components/supplier/SupplierDetail';
+import SupplierBase from './components/supplier/SupplierBase';
+import SupplierEdit from './components/supplier/SupplierEdit';
+import SupplierDetail from './components/supplier/SupplierDetail';
 // Money components
 import MoneyBase from './components/money/MoneyBase';
 import CurrencyDetail from './components/money/currency/CurrencyDetail';
@@ -38,16 +38,12 @@ import LabelTypeDetail from './components/assortment/labeltype/LabelTypeDetail';
 import UnitTypeDetail from './components/assortment/unittype/UnitTypeDetail';
 
 class Routes extends React.Component {
-	checkAuthentication(nextState) {
-		if (this.props.user === null)			{ this.props.authenticate(nextState.location.pathname); }
-	}
-
 	render() {
 		return <Router history={this.props.history}>
 			<Route path="/authentication">
 				<Route path="login" component={Authentication} />
 			</Route>
-			<Route path="/" component={Application} onEnter={::this.checkAuthentication}>
+			<Route path="/" component={Application}>
 				<IndexRedirect to="/dashboard" />
 				<Route path="dashboard" component={Dashboard} />
 				<Route path="helloworld" component={HelloWorld} />
@@ -104,12 +100,4 @@ class Routes extends React.Component {
 	}
 }
 
-export default connect(
-	state => ({ user: state.auth.currentUser }),
-	dispatch => ({
-		authenticate: route => {
-			if (route !== null)				{ dispatch(setRouteAfterAuthentication(route)); }
-			dispatch(push('/authentication/login'));
-		},
-	})
-)(Routes);
+export default Routes;

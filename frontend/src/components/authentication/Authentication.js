@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { startLogin } from '../../actions/auth.js';
+import { startLogin } from '../../state/auth/actions.js';
 import Glyphicon from '../tools/icons/Glyphicon';
 
 class Authentication extends React.Component {
@@ -44,7 +44,9 @@ class Authentication extends React.Component {
 							<Glyphicon glyph="lock form-control-feedback" />
 						</div>
 						<div className="row">
-							<div className="col-xs-8" />
+							<div className="col-xs-8">
+								<span id="login-error">{`${this.props.errorMsg ? this.props.errorMsg : ''}`}</span>
+							</div>
 							<div className="col-xs-4">
 								<button type="submit" className="btn btn-primary btn-block btn-flat">Sign In</button>
 							</div>
@@ -57,6 +59,6 @@ class Authentication extends React.Component {
 }
 
 export default connect(
-	state => ({ auth: state.auth }),
+	state => ({ auth: state.auth, errorMsg: state.auth.error }),
 	dispatch => ({ login: (username, password) => dispatch(startLogin(username, password)) }),
 )(Authentication);

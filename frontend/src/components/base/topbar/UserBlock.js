@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
-import { logout } from '../../../actions/auth';
+import { logout } from '../../../state/auth/actions.js';
 
 class UserBlock extends React.Component {
 	constructor(props) {

@@ -45,13 +45,14 @@ class LabelTypeDetail extends React.Component {
 	}
 }
 
+// TODO: replace with fetchers
 export default connect(
 	(state, props) => {
-		const labelType = (state.labelTypes.labelTypes || []).find(el => el.id === Number(props.params.labelTypeID));
+		const labelType = state.assortment.labelTypes.labelTypes.find(el => el.id === +props.params.labelTypeID);
 
 		return {
 			labelType,
-			unitType: (state.unitTypes.unitTypes || []).find(el => el.id === Number(labelType.unit_type)),
+			unitType: state.assortment.unitTypes.unitTypes.find(el => el.id === +labelType.unit_type),
 		};
 	}
 )(LabelTypeDetail);

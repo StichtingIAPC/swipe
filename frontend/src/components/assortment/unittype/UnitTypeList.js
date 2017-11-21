@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingUnitTypes } from '../../../actions/assortment/unitTypes';
+import { startFetchingUnitTypes } from '../../../state/assortment/unit-types/actions.js';
 
 class UnitTypeList extends React.Component {
 	static propTypes = {
@@ -105,9 +105,11 @@ class UnitTypeList extends React.Component {
 
 export default connect(
 	state => ({
-		unitTypes: state.unitTypes.unitTypes,
-		errorMsg: state.unitTypes.errorMsg,
-		fetching: state.labelTypes.fetching,
+		unitTypes: state.assortment.unitTypes.unitTypes,
+		errorMsg: state.assortment.unitTypes.errorMsg,
+		fetching: state.assortment.labelTypes.fetching,
 	}),
-	dispatch => ({ update: () => dispatch(startFetchingUnitTypes()) }),
+	{
+		update: startFetchingUnitTypes,
+	},
 )(UnitTypeList);
