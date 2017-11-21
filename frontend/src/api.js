@@ -26,6 +26,10 @@ export function getToken() {
 	);
 }
 
+export function __unsafeGetToken() {
+	return TOKEN;
+}
+
 async function request(method, url, { headers = {}, ...rest } = {}, object) {
 	const token = await getToken();
 	const result = await fetch(
