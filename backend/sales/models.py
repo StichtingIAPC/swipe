@@ -546,7 +546,7 @@ class StockCollections:
         stock_lines = Stock.objects.filter(labeltype__isnull=True)
         result = []
         for line in stock_lines:
-            price = PricingModel.return_price(stock=line, customer=customer)
+            price = PricingModel.return_price(stock=line, customer=customer, sellable_type=line.article)
             result.append((line, price))
 
         return result
@@ -558,7 +558,7 @@ class StockCollections:
         stock_lines = Stock.objects.filter(labeltype__exact="Order", labelkey__in=customer_orders)
         result = []
         for line in stock_lines:
-            price = PricingModel.return_price(stock=line, customer=customer)
+            price = PricingModel.return_price(stock=line, customer=customer, sellable_type=line.article)
             result.append((line, price))
 
         return result
