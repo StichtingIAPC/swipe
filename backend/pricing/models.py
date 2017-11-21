@@ -1,12 +1,14 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from article.models import SellableType, OtherCostType
+from swipe.settings import USED_CURRENCY
 from tools.util import raiseifnot
-from money.models import Price, Money, Cost, Currency
+from money.models import Price, Money, Cost, SalesPrice
 from decimal import Decimal
 from crm.models import Customer
 from stock.models import Stock
 from supplier.models import ArticleTypeSupplier
+from math import e
 
 
 def validate_bigger_than_0(value):
@@ -19,53 +21,38 @@ class PricingModel(models.Model):
     """
     This is a translater from row to actual processing function
     """
-    # The primary key, also the key value reference to the function
-    function_identifier = models.IntegerField(primary_key=True)
-    # A name indicates what the method does, not functional.
-    name = models.CharField(max_length=40)
-    # The priority of execution of the function. Lower number is higher priority. Number is bigger than 0 and unique.
-    position = models.IntegerField(unique=True, null=False, validators=[validate_bigger_than_0])
-
-    # Add numerical properties of pricing models like the margin below.
-    margin = models.DecimalField(null=True, blank=True, decimal_places=10, max_digits=16)
-
-    def __str__(self):
-        return "Id: {}, Name: {}, Position: {}".format(self.pk, self.name, self.position)
-
-    def save(self, *args, **kwargs):
-        validate_bigger_than_0(self.position)
-        super(PricingModel, self).save()
-
-    def return_pricing_function(self):
-        """
-        Retrieves a pricing function from its unique identifier
-        :return:
-        """
-        function_dict = {1: Functions.fixed_price,
-                         2: Functions.fixed_margin}
-
-        return function_dict.get(self.function_identifier)
+    exp_mult = models.DecimalField(max_digits=6, decimal_places=5)
+    exponent = models.DecimalField(max_digits=6, decimal_places=5)
+    constMargin = models.DecimalField(max_digits=6, decimal_places=5)
+    min_relative_margin_error = models.DecimalField(max_digits=6, decimal_places=5)
+    max_relative_margin_error = models.DecimalField(max_digits=6, decimal_places=5)
+    custType = models.ForeignKey(Customer, null=True, blank=True)
 
     @staticmethod
-    def return_price(sellable_type: SellableType = None, margin: Decimal = Decimal("0"), customer: Customer = None,
-                     stock: Stock = None) -> Price:
-        pricing_models = PricingModel.objects.all().order_by('position')
-        if len(pricing_models) == 0:
-            raise PricingError("No pricing models found!")
-        else:
-            price = None  # type: Price
-            i = 0
-            while price is None and i < len(pricing_models):
-                pricing_function = pricing_models[i].return_pricing_function()
-                if not pricing_function:
-                    raise PricingError("Pricing function defined was not found")
-                price = pricing_function(sellable_type, pricing_models[i], customer, stock)
-                i += 1
+    def calc_price(cost: Cost,  vat_rate: Decimal, customer: Customer = None) -> Price:
+        pm = PricingModel.objects.filter(custType=None).first()
+        exp_mult = Decimal("0.15")
+        exponent = Decimal("-0.18")
+        constMargin =  Decimal("0.04")
+        min_relative_margin_error = Decimal("0.2")
+        max_relative_margin_error = Decimal("0.2")
+        if pm != None:
+            exp_mult = pm.exp_mult
+            exponent = pm.exponent
+            constMargin = pm.constMargin
+            min_relative_margin_error = pm.min_relative_margin_error
+            max_relative_margin_error = pm.max_relative_margin_error
 
-            if not price:
-                raise PricingError("Pricing models were applied and nothing appropriate was found. No price returned.")
-            raiseifnot(price.uses_system_currency(), PricingError, "Returned price was not of system currency.")
-            return price
+        amount = (exp_mult * Decimal(Decimal(e) ** (exponent * cost.amount)) + constMargin+1)*cost.amount
+
+        return SalesPrice(amount=Decimal(amount*vat_rate), vat=vat_rate, currency=cost.currency, cost=cost)
+
+    @staticmethod
+    def return_price(sellable_type: SellableType, customer: Customer = None,
+                     stock: Stock = None) -> Price:
+            if stock:
+                cost = stock.book_value
+            return PricingModel.calc_price(cost, sellable_type.get_vat_rate(), customer)
 
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
@@ -83,8 +70,6 @@ class Functions:
         raiseifnot(isinstance(sellable_type, SellableType), TypeError, "sellableType should be sellableType")
         if hasattr(sellable_type, 'fixed_price'):
             fixed = sellable_type.fixed_price  # type: Money
-            if fixed is None:
-                fixed= Cost(amount=Decimal(100000000), currency=Currency("EUR"))
             price = Price(amount=fixed.amount, currency=fixed.currency, vat=sellable_type.get_vat_rate())
             return price
         else:
