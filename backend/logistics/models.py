@@ -56,7 +56,7 @@ class SupplierOrder(ImmutableBlame):
         distribution = DistributionStrategy.get_strategy_from_string(USED_SUPPLIERORDER_STRATEGY)\
             .get_distribution(articles_ordered)
 
-        DistributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
+        return DistributionStrategy.distribute(user_modified, supplier, distribution, indirect=True)
 
     @staticmethod
     def verify_article_demand(articles_ordered=None):
@@ -83,7 +83,6 @@ class SupplierOrder(ImmutableBlame):
             if not hasattr(line.wishable, 'sellabletype') or \
                             line.wishable.sellabletype is None:
                 raise UnimplementedError("Or products are not yet supported")
-
             to_order[line.wishable.sellabletype.articletype] += line.number
 
         for article, number in articles_ordered.items():
@@ -486,15 +485,17 @@ class StockWishTable:
 
 class StockWishTableLog(ImmutableBlame):
     """
-    Log of all edits of the stock wish.
+    Log of all edits of the stock wish. This logs which articleType is modified and by what amount and for which reason.
     """
-
+    # The modification count to the stock
     number = models.IntegerField()
-
+    # The article type which is modified
     article_type = models.ForeignKey(ArticleType)
-
+    # A possible reason of the modification of the StockWishTable. If set, a SupplierOrder modded the StockWishTable.
+    # If set, stock_wish must be unset
     supplier_order = models.ForeignKey(SupplierOrder, null=True)
-
+    # A possible reason of the modification of the StockWishTable. If set, a StockWish modded the StockWishTable.
+    # If set, supplier_order must be unset
     stock_wish = models.ForeignKey(StockWish, null=True)
 
     def save(self, indirect=False):
@@ -655,10 +656,12 @@ class DistributionStrategy:
                                          "have an ArticleTypeSupplier".format(supplier_order_line.article_type))
             supplier_order_line.supplier_article_type = ats
 
-        # We've checked everyting, now we start saving
+        # We've checked everything, now we start saving
         with transaction.atomic():
             supplier_order.save()
             SupplierOrderLine.bulk_create_supplierorders(distribution, supplier_order, user)
+
+        return supplier_order
 
     @staticmethod
     def get_distribution(article_type_number_combos):

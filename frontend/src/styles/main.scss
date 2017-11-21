@@ -69,6 +69,10 @@ $dim-base: 8px;
 	width: 100%;
 }
 
+#login-error {
+	color: $col-iapc-dark;
+}
+
 .async-select-box-results-wrapper {
 	position: relative;
 	flex: 1;

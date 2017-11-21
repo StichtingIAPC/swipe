@@ -1,13 +1,14 @@
+import datetime
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-
 
 User = settings.AUTH_USER_MODEL
 
@@ -44,4 +45,39 @@ class Login(ObtainAuthToken):
                 'permissions': user.get_all_permissions(),
                 'gravatarUrl': '//failurl',
             },
+        })
+
+
+class Validate(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(Validate, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request):
+        tokens = Token.objects.filter(key=request.POST['token']).filter(user__username=request.POST['username'])
+
+        if tokens.count() == 1:
+            token = tokens.first()
+            user = token.user
+
+            expiry = token.created + datetime.timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS)
+
+            if expiry < timezone.now():
+                return JSONResponse({
+                    'valid': False,
+                    'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
+                })
+
+            return JSONResponse({
+                'valid': True,
+                'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
+                'user': {
+                    'username': user.username,
+                    'permissions': user.get_all_permissions(),
+                    'gravatarUrl': '//failurl',
+                }
+            })
+
+        return JSONResponse({
+            'valid': False,
         })
