@@ -6,7 +6,7 @@ class Profile extends React.Component {
 
 	render() {
 		return (
-		    < className="row">
+		    <div className="row">
                 <div className="col-sm-1">
                     <img className="user-image" title="Gravatar" src={this.props.user.gravatarUrl} />
                 </div>
