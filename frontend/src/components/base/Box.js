@@ -35,11 +35,14 @@ export default class Box extends React.Component {
 	}
 
 	render() {
-		if (this.state.err) return (
-			<div className="box">
-				<this.Header title='Error in this component' />
-			</div>
-		)
+		if (this.state.err) {
+			return (
+				<div className="box">
+					<this.Header title="Error in this component" />
+				</div>
+			);
+		}
+
 		return (
 			<div className="box">
 				{ this.props.children }

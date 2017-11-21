@@ -30,10 +30,10 @@ class ArticleManager extends React.Component {
 						onSelect={this.props.selectArticle}
 						toolButtons={[
 							<Link
-								key='hello'
+								key="hello"
 								to="/articlemanager/create/"
 								className="btn btn-success btn-sm"
-								title="Create"><FontAwesome icon="plus" /></Link>
+								title="Create"><FontAwesome icon="plus" /></Link>,
 						]} />
 				</div>
 				<div className="col-sm-8">
