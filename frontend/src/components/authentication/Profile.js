@@ -6,21 +6,18 @@ class Profile extends React.Component {
 
 	render() {
 		return (
-		    <div className="row">
-                <div className="col-sm-4">
-		            {this.props.user.username}
+		    < className="row">
+                <div className="col-sm-1">
+                    <img className="user-image" title="Gravatar" src={this.props.user.gravatarUrl} />
                 </div>
                 <div className="col-sm-8">
-                    {this.props.user.email}
+                    <span>Username: </span>{this.props.user.username}
                 </div>
                 <div className="col-sm-8">
-                    {this.props.user.firstName}
+                    <span>Email address: </span>{this.props.user.email}
                 </div>
                 <div className="col-sm-8">
-                    {this.props.user.lastName}
-                </div>
-                <div className="col-sm-8">
-                    {this.props.user.gravatarUrl}
+                    <span>Name: {this.props.user.firstName} {this.props.user.lastName} </span>
                 </div>
             </div>
         );
