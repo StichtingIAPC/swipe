@@ -581,7 +581,7 @@ class SalesPrice(Price):
         return self.get_profit() / self.cost
 
     def __str__(self):
-        return "{}, Price: {}, Cost: {}".format(self.currency.iso, self.amount, self.cost)
+        return "{}, Price: {}, Cost: {} VAT: {}".format(self.currency.iso, self.amount, self.cost, self.vat)
 
 
 class SalesPriceProxy:
