@@ -3,86 +3,79 @@ import { connect } from 'react-redux';
 import { createSupplier, updateSupplier } from '../../state/suppliers/actions.js';
 import Form from '../forms/Form';
 import { StringField } from '../forms/fields';
+import { fetchSupplier, newSupplier, setSupplierField } from '../../state/suppliers/actions';
 
 class SupplierEdit extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = this.getResetState();
-	}
-
 	componentWillMount() {
-		this.reset(null, this.props);
-	}
-
-	getResetState(props = this.props) {
-		if (props.supplier !== null) {
-			return { ...props.supplier };
-		}
-		return {
-			id: null,
-			name: '',
-			notes: '',
-			searchUrl: '',
-		};
-	}
-
-	reset(evt, props) {
-		if (evt) {
-			evt.preventDefault();
-		}
-		this.setState(this.getResetState(props));
-	}
-
-	submit(evt) {
-		evt.preventDefault();
-		if (this.state.id === null) {
-			this.props.addSupplier({
-				...this.state,
-				lastModified: new Date(),
-			});
+		if (this.props.match.params.supplierID) {
+			this.props.fetchSupplier(this.props.match.params.supplierID);
 		} else {
-			this.props.editSupplier({
-				...this.state,
-				lastModified: new Date(),
-			});
+			this.props.newSupplier();
 		}
 	}
 
-	componentWillReceiveProps(props) {
-		if (this.props.supplier !== props.supplier) {
-			this.reset(null, props);
+	componentWillReceiveProps({ match }) {
+		if (this.props.match.params.supplierID !== match.params.supplierID) {
+			if (Number.isNaN(+match.params.supplierID)) {
+				this.props.newSupplier();
+			} else {
+				this.props.fetchSupplier(match.params.supplierID);
+			}
 		}
 	}
+
+	submit = (evt) => {
+		evt.preventDefault();
+		if (this.props.supplier.id === null) {
+			this.props.createSupplier(this.props.supplier);
+		} else {
+			this.props.updateSupplier(this.props.supplier);
+		}
+	};
+
+	reset = () => {
+		if (this.props.supplier.id === null) {
+			this.props.newSupplier();
+		} else {
+			this.props.fetchSupplier(this.props.supplier.id);
+		}
+	};
+
+	setName = ({ target: { value }}) => this.props.setSupplierField('name', value);
+	setNotes = ({ target: { value }}) => this.props.setSupplierField('notes', value);
+	setSearch_url = ({ target: { value }}) => this.props.setSupplierField('search_url', value);
 
 	render() {
-		const updateValue = key => evt => this.setState({ [key]: evt.target.value });
+		const { supplier } = this.props;
+		const NEW = supplier.id === null;
 
 		return (
 			<Form
-				title={`${typeof this.state.id === 'number' ? 'Edit' : 'Add'} supplier`}
-				onSubmit={::this.submit}
-				onReset={::this.reset}
+				title={`${NEW ? 'Add' : 'Edit'} supplier`}
+				onSubmit={this.submit}
+				onReset={this.reset}
 				error={this.props.errorMsg}
-				returnLink={this.props.supplier ? `/supplier/${this.props.supplier.id}/` : '/supplier/'}
+				returnLink={NEW ? '/supplier/' : `/supplier/${supplier.id}`}
 				closeLink="/supplier/">
-				<StringField onChange={updateValue('name')} value={this.state.name} name="Name" />
-				<StringField onChange={updateValue('notes')} value={this.state.notes} name="Notes" />
-				<StringField onChange={updateValue('searchUrl')} value={this.state.searchUrl} name="Search Url" />
+				<StringField onChange={this.setName} value={supplier.name} name="Name" />
+				<StringField onChange={this.setNotes} value={supplier.notes} name="Notes" />
+				<StringField onChange={this.setSearch_url} value={supplier.searchUrl} name="Search Url" />
 			</Form>
 		);
 	}
 }
 
-function mapStateToProps(state, ownProps) {
-	return {
-		supplier: (state.suppliers.suppliers || []).filter(s => s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0],
-	};
-}
+const mapStateToProps = state => ({
+	supplier: state.suppliers.activeObject,
+});
 
 export default connect(
 	mapStateToProps,
-	dispatch => ({
-		addSupplier: supplier => dispatch(createSupplier(supplier)),
-		editSupplier: supplier => dispatch(updateSupplier(supplier)),
-	})
+	{
+		fetchSupplier,
+		newSupplier,
+		createSupplier,
+		updateSupplier,
+		setSupplierField,
+	}
 )(SupplierEdit);
