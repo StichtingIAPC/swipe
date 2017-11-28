@@ -1,7 +1,17 @@
+let LOG = true;
+
+
 const isAvailableRecursively = ([ name, functor ], state = {}) => {
 	const stateComponent = state[name];
 
-	if (typeof functor === 'function') { return !!stateComponent && !!stateComponent.populated; }
+	if (typeof functor === 'function') {
+		const loaded = !!stateComponent && !!stateComponent.populated;
+
+		if (LOG) {
+			console.log(`name: "${name}" loaded: ${loaded}`);
+		}
+		return loaded;
+	}
 
 	return Object.entries(functor)
 		.map(entry => [ entry[0], isAvailableRecursively(entry, stateComponent) ])
@@ -15,7 +25,12 @@ const fetchMissingRecursively = ([ name, functor ], tree = {}, dispatch) => {
 	const treeComponent = tree[name];
 
 	if (typeof functor === 'function') {
-		if (!treeComponent) { dispatch(functor()); }
+		if (!treeComponent) {
+			dispatch(functor());
+			if (LOG) {
+				console.log(`started fetching requirements for "${name}"`);
+			}
+		}
 		return;
 	}
 
@@ -70,7 +85,12 @@ export function connectMixin(requirements, _state = null) {
 	/**
 	 * @callback Func
 	 * @param state: {Object}
-	 * @returns {{requirementsLoaded: boolean, missingRequirements: Array<[String, Function]>}}
+	 * @returns {{
+	 *   availableRequirements: Object,
+	 *   fetchMissingFor: Function,
+	 *   fetchAllFor: Function,
+	 *   requirementsLoaded: boolean,
+	 * }}
 	 */
 	function func(state) {
 		const availableRequirements = isAvailableRecursively([ 'state', requirements ], { state });

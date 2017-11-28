@@ -2,23 +2,25 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-let cache = {};
-let lastUnitTypes = null;
+class AssortmentLabel extends React.Component {
+	render() {
+		const {
+			labelTypes,
+			unitTypes,
+			labelTypeID,
+			labelValue,
+			children,
+		} = this.props;
 
-function AssortmentLabel({ labelTypes, unitTypes, labelTypeID, labelValue, children, ...rest }) {
-	const labelType = labelTypes.find(label => label.id === labelTypeID);
+		const labelType = labelTypes.find(label => label.id === labelTypeID) || {};
+		const unitType = unitTypes.find(el => el.id === +labelType.unit_type) || {};
 
-	if (unitTypes !== lastUnitTypes) {
-		lastUnitTypes = unitTypes;
-		cache = {};
+		return <span className="article-label default">
+			<span>{labelType.name}</span>
+			<span>{labelValue}{unitType.type_short}</span>
+			{children}
+		</span>;
 	}
-	const unitType = cache[labelType.unit_type] || (cache[labelType.unit_type] = unitTypes.find(el => el.id === +labelType.unit_type));
-
-	return <span className="article-label default" {...rest}>
-		<span>{labelType.name}</span>
-		<span>{labelValue}{unitType.type_short}</span>
-		{children}
-	</span>;
 }
 
 AssortmentLabel.propTypes = {

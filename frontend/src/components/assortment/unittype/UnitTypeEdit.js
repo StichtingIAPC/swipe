@@ -5,76 +5,68 @@ import Form from '../../forms/Form';
 import StringField from '../../forms/StringField';
 import SelectField from '../../forms/SelectField';
 import { incrementalTypes, valueTypes } from '../../../state/assortment/constants';
+import { fetchUnitType, setUnitTypeField } from '../../../state/assortment/unit-types/actions';
 
 class UnitTypeEdit extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = this.getResetState();
-	}
-
 	componentWillMount() {
-		this.reset(null, this.props);
+		this.reset(null);
 	}
 
-	getResetState(props = this.props) {
-		if (props.unitType !== null) {
-			return { ...props.unitType };
-		}
-		return {
-			id: null,
-			type_long: '',
-			type_short: '',
-			value_type: null,
-			incremental_type: null,
-		};
-	}
+	setTypeLong = ({ target: { value }}) => this.props.setUnitTypeField('type_long', value);
+	setTypeShort = ({ target: { value }}) => this.props.setUnitTypeField('type_short', value);
+	setValueType = ({ target: { value }}) => this.props.setUnitTypeField('value_type', value);
+	setIncrementalType = ({ target: { value }}) => this.props.setUnitTypeField('incremental_type', value);
 
-	reset(evt, props) {
+	reset = evt => {
 		if (evt) {
 			evt.preventDefault();
 		}
-		this.setState(this.getResetState(props));
-	}
+		this.props.fetchUnitType(this.props.id);
+	};
 
-	submit(evt) {
+	submit = evt => {
 		evt.preventDefault();
-		if (this.state.id === null) {
-			this.props.addUnitType({ ...this.state });
+		if (this.props.id === 'new') {
+			this.props.createUnitType(this.props.unitType);
 		} else {
-			this.props.editUnitType({ ...this.state });
+			this.props.updateUnitType(this.props.unitType);
+		}
+	};
+
+	componentWillReceiveProps(props) {
+		if (props.id !== this.props.id) {
+			this.props.fetchUnitType(props.id);
 		}
 	}
 
-	componentWillReceiveProps(props) {
-		this.reset(null, props);
-	}
-
 	render() {
+		const { unitType, errorMsg, id } = this.props;
+
 		return (
 			<Form
-				title={`${typeof this.state.id === 'number' ? 'Edit' : 'Add'} unit type`}
-				onSubmit={::this.submit}
-				onReset={::this.reset}
-				error={this.props.errorMsg}
-				returnLink={this.props.supplier ? `/assortment/labeltype/${this.props.labelType.id}/` : '/assortment/'}
+				title={`${typeof unitType.id === 'number' ? 'Edit' : 'Add'} unit type`}
+				onSubmit={this.submit}
+				onReset={this.reset}
+				error={errorMsg}
+				returnLink={id === 'new' ? '/assortment/' : `/assortment/unittype/${unitType.id}/`}
 				closeLink="/assortment/">
 				<StringField
-					onChange={evt => this.setState({ type_long: evt.target.value })}
-					value={this.state.type_long}
+					onChange={this.setTypeLong}
+					value={unitType.type_long}
 					name="Long type name (eg. meter)" />
 				<StringField
-					onChange={evt => this.setState({ type_short: evt.target.value })}
-					value={this.state.type_short}
+					onChange={this.setTypeShort}
+					value={unitType.type_short}
 					name="Short type name (eg. m)" />
 				<SelectField
-					disabled={!!this.state.id}
-					onChange={evt => this.setState({ value_type: evt.target.value })}
-					value={this.state.value_type || ' '}
+					disabled={!!unitType.id}
+					onChange={this.setValueType}
+					value={unitType.value_type || ' '}
 					name="Value type"
 					options={valueTypes} />
 				<SelectField
-					onChange={evt => this.setState({ incremental_type: evt.target.value })}
-					value={this.state.incremental_type || ' '}
+					onChange={this.setIncrementalType}
+					value={unitType.incremental_type || ' '}
 					name="Incrementing using"
 					options={incrementalTypes} />
 			</Form>
@@ -83,13 +75,14 @@ class UnitTypeEdit extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({
+	state => ({
 		errorMsg: state.assortment.unitTypes.inputError,
-		// TODO: replace filter with fetch of object
-		unitType: state.assortment.unitTypes.unitTypes.find(el => el.id === +props.params.unitTypeID),
+		unitType: state.assortment.unitTypes.activeObject,
 	}),
 	{
-		addUnitType: createUnitType,
-		editUnitType: updateUnitType,
+		fetchUnitType,
+		createUnitType,
+		updateUnitType,
+		setUnitTypeField,
 	},
 )(UnitTypeEdit);

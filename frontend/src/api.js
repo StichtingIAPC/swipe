@@ -14,6 +14,10 @@ export function setToken(token) {
 	listeners = [];
 }
 
+export function __getTokenDangerous() {
+	return TOKEN;
+}
+
 export function getToken() {
 	return new Promise(
 		accept => {
@@ -49,7 +53,7 @@ async function request(method, url, { headers = {}, ...rest } = {}, object) {
 	if (result.ok) {
 		return result;
 	}
-	throw result;
+	throw result.json();
 }
 
 export function get(url, info) {

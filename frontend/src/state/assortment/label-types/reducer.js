@@ -1,38 +1,33 @@
-const initialState = {
-	labelTypes: null,
-	fetching: false,
-	fetchError: null,
-	inputError: null,
+import { combineReducers } from 'redux';
+import { booleanControlReducer, objectControlReducer, setFieldReducer } from '../../../tools/reducerComponents';
+
+const defaultLabelType = {
+	id: null,
+	name: '',
+	description: '',
+	unit_type: null,
+	labels: [],
 };
 
-export default function labelTypeReducer(state = initialState, action) {
-	if (action.type === 'LABEL_TYPE_FETCH_START')		 		{
-		return {
-			...state,
-			fetching: true,
-			inputError: null,
-		};
-	}
-	if (action.type === 'LABEL_TYPE_FETCH_DONE')		 		{
-		return {
-			...state,
-			fetching: false,
-			labelTypes: action.labelTypes,
-			fetchError: null,
-		};
-	}
-	if (action.type === 'LABEL_TYPE_INPUT_ERROR')		 		{
-		return {
-			...state,
-			inputError: action.error,
-		};
-	}
-	if (action.type === 'LABEL_TYPE_FETCH_ERROR')		 		{
-		return {
-			...state,
-			fetchError: action.error,
-			fetching: false,
-		};
-	}
-	return state;
-}
+export default combineReducers({
+	labelTypes: setFieldReducer([
+		'assortment/label-types/FETCH_ALL_DONE',
+	], [], 'labelTypes'),
+	activeObject: objectControlReducer([
+		'assortment/label-types/SET_FIELD',
+	], defaultLabelType),
+	loading: booleanControlReducer({
+		'assortment/label-types/FETCH_ALL': true,
+		'assortment/label-types/FETCH_ALL_FINALLY': false,
+	}, false),
+	populated: booleanControlReducer({
+		'assortment/label-types/FETCH_ALL_DONE': true,
+	}, false),
+	error: setFieldReducer([
+		'assortment/label-types/FETCH_ALL_FAILED',
+		'assortment/label-types/FETCH_FAILED',
+		'assortment/label-types/CREATE_FAILED',
+		'assortment/label-types/UPDATE_FAILED',
+		'assortment/label-types/DELETE_FAILED',
+	], null, 'reason'),
+});
