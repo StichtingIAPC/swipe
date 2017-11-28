@@ -21,12 +21,18 @@ urlpatterns = [
 
     url(r'^crm/', include('crm.urls')),
 
+    url(r'^logistics/', include('logistics.urls')),
+
+    # Include Money URLs
     url(r'^money/', include("money.urls")),
 
     url(r'^order/', include('order.urls')),
 
+    # Include Supplier URLs
     url(r'^supplier/', include('supplier.urls')),
 
+    # Include CRM URLs
+    # Include Register URLs
     url(r'^register/', include('register.urls')),
 
     url(r'^sales/', include('sales.urls')),

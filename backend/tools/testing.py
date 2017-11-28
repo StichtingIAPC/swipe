@@ -7,7 +7,8 @@ from article.models import ArticleType, OtherCostType
 from crm.models import User, Person, Customer, Organisation, ContactOrganisation
 from externalise.models import ExternaliseDocument
 from logistics.models import SupplierOrder, StockWish
-from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money, VATPeriod
+from money.models import VAT, Currency, AccountingGroup, Denomination, Cost, Price, CurrencyData, Money, VATPeriod, \
+    SalesPrice
 from order.models import Order
 from pricing.models import PricingModel
 from register.models import PaymentType, Register
@@ -109,8 +110,8 @@ class TestData:
         self.denomination_eur_0_01, none = Denomination.objects.get_or_create(currency=self.currency_data_eur, amount=0.01)
 
     def part_setup_prices(self):
-        self.price_system_currency_1 = Price(amount=Decimal(1.23), use_system_currency=True, vat=Decimal("1.21"))
-        self.price_systen_currency_2 = Price(amount=Decimal(2.10), use_system_currency=True, vat=Decimal("1.06"))
+        self.price_system_currency_1 = SalesPrice(amount=Decimal("1.72674"), currency=Currency("EUR"), vat=Decimal("1.21000"), cost=Cost(currency=Currency("EUR"),amount=Decimal("1.23000")))
+        self.price_systen_currency_2 = SalesPrice(amount=Decimal("2.54384"), currency=Currency("EUR"), vat=Decimal("1.06000"), cost=Cost(currency=Currency("EUR"),amount=Decimal("2.10000")))
 
     def part_setup_costs(self):
         self.cost_system_currency_1 = Cost(amount=Decimal(1.23), use_system_currency=True)
@@ -183,11 +184,7 @@ class TestData:
         self.user_2, none = User.objects.get_or_create(username="ghuis")
 
     def add_setup_pricing(self):
-        self.articletype_1.fixed_price = self.price_system_currency_1
-        self.articletype_2.fixed_price = self.price_systen_currency_2
-        self.articletype_1.save()
-        self.articletype_2.save()
-        self.pm1, none = PricingModel.objects.get_or_create(function_identifier=1, name="Fixed Price", position=1)
+        pass
 
     def create_custorders(self, article_1=6, article_2=7, othercost_1=5, othercost_2=8, customer: Customer=None):
         self.CUSTORDERED_ARTICLE_1 = article_1
@@ -229,7 +226,6 @@ class TestData:
                 arts_ordered.append([self.articletype_1, self.SUPPLIERORDERED_ARTICLE_1, self.cost_system_currency_1])
             if article_2 > 0:
                 arts_ordered.append([self.articletype_2, self.SUPPLIERORDERED_ARTICLE_2, self.cost_system_currency_2])
-
             SupplierOrder.create_supplier_order(user_modified=self.user_1, supplier=self.supplier_1,
                                                 articles_ordered=arts_ordered)
 

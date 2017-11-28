@@ -3,7 +3,7 @@ import { push } from 'react-router-redux';
 import { loginError, loginSuccess, setRouteAfterAuthentication } from './actions.js';
 import config from '../../config.js';
 import fetch from 'isomorphic-fetch';
-import { getToken } from '../../api';
+import { __unsafeGetToken, getToken } from '../../api';
 import { logoutError, logoutSuccess } from './actions';
 
 export function* login({ username, password }) {
@@ -33,12 +33,19 @@ export function* login({ username, password }) {
 			yield put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
-		yield put(loginError(e));
+		yield put.resolve(loginError(e.non_field_errors || null));
+		let err = yield select(state => state.auth.error && state.auth.error[0]);
+
+		// eslint-disable-next-line
+		if (err == null || err === undefined) {
+			err = 'Server not connected, please try again later.';
+			yield put(loginError(err));
+		}
 	}
 }
 
 export function* logout() {
-	const token = yield getToken();
+	const token = yield __unsafeGetToken();
 
 	const form = new FormData();
 
@@ -61,7 +68,16 @@ export function* logout() {
 }
 
 export function* loginRestore({ loginAction }) {
-	const { data: { token, user: { username } } } = loginAction;
+	if (!loginAction) {
+		return put(loginError('Login restore failed'));
+	}
+	const action = loginAction.data;
+
+	if (!(action && action.token && action.user && action.user.username)) {
+		return put(loginError('Login restore failed'));
+	}
+
+	const { token, user: { username }} = action;
 
 	const form = new FormData();
 

@@ -16,7 +16,6 @@ from sales.models import SalesTransactionLine, Payment, Transaction, NotEnoughSt
     PaymentTypeError, RefundTransactionLine, RefundError, InvalidDataException, StockCollections, PriceOverride
 from stock.models import Stock, StockChangeSet
 from stock.stocklabel import OrderLabel
-from pricing.models import PricingModel
 from supplication.models import PackingDocument
 from supplier.models import Supplier, ArticleTypeSupplier
 from tools.testing import TestData
@@ -757,7 +756,6 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
         self.assertIsNone(octl.original_price)
 
 
-
 class StockTests(TestCase, TestData):
 
     def setUp(self):
@@ -766,8 +764,6 @@ class StockTests(TestCase, TestData):
         self.articletype_1.save()
         self.articletype_2.fixed_price = self.price_systen_currency_2
         self.articletype_2.save()
-        prm = PricingModel(function_identifier=1, name="Fixed", position=1)
-        prm.save()
 
     def test_get_stock_for_customer(self):
         changeset = [{
@@ -785,13 +781,13 @@ class StockTests(TestCase, TestData):
             },
             {
                 'article': self.articletype_2,
-                'book_value': self.cost_system_currency_1,
+                'book_value': self.cost_system_currency_2,
                 'count': 6,
                 'is_in': True,
             },
             {
                 'article': self.articletype_2,
-                'book_value': self.cost_system_currency_1,
+                'book_value': self.cost_system_currency_2,
                 'count': 7,
                 'is_in': True,
                 'label': OrderLabel(2)

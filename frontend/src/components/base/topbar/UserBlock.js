@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { push } from 'react-router-redux';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
 import { logout } from '../../../state/auth/actions.js';
@@ -21,6 +22,11 @@ class UserBlock extends React.Component {
 		}
 	}
 
+	gotoProfile(evt) {
+		this.toggleDropdown(evt);
+		this.props.selectProfile();
+	}
+
 	render() {
 		if (this.props.user !== null) {
 			return (
@@ -39,7 +45,7 @@ class UserBlock extends React.Component {
 						</li>
 						<li className="user-footer">
 							<div className="pull-left">
-								<Link to="/profile" className="btn btn-default btn-flat">Profile</Link>
+								<Link onClick={this.gotoProfile.bind(this)} className="btn btn-default btn-flat">Profile</Link>
 							</div>
 							<div className="pull-right">
 								<Link onClick={this.props.logout} className="btn btn-default btn-flat">Logout</Link>
@@ -81,5 +87,8 @@ export default connect(
 		user: state.auth.currentUser,
 		isAuthenticated: state.auth.currentUser !== null,
 	}),
-	dispatch => ({ logout: () => dispatch(logout()) })
+	dispatch => ({
+		logout: () => dispatch(logout()),
+		selectProfile: () => dispatch(push('/profile')),
+	}),
 )(UserBlock);
