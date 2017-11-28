@@ -10,6 +10,8 @@ class Sidebar extends React.Component {
 			<aside className="main-sidebar">
 				<section className="sidebar">
 					<ul className="sidebar-menu">
+						<SidebarLink text="Sales" icon="shopping-cart" to="/sales/" />
+
 						<SidebarLink text="Article manager" icon="cube" to="/articlemanager/" />
 						<SidebarLink text="Admin">
 							<SidebarLink text="Supplier" icon="truck" to="/supplier/" />
