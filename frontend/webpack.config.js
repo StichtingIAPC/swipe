@@ -7,12 +7,13 @@ const APP_DIR = path.resolve(path.join(__dirname, 'src'));
 const BUILD_DIR = path.resolve(path.join(__dirname, 'public', 'dist'));
 
 let replacements = {};
+
 try {
 	// eslint-disable-next-line global-require
 	replacements = require(path.resolve(path.join(APP_DIR, 'config.local')));
 } catch (e) { console.log('No config.local.js found, continueing on without changing any settings')}
 
-let defaults = {
+const defaults = {
 	'__BACKEND_URL__': '`//${window.location.hostname}:8000`',
 	'process.env': {
 		NODE_ENV: JSON.stringify('develop'),

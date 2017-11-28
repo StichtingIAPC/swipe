@@ -18,9 +18,14 @@ def get_or_create_labels(labels_obj):
 
     asls = list(AssortmentLabel.objects.filter(q).select_related('label_type').all())
 
-    expected_labels = {(label_value, int(label_type)) for label_type, lvals in labels_obj.items() for label_value in lvals}
+    expected_labels = [
+        (label_value, int(label_type))
+        for label_type, lvals in labels_obj.items()
+        for label_value in lvals
+    ]
     for asl in asls:
-        expected_labels.remove((asl.value, asl.label_type.pk))
+        if (asl.value, asl.label_type.pk) in expected_labels:
+            expected_labels.remove((asl.value, asl.label_type.pk))
 
     for (label_value, label_type_id) in expected_labels:
         asls.append(AssortmentLabel.objects.create(value=label_value, label_type_id=label_type_id))
