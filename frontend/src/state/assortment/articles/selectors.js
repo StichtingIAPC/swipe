@@ -1,20 +1,22 @@
 export function getArticleById(state, id) {
-	let art = state.assortment.articles.articles.find(art => art.id === id);
-	if (!art)
-		return {name: "HI"};
-	return art;
+	return state.assortment.articles.articles.find(art => art.id === id);
 }
+
+export function getArticleNameById(state, id){
+	const art = getArticleById(state, id);
+	if (art)
+		return art.name;
+	return null;
+}
+
 export function getCount(state, stock) {
-	if (!stock)
-		return 0;
-	if (!state.sales)
-		return stock.count;
+	const count = stock ? stock.count : 0;
 
-
-	let oth = state.sales.sales.sales.find(art => art.article === stock.article);
-	if (oth) {
-		return stock.count - oth.count;
+	const salesListCount = state.sales.sales.sales.find(art => art.article === stock.article);
+	if (salesListCount) {
+		return count - salesListCount.count;
+	} else {
+		return count;
 	}
 
-	return stock.count;
 }

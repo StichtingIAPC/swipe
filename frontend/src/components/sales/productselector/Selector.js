@@ -7,7 +7,7 @@ import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { stock } from '../../../state/sales/stock/actions';
-import {getArticleById, getCount} from "../../../state/assortment/articles/selectors";
+import { getArticleNameById, getCount} from "../../../state/assortment/articles/selectors";
 import {addToSalesListAction} from "../../../state/sales/sales/actions";
 
 class Selector extends React.Component {
@@ -17,10 +17,11 @@ class Selector extends React.Component {
 
 	render() {
 		const {stock, state, addArticle} = this.props;
-
+		if(!stock)
+			return null;
 		return (
 			<div className="row">
-				{stock.map(e => <div key={e.article} className="col-xs-12 col-md-12" onClick={(evt) => addArticle(e, 1)}>{getArticleById(state, e.article).name}: {getCount(state, e)} FOR {e.price.amount} {e.price.currency}</div>)}
+				{stock.map(e => <div key={e.article} className="col-xs-12 col-md-12" onClick={(evt) => addArticle(e, 1)}>{getArticleNameById(state, e.article)}: {getCount(state, e)} FOR {e.price.amount} {e.price.currency}</div>)}
 				<div className="col-xs-8 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
