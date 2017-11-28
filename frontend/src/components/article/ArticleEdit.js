@@ -25,7 +25,7 @@ class ArticleEdit extends React.Component {
 	};
 
 	componentWillMount() {
-		this.props.fetchArticle(this.props.match.params.articleID);
+		this.props.fetchArticle(+this.props.match.params.articleID);
 		fetchStateRequirementsFor(this);
 	}
 
@@ -40,16 +40,20 @@ class ArticleEdit extends React.Component {
 	};
 
 	reset = () => {
-		if (typeof this.props.match.params.articleID !== 'undefined') {
-			this.props.fetchArticle(this.props.match.params.articleID);
-		} else {
+		if (typeof this.props.match.params.articleID === 'undefined') {
 			this.props.newArticle();
+		} else {
+			this.props.fetchArticle(+this.props.match.params.articleID);
 		}
-	}
+	};
 
 	componentWillReceiveProps({ match }) {
-		if (this.props.match.params.id !== match.params.id) {
-			this.props.fetchArticle(match.params.id);
+		if (this.props.match.params.articleID !== match.params.articleID) {
+			if (Number.isNaN(+match.params.articleID)) {
+				this.props.newArticle();
+			} else {
+				this.props.fetchArticle(+match.params.articleID);
+			}
 		}
 	}
 
@@ -88,6 +92,8 @@ class ArticleEdit extends React.Component {
 	render() {
 		const { article, requirementsLoaded } = this.props;
 
+		const NEW = article.id === null;
+
 		if (!requirementsLoaded) {
 			return null;
 		}
@@ -95,7 +101,7 @@ class ArticleEdit extends React.Component {
 		return (
 			<Box>
 				<Box.Header
-					title={`${article.id ? article.name : 'New article'} - Properties`}
+					title={`${NEW ? 'New article' : article.name} - Properties`}
 					buttons={[
 						<Link key="close" to="/articlemanager/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>,
 						<a key="repeat" onClick={this.reset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>,

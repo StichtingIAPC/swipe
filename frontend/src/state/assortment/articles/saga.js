@@ -27,12 +27,12 @@ function* fetchArticle({ id }) {
 	try {
 		const newArticle = yield (yield call(
 			api.get,
-			`/article/${id}`,
+			`/article/${id}/`,
 		)).json();
 
 		yield put(actions.fetchArticleDone(newArticle));
 	} catch (e) {
-		yield put(actions.fetchArticleFailed(id, e));
+		yield put(actions.fetchArticleFailed(id, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.fetchArticleFinally());
 	}
@@ -51,7 +51,7 @@ function* createArticle({ article }) {
 		yield put(actions.createArticleDone(newArticle));
 		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
 	} catch (e) {
-		yield put(actions.createArticleFailed(cleanErrorMessage(e)));
+		yield put(actions.createArticleFailed(document, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.createArticleFinally());
 	}
@@ -70,7 +70,7 @@ function* updateArticle({ article }) {
 		yield put(actions.updateArticleDone(newArticle));
 		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
 	} catch (e) {
-		yield put(actions.updateArticleFailed(cleanErrorMessage(e)));
+		yield put(actions.updateArticleFailed(article, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.updateArticleFinally());
 	}
@@ -82,14 +82,13 @@ function* deleteArticle({ article }) {
 	try {
 		const newArticle = yield (yield call(
 			api.del,
-			`/articles/${article.id}/`,
-			document,
+			`/article/${article.id}/`,
 		)).json();
 
 		yield put(actions.deleteArticleDone(newArticle));
 		yield put(actions.fetchAllArticles(`/articlemanager/`));
 	} catch (e) {
-		yield put(actions.deleteArticleFailed(cleanErrorMessage(e)));
+		yield put(actions.deleteArticleFailed(article, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.deleteArticleFinally());
 	}

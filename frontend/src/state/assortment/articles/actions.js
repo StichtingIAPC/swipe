@@ -48,9 +48,11 @@ export function createArticleDone(article) {
 }
 
 export function createArticleFailed(article, reason) {
-	return { type: 'assortment/articles/CREATE_FAILED',
+	return {
+		type: 'assortment/articles/CREATE_FAILED',
 		article,
-		reason };
+		reason,
+	};
 }
 
 export function createArticleFinally() {
@@ -58,19 +60,25 @@ export function createArticleFinally() {
 }
 
 export function updateArticle(article) {
-	return { type: 'assortment/articles/UPDATE',
-		article };
+	return {
+		type: 'assortment/articles/UPDATE',
+		article,
+	};
 }
 
 export function updateArticleDone(article) {
-	return { type: 'assortment/articles/UPDATE_DONE',
-		article };
+	return {
+		type: 'assortment/articles/UPDATE_DONE',
+		article,
+	};
 }
 
 export function updateArticleFailed(article, reason) {
-	return { type: 'assortment/articles/UPDATE_FAILED',
+	return {
+		type: 'assortment/articles/UPDATE_FAILED',
 		article,
-		reason };
+		reason,
+	};
 }
 
 export function updateArticleFinally() {
@@ -78,19 +86,25 @@ export function updateArticleFinally() {
 }
 
 export function deleteArticle(id) {
-	return { type: 'assortment/articles/DELETE',
-		id };
+	return {
+		type: 'assortment/articles/DELETE',
+		id,
+	};
 }
 
 export function deleteArticleDone(id) {
-	return { type: 'assortment/articles/DELETE_DONE',
-		id };
+	return {
+		type: 'assortment/articles/DELETE_DONE',
+		id,
+	};
 }
 
 export function deleteArticleFailed(id, reason) {
-	return { type: 'assortment/articles/DELETE_FAILED',
+	return {
+		type: 'assortment/articles/DELETE_FAILED',
 		id,
-		reason };
+		reason,
+	};
 }
 
 export function deleteArticleFinally() {
@@ -98,13 +112,17 @@ export function deleteArticleFinally() {
 }
 
 export function setArticleField(field, value) {
-	return { type: 'assortment/articles/SET_FIELD',
+	return {
+		type: 'assortment/articles/SET_FIELD',
 		field,
-		value };
+		value,
+	};
 }
 
 export function newArticle() {
-	return { type: 'assortment/articles/NEW_ARTICLE' };
+	return {
+		type: 'assortment/articles/NEW_ARTICLE',
+	};
 }
 
 export default fetchAllArticles;

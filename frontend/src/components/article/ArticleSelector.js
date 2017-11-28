@@ -19,9 +19,7 @@ class ArticleSelector extends React.Component {
 		fetchStateRequirementsFor(this);
 	}
 
-	select(article) {
-		this.props.onSelect(article);
-	}
+	select = article => this.props.onSelect(article);
 
 	renderArticle({ article }) {
 		return (
