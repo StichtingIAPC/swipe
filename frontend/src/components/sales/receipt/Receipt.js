@@ -9,6 +9,7 @@ import { articles } from '../../../state/assortment/articles/actions';
 import { stock } from '../../../state/sales/stock/actions';
 import PaymentTypes from "./PaymentTypes";
 import Customer from "./Customer";
+import SalesList from "./SalesList";
 
 class Receipt extends React.Component {
 	componentWillMount() {
@@ -21,8 +22,8 @@ class Receipt extends React.Component {
 		return (
 			<div className="row">
 				<Customer />
+				<SalesList />
 				<PaymentTypes />
-
 				<div className="col-xs-8 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
