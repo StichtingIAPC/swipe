@@ -30,7 +30,7 @@ export function* login({ username, password }) {
 
 		if (nextRoute !== null) {
 			yield put(push(nextRoute));
-			yield put(setRouteAfterAuthentication('/'));
+			return put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
 		yield put.resolve(loginError(e.non_field_errors || null));
