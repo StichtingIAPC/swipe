@@ -7,9 +7,8 @@ import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { addToSalesListAction } from '../../../state/sales/sales/actions';
-import { getArticleNameById, getCount} from "../../../state/assortment/articles/selectors";
+import {getArticleNameById, getCount, getSalesTotal} from "../../../state/assortment/articles/selectors";
 import {stock} from "../../../state/sales/stock/actions";
-import Totals from "./Totals";
 
 class SalesList extends React.Component {
 	componentWillMount() {
@@ -18,16 +17,14 @@ class SalesList extends React.Component {
 
 	render() {
 		const {sales, requirementsLoaded, state, addToSalesListAction, addArticle} = this.props;
-
+		const total = getSalesTotal(state);
 		return (
 			<div className="row">
-				{sales.map(e => <div key={e} className="col-xs-12 col-md-12" onClick={(evt) => addArticle(e, -1)}>{getArticleNameById(state, e.article)}: {e.count} FOR {e.price.amount} {e.price.currency}</div>)}
+				<b> TOTAL </b> {total?total.currency:'??'} {total?total.amount:'??'}
 				<div className="col-xs-8 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
-			<Totals />
 			</div>
-
 		);
 	}
 }

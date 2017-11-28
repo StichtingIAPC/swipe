@@ -2,7 +2,7 @@ export function getArticleById(state, id) {
 	return state.assortment.articles.articles.find(art => art.id === id);
 }
 
-export function getArticleNameById(state, id){
+export function getArticleNameById(state, id) {
 	const art = getArticleById(state, id);
 	if (art)
 		return art.name;
@@ -19,4 +19,10 @@ export function getCount(state, stock) {
 		return count;
 	}
 
+}
+
+export function getSalesTotal(state) {
+	return state.sales.sales.sales.reduce((a, art) => {
+		return { ...art.price, amount: a.amount + art.count * art.price.amount };
+	}, {currency: 'EUR', amount: 0});
 }
