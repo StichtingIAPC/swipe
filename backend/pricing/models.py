@@ -52,6 +52,8 @@ class PricingModel(models.Model):
                      stock: Stock = None) -> Price:
             if stock:
                 cost = stock.book_value
+            else:
+                cost = Cost(amount=Decimal(1000000), currency=USED_CURRENCY)
             return PricingModel.calc_price(cost, sellable_type.get_vat_rate(), customer)
 
 
