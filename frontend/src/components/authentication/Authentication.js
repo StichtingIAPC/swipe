@@ -59,6 +59,9 @@ class Authentication extends React.Component {
 }
 
 export default connect(
-	state => ({ auth: state.auth, errorMsg: state.auth.error }),
+	state => ({
+		auth: state.auth,
+		errorMsg: state.auth.error,
+	}),
 	dispatch => ({ login: (username, password) => dispatch(startLogin(username, password)) }),
 )(Authentication);

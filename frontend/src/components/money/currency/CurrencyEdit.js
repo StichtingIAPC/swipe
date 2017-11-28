@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { createCurrency, updateCurrency } from '../../../state/money/currencies/actions.js';
 import Form from '../../forms/Form';
 import { CharField, IntegerField, MoneyField, StringField } from '../../forms/fields';

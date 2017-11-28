@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+
+import { Link } from 'react-router-dom';
 import { push } from 'react-router-redux';
-import { Link } from 'react-router';
+
 import { connect } from 'react-redux';
 import { logout } from '../../../state/auth/actions.js';
 
@@ -11,10 +13,10 @@ class UserBlock extends React.Component {
 		this.state = { open: false };
 	}
 
-	toggleDropdown(evt) {
+	toggleDropdown = evt => {
 		this.setState({ open: !this.state.open });
 		evt.preventDefault();
-	}
+	};
 
 	componentWillReceiveProps(newProps) {
 		if (!newProps.isAuthenticated && this.state.open) {
@@ -31,7 +33,7 @@ class UserBlock extends React.Component {
 		if (this.props.user !== null) {
 			return (
 				<li className={`dropdown user user-menu${this.state.open ? ' open' : ''}`}>
-					<a className="dropdown-toggle" onClick={::this.toggleDropdown}>
+					<a className="dropdown-toggle" onClick={this.toggleDropdown}>
 						<img className="user-image" title={this.props.user.username} src={this.props.user.gravatarUrl} />
 						<span className="hidden-xs">{this.props.user.username}</span>
 					</a>
@@ -48,7 +50,7 @@ class UserBlock extends React.Component {
 								<Link onClick={this.gotoProfile.bind(this)} className="btn btn-default btn-flat">Profile</Link>
 							</div>
 							<div className="pull-right">
-								<Link onClick={this.props.logout} className="btn btn-default btn-flat">Logout</Link>
+								<a onClick={this.props.logout} className="btn btn-default btn-flat">Logout</a>
 							</div>
 						</li>
 					</ul>
@@ -57,7 +59,7 @@ class UserBlock extends React.Component {
 		}
 		return (
 			<li className={`dropdown user user-menu${this.state.open ? ' open' : ''}`}>
-				<a className="dropdown-toggle" onClick={::this.toggleDropdown}>
+				<a className="dropdown-toggle" onClick={this.toggleDropdown}>
 					<span className="hidden-xs">User not found!</span>
 				</a>
 				<ul className="dropdown-menu">
@@ -68,7 +70,7 @@ class UserBlock extends React.Component {
 					</li>
 					<li className="user-footer">
 						<div className="pull-right">
-							<Link onClick={this.props.logout} className="btn btn-default btn-flat">Logout</Link>
+							<a onClick={this.props.logout} className="btn btn-default btn-flat">Logout</a>
 						</div>
 					</li>
 				</ul>

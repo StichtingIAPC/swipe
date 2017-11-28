@@ -3,7 +3,7 @@ import { push } from 'react-router-redux';
 import { loginError, loginSuccess, setRouteAfterAuthentication } from './actions.js';
 import config from '../../config.js';
 import fetch from 'isomorphic-fetch';
-import { __unsafeGetToken, getToken } from '../../api';
+import { __unsafeGetToken } from '../../api';
 import { logoutError, logoutSuccess } from './actions';
 
 export function* login({ username, password }) {
@@ -37,7 +37,7 @@ export function* login({ username, password }) {
 		let err = yield select(state => state.auth.error && state.auth.error[0]);
 
 		// eslint-disable-next-line
-		if (err == null || err === undefined) {
+		if (err === null || err === undefined) {
 			err = 'Server not connected, please try again later.';
 			yield put(loginError(err));
 		}
