@@ -24,7 +24,7 @@ class UserBlock extends React.Component {
 		}
 	}
 
-	gotoProfile(evt) {
+	gotoProfile = evt => {
 		this.toggleDropdown(evt);
 		this.props.selectProfile();
 	}
@@ -47,7 +47,7 @@ class UserBlock extends React.Component {
 						</li>
 						<li className="user-footer">
 							<div className="pull-left">
-								<Link onClick={this.gotoProfile.bind(this)} className="btn btn-default btn-flat">Profile</Link>
+								<a onClick={this.gotoProfile} className="btn btn-default btn-flat">Profile</a>
 							</div>
 							<div className="pull-right">
 								<a onClick={this.props.logout} className="btn btn-default btn-flat">Logout</a>
