@@ -7,18 +7,24 @@ class Profile extends React.Component {
 			return <div />;
 		}
 		return (
-			<div className="row">
-				<div className="col-sm-1">
-					<img className="user-image" title="Gravatar" src={this.props.user.gravatarUrl} />
+			<div className="box">
+				<div className="box-header with-border">
+					<h3 className="box-title">Profile</h3>
 				</div>
-				<div className="col-sm-8">
-					<span>Username: </span>{this.props.user.username}
-				</div>
-				<div className="col-sm-8">
-					<span>Email address: </span>{this.props.user.email}
-				</div>
-				<div className="col-sm-8">
-					<span>Name: {this.props.user.firstName} {this.props.user.lastName} </span>
+				<div
+					style={{
+						maxHeight: 'calc(100vh - 144px)',
+						overflow: 'auto',
+					}}
+					className="box-body">
+					<p>
+						<img className="user-image" title="Gravatar" src={this.props.user.gravatarUrl}/>
+					</p>
+					<p>
+						<span>Username: </span>{this.props.user.username}<br/>
+						<span>Email address: </span>{this.props.user.email}<br/>
+						<span>Name: {this.props.user.firstName} {this.props.user.lastName} </span><br/>
+					</p>
 				</div>
 			</div>
 		);
