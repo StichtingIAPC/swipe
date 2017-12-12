@@ -39,13 +39,13 @@ export function* login({ username, password }) {
 		// eslint-disable-next-line
 		if (err === null || err === undefined) {
 			err = 'Server not connected, please try again later.';
-			yield put(loginError(err));
 		}
+		return put(loginError(err));
 	}
 }
 
 export function* logout() {
-	const token = yield __unsafeGetToken();
+	const token = __unsafeGetToken();
 
 	const form = new FormData();
 
@@ -61,9 +61,9 @@ export function* logout() {
 		}
 
 		yield put(logoutSuccess());
-		yield put(push('/authentication/login'));
+		return put(push('/authentication/login'));
 	} catch (e) {
-		yield put(logoutError(e));
+		return put(logoutError(e));
 	}
 }
 
