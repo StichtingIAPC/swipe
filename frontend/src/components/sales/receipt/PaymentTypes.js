@@ -6,7 +6,7 @@ import { registers } from '../../../state/register/registers/actions.js';
 import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
-import { stock } from '../../../state/sales/stock/actions';
+import { stock } from '../../../state/stock/actions';
 
 class PaymentTypes extends React.Component {
 	componentWillMount() {

@@ -6,7 +6,7 @@ import { registers } from '../../../state/register/registers/actions.js';
 import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
-import { stock } from '../../../state/sales/stock/actions';
+import { stock } from '../../../state/stock/actions';
 import PaymentTypes from "./PaymentTypes";
 import Customer from "./Customer";
 import SalesList from "./SalesList";
@@ -42,13 +42,13 @@ export default connect(
 			 article: {
 				 articles,
 			 },
-			 sales: {
+			 stock: {
 				 stock,
 			 },
 
 		 }, state
 		),
-		stock: state.sales.stock.stock,
+		stock: state.stock.stock,
 		state,
 	})
 )(Receipt);

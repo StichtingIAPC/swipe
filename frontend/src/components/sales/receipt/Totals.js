@@ -8,7 +8,8 @@ import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { addToSalesListAction } from '../../../state/sales/sales/actions';
 import {getArticleNameById, getCount, getSalesTotal} from "../../../state/assortment/articles/selectors";
-import {stock} from "../../../state/sales/stock/actions";
+import {stock} from "../../../state/stock/actions";
+import MoneyAmount from "../../money/MoneyAmount";
 
 class SalesList extends React.Component {
 	componentWillMount() {
@@ -18,13 +19,16 @@ class SalesList extends React.Component {
 	render() {
 		const {sales, requirementsLoaded, state, addToSalesListAction, addArticle} = this.props;
 		const total = getSalesTotal(state);
+		total.currency = total.currency || "EUR";
+		total.amount = total.amount || 0;
 		return (
-			<div className="row">
-				<b> TOTAL </b> {total?total.currency:'??'} {total?total.amount:'??'}
-				<div className="col-xs-8 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
-			</div>
+
+			<tr key = "TOTAL">
+				<td>TOTAL</td>
+				<td></td>
+				<td></td>
+				<td><MoneyAmount money={total}/></td>
+			</tr>
 		);
 	}
 }

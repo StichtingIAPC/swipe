@@ -1,7 +1,10 @@
-export function addToSalesList(art, count) {
+export function addToSalesList(article, count, currentAmount) {
+	console.log(currentAmount);
 	return {
 		type: 'SALES_ADD_PRODUCT',
-		article: {...art, count: count},
+		article,
+		count,
+		currentAmount,
 	};
 }
 
