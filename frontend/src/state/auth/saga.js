@@ -100,9 +100,9 @@ export function* loginRestore({ loginAction }) {
 			throw data;
 		}
 
-		yield put(loginSuccess(token, data.user));
+		return put(loginSuccess(token, data.user));
 	} catch (e) {
-		yield put(loginError(e));
+		return put(loginError(e));
 	}
 }
 

@@ -1,11 +1,10 @@
 /* eslint-disable no-undef */
 
-import { login } from './saga.js';
+import { login, logout, loginRestore } from './saga.js';
 import fetch from 'isomorphic-fetch';
 import { push } from 'react-router-redux';
 import { call, put } from 'redux-saga/effects';
 import { loginError, loginSuccess, logoutError, logoutSuccess, setRouteAfterAuthentication } from './actions';
-import { logout } from './saga';
 import { __unsafeGetToken } from '../../api';
 
 jest.mock('../../config.js', () => ({
@@ -165,5 +164,66 @@ test('A failing logout', () => {
 
 	l = generator.next({ ok: false });
 	expect(l.value).toMatchObject(put(logoutError({ ok: false })));
+	expect(l.done).toBe(true);
+});
+
+test('A successful login restore', () => {
+	const generator = loginRestore({
+		loginAction: {
+			data: {
+				token: '1234abcd',
+				user: {
+					username: 'testuser',
+				},
+			},
+		},
+	});
+
+	let l = generator.next();
+
+	const form = new FormData();
+
+	form.append('token', '1234abcd');
+	form.append('username', 'testuser');
+	expect(l.value).toMatchObject(call(fetch, `mock_url/auth/validate/`, {
+		method: 'POST',
+		body: form,
+	}));
+	expect(l.done).toBe(false);
+
+	const mockfun = jest.fn();
+
+	mockfun.mockReturnValue('asdfghjkl;');
+	l = generator.next({
+		ok: true,
+		json: mockfun,
+	});
+	expect(mockfun.mock.calls.length).toBe(1);
+	expect(l.value).toBe('asdfghjkl;');
+	expect(l.done).toBe(false);
+
+	l = generator.next({
+		valid: true,
+		user: { username: 'testuser' },
+	});
+	expect(l.value).toMatchObject(put(loginSuccess('1234abcd', { username: 'testuser' })));
+	expect(l.done).toBe(true);
+});
+
+test('A failing login restore due to removed local storage', () => {
+	const generator = loginRestore({});
+
+	const l = generator.next();
+
+	expect(l.value).toMatchObject(put(loginError('Login restore failed')));
+	expect(l.done).toBe(true);
+});
+
+test('A failing login restore due to invalid restore data', () => {
+	const generator = loginRestore({ loginAction: {} });
+
+	const l = generator.next();
+
+	expect(l.value).toMatchObject(put(loginError('Login restore failed')));
 	expect(l.done).toBe(true);
 });
