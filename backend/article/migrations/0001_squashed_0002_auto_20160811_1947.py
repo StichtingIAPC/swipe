@@ -23,20 +23,12 @@ class Migration(migrations.Migration):
             name='ArticleType',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=128)),
             ],
         ),
         migrations.CreateModel(
             name='AndProductType',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('has_fixed_price', models.BooleanField(default=False)),
-                ('fixed_price_currency', money.models.CurrencyField(max_length=3)),
-                ('fixed_price_vat', money.models.VATLevelField(decimal_places=6, max_digits=15)),
-                ('fixed_price_cost', models.DecimalField(decimal_places=5, max_digits=28)),
-                ('fixed_price', money.models.SalesPriceField(decimal_places=5, max_digits=28, no_cost_field=True, no_currency_field=True, no_vat_field=True)),
-                ('book_keeping_group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='money.AccountingGroup')),
             ],
             options={
                 'abstract': False,
@@ -46,7 +38,6 @@ class Migration(migrations.Migration):
             name='OrProductType',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
             ],
             options={
                 'abstract': False,
@@ -55,7 +46,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OtherCostType',
             fields=[
-                ('name', models.CharField(max_length=255)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('price', money.models.MoneyField(decimal_places=5, default=0, max_digits=28, no_currency_field=True)),
                 ('price_currency', money.models.CurrencyField(default=0, max_length=3)),
             ],
@@ -76,10 +67,6 @@ class Migration(migrations.Migration):
             name='accounting_group',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='money.AccountingGroup'),
         ),
-        migrations.RemoveField(
-            model_name='articletype',
-            name='name',
-        ),
         migrations.AddField(
             model_name='productcombination',
             name='article_type',
@@ -90,55 +77,11 @@ class Migration(migrations.Migration):
             name='article_types',
             field=models.ManyToManyField(to='article.ArticleType'),
         ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='fixed_price',
-        ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='fixed_price_cost',
-        ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='fixed_price_currency',
-        ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='fixed_price_vat',
-        ),
         migrations.CreateModel(
             name='WishableType',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
             ],
-        ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='book_keeping_group',
-        ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='has_fixed_price',
-        ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='andproducttype',
-            name='name',
-        ),
-        migrations.RemoveField(
-            model_name='articletype',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='orproducttype',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='orproducttype',
-            name='name',
         ),
         migrations.AddField(
             model_name='articletype',
@@ -161,25 +104,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='orproducttype',
             name='wishabletype_ptr',
-            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='article.WishableType'),
+            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, serialize=False, to='article.WishableType'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='andproducttype',
             name='sellabletype_ptr',
-            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='article.SellableType'),
+            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, serialize=False, to='article.SellableType'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='articletype',
             name='sellabletype_ptr',
-            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='article.SellableType'),
+            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, serialize=False, to='article.SellableType'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='othercosttype',
             name='sellabletype_ptr',
-            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='article.SellableType'),
+            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, serialize=False, to='article.SellableType'),
             preserve_default=False,
         ),
         migrations.RenameField(
@@ -191,10 +134,6 @@ class Migration(migrations.Migration):
             model_name='othercosttype',
             old_name='price_currency',
             new_name='fixed_price_currency',
-        ),
-        migrations.RemoveField(
-            model_name='othercosttype',
-            name='name',
         ),
         migrations.AddField(
             model_name='orproducttype',
