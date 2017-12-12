@@ -1,42 +1,46 @@
-const initialState = {
-	currencies: null,
-	fetching: false,
-	inputError: null,
-	fetchError: null,
+import { combineReducers } from 'redux';
+import {
+	booleanControlReducer,
+	collectReducers, objectControlReducer, resetFieldReducer,
+	setFieldReducer,
+} from '../../../tools/reducerComponents';
+
+const defaultCurrency = {
+	id: null,
+	iso: '',
+	name: '',
+	digits: 2,
+	symbol: '',
+	denomination_set: [],
 };
 
-export default function currencies(state = initialState, action) {
-	if (action.type === 'CURRENCY_FETCH_START') {
-		return {
-			...state,
-			fetching: true,
-			inputError: null,
-		};
-	}
-	if (action.type === 'CURRENCY_FETCH_DONE') {
-		return {
-			...state,
-			fetching: false,
-			currencies: action.currencies.map(currency => ({
-				...currency,
-				denomination_set: currency.denomination_set.sort((a, b) => Number(a.amount) - Number(b.amount)),
-			})),
-			fetchError: null,
-		};
-	}
-
-	if (action.type === 'CURRENCY_INPUT_ERROR') 		{
-		return {
-			...state,
-			inputError: action.error,
-		};
-	}
-	if (action.type === 'CURRENCY_FETCH_ERROR') 		{
-		return {
-			...state,
-			fetching: false,
-			fetchError: action.error,
-		};
-	}
-	return state;
-}
+export default combineReducers({
+	currencies: setFieldReducer([
+		'money/currencies/FETCH_ALL_DONE',
+	], [], 'currencies'),
+	activeObject: collectReducers(
+		resetFieldReducer([
+			'money/currencies/NEW_CURRENCY',
+		], defaultCurrency),
+		objectControlReducer([
+			'money/currencies/SET_FIELD',
+		], defaultCurrency),
+		setFieldReducer([
+			'money/currencies/FETCH_DONE',
+		], defaultCurrency, 'currency')
+	),
+	loading: booleanControlReducer({
+		'money/currencies/FETCH_ALL': true,
+		'money/currencies/FETCH_ALL_FINALLY': false,
+	}, false),
+	populated: booleanControlReducer({
+		'money/currencies/FETCH_ALL_DONE': true,
+	}, false),
+	error: setFieldReducer([
+		'money/currencies/FETCH_ALL_FAILED',
+		'money/currencies/FETCH_FAILED',
+		'money/currencies/CREATE_FAILED',
+		'money/currencies/UPDATE_FAILED',
+		'money/currencies/DELETE_FAILED',
+	], null, 'reason'),
+});

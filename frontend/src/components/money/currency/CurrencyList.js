@@ -2,8 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { startFetchingCurrencies } from '../../../state/money/currencies/actions.js';
+import { fetchAllCurrencies } from '../../../state/money/currencies/actions.js';
 import FontAwesome from '../../tools/icons/FontAwesome';
+import Box from '../../base/Box';
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -29,11 +30,11 @@ class CurrencyList extends React.Component {
 					<div className="btn-group pull-right">
 						{
 							currency.updating ? (
-								<Link
+								<a
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
 									<FontAwesome icon="refresh" />
-								</Link>
+								</a>
 							) : null
 						}
 						<Link
@@ -54,21 +55,21 @@ class CurrencyList extends React.Component {
 		);
 	}
 
-	toggle(evt) {
+	toggle = evt => {
 		evt.preventDefault();
-		this.setState({ open: !this.state.open });
-	}
+		this.setState(({ open }) => ({ open: !open }));
+	};
+
+	update = evt => {
+		evt.preventDefault();
+		this.props.fetchAllCurrencies();
+	};
 
 	render() {
 		return (
-			<div
-				className={
-					`box${
-						this.state.open ? '' : ' collapsed-box'
-					}${
-						this.props.errorMsg ? ' box-danger box-solid' : ''
-					}`
-				}>
+			<Box
+				open={this.state.open}
+				error={!!this.props.errorMsg}>
 				<div className="box-header with-border">
 					<h3 className="box-title">
 						List of currencies
@@ -76,12 +77,12 @@ class CurrencyList extends React.Component {
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
-								<Link
+								<a
 									className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
 									title="Refresh"
-									onClick={this.props.update}>
+									onClick={this.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
-								</Link>
+								</a>
 								<Link
 									className="btn btn-sm btn-default"
 									to="/money/currency/create/"
@@ -89,9 +90,9 @@ class CurrencyList extends React.Component {
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-sm btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
+							<a className="btn btn-sm btn-box-tool" onClick={this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
-							</Link>
+							</a>
 						</div>
 					</div>
 				</div>
@@ -126,7 +127,7 @@ class CurrencyList extends React.Component {
 						</div>
 					) : null
 				}
-			</div>
+			</Box>
 		);
 	}
 }
@@ -137,10 +138,7 @@ export default connect(
 		currencies: state.money.currencies.currencies || [],
 		fetching: state.money.currencies.fetching,
 	}),
-	dispatch => ({
-		update: evt => {
-			evt.preventDefault();
-			dispatch(startFetchingCurrencies());
-		},
-	})
+	{
+		update: fetchAllCurrencies,
+	}
 )(CurrencyList);

@@ -115,7 +115,7 @@ class CurrencyEdit extends React.Component {
 
 		return (
 			<Form
-				title={this.props.currency ? `Edit ${this.props.currency.name}` : 'Create new currency'}
+				title={this.props.currency.id === null ? 'Create new currency' : `Edit ${this.props.currency.name}`}
 				onReset={::this.reset}
 				onSubmit={this.props.currency ? ::this.update : ::this.create}
 				error={this.props.errorMsg}
@@ -140,16 +140,16 @@ class CurrencyEdit extends React.Component {
 									}>
 									{denomination.id ? null : (
 										<span className="input-group-btn">
-											<Link className="btn btn-danger" onClick={removeDenom(index)}>
+											<a className="btn btn-danger" onClick={removeDenom(index)}>
 												<FontAwesome icon="trash" />
-											</Link>
+											</a>
 										</span>
 									)}
 								</MoneyField>
 								<br />
 							</div>
 						))}
-						<Link className="btn btn-success" onClick={addDenomination}>Add denomination</Link>
+						<a className="btn btn-success" onClick={addDenomination}>Add denomination</a>
 					</div>
 				</div>
 			</Form>
@@ -158,13 +158,12 @@ class CurrencyEdit extends React.Component {
 }
 
 export default connect(
-	(state, ownProps) => ({
-		...ownProps,
-		errorMsg: state.money.currencies.inputError,
-		currency: (state.money.currencies.currencies || []).find(obj => obj.iso === ownProps.params.currencyID) || null,
+	state => ({
+		errorMsg: state.money.currencies.error,
+		currency: state.money.currencies.activeObject,
 	}),
-	dispatch => ({
-		updateCurrency: currency => dispatch(updateCurrency(currency)),
-		createCurrency: currency => dispatch(createCurrency(currency)),
-	})
+	{
+		updateCurrency,
+		createCurrency,
+	}
 )(CurrencyEdit);

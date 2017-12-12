@@ -69,13 +69,13 @@ class AccountingGroupEdit extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({
+	state => ({
 		errorMsg: state.money.currencies.inputError,
-		accountingGroup: state.money.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID),
-		vats: state.money.vat.vats || [],
+		accountingGroup: state.money.accountingGroups.activeObject,
+		vats: state.money.vats.vats || [],
 	}),
-	dispatch => ({
-		updateAccountingGroup: currency => dispatch(updateAccountingGroup(currency)),
-		createAccountingGroup: currency => dispatch(createAccountingGroup(currency)),
-	}),
+	{
+		updateAccountingGroup,
+		createAccountingGroup,
+	},
 )(AccountingGroupEdit);

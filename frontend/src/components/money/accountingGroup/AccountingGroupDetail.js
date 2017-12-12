@@ -8,9 +8,7 @@ import FontAwesome from '../../tools/icons/FontAwesome';
  */
 
 class AccountingGroupDetail extends React.Component {
-	trash(evt) {
-		evt.preventDefault();
-	}
+	trash = evt => evt.preventDefault();
 
 	render() {
 		const { accountingGroup } = this.props;
@@ -27,7 +25,7 @@ class AccountingGroupDetail extends React.Component {
 						<div className="input-group">
 							<div className="btn-group">
 								<Link to={`/money/accountinggroup/${accountingGroup.id}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
-								<Link onClick={::this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
+								<a onClick={this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></a>
 							</div>
 						</div>
 					</div>
@@ -39,16 +37,14 @@ class AccountingGroupDetail extends React.Component {
 							accounting_number: 'Accounting number',
 						}).map(
 							([ key, name ]) => (
-								<div key={key}>
+								<React.Fragment key={key}>
 									<dt>{name}</dt>
 									<dd>{String(accountingGroup[key])}</dd>
-								</div>
+								</React.Fragment>
 							)
 						)}
-						<div>
-							<dt>VAT group</dt>
-							<dd>{this.props.vatGroup.name}</dd>
-						</div>
+						<dt>VAT group</dt>
+						<dd>{(this.props.vat || {}).name}</dd>
 					</dl>
 				</div>
 			</div>
@@ -57,12 +53,12 @@ class AccountingGroupDetail extends React.Component {
 }
 
 export default connect(
-	(state, props) => {
-		const accountingGroup = state.money.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID);
+	state => {
+		const accountingGroup = state.money.accountingGroups.activeObject;
 
 		return {
 			accountingGroup,
-			vatGroup: (state.vats.vats || []).find(el => +el.id === +accountingGroup.vat_group),
+			vat: (state.money.vats.vats || []).find(el => +el.id === +accountingGroup.vat_group),
 		};
 	}
 )(AccountingGroupDetail);
