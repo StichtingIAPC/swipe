@@ -149,7 +149,7 @@ class PreparationTests(TestCase, TestData):
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
                              out_count=3, physical_count=9, average_value=self.cost_system_currency_1, text="Foo",
-                             accounting_group_id=1)
+                             accounting_group_id=self.articletype_1.accounting_group_id)
         scl.save()
         NEW_IN_1 = 1
         NEW_IN_2 = 2
@@ -201,7 +201,7 @@ class PreparationTests(TestCase, TestData):
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
                              out_count=3, physical_count=9, average_value=self.cost_system_currency_1, text="Foo",
-                             accounting_group_id=1)
+                             accounting_group_id=self.articletype_1.accounting_group_id)
         scl.save()
         NEW_IN_1 = 1
         NEW_IN_2 = 2
@@ -235,7 +235,7 @@ class PreparationTests(TestCase, TestData):
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
                              out_count=0, physical_count=2, average_value=self.cost_system_currency_1, text="Foo",
-                             accounting_group_id=1)
+                             accounting_group_id=self.articletype_1.accounting_group_id)
         scl.save()
         entry = [{'article': self.articletype_2,
                   'book_value': self.cost_system_currency_1,
@@ -412,7 +412,7 @@ class EndingTests(TestCase, TestData):
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
                              out_count=0, physical_count=2, average_value=self.cost_system_currency_1, text="Foo",
-                             accounting_group_id=1)
+                             accounting_group_id=self.articletype_1.accounting_group_id)
         scl.save()
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
@@ -430,7 +430,7 @@ class EndingTests(TestCase, TestData):
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=2,
                              out_count=0, physical_count=3, average_value=self.cost_system_currency_1, text="Foo",
-                             accounting_group_id=1)
+                             accounting_group_id=self.articletype_1.accounting_group_id)
         scl.save()
         TemporaryArticleCount.clear_temporary_counts()
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 2), (self.articletype_2, 0)])
