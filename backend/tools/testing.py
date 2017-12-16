@@ -203,7 +203,7 @@ class TestData:
                 wish_combs.append([self.othercosttype_1, self.CUSTORDERED_OTHERCOST_1, self.price_system_currency_1])
             if othercost_2 > 0:
                 wish_combs.append([self.othercosttype_2, self.CUSTORDERED_OTHERCOST_2, self.price_systen_currency_2])
-            Order.create_order_from_wishables_combinations(user=self.user_1, customer=customer,
+            return Order.create_order_from_wishables_combinations(user=self.user_1, customer=customer,
                                                            wishable_type_number_price_combinations=wish_combs)
 
     def create_stockwish(self, article_1=6, article_2=7):
