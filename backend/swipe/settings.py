@@ -110,8 +110,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'swipe',
-        'USER': 'postgres',
-        'POSTGRES': 'postgres',
+        'USER': 'swipe',
+        'PASSWORD': 'swipe',
         'HOST': 'localhost',
         'PORT': '5432'
     }
