@@ -63,20 +63,30 @@ class CustInvoice(Blame):
             # Try to see if invoicing data can be pulled from TypeField(Value)s.
             if hasattr(customer, 'person'):
                 # Customer is a person. Retrieve PersonTypeFields
-                try:
-                    fields = InvoiceFieldPerson.objects.get(pk=1)
-                except InvoiceFieldPerson.DoesNotExist:
+                # Check if the InvoiceFieldPerson line already exists, if not create a new one.
+                if InvoiceFieldPerson.objects.count() == 1:
+                    fields = InvoiceFieldPerson.objects.first()
+                elif InvoiceFieldPerson.objects.count() > 1:
+                    raise IncorrectStateError("More than one line found for InvoiceFieldPerson, "
+                                              "this shouldn't have happened")
+                else:
                     InvoiceFieldPerson.objects.create()
                     retrieve_from_fields = False
+
                 if retrieve_from_fields:
                     id_array = fields.to_int_array()
                     vals = PersonTypeFieldValue.objects.filter(object=customer, typefield_id__in=id_array)
             else:
-                try:
-                    fields = InvoiceFieldOrganisation.objects.get(pk=1)
-                except InvoiceFieldOrganisation.DoesNotExist:
+                # Check if the InvoiceFieldOrganisation line already exists, if not create a new one.
+                if InvoiceFieldOrganisation.objects.count() == 1:
+                    fields = InvoiceFieldOrganisation.objects.first()
+                elif InvoiceFieldOrganisation.objects.count() > 1:
+                    raise IncorrectStateError("More than one line found for InvoiceFieldOrganisation, "
+                                              "this shouldn't have happened")
+                else:
                     InvoiceFieldOrganisation.objects.create()
                     retrieve_from_fields = False
+
                 if retrieve_from_fields:
                     id_array = fields.to_int_array()
                     vals = OrganisationTypeFieldValue.objects.filter(object=customer, typefield_id__in=id_array)
