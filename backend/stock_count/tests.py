@@ -88,32 +88,36 @@ class PreparationTests(TestCase, TestData):
         self.assertEqual(changes[0].count, 5)
 
     def test_temporary_counter_lines_no_previous_stock_counts(self):
-        entry = [{'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 5,
-                  'is_in': True},
-                 {'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 7,
-                  'is_in': True}
-            , {'article': self.articletype_1,
-               'book_value': self.cost_system_currency_1,
-               'count': 3,
-               'is_in': False},
-                 {'article': self.articletype_2,
-                  'book_value': self.cost_system_currency_2,
-                  'count': 11,
-                  'is_in': True},
-                 {'article': self.articletype_2,
-                  'book_value': self.cost_system_currency_2,
-                  'count': 7,
-                  'is_in': True},
-                 {'article': self.articletype_2,
-                  'book_value': self.cost_system_currency_2,
-                  'count': 2,
-                  'is_in': False}
-                 ]
-        StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        entry_ins = [{'article': self.articletype_1,
+                      'book_value': self.cost_system_currency_1,
+                      'count': 5,
+                      'is_in': True},
+                     {'article': self.articletype_1,
+                      'book_value': self.cost_system_currency_1,
+                      'count': 7,
+                      'is_in': True}
+            ,
+                     {'article': self.articletype_2,
+                      'book_value': self.cost_system_currency_2,
+                      'count': 11,
+                      'is_in': True},
+                     {'article': self.articletype_2,
+                      'book_value': self.cost_system_currency_2,
+                      'count': 7,
+                      'is_in': True},
+
+                     ]
+        entry_outs = [{'article': self.articletype_1,
+                       'book_value': self.cost_system_currency_1,
+                       'count': 3,
+                       'is_in': False},
+                      {'article': self.articletype_2,
+                       'book_value': self.cost_system_currency_2,
+                       'count': 2,
+                       'is_in': False}
+                      ]
+        StockChangeSet.construct(description="", entries=entry_ins, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockChangeSet.construct(description="", entries=entry_outs, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         changes, count = TemporaryCounterLine.get_all_stock_changes_since_last_stock_count()
         mods = TemporaryCounterLine.get_all_temporary_counterlines_since_last_stock_count(changes, count)
         for mod in mods:
@@ -131,20 +135,21 @@ class PreparationTests(TestCase, TestData):
         IN_2 = 7
         IN_TOTAL = IN_1 + IN_2
         OUT_1 = 3
-        entry = [{'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': IN_1,
-                  'is_in': True},
-                 {'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': IN_2,
-                  'is_in': True},
-                 {'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': OUT_1,
-                  'is_in': False},
-                 ]
-        StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        entry_ins = [{'article': self.articletype_1,
+                      'book_value': self.cost_system_currency_1,
+                      'count': IN_1,
+                      'is_in': True},
+                     {'article': self.articletype_1,
+                      'book_value': self.cost_system_currency_1,
+                      'count': IN_2,
+                      'is_in': True},
+                     ]
+        entry_outs = [{'article': self.articletype_1,
+                       'book_value': self.cost_system_currency_1,
+                       'count': OUT_1,
+                       'is_in': False}, ]
+        StockChangeSet.construct(description="", entries=entry_ins, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockChangeSet.construct(description="", entries=entry_outs, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
@@ -183,7 +188,7 @@ class PreparationTests(TestCase, TestData):
         IN_2 = 7
         IN_TOTAL = IN_1 + IN_2
         OUT_1 = 3
-        entry = [{'article': self.articletype_1,
+        entry_in = [{'article': self.articletype_1,
                   'book_value': self.cost_system_currency_1,
                   'count': IN_1,
                   'is_in': True},
@@ -191,12 +196,15 @@ class PreparationTests(TestCase, TestData):
                   'book_value': self.cost_system_currency_1,
                   'count': IN_2,
                   'is_in': True},
-                 {'article': self.articletype_1,
+
+                 ]
+        entry_out = [{'article': self.articletype_1,
                   'book_value': self.cost_system_currency_1,
                   'count': OUT_1,
-                  'is_in': False},
-                 ]
-        StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+                  'is_in': False},]
+        StockChangeSet.construct(description="", entries=entry_in, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockChangeSet.construct(description="", entries=entry_out, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+
         sc = StockCountDocument(user_modified=self.user_1)
         sc.save()
         scl = StockCountLine(document=sc, article_type=self.articletype_1, previous_count=0, in_count=12,
@@ -650,20 +658,22 @@ class StockCountDocumentTests(TestCase, TestData):
         self.assertEqual(st_2.book_value, zero_cost)
 
     def test_addition_cost_from_stock_change(self):
-        entry = [{'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 3,
-                  'is_in': True},
-                 {'article': self.articletype_2,
-                  'book_value': self.cost_system_currency_2,
-                  'count': 3,
-                  'is_in': True},
-                 {'article': self.articletype_2,
-                  'book_value': self.cost_system_currency_2,
-                  'count': 3,
-                  'is_in': False}
-                 ]
-        StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        entry_ins = [{'article': self.articletype_1,
+                      'book_value': self.cost_system_currency_1,
+                      'count': 3,
+                      'is_in': True},
+                     {'article': self.articletype_2,
+                      'book_value': self.cost_system_currency_2,
+                      'count': 3,
+                      'is_in': True},
+
+                     ]
+        entry_outs = [{'article': self.articletype_2,
+                       'book_value': self.cost_system_currency_2,
+                       'count': 3,
+                       'is_in': False}]
+        StockChangeSet.construct(description="", entries=entry_ins, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockChangeSet.construct(description="", entries=entry_outs, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 2)])
         StockCountDocument.create_stock_count(self.user_1)
         st_2 = Stock.objects.get(article_id=self.articletype_2.id, labeltype__isnull=True)
@@ -777,22 +787,23 @@ class StockCountDocumentTests(TestCase, TestData):
             StockCountDocument.create_stock_count(self.user_1)
 
     def test_correct_outs(self):
-        entry = [{'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 2,
-                  'is_in': True},
-                 {'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 3,
-                  'is_in': True,
-                  'label': OrderLabel(1)},
-                 {'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 2,
-                  'is_in': False,
-                  'label': OrderLabel(1)}
-                 ]
-        StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        entry_ins = [{'article': self.articletype_1,
+                      'book_value': self.cost_system_currency_1,
+                      'count': 2,
+                      'is_in': True},
+                     {'article': self.articletype_1,
+                      'book_value': self.cost_system_currency_1,
+                      'count': 3,
+                      'is_in': True,
+                      'label': OrderLabel(1)},
+                     ]
+        entry_outs = [{'article': self.articletype_1,
+                       'book_value': self.cost_system_currency_1,
+                       'count': 2,
+                       'is_in': False,
+                       'label': OrderLabel(1)}]
+        StockChangeSet.construct(description="", entries=entry_ins, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        StockChangeSet.construct(description="", entries=entry_outs, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 3), (self.articletype_2, 0)])
         StockCountDocument.create_stock_count(self.user_1)
         doc = StockCountDocument.objects.get()
