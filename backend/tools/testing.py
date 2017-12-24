@@ -316,9 +316,9 @@ class TestMixins(TestCase, TestData):
     def test_all_in_sequence(self):
         self.setup_base_data()
         self.add_setup_pricing()
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_stockwish()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order()
+        self.create_transactions_article_type_for_order(article_1=2, article_2=3, othercost_1=4, order=order.id)
         self.create_externalisation()
