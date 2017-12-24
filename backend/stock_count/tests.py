@@ -733,16 +733,7 @@ class StockCountDocumentTests(TestCase, TestData):
             self.assertEqual(scl, correct[scl.article_type])
 
     def test_subtraction_from_labeled_line(self):
-        entry = [{'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 3,
-                  'is_in': True},
-                 {'article': self.articletype_1,
-                  'book_value': self.cost_system_currency_1,
-                  'count': 3,
-                  'is_in': True,
-                  'label': OrderLabel(1)}
-                 ]
+
         ordr = Order(customer=self.customer_person_1)
         ordrlines = [OrderLine(order=ordr, state='A', wishable=self.articletype_1,
                                expected_sales_price=self.price_system_currency_1),
@@ -751,6 +742,16 @@ class StockCountDocumentTests(TestCase, TestData):
                      OrderLine(order=ordr, state='A', wishable=self.articletype_1,
                                expected_sales_price=self.price_system_currency_1)]
         order_saved = Order.make_order(ordr, ordrlines, self.user_1)
+        entry = [{'article': self.articletype_1,
+                  'book_value': self.cost_system_currency_1,
+                  'count': 3,
+                  'is_in': True},
+                 {'article': self.articletype_1,
+                  'book_value': self.cost_system_currency_1,
+                  'count': 3,
+                  'is_in': True,
+                  'label': OrderLabel(order_saved.id)}
+                 ]
         StockChangeSet.construct(description="", entries=entry, source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
         TemporaryArticleCount.update_temporary_counts([(self.articletype_1, 4), (self.articletype_2, 0)])
         DiscrepancySolution.add_solutions([DiscrepancySolution(article_type=self.articletype_1, stock_label="Order",
