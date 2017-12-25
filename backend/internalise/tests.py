@@ -81,7 +81,7 @@ class InternaliseTests(TestCase, TestData):
         IN_STOCK_ART_1 = 6
         CUST_ORDER_1 = 5
         self.create_stockwish(article_1=IN_STOCK_ART_1, article_2=0)
-        self.create_custorders(article_1=CUST_ORDER_1, article_2=0)
+        order = self.create_custorders(article_1=CUST_ORDER_1, article_2=0)
         self.create_suporders(article_1=IN_STOCK_ART_1+CUST_ORDER_1, article_2=0)
         self.create_packingdocuments(article_1=IN_STOCK_ART_1+CUST_ORDER_1, article_2=0)
         st_1 = Stock.objects.get(labeltype__isnull=True)
@@ -99,7 +99,7 @@ class InternaliseTests(TestCase, TestData):
         InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                               articles_with_information=[
                                                                   (self.articletype_1, INTERN_ART_1, None, None),
-                                                                  (self.articletype_1, INTERN_ART_2, OrderLabel, 1)],
+                                                                  (self.articletype_1, INTERN_ART_2, OrderLabel, order.id)],
                                                               memo="Foo2")
         st_1 = Stock.objects.get(labeltype__isnull=True)
         self.assertEqual(st_1.count, IN_STOCK_ART_1-INTERN_ART_1)
@@ -118,7 +118,7 @@ class InternaliseTests(TestCase, TestData):
         self.assertFalse(il_1.label_type)
         self.assertFalse(il_1.identifier)
         self.assertEqual(il_2.label_type, "Order")
-        self.assertEqual(il_2.identifier, 1)
+        self.assertEqual(il_2.identifier, order.id)
 
         ols = OrderLine.objects.filter(state='A', wishable__sellabletype__articletype=self.articletype_1)
         self.assertEqual(len(ols), CUST_ORDER_1-INTERN_ART_2)
