@@ -140,7 +140,7 @@ class InternaliseTests(TestCase, TestData):
 
     def test_just_enough_articles_labeled(self):
         CUST_ORDERED_ART_1 = 6
-        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0, othercost_1=0, othercost_2=0)
+        order = self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0, othercost_1=0, othercost_2=0)
         self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
         self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
         st = Stock.objects.get()
@@ -150,7 +150,7 @@ class InternaliseTests(TestCase, TestData):
         InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                               articles_with_information=[
                                                                   [self.articletype_1, CUST_ORDERED_ART_1,
-                                                                   OrderLabel, 1]],
+                                                                   OrderLabel, order.id]],
                                                               memo="Foo3")
         stock = Stock.objects.all()
         self.assertEqual(len(stock), 0)
@@ -159,7 +159,7 @@ class InternaliseTests(TestCase, TestData):
 
     def test_too_many_articles_labeled(self):
         CUST_ORDERED_ART_1 = 6
-        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        order = self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
         self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
         self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
         st = Stock.objects.get()
@@ -168,12 +168,12 @@ class InternaliseTests(TestCase, TestData):
             InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                                   articles_with_information=[
                                                                       [self.articletype_1, CUST_ORDERED_ART_1+1,
-                                                                       OrderLabel, 1]],
+                                                                       OrderLabel, order.id]],
                                                                   memo="Foo3")
 
     def test_too_many_articles_labeled_loose(self):
         CUST_ORDERED_ART_1 = 6
-        self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
+        order = self.create_custorders(article_1=CUST_ORDERED_ART_1, article_2=0)
         self.create_suporders(article_1=CUST_ORDERED_ART_1, article_2=0)
         self.create_packingdocuments(article_1=CUST_ORDERED_ART_1, article_2=0)
         st = Stock.objects.get()
@@ -182,8 +182,8 @@ class InternaliseTests(TestCase, TestData):
             InternaliseDocument.create_internal_products_document(user=self.user_1,
                                                                   articles_with_information=[
                                                                    [self.articletype_1, CUST_ORDERED_ART_1-2,
-                                                                    OrderLabel, 1],
-                                                                   [self.articletype_1, 3, OrderLabel, 1]],
+                                                                    OrderLabel, order.id],
+                                                                   [self.articletype_1, 3, OrderLabel, order.id]],
                                                                   memo="Foo3")
 
     def test_too_many_articles_stock(self):
