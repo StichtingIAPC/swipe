@@ -149,7 +149,7 @@ class Stock(StockLabeledLine):
                     and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** DECIMAL_PLACES) != 0 \
                     and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
-                                 "from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
+                                 "from: {} to: {} ".format(merge_line.count, stock_mod.book_value.amount))
 
             old_cost = merge_line.book_value
             if stock_mod.get_count() + merge_line.count != 0:
