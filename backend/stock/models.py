@@ -279,7 +279,6 @@ class StockChangeSet(models.Model):
             raise ValueError("Source given for this StockChangeSet ({}) is not in the valid sources list: {}".format(
                 source, valid_sources
             ))
-
         # Check if the entry dictionaries are complete
         for entry in entries:
             stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
@@ -305,7 +304,7 @@ class StockChangeSet(models.Model):
                 raise ValueError("Something went wrong while creating the a stock modification: {}".format(e))
 
         # Modify the stock for each StockChange now linked to the StockChangeSet we created
-        for modification in sl.stockchange_set.all():
+        for modification in sl.stockchange_set.all().order_by('id'):
             Stock.modify(modification)
 
         # Return the created StockChangeSet
