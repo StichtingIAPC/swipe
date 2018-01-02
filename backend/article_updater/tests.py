@@ -168,7 +168,8 @@ class SupplierTests(SimpleTestCase):
 class DatabaseParserTests(TestCase):
 
     def setUp(self):
-        wave_supplier = Supplier(pk=3)
+        wave_supplier = Supplier(name="Wave")
+        wave_supplier.save()
         self.wave = CSVSupplierRelation(supplier=wave_supplier, number=0, ean=5, name=2, cost=3, supply=4,
                                         minimum_order=None,
                                         packing_amount=None, separator="|", start_at=1)
