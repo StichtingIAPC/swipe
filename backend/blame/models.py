@@ -84,7 +84,7 @@ class BlameLog(models.Model):
     date_modified = models.DateTimeField(auto_now_add=True)
     user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by")
     obj_pk = models.IntegerField()
-    to_string = models.CharField(max_length=128)
+    to_string = models.CharField(max_length=500)
 
     def __str__(self):
         return "{} {} @ {} > {} :{}".format(self.date_modified, self.user_modified.__str__().ljust(8)[:8],
