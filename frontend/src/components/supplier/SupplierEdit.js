@@ -59,7 +59,7 @@ class SupplierEdit extends React.Component {
 				closeLink="/supplier/">
 				<StringField onChange={this.setName} value={supplier.name} name="Name" />
 				<StringField onChange={this.setNotes} value={supplier.notes} name="Notes" />
-				<StringField onChange={this.setSearch_url} value={supplier.searchUrl} name="Search Url" />
+				<StringField onChange={this.setSearch_url} value={supplier.search_url} name="Search Url" />
 			</Form>
 		);
 	}
