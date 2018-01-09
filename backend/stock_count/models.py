@@ -410,7 +410,9 @@ class TemporaryArticleCount(models.Model):
         Sets all counts back to 0
         """
         TemporaryArticleCount.objects.all().update(count=0, checked=False)
-        article_type_ids = TemporaryArticleCount.objects.all().values('id')
+        # articles that are already in the list, can be ignored afterwards
+        present_counts = TemporaryArticleCount.objects.all()
+        article_type_ids = present_counts.values('article_type_id')
         ats = ArticleType.objects.exclude(id__in=article_type_ids)
         if len(ats) > 0:
             new_temporary_article_counts = []

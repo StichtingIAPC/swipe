@@ -15,10 +15,10 @@ class BasicTests(TestCase, TestData):
         self.setup_base_data()
 
     def test_simple_store_customer_rma_task(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order()
+        self.create_transactions_article_type_for_order(order=order.id)
         trans = Transaction.objects.all().first()
         crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
         crt.save()
@@ -47,10 +47,10 @@ class BasicTests(TestCase, TestData):
         self.assertEqual(irls.internal_rma, irs[0])
 
     def test_refund_illegal_options(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order()
+        self.create_transactions_article_type_for_order(order=order.id)
         stl = SalesTransactionLine.objects.first()
         rcpt = Transaction.objects.first()
         crt = CustomerRMATask(customer=self.customer_person_1, receipt=rcpt)
@@ -63,10 +63,10 @@ class BasicTests(TestCase, TestData):
 
     def test_direct_refund_rma(self):
         # Test creation of RMA. No customer RMA was generated
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order()
+        self.create_transactions_article_type_for_order(order=order.id)
         stl = SalesTransactionLine.objects.first()
         price = stl.price  # type: Price
         rfl = RefundTransactionLine(user_modified=self.user_1, count=-1, sold_transaction_line=stl,
@@ -83,10 +83,10 @@ class BasicTests(TestCase, TestData):
         self.assertEqual(irma.description, '')
 
     def test_customer_rma_task_comments(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order()
+        self.create_transactions_article_type_for_order(order=order.id)
         trans = Transaction.objects.first()
         crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
         crt.save()
@@ -98,10 +98,10 @@ class BasicTests(TestCase, TestData):
         self.assertEqual(len(comments), 2)
 
     def test_testrma_in_customer_rma_task(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order()
+        self.create_transactions_article_type_for_order(order=order.id)
         trans = Transaction.objects.first()
         stl = SalesTransactionLine.objects.filter(transaction=trans).first()
         crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
@@ -115,10 +115,10 @@ class BasicTests(TestCase, TestData):
         self.assertEqual(ira.state, 'B')
 
     def test_testrma_overloading_number_of_testrmas(self):
-        self.create_custorders()
+        order=self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order(article_1=2)
+        self.create_transactions_article_type_for_order(article_1=2, order=order.id)
         trans = Transaction.objects.first()
         stl = SalesTransactionLine.objects.filter(transaction=trans, article=self.articletype_1).first()
         crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
@@ -132,10 +132,10 @@ class BasicTests(TestCase, TestData):
             tra3.save()
 
     def test_testrma_correct_closing_states(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order(article_1=2)
+        self.create_transactions_article_type_for_order(article_1=2, order=order.id)
         trans = Transaction.objects.first()
         stl = SalesTransactionLine.objects.filter(transaction=trans, article=self.articletype_1).first()
         crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
@@ -149,10 +149,10 @@ class BasicTests(TestCase, TestData):
         tra3.save()
 
     def test_counted_customer_rmas(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
-        self.create_transactions_article_type_for_order()
+        self.create_transactions_article_type_for_order(order=order.id)
         trans = Transaction.objects.first()
         crt = CustomerRMATask(customer=self.customer_person_1, receipt=trans)
         crt.save()
