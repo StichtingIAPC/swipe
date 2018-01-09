@@ -29,27 +29,13 @@ export default class Box extends React.Component {
 			err: false,
 			open: true,
 		};
-
-		window.setTimeout(() => console.log(this.updater.isMounted()), 1);
 	}
 
-	toggleOpen = () => {
-		console.log('hi', this.sym, this);
-		this.setState(state => ({ open: !state.open }));
-	}
+	toggleOpen = () => this.setState(state => ({ open: !state.open }));
 
 	componentWillCatch(err) {
 		console.log(err);
 		this.setState(() => ({ err: true }));
-	}
-
-	componentWillMount() {
-		this.sym = Symbol(`${Math.random()}`);
-		console.log('mounting box', this.sym);
-	}
-	componentWillUnmount() {
-		console.log('unmounting Box', this.sym);
-		this.sym = null;
 	}
 
 	render() {

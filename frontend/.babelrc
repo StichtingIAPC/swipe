@@ -15,5 +15,6 @@
 		}],
 		"stage-0-without-async",
 		"react"
-	]
+	],
+	"plugins": [ "react-hot-loader/babel" ]
 }
