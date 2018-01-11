@@ -14,7 +14,9 @@
 			"exclude": [ "transform-regenerator" ]
 		}],
 		"stage-0-without-async",
-		"react"
+		"react",
+		"es2015"
 	],
-	"plugins": [ "react-hot-loader/babel" ]
+	"plugins": [ "react-hot-loader/babel" ],
+
 }

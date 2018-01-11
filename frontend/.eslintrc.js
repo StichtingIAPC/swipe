@@ -311,8 +311,7 @@ module.exports = {
 		'wrap-regex': OFF,
 
 		// ES6+ features
-		'arrow-body-style': [ WARN, 'as-needed' ],
-		'arrow-parens': [ WARN, 'as-needed' ],
+``		'arrow-parens': [ WARN, 'as-needed' ],
 		'arrow-spacing': [ ERROR, {
 			before: true,
 			after: true,
