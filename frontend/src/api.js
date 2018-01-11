@@ -14,11 +14,15 @@ export function setToken(token) {
 	listeners = [];
 }
 
+export function __getTokenDangerous() {
+	return TOKEN;
+}
+
 export function getToken() {
 	return new Promise(
 		accept => {
 			if (TOKEN === null) {
-				listeners.append(accept);
+				listeners.push(accept);
 			} else {
 				accept(TOKEN);
 			}
@@ -49,7 +53,7 @@ async function request(method, url, { headers = {}, ...rest } = {}, object) {
 	if (result.ok) {
 		return result;
 	}
-	throw result;
+	throw result.json();
 }
 
 export function get(url, info) {

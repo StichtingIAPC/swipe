@@ -132,7 +132,7 @@ class SimpleClassTests(TestCase, TestData):
         NUMBER_ORDERED = 2
         OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED, wishable_type=self.article_type,
                                          price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
-        Order.make_order(order, orderlines, self.copro)
+        order = Order.make_order(order, orderlines, self.copro)
         NUMBER_SUPPLIER_ORDERED = 2
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
@@ -157,7 +157,7 @@ class SimpleClassTests(TestCase, TestData):
         st_line = stock[0]
         self.assertEquals(st_line.count, NUMBER_BATCHED)
         self.assertEquals(st_line.labeltype, OrderLabel.labeltype)
-        self.assertEquals(st_line.labelkey, 1)  # Order identifier/pk
+        self.assertEquals(st_line.labelkey, order.id)  # Order identifier/pk
 
     def test_stock_storage_of_orders_more_orders(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -168,11 +168,11 @@ class SimpleClassTests(TestCase, TestData):
         NUMBER_ORDERED = NUMBER_ORDERED_1 + NUMBER_ORDERED_2
         OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
                                          price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
-        Order.make_order(order_1, orderlines, self.copro)
+        order_1_saved = Order.make_order(order_1, orderlines, self.copro)
         orderlines = []
         OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_2, wishable_type=self.article_type,
                                          price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
-        Order.make_order(order_2, orderlines, self.copro)
+        order_2_saved = Order.make_order(order_2, orderlines, self.copro)
         NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
@@ -199,8 +199,8 @@ class SimpleClassTests(TestCase, TestData):
             self.assertEquals(st.count, 1)
             self.assertEquals(st.labeltype, OrderLabel.labeltype)
 
-        self.assertEquals(stock[0].labelkey, 1)  # Order identifier/pk
-        self.assertEquals(stock[1].labelkey, 2)  # Order identifier/pk
+        self.assertEquals(stock[0].labelkey, order_1_saved.id)
+        self.assertEquals(stock[1].labelkey, order_2_saved.id)
 
     def test_stock_storage_of_orders_more_prices(self):
         order_1 = Order(user_modified=self.copro, customer=self.customer)
@@ -209,7 +209,7 @@ class SimpleClassTests(TestCase, TestData):
         NUMBER_ORDERED = NUMBER_ORDERED_1
         OrderLine.add_orderlines_to_list(orderlines, number=NUMBER_ORDERED_1, wishable_type=self.article_type,
                                          price=Price(amount=Decimal(1.55), currency=Currency("EUR")), user=self.copro)
-        Order.make_order(order_1, orderlines, self.copro)
+        order = Order.make_order(order_1, orderlines, self.copro)
         NUMBER_SUPPLIER_ORDERED = NUMBER_ORDERED
         SupplierOrder.create_supplier_order(user_modified=self.copro, supplier=self.supplier,
                                             articles_ordered=[[self.article_type, NUMBER_SUPPLIER_ORDERED, self.cost]])
@@ -234,7 +234,7 @@ class SimpleClassTests(TestCase, TestData):
         for st in stock:
             self.assertEquals(st.count, 2)
             self.assertEquals(st.labeltype, OrderLabel.labeltype)
-            self.assertEquals(st.labelkey, 1)  # Order pk
+            self.assertEquals(st.labelkey, order.id)  # Order pk
 
     def test_packingdocumentline_storage_without_stock_mod(self):
         order = Order(user_modified=self.copro, customer=self.customer)
@@ -435,7 +435,6 @@ class DistributionTests(TestCase, TestData):
         supply = [[self.article_type, 8]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for i in range(0, len(dist)):
-            self.assertEquals(dist[i].supplier_order_line.pk, i + 1)
             self.assertEquals(dist[i].line_cost, self.cost)
             self.assertIsNone(dist[i].invoice)
             self.assertIsNone(dist[i].line_cost_after_invoice)
@@ -458,14 +457,12 @@ class DistributionTests(TestCase, TestData):
         supply = [[self.article_type, 8]]
         dist = FirstSupplierOrderStrategy.get_distribution(supply, supplier=self.supplier)
         for i in range(0, STOCK_WISH):
-            self.assertEquals(dist[i].supplier_order_line.pk, i + 1)
             self.assertEquals(dist[i].line_cost, self.cost)
             self.assertIsNone(dist[i].invoice)
             self.assertIsNone(dist[i].line_cost_after_invoice)
             self.assertEquals(dist[i].article_type, self.article_type)
             self.assertIsNone(dist[i].supplier_order_line.order_line)
         for i in range(STOCK_WISH + 1, len(dist)):
-            self.assertEquals(dist[i].supplier_order_line.pk, i + 1)
             self.assertEquals(dist[i].line_cost, self.cost)
             self.assertIsNone(dist[i].invoice)
             self.assertIsNone(dist[i].line_cost_after_invoice)
@@ -504,7 +501,6 @@ class DistributionTests(TestCase, TestData):
         a = FirstCustomersDateTimeThenStockDateTime.get_distribution([[self.article_type, 10]], self.supplier)
         for i in range(0, len(a)):
             self.assertEquals(a[i].line_cost, self.cost)
-            self.assertEquals(a[i].supplier_order_line.pk, i + 1)
             self.assertEquals(a[i].article_type, self.article_type)
             self.assertIsNone(a[i].line_cost_after_invoice)
             self.assertIsNone(a[i].invoice)
@@ -523,7 +519,6 @@ class DistributionTests(TestCase, TestData):
                                                                      self.supplier)
         for i in range(0, len(a)):
             self.assertEquals(a[i].line_cost, self.cost)
-            self.assertEquals(a[i].supplier_order_line.pk, i + 1)
             self.assertEquals(a[i].article_type, self.article_type)
             self.assertEquals(a[i].line_cost_after_invoice, self.cost2)
             self.assertIsNone(a[i].invoice)
@@ -550,7 +545,6 @@ class DistributionTests(TestCase, TestData):
                 self.assertIsNone(a[i].supplier_order_line.order_line)
                 self.assertEquals(a[i].line_cost, self.cost)
 
-            self.assertEquals(a[i].supplier_order_line.pk, i + 1)
             self.assertEquals(a[i].article_type, self.article_type)
             self.assertEquals(a[i].line_cost_after_invoice, self.cost2)
             self.assertIsNone(a[i].invoice)
@@ -814,7 +808,7 @@ class PackingDocumentCreationTests(TestCase, TestData):
     def test_big_creation_function_order_only_no_invoice(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
@@ -829,7 +823,7 @@ class PackingDocumentCreationTests(TestCase, TestData):
         art_2 = 0
         for line in st:
             self.assertIsInstance(line.label, OrderLabel)
-            self.assertEquals(line.labelkey, 1)
+            self.assertEquals(line.labelkey, order.id)
             if line.article == self.article_type:
                 art_1 += 1
             elif line.article == self.at2:
@@ -845,7 +839,7 @@ class PackingDocumentCreationTests(TestCase, TestData):
     def test_big_creation_function_order_only_with_invoice(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
@@ -860,7 +854,7 @@ class PackingDocumentCreationTests(TestCase, TestData):
         art_2 = 0
         for line in st:
             self.assertIsInstance(line.label, OrderLabel)
-            self.assertEquals(line.labelkey, 1)
+            self.assertEquals(line.labelkey, order.id)
             if line.article == self.article_type:
                 art_1 += 1
             elif line.article == self.at2:

@@ -142,7 +142,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
     def test_sales_transaction_line(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
@@ -155,19 +155,19 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = 2
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
-                                   count=count, article=self.article_type, order=1)
+                                   count=count, article=self.article_type, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl])
         tls = TransactionLine.objects.all()
         self.assertEquals(len(tls), 1)
         obj = tls[0]
-        self.assertEquals(obj.num, 1)
+        self.assertEquals(obj.num, self.article_type.id)
         self.assertEquals(obj.count, 2)
         self.assertFalse(obj.isRefunded)
-        self.assertEquals(obj.order, 1)
+        self.assertEquals(obj.order, order.id)
         self.assertEquals(obj.text, str(self.article_type))
-        st = Stock.objects.get(labeltype="Order", labelkey=1, article=self.article_type)
+        st = Stock.objects.get(labeltype="Order", labelkey=order.id, article=self.article_type)
         self.assertEquals(st.count, AMOUNT_1 - count)
         ols_1 = OrderLine.objects.filter(wishable__sellabletype=self.article_type, state='S')
         ols_2 = OrderLine.objects.filter(wishable__sellabletype=self.article_type, state='A')
@@ -197,7 +197,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
     def test_sales_all_stock_levels(self):
         AMOUNT_STOCK_1 = 5
         AMOUNT_ORDER = 4
-        Order.create_order_from_wishables_combinations(user=self.copro, customer=self.customer,
+        order= Order.create_order_from_wishables_combinations(user=self.copro, customer=self.customer,
                                                        wishable_type_number_price_combinations=[[self.article_type,
                                                                                                  AMOUNT_ORDER,
                                                                                                  self.price]])
@@ -217,20 +217,20 @@ class TestTransactionCreationFunction(TestCase, TestData):
             count=count_stock, article=self.article_type, order=None)
         stl2 = SalesTransactionLine(
             price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True, vat=1.23),
-            count=count_order, article=self.article_type, order=1)
+            count=count_order, article=self.article_type, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * (count_stock + count_order),
                           currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[stl, stl2])
         st = Stock.objects.get(labeltype__isnull=True, article=self.article_type)
         self.assertEquals(st.count, AMOUNT_STOCK_1 - count_stock)
-        st2 = Stock.objects.get(labeltype="Order", labelkey=1, article=self.article_type)
+        st2 = Stock.objects.get(labeltype="Order", labelkey=order.id, article=self.article_type)
         self.assertEquals(st2.count, AMOUNT_ORDER - count_order)
 
     def test_sales_transaction_not_enough_stock(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
@@ -243,7 +243,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = AMOUNT_1 + 1
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
-                                   count=count, article=self.article_type, order=1)
+                                   count=count, article=self.article_type, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(NotEnoughStockError):
@@ -252,7 +252,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
     def test_sales_transaction_just_enough_stock(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
@@ -265,7 +265,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = AMOUNT_1
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
-                                   count=count, article=self.article_type, order=1)
+                                   count=count, article=self.article_type, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
 
@@ -274,7 +274,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
     def test_sales_transaction_too_much_payment(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
@@ -287,7 +287,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = AMOUNT_1
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
-                                   count=count, article=self.article_type, order=1)
+                                   count=count, article=self.article_type, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count + Decimal(0.001),
                           currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
@@ -298,7 +298,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
     def test_sales_transaction_too_little_payment(self):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price]])
         SupplierOrder.create_supplier_order(self.copro, self.supplier,
@@ -311,7 +311,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = AMOUNT_1
         stl = SalesTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount, use_system_currency=True,
                                                vat=1.23),
-                                   count=count, article=self.article_type, order=1)
+                                   count=count, article=self.article_type, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count - Decimal(0.001),
                           currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
@@ -322,7 +322,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
         AMOUNT_3 = 5
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price], [self.other_cost, AMOUNT_3,
                                                                                            self.price]])
@@ -336,7 +336,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = AMOUNT_3 - 1
         octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount,
                                                     use_system_currency=True, vat=1.23),
-                                        count=count, other_cost_type=self.other_cost, order=1)
+                                        count=count, other_cost_type=self.other_cost, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
@@ -347,10 +347,10 @@ class TestTransactionCreationFunction(TestCase, TestData):
         octl = octls[0]
         self.assertFalse(octl.isRefunded)
         self.assertEquals(octl.count, count)
-        self.assertEquals(octl.order, 1)
+        self.assertEquals(octl.order, order.id)
         self.assertEquals(octl.text, octl.other_cost_type.name)
         sold_counter = 0
-        ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=1)
+        ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=order.id)
         for ol in ols:
             if ol.state == 'S':
                 sold_counter += 1
@@ -360,7 +360,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
         AMOUNT_3 = 5
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price], [self.other_cost, AMOUNT_3,
                                                                                            self.price]])
@@ -374,7 +374,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = AMOUNT_3
         octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount,
                                                     use_system_currency=True, vat=1.23),
-                                        count=count, other_cost_type=self.other_cost, order=1)
+                                        count=count, other_cost_type=self.other_cost, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         Transaction.create_transaction(user=self.copro, payments=[local_payment], transaction_lines=[octt])
@@ -385,10 +385,10 @@ class TestTransactionCreationFunction(TestCase, TestData):
         octl = octls[0]
         self.assertFalse(octl.isRefunded)
         self.assertEquals(octl.count, count)
-        self.assertEquals(octl.order, 1)
+        self.assertEquals(octl.order, order.id)
         self.assertEquals(octl.text, octl.other_cost_type.name)
         sold_counter = 0
-        ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=1)
+        ols = OrderLine.objects.filter(wishable__sellabletype=self.other_cost, order_id=order.id)
         for ol in ols:
             if ol.state == 'S':
                 sold_counter += 1
@@ -398,7 +398,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
         AMOUNT_3 = 5
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price], [self.other_cost, AMOUNT_3,
                                                                                            self.price]])
@@ -412,7 +412,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count = AMOUNT_3 + 1
         octt = OtherCostTransactionLine(price=Price(amount=self.simple_payment_eur.amount.amount,
                                                     use_system_currency=True, vat=1.23),
-                                        count=count, other_cost_type=self.other_cost, order=1)
+                                        count=count, other_cost_type=self.other_cost, order=order.id)
         loc_money = Money(amount=self.simple_payment_eur.amount.amount * count, currency=Currency(USED_CURRENCY))
         local_payment = Payment(amount=loc_money, payment_type=self.pt)
         with self.assertRaises(NotEnoughOrderLinesError):
@@ -499,7 +499,7 @@ class TestTransactionCreationFunction(TestCase, TestData):
         AMOUNT_1 = 6
         AMOUNT_2 = 10
         AMOUNT_3 = 5
-        Order.create_order_from_wishables_combinations(self.copro, self.customer,
+        order = Order.create_order_from_wishables_combinations(self.copro, self.customer,
                                                        [[self.article_type, AMOUNT_1, self.price],
                                                         [self.at2, AMOUNT_2, self.price], [self.other_cost, AMOUNT_3,
                                                                                            self.price]])
@@ -516,8 +516,8 @@ class TestTransactionCreationFunction(TestCase, TestData):
         count_4 = 10
         total_count = count_1 + count_2 + count_3 + count_4
         p = Price(amount=Decimal(1), use_system_currency=True, vat=1.23)
-        stl_1 = SalesTransactionLine(count=count_1, price=p, article=self.article_type, order=1)
-        stl_2 = SalesTransactionLine(count=count_2, price=p, article=self.at2, order=1)
+        stl_1 = SalesTransactionLine(count=count_1, price=p, article=self.article_type, order=order.id)
+        stl_2 = SalesTransactionLine(count=count_2, price=p, article=self.at2, order=order.id)
         octl = OtherCostTransactionLine(count=count_3, price=p, other_cost_type=self.other_cost)
         otl = OtherTransactionLine(count=count_4, price=p, text="Rand", accounting_group=self.acc_group)
         loc_money = Money(amount=Decimal(1) * total_count - Decimal(1), currency=Currency(USED_CURRENCY))
@@ -645,19 +645,19 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
 
     def test_other_cost(self):
         oth_count = 8
-        self.create_custorders(othercost_1=oth_count)
+        order = self.create_custorders(othercost_1=oth_count)
         self.create_suporders()
         self.create_packingdocuments()
         self.register_3.open(Decimal(0))
         octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=oth_count,
-                                          other_cost_type=self.othercosttype_1, order=1)
+                                          other_cost_type=self.othercosttype_1, order=order.id)
         money_3 = Money(amount=self.price_system_currency_1.amount * oth_count,
                         currency=self.price_system_currency_1.currency)
         pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
         Transaction.create_transaction(user=self.user_2, payments=[pymnt_3], transaction_lines=[octl_1],
                                        customer=self.customer_person_2)
         octl_1 = OtherCostTransactionLine(price=self.price_system_currency_1, count=1,
-                                          other_cost_type=self.othercosttype_1, order=1)
+                                          other_cost_type=self.othercosttype_1, order=order.id)
         money_3 = Money(amount=self.price_system_currency_1.amount * 1, currency=self.price_system_currency_1.currency)
         pymnt_3 = Payment(amount=money_3, payment_type=self.paymenttype_maestro)
         with self.assertRaises(NotEnoughOrderLinesError):
@@ -665,10 +665,10 @@ class TestSalesFeaturesWithMixin(TestCase, TestData):
                                            customer=self.customer_person_2)
 
     def test_refund_stock_amount(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments(article_1=3)
-        self.create_transactions_article_type_for_order(article_1=2)
+        self.create_transactions_article_type_for_order(article_1=2, order=order.id)
         stl = SalesTransactionLine.objects.get(article=self.articletype_1)
         rfl_1 = RefundTransactionLine(price=self.price_system_currency_1, count=-1, sold_transaction_line=stl)
         money_1 = Money(amount=self.price_system_currency_1.amount * -1, currency=self.price_system_currency_1.currency)

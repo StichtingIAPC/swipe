@@ -1,12 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { createArticle, updateArticle } from '../../state/assortment/articles/actions.js';
 import { BoolField, IntegerField, SelectField, StringField } from '../forms/fields';
 import FontAwesome from '../tools/icons/FontAwesome';
 import LabelField from '../forms/LabelField';
 import LabelList from '../assortment/LabelList';
+import { fetchArticle, newArticle, setArticleField } from '../../state/assortment/articles/actions';
+import Box from '../base/Box';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { accountingGroups } from '../../state/money/accounting-groups/actions';
+import { labelTypes } from '../../state/assortment/label-types/actions';
+import { unitTypes } from '../../state/assortment/unit-types/actions';
 
 class ArticleEdit extends React.Component {
 	static propTypes = {
@@ -18,98 +24,103 @@ class ArticleEdit extends React.Component {
 		params: PropTypes.shape({ articleID: PropTypes.string.isRequired }).isRequired,
 	};
 
-	constructor(props) {
-		super(props);
-		this.state = this.getResetState();
-	}
-
 	componentWillMount() {
-		this.reset(null);
+		this.props.fetchArticle(+this.props.match.params.articleID);
+		fetchStateRequirementsFor(this);
 	}
 
-	getResetState(props = this.props) {
-		if (props.article !== null) {
-			return {
-				...props.article,
-				useFixedPrice: false,
-			};
-		}
-		return {
-			id: null,
-			fixed_price: null,
-			accounting_group: null,
-			name: '',
-			labels: [],
-			ean: null,
-			serial_number: false,
-		};
-	}
+	save = () => {
+		const { article } = this.props;
 
-	save(evt) {
-		if (evt) {
-			evt.preventDefault();
-		}
-		if (this.state.id) {
-			this.props.editArticle(this.state);
+		if (article.id === null) {
+			this.props.createArticle(article);
 		} else {
-			this.props.addArticle(this.state);
+			this.props.updateArticle(article);
+		}
+	};
+
+	reset = () => {
+		if (typeof this.props.match.params.articleID === 'undefined') {
+			this.props.newArticle();
+		} else {
+			this.props.fetchArticle(+this.props.match.params.articleID);
+		}
+	};
+
+	componentWillReceiveProps({ match }) {
+		if (this.props.match.params.articleID !== match.params.articleID) {
+			if (Number.isNaN(+match.params.articleID)) {
+				this.props.newArticle();
+			} else {
+				this.props.fetchArticle(+match.params.articleID);
+			}
 		}
 	}
 
-	reset(evt, props) {
-		if (evt) {
-			evt.preventDefault();
-		}
-		this.setState(this.getResetState(props));
-	}
+	setName = ({ target: { value }}) => this.props.setArticleField('name', value);
+	setEAN = ({ target: { value }}) => this.props.setArticleField('ean', +value);
+	setSerialNumber = () => this.props.setArticleField('serial_number', !this.props.article.serial_number);
+	setAccountingGroup = ({ target: { value }}) => this.props.setArticleField('accounting_group', value);
 
-	componentWillReceiveProps(props) {
-		if (this.props.article !== props.article) {
-			this.reset(null, props);
-		}
-	}
+	addLabel = (typeID, value) => this.props.setArticleField(
+		'labels',
+		{
+			...this.props.article.labels,
+			[typeID]: (this.props.article.labels[typeID] || [])
+				.filter(v => v !== value)
+				.concat([ value ]),
+		},
+	);
 
-	removeLabel(ltID, lValue) {
-		this.setState(state => ({
-			labels: {
-				...state.labels,
-				[ltID]: (state.labels[ltID] || []).filter(v => v !== lValue),
-			},
-		}));
-	}
+	removeLabel = (typeID, value) => this.props.setArticleField(
+		'labels',
+		{
+			...this.props.article.labels,
+			[typeID]: (this.props.article.labels[typeID] || [])
+				.filter(v => v !== value),
+		},
+	);
+
+	renderInsert = ({ value, typeID }) => (
+		<a
+			className="btn btn-danger btn-xs"
+			onClick={() => this.removeLabel(typeID, value)}>
+			<FontAwesome icon="close" />
+		</a>
+	);
 
 	render() {
+		const { article, requirementsLoaded } = this.props;
+
+		const NEW = article.id === null;
+
+		if (!requirementsLoaded) {
+			return null;
+		}
+
 		return (
-			<form className="box">
-				<div className="box-header with-border">
-					<h3 className="box-title">{`${this.state.id ? this.state.name : 'New article'} - Properties`}</h3>
-					<div className="box-tools">
-						<div className="input-group">
-							<div className="btn-group">
-								<Link
-									to="/articlemanager/" className="btn btn-default btn-sm"
-									  title="Close"><FontAwesome icon="close" /></Link>
-								<Link onClick={evt => this.reset(evt)} className="btn btn-warning btn-sm" title="Reset"><FontAwesome
-									icon="repeat" /></Link>
-								<Link
-									onClick={() => this.save()} className="btn btn-success btn-sm"
-									  title="Save">Save</Link>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div className="box-body">
+			<Box>
+				<Box.Header
+					title={`${NEW ? 'New article' : article.name} - Properties`}
+					buttons={[
+						<Link key="close" to="/articlemanager/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>,
+						<a key="repeat" onClick={this.reset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>,
+						<a key="save" onClick={this.save} className="btn btn-success btn-sm" title="Save">Save</a>,
+					]} />
+				<Box.Body>
 					<div className="form-horizontal">
 						<StringField
-							value={this.state.name} name="Name"
-							onChange={evt => this.setState({ name: evt.target.value })} />
+							value={article.name}
+							name="Name"
+							onChange={this.setName} />
 						<IntegerField
-							value={this.state.ean || ''} name="EAN"
-							onChange={evt => this.setState({ ean: Number(evt.target.value) })} min={0}
+							value={article.ean || ''}
+							name="EAN"
+							onChange={this.setEAN} min={0}
 							step={1} />
 						<BoolField
-							value={this.state.serial_number} name="Uses serial numbers"
-							onChange={() => this.setState(({ serial_number }) => ({ serial_number: !serial_number }))} />
+							value={article.serial_number} name="Uses serial numbers"
+							onChange={this.setSerialNumber} />
 					</div>
 					<div className="form-horizontal">
 						<div className="form-group">
@@ -117,93 +128,84 @@ class ArticleEdit extends React.Component {
 							<div className="col-sm-9">
 								<LabelField
 									name="labels"
-									labels={this.state.labels}
-									onAddLabel={
-										(typeID, value) => this.setState(
-											state => ({
-												...state,
-												labels: {
-													...state.labels,
-													[typeID]: (state.labels[typeID].filter(v => v !== value) || [])
-														.concat([ value ]),
-												},
-											})
-										)
-									} />
+									labels={article.labels}
+									onAddLabel={this.addLabel} />
 							</div>
 							<LabelList
 								className="col-sm-9 col-sm-offset-3"
-								labels={this.state.labels}
-								insert={({ value, typeID }) => (
-									<a
-										className="btn btn-danger btn-xs"
-										onClick={() => this.removeLabel(typeID, value)}>
-										<FontAwesome icon="close" />
-									</a>
-								)} />
+								labels={article.labels}
+								insert={this.renderInsert} />
 						</div>
 					</div>
-				</div>
-				<div className="box-header with-border">
-					<h3 className="box-title">Pricing</h3>
-				</div>
-				<div className="box-body">
+				</Box.Body>
+				<Box.Header title="Pricing" />
+				<Box.Body>
 					<div className="form-horizontal">
 						<SelectField
-							value={this.state.accounting_group || ''}
+							value={article.accounting_group || ''}
 							name="Accounting group"
-							onChange={evt => this.setState({ accounting_group: evt.target.value })}
+							onChange={this.setAccountingGroup}
 							options={this.props.accountingGroups} />
 						{'{ PricingModelSelectorComponent }'}
 					</div>
-				</div>
-				<div className="box-header with-border">
-					<h3 className="box-title">Suppliers</h3>
-				</div>
-				<div className="box-body">
+				</Box.Body>
+				<Box.Header title="Suppliers" />
+				<Box.Body>
 					{'{ SupplierInfoComponent }'}
-				</div>
+				</Box.Body>
 				{
 					this.props.errorMsg ? (
-						<div className="box-footer">
+						<Box.Footer>
 							{this.props.errorMsg}
-						</div>
+						</Box.Footer>
 					) : null
 				}
-			</form>
+			</Box>
 		);
 	}
 }
 
 export default connect(
-	(state, ownProps) => ({
-		defaultCurrency: (state.settings || {}).defaultCurrency || {
+	state => ({
+		...connectMixin({
+			assortment: {
+				labelTypes,
+				unitTypes,
+			},
+			money: {
+				accountingGroups,
+			},
+		}, state),
+		defaultCurrency: (state.settings || {}).defaultCurrency || { // get default currency from settings, or otherwise a hardcoded default 'EURO',
 			symbol: '€',
 			digits: 2,
 			iso: 'EUR',
 		},
-		// TODO: replace with fetching
-		article: state.assortment.articles.articles.find(article => article.id === +ownProps.params.articleID),
+		article: state.assortment.articles.activeObject,
 		accountingGroups: state.money.accountingGroups.accountingGroups,
 	}),
-	dispatch => ({
-		addArticle: article => {
+	{
+		fetchArticle,
+		setArticleField,
+		newArticle,
+		createArticle: article => {
 			const copy = { ...article };
 
 			if (!copy.useFixedPrice) {
 				copy.fixed_price = null;
 			}
 			delete copy['useFixedPrice'];
-			return dispatch(createArticle(copy));
+			return createArticle(copy);
 		},
-		editArticle: article => {
+		updateArticle: article => {
 			const copy = { ...article };
 
 			if (!copy.useFixedPrice) {
 				copy.fixed_price = null;
 			}
 			delete copy['useFixedPrice'];
-			return dispatch(updateArticle(copy));
+			return updateArticle(copy);
 		},
-	})
+		dispatch: e => e,
+	}
 )(ArticleEdit);

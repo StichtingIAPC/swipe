@@ -1,12 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { articles } from '../../state/assortment/articles/actions.js';
+import articles from '../../state/assortment/articles/actions.js';
 import { labelTypes } from '../../state/assortment/label-types/actions.js';
 import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import FontAwesome from '../tools/icons/FontAwesome';
 import LabelList from '../assortment/LabelList';
+import Box from '../base/Box';
 
 class ArticleSelector extends React.Component {
 	constructor(props) {
@@ -18,9 +19,7 @@ class ArticleSelector extends React.Component {
 		fetchStateRequirementsFor(this);
 	}
 
-	select(article) {
-		this.props.onSelect(article);
-	}
+	select = article => this.props.onSelect(article);
 
 	renderArticle({ article }) {
 		return (
@@ -38,27 +37,19 @@ class ArticleSelector extends React.Component {
 
 	render() {
 		return (
-			<div className="box">
-				<div className="box-header with-border">
-					<h3 className="box-title">Search Articles</h3>
-					<div className="box-tools">
-						<div className="input-group">
-							<div className="btn-group">
-								<Link
-									onClick={this.props.updateList}
-									className="btn btn-default btn-sm"
-									title="Reload">
-									<FontAwesome icon="repeat" />
-								</Link>
-								{
-									this.props.toolButtons ?
-										this.props.toolButtons :
-									 null
-								}
-							</div>
-						</div>
-					</div>
-				</div>
+			<Box>
+				<Box.Header
+					title="Search Articles"
+					buttons={[
+						<a
+							key="HEADER::1"
+							onClick={this.props.updateList}
+							className="btn btn-default btn-sm"
+							title="Reload">
+							<FontAwesome icon="repeat" />
+						</a>,
+						...this.props.toolButtons || [],
+					]} />
 				<div
 					style={{
 						maxHeight: 'calc(100vh - 144px)',
@@ -69,7 +60,7 @@ class ArticleSelector extends React.Component {
 						{this.props.articles.map(el => <this.renderArticle key={el.id} article={el} />)}
 					</ul>
 				</div>
-			</div>
+			</Box>
 		);
 	}
 }
