@@ -124,24 +124,6 @@ describe('Login', () => {
 		expect(l.value).toMatchObject(put(loginError('Failed to connect')));
 		expect(l.done).toBe(true);
 	});
-
-	test('failing due to removed local storage', () => {
-		const generator = loginRestore({});
-
-		const l = generator.next();
-
-		expect(l.value).toMatchObject(put(loginError('Login restore failed')));
-		expect(l.done).toBe(true);
-	});
-
-	test('failing restore due to invalid restore data', () => {
-		const generator = loginRestore({ loginAction: {}});
-
-		const l = generator.next();
-
-		expect(l.value).toMatchObject(put(loginError('Login restore failed')));
-		expect(l.done).toBe(true);
-	});
 });
 
 describe('Logout', () => {
@@ -231,6 +213,24 @@ describe('Login restore', () => {
 			user: { username: 'testuser' },
 		});
 		expect(l.value).toMatchObject(put(loginSuccess('1234abcd', { username: 'testuser' })));
+		expect(l.done).toBe(true);
+	});
+
+	test('failing due to removed local storage', () => {
+		const generator = loginRestore({});
+
+		const l = generator.next();
+
+		expect(l.value).toMatchObject(put(loginError('Login restore failed')));
+		expect(l.done).toBe(true);
+	});
+
+	test('failing restore due to invalid restore data', () => {
+		const generator = loginRestore({ loginAction: {}});
+
+		const l = generator.next();
+
+		expect(l.value).toMatchObject(put(loginError('Login restore failed')));
 		expect(l.done).toBe(true);
 	});
 });
