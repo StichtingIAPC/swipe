@@ -169,7 +169,7 @@ describe('Logout', () => {
 		expect(l.done).toBe(true);
 	});
 
-	test('failing', () => {
+	test('failing due to backend denying', () => {
 		const generator = logout();
 
 		const form = new FormData();
