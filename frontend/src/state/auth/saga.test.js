@@ -11,219 +11,226 @@ jest.mock('../../config.js', () => ({
 	backendUrl: 'mock_url',
 }));
 
-test('A successful login', () => {
-	const generator = login({
-		username: 'testuser',
-		password: 'testpassword',
-	});
 
-	// Test the request
-	let l = generator.next();
-	const form = new FormData();
+describe('Login', () => {
+	test('successful', () => {
+		const generator = login({
+			username: 'testuser',
+			password: 'testpassword',
+		});
 
-	form.append('username', 'testuser');
-	form.append('password', 'testpassword');
-	expect(l.value).toMatchObject(call(fetch, `mock_url/auth/login/`, {
-		method: 'POST',
-		body: form,
-	}));
-	expect(l.done).toBe(false);
+		// Test the request
+		let l = generator.next();
+		const form = new FormData();
 
-	// Test the deserialization call of the request
-	const mockfun = jest.fn();
+		form.append('username', 'testuser');
+		form.append('password', 'testpassword');
+		expect(l.value).toMatchObject(call(fetch, `mock_url/auth/login/`, {
+			method: 'POST',
+			body: form,
+		}));
+		expect(l.done).toBe(false);
 
-	mockfun.mockReturnValue('asdfghjkl;');
-	l = generator.next({
-		ok: true,
-		json: mockfun,
-	});
-	expect(mockfun.mock.calls.length).toBe(1);
-	expect(l.value).toBe('asdfghjkl;');
-	expect(l.done).toBe(false);
+		// Test the deserialization call of the request
+		const mockfun = jest.fn();
 
-	// Test the loginSuccess state update
-	l = generator.next({
-		token: '123456789',
-		user: {
+		mockfun.mockReturnValue('asdfghjkl;');
+		l = generator.next({
+			ok: true,
+			json: mockfun,
+		});
+		expect(mockfun.mock.calls.length).toBe(1);
+		expect(l.value).toBe('asdfghjkl;');
+		expect(l.done).toBe(false);
+
+		// Test the loginSuccess state update
+		l = generator.next({
+			token: '123456789',
+			user: {
+				name: 'username',
+				permissions: [],
+			},
+		});
+		expect(l.value).toMatchObject(call(put, loginSuccess('123456789', {
 			name: 'username',
 			permissions: [],
-		},
+		})));
+		expect(l.done).toBe(false);
+
+		// This one cannot be tested simply using a repeat test.
+		// This is because functions don't compare properly.
+		l = generator.next();
+		expect(l.value).toMatchObject({
+			'@@redux-saga/IO': true,
+			'SELECT': {
+				args: [],
+			},
+		});
+		expect(l.done).toBe(false);
+
+		l = generator.next('/placeholderpath/');
+		expect(l.value).toMatchObject(put(push('/placeholderpath/')));
+		expect(l.done).toBe(false);
+
+		l = generator.next();
+		expect(l.value).toMatchObject(put(setRouteAfterAuthentication('/')));
+		expect(l.done).toBe(true);
 	});
-	expect(l.value).toMatchObject(call(put, loginSuccess('123456789', {
-		name: 'username',
-		permissions: [],
-	})));
-	expect(l.done).toBe(false);
 
-	// This one cannot be tested simply using a repeat test.
-	// This is because functions don't compare properly.
-	l = generator.next();
-	expect(l.value).toMatchObject({
-		'@@redux-saga/IO': true,
-		'SELECT': {
-			args: [],
-		},
+	test('failing due to backend denying', () => {
+		const generator = login({
+			username: 'testuser',
+			password: 'testpassword',
+		});
+
+		// Test the request
+		let l = generator.next();
+		const form = new FormData();
+
+		form.append('username', 'testuser');
+		form.append('password', 'testpassword');
+		expect(l.value).toMatchObject(call(fetch, `mock_url/auth/login/`, {
+			method: 'POST',
+			body: form,
+		}));
+		expect(l.done).toBe(false);
+
+		// Test the deserialization call of the request
+		const mockfun = jest.fn();
+
+		mockfun.mockReturnValue('asdfghjkl;');
+		l = generator.next({
+			ok: false,
+			json: mockfun,
+		});
+		expect(mockfun.mock.calls.length).toBe(1);
+		expect(l.value).toBe('asdfghjkl;');
+		expect(l.done).toBe(false);
+
+		l = generator.next({});
+		expect(l.value).toMatchObject(put.resolve(loginError(null)));
+		expect(l.done).toBe(false);
+
+		l = generator.next();
+		expect(l.value).toMatchObject({
+			'@@redux-saga/IO': true,
+			'SELECT': {
+				args: [],
+			},
+		});
+		expect(l.done).toBe(false);
+
+		l = generator.next('Failed to connect');
+		expect(l.value).toMatchObject(put(loginError('Failed to connect')));
+		expect(l.done).toBe(true);
 	});
-	expect(l.done).toBe(false);
 
-	l = generator.next('/placeholderpath/');
-	expect(l.value).toMatchObject(put(push('/placeholderpath/')));
-	expect(l.done).toBe(false);
+	test('failing due to removed local storage', () => {
+		const generator = loginRestore({});
 
-	l = generator.next();
-	expect(l.value).toMatchObject(put(setRouteAfterAuthentication('/')));
-	expect(l.done).toBe(true);
+		const l = generator.next();
+
+		expect(l.value).toMatchObject(put(loginError('Login restore failed')));
+		expect(l.done).toBe(true);
+	});
+
+	test('failing restore due to invalid restore data', () => {
+		const generator = loginRestore({ loginAction: {}});
+
+		const l = generator.next();
+
+		expect(l.value).toMatchObject(put(loginError('Login restore failed')));
+		expect(l.done).toBe(true);
+	});
 });
 
-test('A failing login', () => {
-	const generator = login({
-		username: 'testuser',
-		password: 'testpassword',
+describe('Logout', () => {
+	test('successful', () => {
+		const generator = logout();
+
+		const form = new FormData();
+
+		form.append('token', __unsafeGetToken());
+
+		let l = generator.next();
+
+		expect(l.value).toMatchObject(call(fetch, `mock_url/auth/logout/`, {
+			method: 'POST',
+			body: form,
+		}));
+		expect(l.done).toBe(false);
+
+		l = generator.next({ ok: true });
+		expect(l.value).toMatchObject(put(logoutSuccess()));
+		expect(l.done).toBe(false);
+
+		l = generator.next();
+		expect(l.value).toMatchObject(put(push('/authentication/login')));
+		expect(l.done).toBe(true);
 	});
 
-	// Test the request
-	let l = generator.next();
-	const form = new FormData();
+	test('failing', () => {
+		const generator = logout();
 
-	form.append('username', 'testuser');
-	form.append('password', 'testpassword');
-	expect(l.value).toMatchObject(call(fetch, `mock_url/auth/login/`, {
-		method: 'POST',
-		body: form,
-	}));
-	expect(l.done).toBe(false);
+		const form = new FormData();
 
-	// Test the deserialization call of the request
-	const mockfun = jest.fn();
+		form.append('token', __unsafeGetToken());
 
-	mockfun.mockReturnValue('asdfghjkl;');
-	l = generator.next({
-		ok: false,
-		json: mockfun,
+		let l = generator.next();
+
+		expect(l.value).toMatchObject(call(fetch, `mock_url/auth/logout/`, {
+			method: 'POST',
+			body: form,
+		}));
+		expect(l.done).toBe(false);
+
+		l = generator.next({ ok: false });
+		expect(l.value).toMatchObject(put(logoutError({ ok: false })));
+		expect(l.done).toBe(true);
 	});
-	expect(mockfun.mock.calls.length).toBe(1);
-	expect(l.value).toBe('asdfghjkl;');
-	expect(l.done).toBe(false);
-
-	l = generator.next({});
-	expect(l.value).toMatchObject(put.resolve(loginError(null)));
-	expect(l.done).toBe(false);
-
-	l = generator.next();
-	expect(l.value).toMatchObject({
-		'@@redux-saga/IO': true,
-		'SELECT': {
-			args: [],
-		},
-	});
-	expect(l.done).toBe(false);
-
-	l = generator.next('Failed to connect');
-	expect(l.value).toMatchObject(put(loginError('Failed to connect')));
-	expect(l.done).toBe(true);
 });
 
-test('A successful logout', () => {
-	const generator = logout();
-
-	const form = new FormData();
-
-	form.append('token', __unsafeGetToken());
-
-	let l = generator.next();
-
-	expect(l.value).toMatchObject(call(fetch, `mock_url/auth/logout/`, {
-		method: 'POST',
-		body: form,
-	}));
-	expect(l.done).toBe(false);
-
-	l = generator.next({ ok: true });
-	expect(l.value).toMatchObject(put(logoutSuccess()));
-	expect(l.done).toBe(false);
-
-	l = generator.next();
-	expect(l.value).toMatchObject(put(push('/authentication/login')));
-	expect(l.done).toBe(true);
-});
-
-test('A failing logout', () => {
-	const generator = logout();
-
-	const form = new FormData();
-
-	form.append('token', __unsafeGetToken());
-
-	let l = generator.next();
-
-	expect(l.value).toMatchObject(call(fetch, `mock_url/auth/logout/`, {
-		method: 'POST',
-		body: form,
-	}));
-	expect(l.done).toBe(false);
-
-	l = generator.next({ ok: false });
-	expect(l.value).toMatchObject(put(logoutError({ ok: false })));
-	expect(l.done).toBe(true);
-});
-
-test('A successful login restore', () => {
-	const generator = loginRestore({
-		loginAction: {
-			data: {
-				token: '1234abcd',
-				user: {
-					username: 'testuser',
+describe('Login restore', () => {
+	test('successful', () => {
+		const generator = loginRestore({
+			loginAction: {
+				data: {
+					token: '1234abcd',
+					user: {
+						username: 'testuser',
+					},
 				},
 			},
-		},
+		});
+
+		let l = generator.next();
+
+		const form = new FormData();
+
+		form.append('token', '1234abcd');
+		form.append('username', 'testuser');
+		expect(l.value).toMatchObject(call(fetch, `mock_url/auth/validate/`, {
+			method: 'POST',
+			body: form,
+		}));
+		expect(l.done).toBe(false);
+
+		const mockfun = jest.fn();
+
+		mockfun.mockReturnValue('asdfghjkl;');
+		l = generator.next({
+			ok: true,
+			json: mockfun,
+		});
+		expect(mockfun.mock.calls.length).toBe(1);
+		expect(l.value).toBe('asdfghjkl;');
+		expect(l.done).toBe(false);
+
+		l = generator.next({
+			valid: true,
+			user: { username: 'testuser' },
+		});
+		expect(l.value).toMatchObject(put(loginSuccess('1234abcd', { username: 'testuser' })));
+		expect(l.done).toBe(true);
 	});
-
-	let l = generator.next();
-
-	const form = new FormData();
-
-	form.append('token', '1234abcd');
-	form.append('username', 'testuser');
-	expect(l.value).toMatchObject(call(fetch, `mock_url/auth/validate/`, {
-		method: 'POST',
-		body: form,
-	}));
-	expect(l.done).toBe(false);
-
-	const mockfun = jest.fn();
-
-	mockfun.mockReturnValue('asdfghjkl;');
-	l = generator.next({
-		ok: true,
-		json: mockfun,
-	});
-	expect(mockfun.mock.calls.length).toBe(1);
-	expect(l.value).toBe('asdfghjkl;');
-	expect(l.done).toBe(false);
-
-	l = generator.next({
-		valid: true,
-		user: { username: 'testuser' },
-	});
-	expect(l.value).toMatchObject(put(loginSuccess('1234abcd', { username: 'testuser' })));
-	expect(l.done).toBe(true);
-});
-
-test('A failing login restore due to removed local storage', () => {
-	const generator = loginRestore({});
-
-	const l = generator.next();
-
-	expect(l.value).toMatchObject(put(loginError('Login restore failed')));
-	expect(l.done).toBe(true);
-});
-
-test('A failing login restore due to invalid restore data', () => {
-	const generator = loginRestore({ loginAction: {} });
-
-	const l = generator.next();
-
-	expect(l.value).toMatchObject(put(loginError('Login restore failed')));
-	expect(l.done).toBe(true);
 });
