@@ -1033,3 +1033,46 @@ class StockStatisticFunctions(TestCase, TestData):
         art_2 = test_set[self.articletype_2]
         self.assertEqual(art_1, (3, cost_avg_1))
         self.assertEqual(art_2, (5, cost_avg_2))
+
+
+class StockTransactionTests(TestCase, TestData):
+
+    def setUp(self):
+        self.setup_base_data()
+
+    def test_add_and_remove_in_same_transaction(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        entries = [{'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 2,
+                    'is_in': True},
+                   {'article': self.articletype_1,
+                    'book_value': cost_1,
+                    'count': 2,
+                    'is_in': False,}
+                   ]
+        StockChangeSet.construct(description="Add and remove", entries=entries,
+                                 source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+
+    def test_reassign_stock_value(self):
+        cost_1 = Cost(amount=Decimal(1), currency=Currency("EUR"))
+        cost_2 = Cost(amount=Decimal(2), currency=Currency("EUR"))
+        # Setup some stock
+        entries_start = [{'article': self.articletype_1,
+                          'book_value': cost_1,
+                          'count': 2,
+                          'is_in': True}]
+        StockChangeSet.construct(description="Add and remove", entries=entries_start,
+                                 source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)
+        # Revalue the stock by removing it entirely and replacing it with new valued stock
+        entries_modded = [{'article': self.articletype_1,
+                           'book_value': cost_1,
+                           'count': 2,
+                           'is_in': False},
+                          {'article': self.articletype_1,
+                           'book_value': cost_2,
+                           'count': 2,
+                           'is_in': True}
+                          ]
+        StockChangeSet.construct(description="Add and remove", entries=entries_modded,
+                                 source=StockChangeSet.SOURCE_TEST_DO_NOT_USE)

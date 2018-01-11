@@ -42,7 +42,6 @@ class OrderTest(TestCase, TestData):
         self.copro = self.user_1
 
         self.order = Order(user_modified=self.copro, customer=self.customer)
-        self.order.save()
 
     def test_save_speed(self):
         big_order = Order(user_modified=self.copro, customer=self.customer)
@@ -58,6 +57,7 @@ class OrderTest(TestCase, TestData):
 
     def test_orderline_storing(self):
         # Simple orderline with customer order
+        self.order.save()
         ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type,
                        expected_sales_price=self.price)
         ol.save()
@@ -79,12 +79,14 @@ class OrderTest(TestCase, TestData):
 
     def test_illegal_state(self):
         # State must be valid
+        self.order.save()
         with self.assertRaises(models.IncorrectOrderLineStateError):
             ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type, state='G',
                            expected_sales_price=self.price)
             ol.save()
 
     def test_transitions(self):
+        self.order.save()
         # Assert transitions for a single orderline
         ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type,
                        expected_sales_price=self.price)
@@ -106,12 +108,14 @@ class OrderTest(TestCase, TestData):
         self.assertEquals(len(orderlinestates), 4)
 
     def test_othercost(self):
+        self.order.save()
         ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.oc, expected_sales_price=self.price)
         ol.save()
         self.assertEquals(ol.state, 'A')
         self.assertEquals(len(OrderLineState.objects.all()), 1)
 
     def test_illegal_transition(self):
+        self.order.save()
         ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type,
                        expected_sales_price=self.price)
         ol.save()
@@ -152,6 +156,7 @@ class OrderTest(TestCase, TestData):
         # order.print_orderline_info()
 
     def test_alt_currency(self):
+        self.order.save()
         ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type,
                        expected_sales_price=Price(amount=Decimal(2), currency=self.currency))
 
@@ -160,6 +165,7 @@ class OrderTest(TestCase, TestData):
         self.assertEquals(ol2.expected_sales_price_currency, "USD")
 
     def test_olc(self):
+        self.order.save()
         ol = OrderLine(user_modified=self.copro, order=self.order, wishable=self.article_type,
                        expected_sales_price=self.price)
         ol.temp = Price(amount=Decimal(2), currency=self.currency)
@@ -186,19 +192,17 @@ class OrderTest(TestCase, TestData):
         self.assertEquals(len(olcl2), 1)
 
     def test_create_order_function(self):
-        self.order.delete()
         Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price]])
         # Asserts that there is only one Order
         a = Order.objects.get()
-        b = OrderLine.objects.filter(order=a)
-        c = OrderLine.objects.all()
+        b = OrderLine.objects.filter(order=a).order_by('id')
+        c = OrderLine.objects.all().order_by('id')
         self.assertEquals(len(b), len(c))
         self.assertEquals(len(b), 5)
         for i in range(0, len(b)):
             self.assertEquals(b[i].pk, c[i].pk)
 
     def test_create_order_function_more_sets(self):
-        self.order.delete()
         Order.create_order_from_wishables_combinations(self.copro, self.customer, [[self.article_type, 5, self.price],
                                                                                    [self.at2, 6, self.price]])
         # Asserts that there is only one Order
@@ -295,7 +299,6 @@ class TestStockChangeSetFiltering(TestCase, TestData):
         self.assertEquals(correct_state, SOLD_PRODUCTS)
 
     def test_signal_multiple_orders(self):
-
         pk = self.order.pk
         order_2 = Order(customer=self.customer, user_modified=self.copro)
         order_2.save()
@@ -351,7 +354,7 @@ class TestStockChangeSetFiltering(TestCase, TestData):
         correct_state_2 = 0
         for ol in ols:
             if ol.state == 'S':
-                if ol.order.pk == 1:
+                if ol.order.pk == pk:
                     correct_state_1 += 1
                 else:
                     correct_state_2 += 1
@@ -366,13 +369,13 @@ class TestGetStock(TestCase, TestData):
 
     def test_get_stock_from_order(self):
         # Order 1
-        self.create_custorders(article_1=5, article_2=7)
+        order_1 = self.create_custorders(article_1=5, article_2=7)
         # Order 2
-        self.create_custorders(article_1=11, article_2=13)
+        order_2 = self.create_custorders(article_1=11, article_2=13)
         self.create_suporders(article_1=16, article_2=20)
         self.create_packingdocuments(article_1=16, article_2=20)
-        order_1 = Order.objects.get(id=1)
-        order_2 = Order.objects.get(id=2)
+        order_1 = Order.objects.get(id=order_1.id)
+        order_2 = Order.objects.get(id=order_2.id)
         stock_lines_1 = order_1.get_stock()
         for line in stock_lines_1:
             if line.article == self.articletype_1:
