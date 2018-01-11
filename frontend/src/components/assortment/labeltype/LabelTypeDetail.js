@@ -1,16 +1,27 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
+import { fetchLabelType } from '../../../state/assortment/label-types/actions';
 
 class LabelTypeDetail extends React.Component {
+	componentWillMount() {
+		this.props.fetchLabelType(this.props.id);
+	}
+
+	componentWillReceiveProps(props) {
+		if (props.id !== this.props.id) {
+			this.props.fetchLabelType(props.id);
+		}
+	}
+
 	render() {
 		const { labelType } = this.props;
 
 		return (
 			<div className="box">
 				<div className="box-header with-border">
-					<h3 className="box-title">Supplier: {labelType.name}</h3>
+					<h3 className="box-title">LabelType: {labelType.name}</h3>
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
@@ -32,7 +43,7 @@ class LabelTypeDetail extends React.Component {
 						)}
 						<div>
 							<dt>Unit type</dt>
-							<dd>{this.props.unitType.type_long}</dd>
+							<dd>{labelType.type_long}</dd>
 						</div>
 						<div>
 							<dt>Labels</dt>
@@ -47,12 +58,10 @@ class LabelTypeDetail extends React.Component {
 
 // TODO: replace with fetchers
 export default connect(
-	(state, props) => {
-		const labelType = state.assortment.labelTypes.labelTypes.find(el => el.id === +props.params.labelTypeID);
-
-		return {
-			labelType,
-			unitType: state.assortment.unitTypes.unitTypes.find(el => el.id === +labelType.unit_type),
-		};
+	state => ({
+		labelType: state.assortment.labelTypes.activeObject,
+	}),
+	{
+		fetchLabelType,
 	}
 )(LabelTypeDetail);

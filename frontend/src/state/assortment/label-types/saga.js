@@ -1,88 +1,104 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { get, post, put as api_put } from '../../../api.js';
-import {
-	doneFetchingLabelTypes,
-	labelTypeFetchError,
-	labelTypeInputError,
-	startFetchingLabelTypes,
-} from './actions.js';
 
-function* fetchLabelTypes({ redirectTo } = {}) {
-	let msg = null;
+import * as actions from './actions.js';
+import { cleanErrorMessage } from '../../../tools/sagaHelpers';
+import * as api from '../../../api';
 
+function* fetchAllLabelTypes({ redirectTo }) {
 	try {
-		const data = yield (yield call(
-			get,
+		const labelType = yield (yield call(
+			api.get,
 			'/assortment/labeltypes/',
 		)).json();
 
-		yield put(doneFetchingLabelTypes(data));
+		yield put(actions.fetchAllLabelTypesDone(labelType));
 		if (redirectTo) {
 			yield put(push(redirectTo));
 		}
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = e.json();
-		}
-
-		yield put(labelTypeFetchError(msg));
+		yield put(actions.fetchAllLabelTypesFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.fetchAllLabelTypesFinally());
 	}
 }
 
-function* createLabelType({ labelType } = {}) {
-	const document = { ...labelType };
-	let msg = null;
-
+function* fetchLabelType({ id }) {
 	try {
-		yield (yield call(
-			post,
-			'/assortment/labeltypes/',
-			document
+		const newLabelType = yield (yield call(
+			api.get,
+			`/assortment/labeltypes/${id}`,
 		)).json();
 
-		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/` }));
+		yield put(actions.fetchLabelTypeDone(newLabelType));
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = e.json();
-		}
+		yield put(actions.fetchLabelTypeFailed(id, e));
+	} finally {
+		yield put(actions.fetchLabelTypeFinally());
+	}
+}
 
-		yield put(labelTypeInputError(msg));
+function* createLabelType({ labelType }) {
+	const document = { ...labelType };
+
+	try {
+		const newLabelType = yield (yield call(
+			api.post,
+			'/assortment/labeltypes/',
+			document,
+		)).json();
+
+		yield put(actions.createLabelTypeDone(newLabelType));
+		yield put(actions.fetchAllLabelTypes('/assortment/'));
+	} catch (e) {
+		yield put(actions.createLabelTypeFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.createLabelTypeFinally());
 	}
 }
 
 function* updateLabelType({ labelType }) {
 	const document = { ...labelType };
-	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			api_put,
-			`/assortment/labeltypes/${document.id}/`,
+		const newLabelType = yield (yield call(
+			api.put,
+			`/assortment/labeltypes/${labelType.id}/`,
 			document,
 		)).json();
 
-		yield put(startFetchingLabelTypes({ redirectTo: `/assortment/labeltype/${data.id}/` }));
+		yield put(actions.updateLabelTypeDone(newLabelType));
+		yield put(actions.fetchAllLabelTypes('/assortment/'));
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = e.json();
-		}
+		yield put(actions.updateLabelTypeFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.updateLabelTypeFinally());
+	}
+}
 
-		yield put(labelTypeInputError(msg));
+function* deleteLabelType({ labelType }) {
+	const document = { ...labelType };
+
+	try {
+		const newLabelType = yield (yield call(
+			api.del,
+			`/assortment/labeltypes/${labelType.id}/`,
+			document,
+		)).json();
+
+		yield put(actions.deleteLabelTypeDone(newLabelType));
+		yield put(actions.fetchAllLabelTypes(`/assortment/`));
+	} catch (e) {
+		yield put(actions.deleteLabelTypeFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.deleteLabelTypeFinally());
 	}
 }
 
 export default function* saga() {
-	yield takeLatest('LABEL_TYPE_FETCH_START', fetchLabelTypes);
-	yield takeEvery('LABEL_TYPE_CREATE', createLabelType);
-	yield takeEvery('LABEL_TYPE_UPDATE', updateLabelType);
+	yield takeLatest('assortment/label-types/FETCH_ALL', fetchAllLabelTypes);
+	yield takeLatest('assortment/label-types/FETCH', fetchLabelType);
+	yield takeEvery('assortment/label-types/CREATE', createLabelType);
+	yield takeEvery('assortment/label-types/UPDATE', updateLabelType);
+	yield takeEvery('assortment/label-types/DELETE', deleteLabelType);
 }

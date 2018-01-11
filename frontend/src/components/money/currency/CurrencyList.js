@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { startFetchingCurrencies } from '../../../state/money/currencies/actions.js';
 import FontAwesome from '../../tools/icons/FontAwesome';
