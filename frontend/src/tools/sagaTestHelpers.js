@@ -8,10 +8,8 @@ export const isObject = expectation => result => expect(result.value).toMatchObj
 export const nextStep = (generator, tests, ...args) => {
 	const result = generator.next(...args);
 
-	for (const t in tests) {
-		if (tests.hasOwnProperty(t)) {
-			tests[t](result);
-		}
+	for (const t of tests) {
+		t(result);
 	}
 
 	return result;
