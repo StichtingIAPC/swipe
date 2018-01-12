@@ -1,4 +1,7 @@
 {
+	"ignore": [
+		"node_modules/**"
+	],
 	"presets": [
 		["env", {
 			"debug": true,
@@ -16,7 +19,5 @@
 		"stage-0-without-async",
 		"react",
 		"es2015"
-	],
-	"plugins": [ "react-hot-loader/babel" ],
-
+	]
 }
