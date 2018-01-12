@@ -5,7 +5,7 @@ jest.mock('../../config.js', () => ({
 	backendUrl: 'mock_url',
 }));
 
-describe('Authentication reducer state', () => {
+describe('Authentication reducer action', () => {
 	describe('SET_ROUTE_AFTER_AUTH', () => {
 		test('without existing state', () => {
 			expect(authenticationReducer(undefined, {
