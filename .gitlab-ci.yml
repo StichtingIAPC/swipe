@@ -25,7 +25,7 @@ testFrontendUnit:
     - cd frontend
     - yarn test-once
 
-testBackend
+testBackend:
   stage: test
   script:
     - cd backend
