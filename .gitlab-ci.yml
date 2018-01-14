@@ -1,0 +1,32 @@
+# This file is a template, and might need editing before it works on your project.
+image: nikolaik/python-nodejs:latest
+
+cache:
+  paths:
+    - frontend/node_modules/
+
+before_script:
+  - pushd frontend
+  - yarn --pure-lockfile
+  - popd
+  - pushd backend
+  - pip install -r requirements.txt
+  - popd
+
+testFrontendLint:
+  stage: test
+  script:
+    - cd frontend
+    - yarn lint
+
+testFrontendUnit:
+  stage: test
+  script:
+    - cd frontend
+    - yarn test-once
+
+testBackend
+  stage: test
+  script:
+    - cd backend
+    - python3 manage.py test -k
