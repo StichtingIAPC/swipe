@@ -5,9 +5,6 @@ stages:
   - install
   - test
 
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/pip-cache"
-
 cache:
   paths:
     - backend/.pip/
