@@ -4,22 +4,11 @@ stages:
   - install
   - test
 
-installFrontendDeps:
-  stage: install
-  cache:
-    paths:
-      - frontend/node_modules/
-    key: "$CI_PROJECT_ID/yarn"
-  script:
-    - cd frontend
-    - yarn --pure-lockfile
-
 testFrontendLint:
   stage: test
   cache:
     paths:
       - frontend/node_modules/
-    policy: pull
     key: "$CI_PROJECT_ID/yarn"
   script:
     - cd frontend
@@ -30,7 +19,6 @@ testFrontendUnit:
   cache:
     paths:
       - frontend/node_modules/
-    policy: pull
     key: "$CI_PROJECT_ID/yarn"
   script:
     - cd frontend
