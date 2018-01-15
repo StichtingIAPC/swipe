@@ -5,26 +5,23 @@ stages:
   - install
   - test
 
-cache:
-  paths:
-    - backend/.pip/
-    - frontend/node_modules/
-  key: "$CI_PROJECT_ID"
-
-installDeps:
+installFrontendDeps:
   stage: install
+  cache:
+    paths:
+      - frontend/node_modules/
+    key: "$CI_PROJECT_ID/yarn"
   script:
-    - pushd frontend
+    - cd frontend
     - yarn --pure-lockfile
-    - popd
-    - pushd backend
-    - pip install --cache-dir=.pip -r requirements.txt
-    - popd
 
 testFrontendLint:
   stage: test
   cache:
+    paths:
+      - frontend/node_modules/
     policy: pull
+    key: "$CI_PROJECT_ID/yarn"
   script:
     - cd frontend
     - yarn lint
@@ -32,7 +29,10 @@ testFrontendLint:
 testFrontendUnit:
   stage: test
   cache:
+    paths:
+      - frontend/node_modules/
     policy: pull
+    key: "$CI_PROJECT_ID/yarn"
   script:
     - cd frontend
     - yarn --pure-lockfile
@@ -41,7 +41,9 @@ testFrontendUnit:
 testBackend:
   stage: test
   cache:
-    policy: pull
+    paths:
+      - backend/.pip/
+    key: "$CI_PROJECT_ID/pip"
   script:
     - cd backend
     - pip install --cache-dir=.pip -r requirements.txt
