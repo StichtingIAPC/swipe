@@ -1,23 +1,41 @@
 # This file is a template, and might need editing before it works on your project.
 image: nikolaik/python-nodejs:latest
 
+stages:
+  - install
+  - test
+
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/pip-cache"
 
 cache:
   paths:
-    - "$CI_PROJECT_DIR/pip-cache"
+    - backend/.pip/
     - frontend/node_modules/
   key: "$CI_PROJECT_ID"
 
+installDeps:
+  stage: install
+  script:
+    - pushd frontend
+    - yarn --pure-lockfile
+    - popd
+    - pushd backend
+    - pip install --cache-dir=.pip -r requirements.txt
+    - popd
+
 testFrontendLint:
   stage: test
+  cache:
+    policy: pull
   script:
     - cd frontend
     - yarn lint
 
 testFrontendUnit:
   stage: test
+  cache:
+    policy: pull
   script:
     - cd frontend
     - yarn --pure-lockfile
@@ -25,7 +43,9 @@ testFrontendUnit:
 
 testBackend:
   stage: test
+  cache:
+    policy: pull
   script:
     - cd backend
-    - pip install -r requirements.txt
+    - pip install --cache-dir=.pip -r requirements.txt
     - python3 manage.py test -k
