@@ -5,7 +5,7 @@ Swipe is a collection of Django applications to serve as a complete Point-of-Sal
 
 Build Status
 ------------
-**Master**: [![Master Build Status](https://teamcity.iapc.utwente.nl/app/rest/builds/buildType:\(id:Swipe_SwipeTests\),branch:master/statusIcon)](https://teamcity.iapc.utwente.nl/viewType.html?buildTypeId=Swipe_SwipeTests&branch=master&guest=1)
+**Master**: [![pipeline status](https://git.iapc.utwente.nl/swipe/swipe/badges/master/pipeline.svg)](https://git.iapc.utwente.nl/swipe/swipe/commits/master)
 
 
-**Develop**: [![Develop Build Status](https://teamcity.iapc.utwente.nl/app/rest/builds/buildType:\(id:Swipe_SwipeTests\),branch:develop/statusIcon)](https://teamcity.iapc.utwente.nl/viewType.html?buildTypeId=Swipe_SwipeTests&branch=develop&guest=1)
+**Develop**: [![pipeline status](https://git.iapc.utwente.nl/swipe/swipe/badges/develop/pipeline.svg)](https://git.iapc.utwente.nl/swipe/swipe/commits/develop)
