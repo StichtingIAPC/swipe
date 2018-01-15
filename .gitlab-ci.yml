@@ -8,6 +8,7 @@ stages:
 cache:
   paths:
     - frontend/node_modules/
+    - /usr/local/lib/python3.6/site-packages
 
 installDeps:
   stage: install
