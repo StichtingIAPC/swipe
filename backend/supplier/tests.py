@@ -13,6 +13,7 @@ class SupplierTypeArticleUpdaterTests(TestCase, TestData):
         self.setup_base_data()
 
     def test_insertion_of_new_lines_without_old_lines(self):
+        self.assertEqual(true, valse)
         sta1 = SupplierTypeArticle(supplier=self.supplier_1, cost=self.cost_system_currency_1, number="ABC",
                                    name="Some description", minimum_number_to_order=1)
         sta2 = SupplierTypeArticle(supplier=self.supplier_1, cost=self.cost_system_currency_2, number="ABC2",

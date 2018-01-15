@@ -16,6 +16,7 @@ jest.mock('../../config.js', () => ({
 
 describe('Login', () => {
 	test('successful', () => {
+		expect(true).toBe(false);
 		const generator = login({
 			username: 'testuser',
 			password: 'testpassword',
