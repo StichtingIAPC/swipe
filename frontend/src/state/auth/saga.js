@@ -9,7 +9,7 @@ import { logoutError, logoutSuccess } from './actions';
 export function* login({ username, password }) {
 	const form = new FormData();
 
-form.append('username', username);
+	form.append('username', username);
 	form.append('password', password);
 	try {
 		const result = yield call(fetch, `${config.backendUrl}/auth/login/`, {
