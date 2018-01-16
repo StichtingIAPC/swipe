@@ -201,14 +201,14 @@ class RefundTransactionLine(TransactionLine):
 
 class Payment(models.Model):
     """
-    Single payment for a transaction. The sum of all payments should be equal to the value of the sales of the
+    Single payments for a transaction. The sum of all payments should be equal to the value of the sales of the
     transaction
     """
     # Exhange of money when something is sold to a customer
     transaction = models.ForeignKey("Transaction")
     # An amount and currency the customer pays
     amount = MoneyField()
-    # Which payment type is this payment added to?
+    # Which payments type is this payments added to?
     payment_type = models.ForeignKey('register.PaymentType')
 
     def __str__(self):
@@ -249,7 +249,7 @@ class Transaction(Blame):
     def create_transaction(user: User, payments, transaction_lines,
                            customer=None):
         """
-        Creates a transaction with the necessary information. Checks stock and payment assertions. The transactionLines
+        Creates a transaction with the necessary information. Checks stock and payments assertions. The transactionLines
         provided will be checked and modified until they are in such a state that they can be saved.
         :param user: The user which handled the Transaction
         :param payments: List[Payment]. A list of payments to pay for the products. Must match the prices.
@@ -269,7 +269,7 @@ class Transaction(Blame):
         raiseif(StockLock.is_locked(), LockError, "Stock is locked. Aborting.")
 
         for payment in payments:
-            raiseif(not isinstance(payment, Payment), InvalidDataException, "payment is not a Payment")
+            raiseif(not isinstance(payment, Payment), InvalidDataException, "payments is not a Payment")
             raiseif(not payment.amount.uses_system_currency(), InvalidDataException, "Payment currency should be system currency")
         types_supported = [SalesTransactionLine, OtherCostTransactionLine, OtherTransactionLine,
                            RefundTransactionLine]
@@ -311,7 +311,7 @@ class Transaction(Blame):
             if payment.payment_type.is_invoicing:
                 transaction_has_invoiced_payment = True
 
-        # Checks if the last payment is of a different currency. Mathematically, if this occurs
+        # Checks if the last payments is of a different currency. Mathematically, if this occurs
         # the currency has changed and if it does not occur(for all payments), the currency has not changed.
         last_payment = Payment.objects.filter(transaction__salesperiod=salesperiod).last()
         if last_payment and last_payment.amount.currency.iso != USED_CURRENCY:
@@ -532,7 +532,7 @@ class Transaction(Blame):
                 for i in range(to_sell):
                     ols[i].sell(user)
 
-            # Create invoice as it has an invoicing payment type. Handled by customer invoicing module.
+            # Create invoice as it has an invoicing payments type. Handled by customer invoicing module.
             if transaction_has_invoiced_payment:
                 customer_invoicing.models.ReceiptCustInvoiceHelper.create_customer_invoice_from_transaction(user, trans,
                                                                                                             payments)

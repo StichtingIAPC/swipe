@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name='payment',
+            model_name='payments',
             name='date_created',
         ),
         migrations.RemoveField(
-            model_name='payment',
+            model_name='payments',
             name='user_created',
         ),
     ]

@@ -85,7 +85,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sales.Transaction'),
         ),
         migrations.AddField(
-            model_name='payment',
+            model_name='payments',
             name='transaction',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sales.Transaction'),
         ),

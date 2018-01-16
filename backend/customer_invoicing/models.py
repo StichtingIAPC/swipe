@@ -184,7 +184,7 @@ class InvoiceFieldOrganisation(models.Model):
 
 class CustPayment(Blame):
     """
-    A payment for an invoice. Can be only a part of the total amount to be paid
+    A payments for an invoice. Can be only a part of the total amount to be paid
     """
 
     cust_invoice = models.ForeignKey(CustInvoice)
