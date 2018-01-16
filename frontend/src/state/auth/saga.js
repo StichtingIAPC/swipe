@@ -24,9 +24,10 @@ export function* login({ username, password }) {
 
 		const data = yield result.json();
 
-		yield call(put, loginSuccess(data.token, data.user));
+		yield put(loginSuccess(data.token, data.user));
 
-		const nextRoute = yield select(state => state.auth.nextRoute);
+		// noinspection JSCheckFunctionSignatures
+		const nextRoute = yield call(select, state => state.auth.nextRoute);
 
 		if (nextRoute !== null) {
 			yield put(push(nextRoute));
@@ -34,7 +35,8 @@ export function* login({ username, password }) {
 		}
 	} catch (e) {
 		yield put.resolve(loginError(e.non_field_errors || null));
-		let err = yield select(state => state.auth.error && state.auth.error[0]);
+		// noinspection JSCheckFunctionSignatures
+		let err = yield call(select, state => state.auth.error && state.auth.error[0]);
 
 		// eslint-disable-next-line
 		if (err === null || err === undefined) {
@@ -122,8 +124,9 @@ export function saveLogoutDetails() {
 	window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
 }
 
+// eslint-disable-next-line require-yield
 export function* redirectLogin() {
-	yield put(push('/authentication/login'));
+	return put(push('/authentication/login'));
 }
 
 export function* saga() {
