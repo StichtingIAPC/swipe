@@ -48,7 +48,7 @@ class Authentication extends React.Component {
 								<span id="login-error">{`${this.props.errorMsg ? this.props.errorMsg : ''}`}</span>
 							</div>
 							<div className="col-xs-4">
-								<button type="submit" className="btn btn-primary btn-block btn-flat">Sign In</button>
+								<button type="submit" className="btn btn-primary btn-block btn-flat" disabled={!(this.state.username && this.state.password)}>Sign In</button>
 							</div>
 						</div>
 					</form>
