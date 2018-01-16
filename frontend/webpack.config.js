@@ -23,7 +23,6 @@ const defaults = {
 
 module.exports = {
 	entry: [
-		'react-hot-loader/patch',
 		path.join(APP_DIR, 'app.js'),
 	],
 	output: {

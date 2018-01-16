@@ -16,7 +16,7 @@ export default class Box extends React.Component {
 	);
 
 	static Body = ({ children }) => (
-		<div className="box-body">{children}</div>
+		<div className="box-body">{ children }</div>
 	);
 
 	static Footer = ({ children }) => (
@@ -31,7 +31,9 @@ export default class Box extends React.Component {
 		};
 	}
 
-	toggleOpen = () => this.setState(state => ({ open: !state.open }));
+	toggleOpen = () => {
+		this.setState(state => ({ open: !state.open }));
+	}
 
 	componentWillCatch(err) {
 		console.log(err);
@@ -79,7 +81,7 @@ export default class Box extends React.Component {
 						</div>
 					)
 				}
-				{ children }
+				{ open ? children : null }
 			</div>
 		);
 	}

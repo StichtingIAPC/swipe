@@ -105,7 +105,7 @@ class VATList extends React.Component {
 					this.props.errorMsg ? (
 						<div className="box-footer">
 							<FontAwesome icon="warning" />
-							<span>{this.props.errorMsg}</span>
+							<span>{JSON.stringify(this.props.errorMsg)}</span>
 						</div>
 					) : null
 				}
@@ -121,6 +121,6 @@ export default connect(
 		fetching: state.money.vats.fetching,
 	}),
 	{
-		update: () => fetchAllvats(),
+		update: fetchAllvats,
 	}
 )(VATList);
