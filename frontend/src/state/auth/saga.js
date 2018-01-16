@@ -27,7 +27,7 @@ export function* login({ username, password }) {
 		yield put(loginSuccess(data.token, data.user));
 
 		// noinspection JSCheckFunctionSignatures
-		const nextRoute = yield call(select, state => state.auth.nextRoute);
+		const nextRoute = yield select(state => state.auth.nextRoute);
 
 		if (nextRoute !== null) {
 			yield put(push(nextRoute));
@@ -36,7 +36,7 @@ export function* login({ username, password }) {
 	} catch (e) {
 		yield put.resolve(loginError(e.non_field_errors || null));
 		// noinspection JSCheckFunctionSignatures
-		let err = yield call(select, state => state.auth.error && state.auth.error[0]);
+		let err = yield select(state => state.auth.error && state.auth.error[0]);
 
 		// eslint-disable-next-line
 		if (err === null || err === undefined) {

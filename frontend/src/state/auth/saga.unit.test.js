@@ -92,14 +92,13 @@ describe('Login', () => {
 			notDone,
 			isObject({
 				'@@redux-saga/IO': true,
-				'CALL': {
-					context: null,
-					fn: select,
+				'SELECT': {
+					args: [],
 				},
 			}),
 		]);
 
-		expect(result.value.CALL.args[0]({ auth: { nextRoute: '/nextRouteasdf/' }})).toBe('/nextRouteasdf/');
+		expect(result.value.SELECT.selector({ auth: { nextRoute: '/nextRouteasdf/' }})).toBe('/nextRouteasdf/');
 
 		// Test the redirect
 		nextStep(generator, [
@@ -153,9 +152,8 @@ describe('Login', () => {
 			notDone,
 			isObject({
 				'@@redux-saga/IO': true,
-				'CALL': {
-					context: null,
-					fn: select,
+				'SELECT': {
+					args: [],
 				},
 			}),
 		]);
@@ -205,14 +203,13 @@ describe('Login', () => {
 			notDone,
 			isObject({
 				'@@redux-saga/IO': true,
-				'CALL': {
-					context: null,
-					fn: select,
+				'SELECT': {
+					args: [],
 				},
 			}),
 		]);
 
-		expect(result.value.CALL.args[0]({ auth: { error: [ 'ASDF' ]}})).toBe('ASDF');
+		expect(result.value.SELECT.selector({ auth: { error: [ 'ASDF' ]}})).toBe('ASDF');
 
 		nextStep(generator, [
 			done,
@@ -271,9 +268,8 @@ describe('Login', () => {
 			notDone,
 			isObject({
 				'@@redux-saga/IO': true,
-				'CALL': {
-					context: null,
-					fn: select,
+				'SELECT': {
+					args: [],
 				},
 			}),
 		]);
