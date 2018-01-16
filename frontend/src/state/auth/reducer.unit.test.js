@@ -12,7 +12,6 @@ describe('Authentication reducer action', () => {
 				type: 'AUTH_SET_ROUTE_AFTER_AUTH',
 				route: '/arbitrary/test/route',
 			})).toMatchObject({
-				...authenticationReducer(undefined, {}),
 				nextRoute: '/arbitrary/test/route',
 			});
 		});
@@ -42,7 +41,6 @@ describe('Authentication reducer action', () => {
 			expect(authenticationReducer(undefined, {
 				type: 'AUTH_START_LOGIN',
 			})).toMatchObject({
-				...authenticationReducer(undefined, {}),
 				loading: true,
 			});
 		});
@@ -75,7 +73,6 @@ describe('Authentication reducer action', () => {
 					token: 'testtoken09123',
 				},
 			})).toMatchObject({
-				...authenticationReducer(undefined, {}),
 				token: 'testtoken09123',
 				loading: false,
 				currentUser: 'testuser123',
@@ -111,7 +108,6 @@ describe('Authentication reducer action', () => {
 				type: 'AUTH_LOGIN_ERROR',
 				error: 'errormessageasdfgh',
 			})).toMatchObject({
-				...authenticationReducer(undefined, {}),
 				token: null,
 				loading: false,
 				error: 'errormessageasdfgh',
@@ -144,7 +140,6 @@ describe('Authentication reducer action', () => {
 			expect(authenticationReducer(undefined, {
 				type: 'AUTH_START_LOGOUT',
 			})).toMatchObject({
-				...authenticationReducer(undefined, {}),
 				loading: true,
 			});
 		});
@@ -173,7 +168,6 @@ describe('Authentication reducer action', () => {
 			expect(authenticationReducer(undefined, {
 				type: 'AUTH_LOGOUT_SUCCESS',
 			})).toMatchObject({
-				...authenticationReducer(undefined, {}),
 				token: null,
 				currentUser: null,
 				loading: false,
@@ -205,7 +199,6 @@ describe('Authentication reducer action', () => {
 				type: 'AUTH_LOGOUT_ERROR',
 				error: 'THIS IS AN ERROR! BE SCARED :)',
 			})).toMatchObject({
-				...authenticationReducer(undefined, {}),
 				error: 'THIS IS AN ERROR! BE SCARED :)',
 				loading: false,
 			});
