@@ -7,6 +7,7 @@ import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { stock } from '../../../state/stock/actions';
+import {getPaymentTypes} from "../../../state/sales/payments/selectors";
 
 class PaymentTypes extends React.Component {
 	componentWillMount() {
@@ -39,6 +40,6 @@ export default connect(
 			 },
 		 }, state
 		),
-		paymentTypes: state.register.paymentTypes.paymentTypes,
+		paymentTypes: getPaymentTypes,
 	})
 )(PaymentTypes);
