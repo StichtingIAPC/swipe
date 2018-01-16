@@ -1,4 +1,7 @@
 {
+	"ignore": [
+		"node_modules/**"
+	],
 	"presets": [
 		["env", {
 			"debug": true,
@@ -14,6 +17,7 @@
 			"exclude": [ "transform-regenerator" ]
 		}],
 		"stage-0-without-async",
-		"react"
+		"react",
+		"es2015"
 	]
 }

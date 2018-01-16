@@ -6,7 +6,7 @@ import fetch from 'isomorphic-fetch';
 import { __unsafeGetToken } from '../../api';
 import { logoutError, logoutSuccess } from './actions';
 
-function* login({ username, password }) {
+export function* login({ username, password }) {
 	const form = new FormData();
 
 	form.append('username', username);
@@ -24,13 +24,13 @@ function* login({ username, password }) {
 
 		const data = yield result.json();
 
-		yield put(loginSuccess(data.token, data.user));
+		yield call(put, loginSuccess(data.token, data.user));
 
 		const nextRoute = yield select(state => state.auth.nextRoute);
 
 		if (nextRoute !== null) {
 			yield put(push(nextRoute));
-			yield put(setRouteAfterAuthentication('/'));
+			return put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
 		yield put.resolve(loginError(e.non_field_errors || null));
@@ -39,13 +39,13 @@ function* login({ username, password }) {
 		// eslint-disable-next-line
 		if (err === null || err === undefined) {
 			err = 'Server not connected, please try again later.';
-			yield put(loginError(err));
 		}
+		return put(loginError(err));
 	}
 }
 
 export function* logout() {
-	const token = yield __unsafeGetToken();
+	const token = __unsafeGetToken();
 
 	const form = new FormData();
 
@@ -61,9 +61,9 @@ export function* logout() {
 		}
 
 		yield put(logoutSuccess());
-		yield put(push('/authentication/login'));
+		return put(push('/authentication/login'));
 	} catch (e) {
-		yield put(logoutError(e));
+		return put(logoutError(e));
 	}
 }
 
@@ -100,9 +100,9 @@ export function* loginRestore({ loginAction }) {
 			throw data;
 		}
 
-		yield put(loginSuccess(token, data.user));
+		return put(loginSuccess(token, data.user));
 	} catch (e) {
-		yield put(loginError(e));
+		return put(loginError(e));
 	}
 }
 
@@ -126,7 +126,7 @@ export function* redirectLogin() {
 	yield put(push('/authentication/login'));
 }
 
-export default function* saga() {
+export function* saga() {
 	yield takeEvery('AUTH_START_LOGIN', login);
 	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
 	yield takeEvery('AUTH_LOGIN_ERROR', redirectLogin);
