@@ -1,4 +1,3 @@
-
 from crm.models import Person, Organisation, ContactOrganisation
 from mockdatagen.helpers import MockGen
 
@@ -61,4 +60,4 @@ class ContactOrganisationGen:
                                                             organisation=organisation)
         customer_contact_organisation.save()
 
-    requirements = {Organisation, "ASDFA"}
+    requirements = {Organisation}
