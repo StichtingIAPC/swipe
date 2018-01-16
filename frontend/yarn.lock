@@ -1142,7 +1142,6 @@ babel-template@7.0.0-beta.0:
     babylon "7.0.0-beta.22"
     lodash "^4.2.0"
 
-<<<<<<< HEAD
 babel-template@^6.16.0, babel-template@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-template/-/babel-template-6.26.0.tgz#de03e2d16396b069f46dd9fff8521fb1a0e35e02"
@@ -1154,9 +1153,6 @@ babel-template@^6.16.0, babel-template@^6.26.0:
     lodash "^4.17.4"
 
 babel-template@^6.24.1, babel-template@^6.7.0:
-=======
-babel-template@^6.24.1:
->>>>>>> 166221bd217090dd1727f925f5269d4a0fa58fa8
   version "6.24.1"
   resolved "https://registry.yarnpkg.com/babel-template/-/babel-template-6.24.1.tgz#04ae514f1f93b3a2537f2a0f60a5a45fb8308333"
   dependencies:
