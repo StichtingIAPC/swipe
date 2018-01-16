@@ -16,8 +16,8 @@
 			},
 			"exclude": [ "transform-regenerator" ]
 		}],
+		"es2015",
 		"stage-0-without-async",
-		"react",
-		"es2015"
+		"react"
 	]
 }
