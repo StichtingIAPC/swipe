@@ -1,6 +1,22 @@
 /* eslint-disable no-undef,no-undefined */
-export const notDone = result => expect(result.done).toBe(false);
-export const done = result => expect(result.done).toBe(true);
+
+expect.extend({
+	toBeDone(received) {
+		if (received.done) {
+			return {
+				pass: true,
+				message: () => 'The promise is finished.',
+			};
+		}
+		return {
+			pass: false,
+			message: () => 'Promise isn\'t finished yet.',
+		};
+	},
+});
+
+export const notDone = result => expect(result).not.toBeDone();
+export const done = result => expect(result).toBeDone();
 
 export const isValue = expectation => result => expect(result.value).toBe(expectation);
 export const isObject = expectation => result => expect(result.value).toMatchObject(expectation);

@@ -1,12 +1,11 @@
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { loginError, loginSuccess, setRouteAfterAuthentication } from './actions.js';
 import config from '../../config.js';
 import fetch from 'isomorphic-fetch';
-import { __unsafeGetToken } from '../../api';
-import { logoutError, logoutSuccess } from './actions';
+import { __unsafeGetToken, setToken } from '../../api';
+import { logoutError, logoutSuccess, setAuthToken, loginError, loginSuccess, setRouteAfterAuthentication } from './actions';
 
-export function* login({ username, password }) {
+export function* onLogin({ username, password }) {
 	const form = new FormData();
 
 	form.append('username', username);
@@ -31,10 +30,10 @@ export function* login({ username, password }) {
 
 		if (nextRoute !== null) {
 			yield put(push(nextRoute));
-			return put(setRouteAfterAuthentication('/'));
+			yield put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
-		yield put.resolve(loginError(e.non_field_errors || null));
+		yield put(loginError(e.non_field_errors || null));
 		// noinspection JSCheckFunctionSignatures
 		let err = yield select(state => state.auth.error && state.auth.error[0]);
 
@@ -42,11 +41,11 @@ export function* login({ username, password }) {
 		if (err === null || err === undefined) {
 			err = 'Server not connected, please try again later.';
 		}
-		return put(loginError(err));
+		yield put(loginError(err));
 	}
 }
 
-export function* logout() {
+export function* onLogout() {
 	const token = __unsafeGetToken();
 
 	const form = new FormData();
@@ -63,20 +62,22 @@ export function* logout() {
 		}
 
 		yield put(logoutSuccess());
-		return put(push('/authentication/login'));
+		yield put(push('/authentication/login'));
 	} catch (e) {
-		return put(logoutError(e));
+		yield put(logoutError(e));
 	}
 }
 
-export function* loginRestore({ loginAction }) {
+export function* onLoginRestore({ loginAction }) {
 	if (!loginAction) {
-		return put(loginError('Login restore failed'));
+		yield put(loginError('Login restore failed'));
+		return undefined;
 	}
 	const action = loginAction.data;
 
 	if (!(action && action.token && action.user && action.user.username)) {
-		return put(loginError('Login restore failed'));
+		yield put(loginError('Login restore failed'));
+		return undefined;
 	}
 
 	const { token, user: { username }} = action;
@@ -102,38 +103,46 @@ export function* loginRestore({ loginAction }) {
 			throw data;
 		}
 
-		return put(loginSuccess(token, data.user));
+		yield put(loginSuccess(token, data.user));
 	} catch (e) {
-		return put(loginError(e));
+		yield put(loginError(e));
 	}
 }
 
-export function saveLoginDetails(action) {
-	if (!window || !window.localStorage) {
-		return;
+export function* onLoginSuccess(action) {
+	if (window && window.localStorage) {
+		window.localStorage.setItem('LAST_LOGIN_SUCCESS_ACTION', JSON.stringify(action));
 	}
-
-	window.localStorage.setItem('LAST_LOGIN_SUCCESS_ACTION', JSON.stringify(action));
+	yield put(setAuthToken(action.data.token));
 }
 
-export function saveLogoutDetails() {
-	if (!window || !window.localStorage) {
-		return;
+export function* onLogoutSuccess() {
+	if (window && window.localStorage) {
+		window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
 	}
-
-	window.localStorage.removeItem('LAST_LOGIN_SUCCESS_ACTION');
+	yield put(setAuthToken(null));
 }
 
-// eslint-disable-next-line require-yield
-export function* redirectLogin() {
-	return put(push('/authentication/login'));
+export function* onLoginError() {
+	yield put(setAuthToken(null));
+	yield put(push('/authentication/login'));
+}
+
+export function* onLogoutError() {
+	yield put(setAuthToken(null));
+}
+
+export function onSetAuthToken(action) {
+	setToken(action.token);
 }
 
 export function* saga() {
-	yield takeEvery('AUTH_START_LOGIN', login);
-	yield takeEvery('AUTH_LOGIN_SUCCESS', saveLoginDetails);
-	yield takeEvery('AUTH_LOGIN_ERROR', redirectLogin);
-	yield takeEvery('AUTH_LOGIN_RESTORE', loginRestore);
-	yield takeEvery('AUTH_START_LOGOUT', logout);
-	yield takeEvery('AUTH_LOGOUT_SUCCESS', saveLogoutDetails);
+	yield takeEvery('AUTH_START_LOGIN', onLogin);
+	yield takeEvery('AUTH_LOGIN_SUCCESS', onLoginSuccess);
+	yield takeEvery('AUTH_LOGIN_ERROR', onLoginError);
+	yield takeEvery('AUTH_LOGIN_RESTORE', onLoginRestore);
+	yield takeEvery('AUTH_START_LOGOUT', onLogout);
+	yield takeEvery('AUTH_LOGOUT_SUCCESS', onLogoutSuccess);
+	yield takeEvery('AUTH_LOGOUT_ERROR', onLogoutError);
+	yield takeEvery('AUTH_SET_TOKEN', onSetAuthToken);
 }
