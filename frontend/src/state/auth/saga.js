@@ -71,13 +71,15 @@ export function* onLogout() {
 export function* onLoginRestore({ loginAction }) {
 	if (!loginAction) {
 		yield put(loginError('Login restore failed'));
-		return undefined;
+		// noinspection JSValidateTypes
+		return;
 	}
 	const action = loginAction.data;
 
 	if (!(action && action.token && action.user && action.user.username)) {
 		yield put(loginError('Login restore failed'));
-		return undefined;
+		// noinspection JSValidateTypes
+		return;
 	}
 
 	const { token, user: { username }} = action;
