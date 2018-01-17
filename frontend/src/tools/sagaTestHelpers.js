@@ -34,8 +34,10 @@ export const nextStep = (generator, tests, ...args) => {
 export const formOf = fields => {
 	const form = new FormData();
 
-	for (const [ key, value ] of Object.entries(fields)) {
-		form.append(key, value);
+	for (const key in fields) {
+		if (fields.hasOwnProperty(key)) {
+			form.append(key, fields[key]);
+		}
 	}
 
 	return form;
