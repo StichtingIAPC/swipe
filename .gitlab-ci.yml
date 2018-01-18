@@ -1,0 +1,37 @@
+image: nikolaik/python-nodejs:latest
+
+stages:
+  - install
+  - test
+
+testFrontendLint:
+  stage: test
+  cache:
+    paths:
+      - frontend/node_modules/
+    key: "$CI_PROJECT_ID/yarn"
+  script:
+    - cd frontend
+    - yarn lint
+
+testFrontendUnit:
+  stage: test
+  cache:
+    paths:
+      - frontend/node_modules/
+    key: "$CI_PROJECT_ID/yarn"
+  script:
+    - cd frontend
+    - yarn --pure-lockfile
+    - yarn test-once
+
+testBackend:
+  stage: test
+  cache:
+    paths:
+      - backend/.pip/
+    key: "$CI_PROJECT_ID/pip"
+  script:
+    - cd backend
+    - pip install --cache-dir=.pip -r requirements.txt
+    - python3 manage.py test -k
