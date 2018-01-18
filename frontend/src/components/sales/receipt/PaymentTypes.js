@@ -5,9 +5,8 @@ import { registers } from '../../../state/register/registers/actions.js';
 
 import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
-import { articles } from '../../../state/assortment/articles/actions';
-import { stock } from '../../../state/stock/actions';
-import {getPaymentTypes} from "../../../state/sales/payments/selectors";
+
+import { getPaymentTypes } from '../../../state/sales/payments/selectors';
 
 class PaymentTypes extends React.Component {
 	componentWillMount() {
@@ -15,9 +14,9 @@ class PaymentTypes extends React.Component {
 	}
 
 	render() {
-		const {  paymentTypes} = this.props;
-		if (paymentTypes == null)
-			 return null;
+		const { paymentTypes } = this.props;
+
+		if (paymentTypes == null) { return null; }
 		return (
 			<div className="row">
 				{paymentTypes.map(e => <div key={e.id} className="col-xs-12 col-md-12">{e.name}</div>)}
