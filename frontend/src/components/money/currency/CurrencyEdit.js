@@ -39,7 +39,12 @@ class CurrencyEdit extends React.Component {
 	setSymbol = ({ target: { value }}) => this.props.setCurrencyField('symbol', value);
 	setIso = ({ target: { value }}) => this.props.setCurrencyField('iso', value);
 
-	addDenomination = () => this.props.setCurrencyField('denomination_set', this.props.currency.denomination_set.concat([{ amount: '' }]));
+	addDenomination = () => this.props.setCurrencyField(
+		'denomination_set',
+		this.props.currency.denomination_set.concat([{
+			amount: '',
+			currency: this.props.match.params.currencyID ? this.props.currency.iso : null,
+		}]));
 
 	render() {
 		const { currency } = this.props;
