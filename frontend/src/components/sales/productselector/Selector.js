@@ -1,15 +1,12 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
-import { registers } from '../../../state/register/registers/actions.js';
 
-import { currencies } from '../../../state/money/currencies/actions.js';
-import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { stock } from '../../../state/stock/actions';
-import { getArticleNameById, getCount, getStockForArticle } from '../../../state/assortment/articles/selectors';
+import { getStock } from '../../../state/assortment/articles/selectors';
 import { addToSalesListAction } from '../../../state/sales/sales/actions';
-import MoneyAmount from '../../money/MoneyAmount';
+import SelectorLine from "./SelectorLine";
 
 class Selector extends React.Component {
 	componentWillMount() {
@@ -17,7 +14,7 @@ class Selector extends React.Component {
 	}
 
 	render() {
-		const { stock, state, addArticle } = this.props;
+		const { stock } = this.props;
 
 		if (!stock)
 			return null;
@@ -39,11 +36,7 @@ class Selector extends React.Component {
 					</thead>
 					<tbody>
 						{stock.map(e =>
-							<tr key={e} onClick={(evt) => addArticle(e, 1, getStockForArticle(state, e.article).count)}>
-								<td>{getArticleNameById(state, e.article)}</td>
-								<td>{getCount(state, e)}</td>
-								<td><MoneyAmount money={e.price}/></td>
-							</tr>)}
+							<SelectorLine key={e.id} stockLine={e} />)}
 					</tbody>
 				</table>
 				<div className="col-xs-8 col-md-8">
@@ -57,13 +50,6 @@ class Selector extends React.Component {
 export default connect(
 	state => ({
 		...connectMixin({
-			 register: {
-				 registers,
-				 paymentTypes,
-			 },
-			 money: {
-				 currencies,
-			 },
 			 article: {
 				 articles,
 			 },
@@ -73,8 +59,7 @@ export default connect(
 
 		 }, state
 		),
-		stock: state.stock.stock,
-		state: state,
+		stock: getStock(state),
 	}),
 	{
 		addArticle: addToSalesListAction,

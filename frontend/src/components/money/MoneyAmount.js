@@ -10,7 +10,9 @@ class MoneyAmount extends React.Component {
 	render() {
 		if (!this.props.currencies.currencies)
 			return <div>LOADING</div>;
-		const cur = this.props.currencies.currencies.find(it => it.iso === this.props.money.currency);
+		let cur = this.props.currencies.currencies.find(it => it.iso === this.props.money.currency);
+		if (cur == null)
+			cur = {symbol: '¬'};
 		return <div>{cur.symbol} {Math.round(this.props.money.amount * 100) / 100}</div>;
 	}
 }

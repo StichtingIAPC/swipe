@@ -2,9 +2,10 @@ export function getArticleById(state, id) {
 	return state.assortment.articles.articles.find(art => art.id === id);
 }
 
+export function getStock(state){
+	return state.stock.stock;
+}
 export function getStockForArticle(state, article) {
-
-	console.log(state.stock.stock.find(art => art.article === article));
 	return state.stock.stock.find(art => art.article === article);
 }
 
@@ -19,6 +20,7 @@ export function getCount(state, stock) {
 	const count = stock ? stock.count : 0;
 	if (!state.sales.sales)
 		return count;
+	if (!stock) return 0;
 	const salesListCount = state.sales.sales.sales.find(art => art.article === stock.article);
 	if (salesListCount) {
 		return count - salesListCount.count;

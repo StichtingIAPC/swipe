@@ -1,16 +1,15 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
+import { connectMixin , fetchStateRequirementsFor} from '../../../core/stateRequirements';
 import { registers } from '../../../state/register/registers/actions.js';
 import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { addToSalesListAction } from '../../../state/sales/sales/actions';
-import { getArticleNameById, getCount, getStockForArticle } from '../../../state/assortment/articles/selectors';
 import { stock } from '../../../state/stock/actions';
 import Totals from './Totals';
 import Box from '../../base/Box';
-import MoneyAmount from '../../money/MoneyAmount';
+import SalesListLine from "./SalesListLine";
 
 class SalesList extends React.Component {
 	componentWillMount() {
@@ -18,7 +17,7 @@ class SalesList extends React.Component {
 	}
 
 	render() {
-		const {sales, requirementsLoaded, state, addToSalesListAction, addArticle} = this.props;
+		const { sales } = this.props;
 
 		return (
 			<Box>
@@ -45,12 +44,7 @@ class SalesList extends React.Component {
 						</thead>
 						<tbody>
 							{sales.map(e =>
-								<tr key={e} onClick={(evt) => addArticle(e, -1, getStockForArticle(state, e.article).count)}>
-									<td>{getArticleNameById(state, e.article)}</td>
-									<td>{e.count}</td>
-									<td><MoneyAmount money={e.price}/></td>
-									<td><MoneyAmount money={{...e.price, amount: e.price.amount * e.count}}/></td>
-								</tr>)}
+								<SalesListLine key={e.article} stockLine={e}/>)}
 							<Totals/>
 						</tbody>
 					</table>
@@ -62,13 +56,6 @@ class SalesList extends React.Component {
 export default connect(
 	state => ({
 		...connectMixin({
-			register: {
-				registers,
-				paymentTypes,
-			},
-			money: {
-				currencies,
-			},
 			article: {
 				articles,
 			},
@@ -78,7 +65,6 @@ export default connect(
 		}, state
 		),
 		sales: state.sales.sales.sales,
-		state: state,
 	})
 	,
 	{
