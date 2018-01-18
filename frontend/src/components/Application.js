@@ -19,7 +19,7 @@ import ArticleManager from '../components/article/ArticleManager';
 import RegisterBase from '../components/register/RegisterBase';
 import LabelsBase from '../components/assortment/LabelsBase';
 import Profile from './authentication/Profile';
-import SalesExp from "./sales/SalesExp";
+import SalesExp from "./sales/SalesBase";
 
 class Application extends React.Component {
 	render() {
