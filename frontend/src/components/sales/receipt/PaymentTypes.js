@@ -16,7 +16,8 @@ class PaymentTypes extends React.Component {
 
 	render() {
 		const {  paymentTypes} = this.props;
-
+		if (paymentTypes == null)
+			 return null;
 		return (
 			<div className="row">
 				{paymentTypes.map(e => <div key={e.id} className="col-xs-12 col-md-12">{e.name}</div>)}
@@ -40,6 +41,6 @@ export default connect(
 			 },
 		 }, state
 		),
-		paymentTypes: getPaymentTypes,
+		paymentTypes: getPaymentTypes(state),
 	})
 )(PaymentTypes);
