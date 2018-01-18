@@ -248,7 +248,7 @@ module.exports = {
 		'no-continue': OFF,
 		'no-inline-comments': OFF,
 		'no-lonely-if': WARN,
-		'no-mixed-operators': ERROR,
+		'no-mixed-operators': OFF,
 		'no-mixed-spaces-and-tabs': [ ERROR, 'smart-tabs' ],
 		'no-multi-assign': WARN,
 		'no-multiple-empty-lines': [ WARN, {

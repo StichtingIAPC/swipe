@@ -3,6 +3,7 @@ import { saga as authSaga } from './auth/saga.js';
 import moneySaga from './money/saga.js';
 import registerSaga from './register/saga.js';
 import suppliersSaga from './suppliers/saga.js';
+import stockSaga from './stock/saga.js';
 
 export default function* saga() {
 	yield* assortmentSaga();
@@ -10,4 +11,5 @@ export default function* saga() {
 	yield* moneySaga();
 	yield* registerSaga();
 	yield* suppliersSaga();
+	yield* stockSaga();
 }
