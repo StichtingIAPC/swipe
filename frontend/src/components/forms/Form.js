@@ -4,6 +4,11 @@ import { Link } from 'react-router-dom';
 import FontAwesome from '../tools/icons/FontAwesome';
 
 export default class Form extends React.Component {
+	onSubmit = evt => {
+		evt.preventDefault();
+		return this.props.onSubmit(evt);
+	};
+
 	render() {
 		return (
 			<div className={`box${this.props.error ? ' box-danger box-solid' : ''}`}>
@@ -23,7 +28,7 @@ export default class Form extends React.Component {
 					</div>
 				</div>
 				<div className="box-body">
-					<form className="form-horizontal" onSubmit={this.props.onSubmit} >
+					<form className="form-horizontal" onSubmit={this.onSubmit} >
 						{this.props.children}
 						<div className="form-group">
 							<div className="col-sm-9 col-sm-offset-3">

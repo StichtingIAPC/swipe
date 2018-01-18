@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { createCurrency, updateCurrency } from '../../../state/money/currencies/actions.js';
+import { createCurrency, updateCurrency, resetCurrency, fetchCurrency, setCurrencyField } from '../../../state/money/currencies/actions.js';
 import Form from '../../forms/Form';
 import { CharField, IntegerField, MoneyField, StringField } from '../../forms/fields';
 import FontAwesome from '../../tools/icons/FontAwesome';
@@ -10,121 +10,70 @@ import FontAwesome from '../../tools/icons/FontAwesome';
  * Created by Matthias on 26/11/2016.
  */
 
-const defaultCurrency = {
-	iso: '',
-	name: '',
-	digits: 2,
-	symbol: '',
-	denomination_set: [],
-};
-
 class CurrencyEdit extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			workingCopy: {
-				...defaultCurrency,
-				...this.props.currency,
-			},
-		};
-	}
+	reset = (currencyID = this.props.match.params.currencyID) => {
+		const currencyId = typeof currencyID === 'object' ? this.props.match.params.currencyID : currencyID;
 
-	reset(evt, props = this.props) {
-		if (evt) {
-			evt.preventDefault();
+		if (typeof currencyId === 'undefined' || currencyId === null) {
+			this.props.resetCurrency();
+		} else {
+			this.props.fetchCurrency(currencyId);
 		}
-		this.setState({
-			workingCopy: {
-				...defaultCurrency,
-				...props.currency,
-			},
-		});
+	};
+
+	componentWillMount() {
+		this.reset();
 	}
 
-	update(evt) {
-		if (evt) {
-			evt.preventDefault();
-		}
-		const obj = { ...this.state.workingCopy };
-
-		obj.lastModified = new Date();
-		this.props.updateCurrency(obj);
-	}
-
-	create(evt) {
-		if (evt) {
-			evt.preventDefault();
-		}
-		const obj = { ...this.state.workingCopy };
-
-		obj.lastModified = new Date();
-		this.props.createCurrency(obj);
-	}
-
-	componentWillReceiveProps(props) {
-		if (this.props.currency !== props.currency) {
-			this.reset(null, props);
+	componentWillReceiveProps({ match: { params: { currencyID }}}) {
+		if (currencyID !== this.props.match.params.currencyID) {
+			this.reset(currencyID);
 		}
 	}
+
+	update = () => this.props.updateCurrency(this.props.currency);
+	create = () => this.props.createCurrency(this.props.currency);
+
+	setName = ({ target: { value }}) => this.props.setCurrencyField('name', value);
+	setDigits = ({ target: { value }}) => this.props.setCurrencyField('digits', value);
+	setSymbol = ({ target: { value }}) => this.props.setCurrencyField('symbol', value);
+	setIso = ({ target: { value }}) => this.props.setCurrencyField('iso', value);
+
+	addDenomination = () => this.props.setCurrencyField('denomination_set', this.props.currency.denomination_set.concat([{ amount: '' }]));
 
 	render() {
-		const currency = this.state.workingCopy;
-
-		const updateValue = key =>
-			evt => this.setState({
-				workingCopy: {
-					...this.state.workingCopy,
-					[key]: evt.target.value,
-				},
-			});
-
-		const addDenomination = () => this.setState({
-			workingCopy: {
-				...this.state.workingCopy,
-				denomination_set: [ ...this.state.workingCopy.denomination_set, { amount: '' }],
-			},
-		});
+		const { currency } = this.props;
 
 		const updateDenom = index =>
-			evt => {
-				const newDenoms = [ ...this.state.workingCopy.denomination_set ];
-
-				newDenoms[index].amount = evt.target.value;
-				this.setState({
-					workingCopy: {
-						...this.state.workingCopy,
-						denomination_set: newDenoms,
-					},
-				});
-			}
-
-		;
-
-		const removeDenom = index =>
-			() => {
-				const newDenoms = [ ...this.state.workingCopy.denomination_set ];
-
-				newDenoms.splice(index, 1);
-				this.setState({
-					workingCopy: {
-						...this.state.workingCopy,
-						denomination_set: [ ...newDenoms ],
-					},
-				});
+			({ target: { value }}) => {
+				this.props.setCurrencyField(
+					'denomination_set',
+					this.props.currency.denomination_set.map((el, i) => {
+						if (i === index) {
+							return {
+								...el,
+								amount: value,
+							};
+						}
+						return el;
+					})
+				);
 			};
+
+		const removeDenom = index => () => this.props.setCurrencyField('denomination_set', this.props.currency.denomination_set.filter((_, i) => i !== index));
 
 		return (
 			<Form
-				title={this.props.currency ? `Edit ${this.props.currency.name}` : 'Create new currency'}
-				onReset={::this.reset}
-				onSubmit={this.props.currency ? ::this.update : ::this.create}
+				title={this.props.match.params.currencyID ? `Edit ${this.props.currency.name}` : 'Create new currency'}
+				onReset={this.reset}
+				onSubmit={this.props.match.params.currencyID ? this.update : this.create}
 				error={this.props.errorMsg}
-				returnLink={this.props.currency ? `/money/currency/${currency.iso}/` : '/money/'}
+				returnLink={this.props.match.params.currencyID ? `/money/currency/${currency.iso}/` : '/money/'}
 				closeLink="/money/">
-				<CharField disabled={!!this.props.currency} onChange={updateValue('iso')} name="ISO value" value={currency.iso} minLength={3} maxLength={3} />
-				<StringField onChange={updateValue('name')} name="Name" value={currency.name} />
-				<IntegerField min={-23} max={5} onChange={updateValue('digits')} name="digits" value={currency.digits} />
-				<CharField disabled={!!this.props.currency} onChange={updateValue('symbol')} name="Currency symbol" value={currency.symbol} minLength={1} maxLength={5} />
+				<CharField disabled={this.props.match.params.currencyID} onChange={this.setIso} name="ISO value" value={currency.iso} minLength={3} maxLength={3} />
+				<StringField onChange={this.setName} name="Name" value={currency.name} />
+				<IntegerField min={-23} max={5} onChange={this.setDigits} name="digits" value={currency.digits} />
+				<CharField disabled={this.props.match.params.currencyID} onChange={this.setSymbol} name="Currency symbol" value={currency.symbol} minLength={1} maxLength={5} />
 				<div className="form-group">
 					<label className="col-sm-3 control-label">Denominations</label>
 					<div className="col-sm-9">
@@ -140,16 +89,16 @@ class CurrencyEdit extends React.Component {
 									}>
 									{denomination.id ? null : (
 										<span className="input-group-btn">
-											<Link className="btn btn-danger" onClick={removeDenom(index)}>
+											<a className="btn btn-danger" onClick={removeDenom(index)}>
 												<FontAwesome icon="trash" />
-											</Link>
+											</a>
 										</span>
 									)}
 								</MoneyField>
 								<br />
 							</div>
 						))}
-						<Link className="btn btn-success" onClick={addDenomination}>Add denomination</Link>
+						<a className="btn btn-success" onClick={this.addDenomination}>Add denomination</a>
 					</div>
 				</div>
 			</Form>
@@ -158,13 +107,16 @@ class CurrencyEdit extends React.Component {
 }
 
 export default connect(
-	(state, ownProps) => ({
-		...ownProps,
-		errorMsg: state.money.currencies.inputError,
-		currency: (state.money.currencies.currencies || []).find(obj => obj.iso === ownProps.params.currencyID) || null,
+	state => ({
+		errorMsg: state.money.currencies.error,
+		currency: state.money.currencies.activeObject,
 	}),
-	dispatch => ({
-		updateCurrency: currency => dispatch(updateCurrency(currency)),
-		createCurrency: currency => dispatch(createCurrency(currency)),
-	})
+	{
+		updateCurrency,
+		createCurrency,
+		fetchCurrency,
+		resetCurrency,
+		clearCurrencyField: resetCurrency,
+		setCurrencyField,
+	}
 )(CurrencyEdit);

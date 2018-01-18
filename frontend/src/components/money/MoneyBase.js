@@ -6,7 +6,7 @@ import CurrencyList from './currency/CurrencyList';
 import AccountingGroupList from './accountingGroup/AccountingGroupList';
 import VATList from './VAT/VATList';
 import { currencies } from '../../state/money/currencies/actions.js';
-import { vats } from '../../state/money/vat/actions.js';
+import { vats } from '../../state/money/vats/actions.js';
 import { accountingGroups } from '../../state/money/accounting-groups/actions.js';
 import CurrencyEdit from './currency/CurrencyEdit';
 import CurrencyDetail from './currency/CurrencyDetail';
@@ -19,13 +19,14 @@ import AccountingGroupDetail from './accountingGroup/AccountingGroupDetail';
  * Created by Matthias on 26/11/2016.
  */
 
-class MoneyBase extends React.Component {
+export class MoneyBase extends React.Component {
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
 	}
 
 	render() {
 		const { match } = this.props;
+		console.log(this.props.availableRequirements);
 
 		return (
 			<div className="row">
@@ -42,8 +43,8 @@ class MoneyBase extends React.Component {
 								<Route path={`${match.path}/currency/:currencyID/edit`} component={CurrencyEdit} />
 								<Route path={`${match.path}/currency/:currencyID`} component={CurrencyDetail} />
 								<Route path={`${match.path}/vat/create`} component={VATEdit} />
-								<Route path={`${match.path}/vat/:VATID/edit`} component={VATEdit} />
-								<Route path={`${match.path}/vat/:VATID`} component={VATDetail} />
+								<Route path={`${match.path}/vat/:vatId/edit`} component={VATEdit} />
+								<Route path={`${match.path}/vat/:vatId`} component={VATDetail} />
 								<Route path={`${match.path}/accountinggroup/create`} component={AccountingGroupEdit} />
 								<Route path={`${match.path}/accountinggroup/:accountingGroupID/edit`} component={AccountingGroupEdit} />
 								<Route path={`${match.path}/accountinggroup/:accountingGroupID`} component={AccountingGroupDetail} />

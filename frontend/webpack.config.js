@@ -23,7 +23,6 @@ const defaults = {
 
 module.exports = {
 	entry: [
-		'react-hot-loader/patch',
 		path.join(APP_DIR, 'app.js'),
 	],
 	output: {
@@ -36,7 +35,7 @@ module.exports = {
 			{
 				test: /\.jsx?/,
 				exclude: /node_modules/,
-				loaders: [ 'react-hot-loader/webpack', 'babel-loader' ],
+				loaders: [ 'babel-loader' ],
 			}, {
 				test: /\.scss$/,
 				loaders: [ 'style-loader', 'css-loader', 'sass-loader' ],

@@ -2,15 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import FontAwesome from '../../tools/icons/FontAwesome';
+import Box from '../../base/Box';
 
 /**
  * Created by Matthias on 26/11/2016.
  */
 
 class CurrencyDetail extends React.Component {
-	trash(evt) {
-		evt.preventDefault();
-	}
+	trash = evt => evt.preventDefault();
 
 	render() {
 		const { currency } = this.props;
@@ -20,19 +19,16 @@ class CurrencyDetail extends React.Component {
 		}
 
 		return (
-			<div className="box">
-				<div className="box-header with-border">
-					<h3 className="box-title">Currency: {currency.name}</h3>
-					<div className="box-tools">
-						<div className="input-group">
-							<div className="btn-group">
-								<Link to={`/money/currency/${currency.iso}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
-								<Link onClick={::this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div className="box-body">
+			<Box className="box">
+				<Box.Header
+					title={`Currency: ${currency.name}`}
+					buttons={
+						<React.Fragment>
+							<Link to={`/money/currency/${currency.iso}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
+							<a onClick={this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></a>
+						</React.Fragment>
+					} />
+				<Box.Body>
 					<dl className="dl-horizontal">
 						{Object.entries({
 							iso: 'ISO',
@@ -41,10 +37,10 @@ class CurrencyDetail extends React.Component {
 							symbol: 'Symbol',
 						}).map(
 							([ key, name ]) => (
-								<div key={key}>
+								<React.Fragment key={key}>
 									<dt>{name}</dt>
 									<dd>{String(currency[key])}</dd>
-								</div>
+								</React.Fragment>
 							)
 						)}
 						<div>
@@ -64,12 +60,14 @@ class CurrencyDetail extends React.Component {
 							</dd>
 						</div>
 					</dl>
-				</div>
-			</div>
+				</Box.Body>
+			</Box>
 		);
 	}
 }
 
 export default connect(
-	(state, ownProps) => ({ currency: state.money.currencies.currencies.find(obj => obj.iso === ownProps.params.currencyID) })
+	state => ({
+		currency: state.money.currencies.activeObject,
+	})
 )(CurrencyDetail);

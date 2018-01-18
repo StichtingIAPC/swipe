@@ -1,52 +1,145 @@
-export function startFetchingAccountingGroups({ redirectTo } = {}) {
+export function fetchAllAccountingGroups(redirectTo) {
 	return {
-		type: 'ACCOUNTING_GROUP_FETCH_START',
+		type: 'money/accounting-groups/FETCH_ALL',
 		redirectTo,
 	};
 }
 
-export function doneFetchingAccountingGroups(accountingGroups) {
+export function fetchAllAccountingGroupsDone(accountingGroups) {
 	return {
-		type: 'ACCOUNTING_GROUP_FETCH_DONE',
+		type: 'money/accounting-groups/FETCH_ALL_DONE',
 		accountingGroups,
 	};
 }
 
+export function fetchAllAccountingGroupsFailed(reason) {
+	return {
+		type: 'money/accounting-groups/FETCH_ALL_FAILED',
+		reason,
+	};
+}
+
+export function fetchAllAccountingGroupsFinally() {
+	return {
+		type: 'money/accounting-groups/FETCH_ALL_FINALLY',
+	};
+}
+
+export function fetchAccountingGroup(id) {
+	return {
+		type: 'money/accounting-groups/FETCH',
+		id,
+	};
+}
+
+export function fetchAccountingGroupDone(accountingGroup) {
+	return {
+		type: 'money/accounting-groups/FETCH_DONE',
+		accountingGroup,
+	};
+}
+
+export function fetchAccountingGroupFailed(id, reason) {
+	return {
+		type: 'money/accounting-groups/FETCH_FAILED',
+		id,
+		reason,
+	};
+}
+
+export function fetchAccountingGroupFinally() {
+	return {type: 'money/accounting-groups/FETCH_FINALLY'};
+}
+
 export function createAccountingGroup(accountingGroup) {
 	return {
-		type: 'ACCOUNTING_GROUP_CREATE',
-		accGrp: accountingGroup,
+		type: 'money/accounting-groups/CREATE',
+		accountingGroup,
 	};
+}
+
+export function createAccountingGroupDone(accountingGroup) {
+	return {
+		type: 'money/accounting-groups/CREATE_DONE',
+		accountingGroup,
+	};
+}
+
+export function createAccountingGroupFailed(accountingGroup, reason) {
+	return {
+		type: 'money/accounting-groups/CREATE_FAILED',
+		accountingGroup,
+		reason,
+	};
+}
+
+export function createAccountingGroupFinally() {
+	return {type: 'money/accounting-groups/CREATE_FINALLY'};
 }
 
 export function updateAccountingGroup(accountingGroup) {
 	return {
-		type: 'ACCOUNTING_GROUP_UPDATE',
-		accGrp: accountingGroup,
+		type: 'money/accounting-groups/UPDATE',
+		accountingGroup,
 	};
 }
 
-export function deleteAccountingGroup(accountingGroup) {
+export function updateAccountingGroupDone(accountingGroup) {
 	return {
-		type: 'ACCOUNTING_GROUP_DELETE',
-		accGrp: accountingGroup,
+		type: 'money/accounting-groups/UPDATE_DONE',
+		accountingGroup,
 	};
 }
 
-export function accountingGroupInputError(error) {
+export function updateAccountingGroupFailed(accountingGroup, reason) {
 	return {
-		type: 'ACCOUNTING_GROUP_INPUT_ERROR',
-		error,
+		type: 'money/accounting-groups/UPDATE_FAILED',
+		accountingGroup,
+		reason,
 	};
 }
 
-export function accountingGroupFetchError(error) {
+export function updateAccountingGroupFinally() {
 	return {
-		type: 'ACCOUNTING_GROUP_FETCH_ERROR',
-		error,
+		type: 'money/accounting-groups/UPDATE_FINALLY',
 	};
 }
 
+export function deleteAccountingGroup(id) {
+	return {
+		type: 'money/accounting-groups/DELETE',
+		id,
+	};
+}
+
+export function deleteAccountingGroupDone(id) {
+	return {
+		type: 'money/accounting-groups/DELETE_DONE',
+		id,
+	};
+}
+
+export function deleteAccountingGroupFailed(id, reason) {
+	return {
+		type: 'money/accounting-groups/DELETE_FAILED',
+		id,
+		reason,
+	};
+}
+
+export function deleteAccountingGroupFinally() {
+	return {type: 'money/accounting-groups/DELETE_FINALLY'};
+}
+
+export function setAccountingGroupField(field, value) {
+	return {
+		type: 'money/accounting-groups/SET_FIELD',
+		field,
+		value,
+	};
+}
+
+export default fetchAllAccountingGroups;
 export {
-	startFetchingAccountingGroups as accountingGroups,
+	fetchAllAccountingGroups as accountingGroups
 };
