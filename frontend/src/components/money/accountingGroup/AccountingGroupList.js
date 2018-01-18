@@ -60,11 +60,11 @@ class AccountingGroupList extends React.Component {
 	render() {
 		return (
 			<Box
-				open={this.state.open}
-				error={!!this.props.errorMsg}>
-				<Box.Header
-					title='List of accounting groups'
-					buttons={
+				closable={true}
+				error={!!this.props.errorMsg}
+				header={{
+					title: 'List of accounting groups',
+					buttons: (
 						<React.Fragment>
 							<a
 								className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
@@ -79,7 +79,8 @@ class AccountingGroupList extends React.Component {
 								<FontAwesome icon="plus" />
 							</Link>
 						</React.Fragment>
-					} />
+					),
+				}}>
 				<Box.Body>
 					<table className="table table-striped">
 						<thead>

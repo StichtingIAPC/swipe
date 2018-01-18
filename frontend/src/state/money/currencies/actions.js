@@ -138,6 +138,11 @@ export function setCurrencyField(field, value) {
 		value,
 	};
 }
+export function resetCurrency() {
+	return {
+		type: 'money/currencies/NEW_CURRENCY',
+	};
+}
 
 export default fetchAllCurrencies;
 export {

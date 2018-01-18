@@ -27,7 +27,7 @@ function* fetchCurrency({ id }) {
 	try {
 		const newCurrency = yield (yield call(
 			api.get,
-			`/money/currency/${id}`,
+			`/money/currency/${id}/`,
 		)).json();
 
 		yield put(actions.fetchCurrencyDone(newCurrency));

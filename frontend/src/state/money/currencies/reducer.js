@@ -6,7 +6,6 @@ import {
 } from '../../../tools/reducerComponents';
 
 const defaultCurrency = {
-	id: null,
 	iso: '',
 	name: '',
 	digits: 2,

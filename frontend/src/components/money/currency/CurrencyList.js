@@ -68,34 +68,27 @@ class CurrencyList extends React.Component {
 	render() {
 		return (
 			<Box
-				open={this.state.open}
-				error={!!this.props.errorMsg}>
-				<div className="box-header with-border">
-					<h3 className="box-title">
-						List of currencies
-					</h3>
-					<div className="box-tools">
-						<div className="input-group">
-							<div className="btn-group">
-								<a
-									className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
-									title="Refresh"
-									onClick={this.update}>
-									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
-								</a>
-								<Link
-									className="btn btn-sm btn-default"
-									to="/money/currency/create/"
-									title="Create new currency">
-									<FontAwesome icon="plus" />
-								</Link>
-							</div>
-							<a className="btn btn-sm btn-box-tool" onClick={this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
-								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
+				closable={true}
+				error={!!this.props.errorMsg}
+				header={{
+					title: 'List of currencies',
+					buttons: (
+						<React.Fragment>
+							<a
+								className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
+								title="Refresh"
+								onClick={this.update}>
+								<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 							</a>
-						</div>
-					</div>
-				</div>
+							<Link
+								className="btn btn-sm btn-default"
+								to="/money/currency/create/"
+								title="Create new currency">
+								<FontAwesome icon="plus" />
+							</Link>
+						</React.Fragment>
+					),
+				}}>
 				<div className="box-body">
 					<table className="table table-striped">
 						<thead>
@@ -135,10 +128,10 @@ class CurrencyList extends React.Component {
 export default connect(
 	state => ({
 		errorMsg: state.money.currencies.fetchError,
-		currencies: state.money.currencies.currencies || [],
+		currencies: state.money.currencies.currencies,
 		fetching: state.money.currencies.fetching,
 	}),
 	{
-		update: fetchAllCurrencies,
+		fetchAllCurrencies,
 	}
 )(CurrencyList);
