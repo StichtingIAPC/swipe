@@ -49,7 +49,7 @@ function* createCurrency({ currency }) {
 		)).json();
 
 		yield put(actions.createCurrencyDone(newCurrency));
-		yield put(actions.fetchAllCurrencies(`/__FILL_IN__/${newCurrency.id}/`));
+		yield put(actions.fetchAllCurrencies(`/money/currency/${newCurrency.iso}`));
 	} catch (e) {
 		yield put(actions.createCurrencyFailed(currency, cleanErrorMessage(e)));
 	} finally {
@@ -63,12 +63,12 @@ function* updateCurrency({ currency }) {
 	try {
 		const newCurrency = yield (yield call(
 			api.put,
-			`/money/currency/${currency.id}/`,
+			`/money/currency/${currency.iso}/`,
 			document,
 		)).json();
 
 		yield put(actions.updateCurrencyDone(newCurrency));
-		yield put(actions.fetchAllCurrencies(`/__FILL_IN__/${newCurrency.id}/`));
+		yield put(actions.fetchAllCurrencies(`/money/currency/${newCurrency.iso}`));
 	} catch (e) {
 		yield put(actions.updateCurrencyFailed(currency, cleanErrorMessage(e)));
 	} finally {
@@ -82,12 +82,12 @@ function* deleteCurrency({ currency }) {
 	try {
 		const newCurrency = yield (yield call(
 			api.del,
-			`/money/currency/${currency.id}/`,
+			`/money/currency/${currency.iso}/`,
 			document,
 		)).json();
 
 		yield put(actions.deleteCurrencyDone(newCurrency));
-		yield put(actions.fetchAllCurrencies(`/__FILL_IN__/${newCurrency.id}/`));
+		yield put(actions.fetchAllCurrencies(`/money/currency/${newCurrency.iso}`));
 	} catch (e) {
 		yield put(actions.deleteCurrencyFailed(currency, cleanErrorMessage(e)));
 	} finally {
