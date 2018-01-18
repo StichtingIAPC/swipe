@@ -9,7 +9,7 @@ export default function salesReducer(state = initialState, action) {
 
 		if (salesLine) {
 			return {
-				...state, sales: state.sales.map(art => (art.id === action.article.id) ? {...art, count: newCount} : art),
+				...state, sales: state.sales.map(art => (art.id === action.article.id) ? { ...art, count: newCount } : art),
 			};
 		}
 		return {

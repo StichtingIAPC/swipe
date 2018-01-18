@@ -6,14 +6,14 @@ const initialState = {
 };
 
 export default function stockReducer(state = initialState, action) {
-	if (action.type === 'STOCK_FETCH_START')		 		{
+	if (action.type === 'STOCK_FETCH_START') {
 		return {
 			...state,
 			fetching: true,
 			inputError: null,
 		};
 	}
-	if (action.type === 'STOCK_FETCH_DONE')		 		{
+	if (action.type === 'STOCK_FETCH_DONE') {
 		return {
 			...state,
 			fetching: false,
@@ -22,7 +22,7 @@ export default function stockReducer(state = initialState, action) {
 		};
 	}
 
-	if (action.type === 'STOCK_FETCH_ERROR')		 		{
+	if (action.type === 'STOCK_FETCH_ERROR') {
 		return {
 			...state,
 			fetchError: action.error,

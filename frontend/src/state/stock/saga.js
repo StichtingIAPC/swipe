@@ -1,10 +1,11 @@
-import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { get, post, put as api_put } from '../../api.js';
-import {doneFetchingStockList, fetchingStockListError} from './actions';
+import { get } from '../../api.js';
+import { doneFetchingStockList, fetchingStockListError } from './actions';
 
 function* fetchStock({ redirectTo } = {}) {
 	let msg = null;
+
 	try {
 		const data = yield (yield call(
 			get,
