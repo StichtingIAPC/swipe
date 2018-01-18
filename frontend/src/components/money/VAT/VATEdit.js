@@ -1,16 +1,21 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import DatePicker from 'react-datepicker';
-import { createVAT, updateVAT } from '../../../state/money/vat/actions.js';
+import { createvat, updatevat } from '../../../state/money/vats/actions.js';
 import Form from '../../forms/Form';
 import { BoolField, StringField } from '../../forms/fields';
 import FontAwesome from '../../tools/icons/FontAwesome';
+import { fetchvat } from '../../../state/money/vats/actions';
 
 class VATEdit extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = this.getResetState();
 		this.renderVATPeriodRow = ::this.renderVATPeriodRow;
+	}
+
+	componentWillMount() {
+		this.props.fetchvat(this.props.match.params.vatId);
 	}
 
 	getResetState(props = this.props) {
@@ -35,13 +40,13 @@ class VATEdit extends React.Component {
 	save(evt) {
 		evt.preventDefault();
 		if (this.state.id) {
-			this.props.updateVAT(this.state);
+			this.props.updatevat(this.state);
 		} else {
-			this.props.createVAT(this.state);
+			this.props.createvat(this.state);
 		}
 	}
 
-	renderVATPeriodRow({ VATPeriod }) {
+	renderVATPeriodRow = ({ vatPeriod }) => {
 		const updateValue = (name, nextValue) => this.setState(state => {
 			const nstate =
 				{
@@ -52,8 +57,8 @@ class VATEdit extends React.Component {
 				}
 
 			;
-			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e === VATPeriod)] = {
-				...VATPeriod,
+			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e === vatPeriod)] = {
+				...vatPeriod,
 				[name]: nextValue,
 			};
 			return nstate;
@@ -62,25 +67,25 @@ class VATEdit extends React.Component {
 		const remove = () => this.setState(state => (
 			{
 				...state,
-				vatperiod_set: state.vatperiod_set.filter(el => el !== VATPeriod),
+				vatperiod_set: state.vatperiod_set.filter(el => el !== vatPeriod),
 			}
 		));
 
-		if (VATPeriod.id) {
+		if (vatPeriod.id) {
 			return (
 				<tr>
-					<td>{VATPeriod.begin_date}</td>
+					<td>{vatPeriod.begin_date}</td>
 					<td>
 						{
-							VATPeriod.end_date ? VATPeriod.end_date : (
+							vatPeriod.end_date ? vatPeriod.end_date : (
 								<DatePicker
-									minDate={VATPeriod.start_date}
+									minDate={vatPeriod.start_date}
 									dateFormat="YYYY-MM-DD"
 									onChange={val => updateValue('end_date', val)} />
 							)
 						}
 					</td>
-					<td>{VATPeriod.vatrate}</td>
+					<td>{vatPeriod.vatrate}</td>
 					<td />
 				</tr>
 			);
@@ -89,15 +94,15 @@ class VATEdit extends React.Component {
 			<tr>
 				<td>
 					<DatePicker
-						selected={VATPeriod.begin_date}
-						maxDate={VATPeriod.end_date}
+						selected={vatPeriod.begin_date}
+						maxDate={vatPeriod.end_date}
 						dateFormat="YYYY-MM-DD"
 						onChange={val => updateValue('begin_date', val)} />
 				</td>
 				<td>
 					<DatePicker
-						selected={VATPeriod.end_date}
-						minDate={VATPeriod.begin_date}
+						selected={vatPeriod.end_date}
+						minDate={vatPeriod.begin_date}
 						dateFormat="YYYY-MM-DD"
 						onChange={val => updateValue('end_date', val)} />
 				</td>
@@ -106,7 +111,7 @@ class VATEdit extends React.Component {
 						type="number"
 						min="0"
 						step="0.001"
-						value={VATPeriod.vatrate}
+						value={vatPeriod.vatrate}
 						onChange={evt => updateValue('vatrate', evt.target.value)} />
 				</td>
 				<td>
@@ -171,7 +176,7 @@ class VATEdit extends React.Component {
 								{
 									this.state.vatperiod_set.map(
 										(vp, i) => (
-											<this.renderVATPeriodRow key={vp.id || `new${i}`} VATPeriod={vp} />
+											<this.renderVATPeriodRow key={vp.id || `new${i}`} vatPeriod={vp} />
 										)
 									)
 								}
@@ -185,12 +190,13 @@ class VATEdit extends React.Component {
 }
 
 export default connect(
-	(state, ownProps) => ({
-		errorMsg: state.money.vat.inputError,
-		vat: state.money.vat.vats.find(obj => obj.id === ownProps.params.VATID) || null,
+	state => ({
+		errorMsg: state.money.vats.error,
+		vat: state.money.vats.activeObject,
 	}),
-	dispatch => ({
-		updateVAT: VAT => dispatch(updateVAT(VAT)),
-		createVAT: VAT => dispatch(createVAT(VAT)),
-	})
+	{
+		updatevat,
+		createvat,
+		fetchvat,
+	}
 )(VATEdit);

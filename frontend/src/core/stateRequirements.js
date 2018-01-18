@@ -98,16 +98,28 @@ export function connectMixin(requirements, _state = null) {
 		return {
 			availableRequirements,
 			requirementsLoaded: hasMissingDependencies(availableRequirements),
-			fetchMissingFor: obj => fetchMissingRecursively(
-				[ 'availableRequirements', requirements ],
-				{ availableRequirements },
-				obj.props.dispatch
-			),
-			fetchAllFor: obj => fetchMissingRecursively(
-				[ 'all', requirements ],
-				{},
-				obj.props.dispatch,
-			),
+			fetchMissingFor: obj => {
+				if (obj.props.dispatch && typeof obj.props.dispatch === 'function') {
+					fetchMissingRecursively(
+						[ 'availableRequirements', requirements ],
+						{ availableRequirements },
+						obj.props.dispatch
+					);
+				} else {
+					console.warn('You just tried to update the state using ヽ( ͡͡ ° ͜ ʖ ͡ °)⊃━☆ﾟ. * ･ ｡ﾟ magic, but failed to supply a 𝚘𝚋𝚓.𝚙𝚛𝚘𝚙𝚜.𝚍𝚒𝚜𝚙𝚊𝚝𝚌𝚑 function. This is a no-op');
+				}
+			},
+			fetchAllFor: obj => {
+				if (obj.props.dispatch && typeof obj.props.dispatch === 'function') {
+					fetchMissingRecursively(
+						[ 'all', requirements ],
+						{},
+						obj.props.dispatch,
+					);
+				} else {
+					console.warn('You just tried to update the state using ヽ( ͡͡ ° ͜ ʖ ͡ °)⊃━☆ﾟ. * ･ ｡ﾟ magic, but failed to supply a 𝚘𝚋𝚓.𝚙𝚛𝚘𝚙𝚜.𝚍𝚒𝚜𝚙𝚊𝚝𝚌𝚑 function. This is a no-op');
+				}
+			},
 		};
 	}
 

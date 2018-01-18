@@ -1,52 +1,150 @@
-export function startFetchingCurrencies({ redirectTo } = {}) {
+export function fetchAllCurrencies(redirectTo) {
 	return {
-		type: 'CURRENCY_FETCH_START',
+		type: 'money/currencies/FETCH_ALL',
 		redirectTo,
 	};
 }
 
-export function doneFetchingCurrencies(currencies) {
+export function fetchAllCurrenciesDone(currencies) {
 	return {
-		type: 'CURRENCY_FETCH_DONE',
+		type: 'money/currencies/FETCH_ALL_DONE',
 		currencies,
 	};
 }
 
+export function fetchAllCurrenciesFailed(reason) {
+	return {
+		type: 'money/currencies/FETCH_ALL_FAILED',
+		reason,
+	};
+}
+
+export function fetchAllCurrenciesFinally() {
+	return {
+		type: 'money/currencies/FETCH_ALL_FINALLY',
+	};
+}
+
+export function fetchCurrency(id) {
+	return {
+		type: 'money/currencies/FETCH',
+		id,
+	};
+}
+
+export function fetchCurrencyDone(currency) {
+	return {
+		type: 'money/currencies/FETCH_DONE',
+		currency,
+	};
+}
+
+export function fetchCurrencyFailed(id, reason) {
+	return {
+		type: 'money/currencies/FETCH_FAILED',
+		id,
+		reason,
+	};
+}
+
+export function fetchCurrencyFinally() {
+	return {type: 'money/currencies/FETCH_FINALLY'};
+}
+
 export function createCurrency(currency) {
 	return {
-		type: 'CURRENCY_CREATE',
-		curr: currency,
+		type: 'money/currencies/CREATE',
+		currency,
 	};
+}
+
+export function createCurrencyDone(currency) {
+	return {
+		type: 'money/currencies/CREATE_DONE',
+		currency,
+	};
+}
+
+export function createCurrencyFailed(currency, reason) {
+	return {
+		type: 'money/currencies/CREATE_FAILED',
+		currency,
+		reason,
+	};
+}
+
+export function createCurrencyFinally() {
+	return {type: 'money/currencies/CREATE_FINALLY'};
 }
 
 export function updateCurrency(currency) {
 	return {
-		type: 'CURRENCY_UPDATE',
-		curr: currency,
+		type: 'money/currencies/UPDATE',
+		currency,
 	};
 }
 
-export function deleteCurrency(currency) {
+export function updateCurrencyDone(currency) {
 	return {
-		type: 'CURRENCY_DELETE',
-		curr: currency,
+		type: 'money/currencies/UPDATE_DONE',
+		currency,
 	};
 }
 
-export function currencyInputError(error) {
+export function updateCurrencyFailed(currency, reason) {
 	return {
-		type: 'CURRENCY_INPUT_ERROR',
-		error,
+		type: 'money/currencies/UPDATE_FAILED',
+		currency,
+		reason,
 	};
 }
 
-export function currencyFetchError(error) {
+export function updateCurrencyFinally() {
 	return {
-		type: 'CURRENCY_FETCH_ERROR',
-		error,
+		type: 'money/currencies/UPDATE_FINALLY',
 	};
 }
 
+export function deleteCurrency(id) {
+	return {
+		type: 'money/currencies/DELETE',
+		id,
+	};
+}
+
+export function deleteCurrencyDone(id) {
+	return {
+		type: 'money/currencies/DELETE_DONE',
+		id,
+	};
+}
+
+export function deleteCurrencyFailed(id, reason) {
+	return {
+		type: 'money/currencies/DELETE_FAILED',
+		id,
+		reason,
+	};
+}
+
+export function deleteCurrencyFinally() {
+	return {type: 'money/currencies/DELETE_FINALLY'};
+}
+
+export function setCurrencyField(field, value) {
+	return {
+		type: 'money/currencies/SET_FIELD',
+		field,
+		value,
+	};
+}
+export function resetCurrency() {
+	return {
+		type: 'money/currencies/NEW_CURRENCY',
+	};
+}
+
+export default fetchAllCurrencies;
 export {
-	startFetchingCurrencies as currencies,
+	fetchAllCurrencies as currencies
 };
