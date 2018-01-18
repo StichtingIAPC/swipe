@@ -8,7 +8,6 @@ class Customer extends React.Component {
 	}
 
 	render() {
-
 		return (
 			<div className="row">
 				This component does not as of yet exist. Sorry.
@@ -25,8 +24,6 @@ class Customer extends React.Component {
 export default connect(
 	state => ({
 		...connectMixin({
-
-
 		 }, state
 		),
 		state,

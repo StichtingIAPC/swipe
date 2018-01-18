@@ -18,7 +18,7 @@ class Selector extends React.Component {
 
 	render() {
 		const { stock, state, addArticle } = this.props;
-		console.log(stock);
+
 		if (!stock)
 			return null;
 		return (
