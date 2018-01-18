@@ -1,4 +1,4 @@
-import {SALES_ADD_PRODUCT} from "./actions";
+import { SALES_ADD_PRODUCT } from "./actions";
 const initialState = {
 	sales: [],
 };
