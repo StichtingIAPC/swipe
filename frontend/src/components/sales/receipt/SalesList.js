@@ -61,7 +61,7 @@ export default connect(
 			},
 		}, state
 		),
-		sales: state.sales.sales.sales,
+		sales: state.sales.sales,
 	})
 	,
 	{

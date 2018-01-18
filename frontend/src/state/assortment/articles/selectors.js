@@ -18,10 +18,10 @@ export function getArticleNameById(state, id) {
 
 export function getCount(state, stock) {
 	const count = stock ? stock.count : 0;
-	if (!state.sales.sales)
+	if (!state.sales)
 		return count;
 	if (!stock) return 0;
-	const salesListCount = state.sales.sales.sales.find(art => art.article === stock.article);
+	const salesListCount = state.sales.sales.find(art => art.article === stock.article);
 	if (salesListCount) {
 		return count - salesListCount.count;
 	} else {
@@ -31,7 +31,7 @@ export function getCount(state, stock) {
 }
 
 export function getSalesTotal(state) {
-	return state.sales.sales.sales.reduce((a, art) => {
+	return state.sales.sales.reduce((a, art) => {
 		return { ...art.price, amount: a.amount + art.count * art.price.amount };
 	}, {currency: 'EUR', amount: 0});
 }
