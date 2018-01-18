@@ -15,7 +15,7 @@ class VATEdit extends React.Component {
 	}
 
 	componentWillMount() {
-		this.props.fetchvat(this.props.match.params.vatId)
+		this.props.fetchvat(this.props.match.params.vatId);
 	}
 
 	getResetState(props = this.props) {
@@ -57,7 +57,7 @@ class VATEdit extends React.Component {
 				}
 
 			;
-			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e === VATPeriod)] = {
+			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e === vatPeriod)] = {
 				...vatPeriod,
 				[name]: nextValue,
 			};
@@ -67,7 +67,7 @@ class VATEdit extends React.Component {
 		const remove = () => this.setState(state => (
 			{
 				...state,
-				vatperiod_set: state.vatperiod_set.filter(el => el !== VATPeriod),
+				vatperiod_set: state.vatperiod_set.filter(el => el !== vatPeriod),
 			}
 		));
 
