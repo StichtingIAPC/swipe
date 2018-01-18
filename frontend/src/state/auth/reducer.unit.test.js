@@ -201,6 +201,8 @@ describe('Authentication reducer action', () => {
 			})).toMatchObject({
 				error: 'THIS IS AN ERROR! BE SCARED :)',
 				loading: false,
+				token: null,
+				currentUser: null,
 			});
 		});
 
@@ -215,8 +217,8 @@ describe('Authentication reducer action', () => {
 				type: 'AUTH_LOGOUT_ERROR',
 				error: 'Random error to describe what went wrong',
 			})).toMatchObject({
-				currentUser: 'EvenMoreRandomMockToken',
-				token: 'EvenMoreRandomMockToken',
+				currentUser: null,
+				token: null,
 				nextRoute: '/',
 				error: 'Random error to describe what went wrong',
 				loading: false,
