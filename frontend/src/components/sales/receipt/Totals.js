@@ -55,6 +55,6 @@ export default connect(
 		sales: state.sales.sales.sales,
 		state: state,
 	})
-	,{ addArticle:  (evt, count) => addToSalesListAction(evt, count), dispatch: args => args }
+	, { addArticle:  (evt, count) => addToSalesListAction(evt, count), dispatch: args => args }
 
 )(SalesList);

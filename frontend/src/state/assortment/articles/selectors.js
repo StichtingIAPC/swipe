@@ -17,7 +17,7 @@ export function getArticleNameById(state, id) {
 
 export function getCount(state, stock) {
 	const count = stock ? stock.count : 0;
-	if(!state.sales.sales)
+	if (!state.sales.sales)
 		return count;
 	const salesListCount = state.sales.sales.sales.find(art => art.article === stock.article);
 	if (salesListCount) {

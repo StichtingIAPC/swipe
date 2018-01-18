@@ -1,4 +1,4 @@
-/* eslint-disable no-undefined */
+/* eslint-disable no-undefined,no-undef */
 
 
 import {getPaymentsOnReceipt, getPaymentTypes} from "./selectors";

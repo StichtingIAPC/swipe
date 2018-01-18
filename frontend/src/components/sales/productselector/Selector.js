@@ -7,9 +7,9 @@ import { currencies } from '../../../state/money/currencies/actions.js';
 import { paymentTypes } from '../../../state/register/payment-types/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';
 import { stock } from '../../../state/stock/actions';
-import {getArticleNameById, getCount, getStockForArticle} from "../../../state/assortment/articles/selectors";
-import {addToSalesListAction} from "../../../state/sales/sales/actions";
-import MoneyAmount from "../../money/MoneyAmount";
+import { getArticleNameById, getCount, getStockForArticle } from '../../../state/assortment/articles/selectors';
+import { addToSalesListAction } from '../../../state/sales/sales/actions';
+import MoneyAmount from '../../money/MoneyAmount';
 
 class Selector extends React.Component {
 	componentWillMount() {
@@ -17,9 +17,9 @@ class Selector extends React.Component {
 	}
 
 	render() {
-		const {stock, state, addArticle} = this.props;
+		const { stock, state, addArticle } = this.props;
 		console.log(stock);
-		if(!stock)
+		if (!stock)
 			return null;
 		return (
 			<div className="row">
