@@ -16,7 +16,7 @@ from tools.util import raiseif
 
 
 class PaymentType(models.Model):
-    # Name of the payments type. "Cash" is always used when using cash registers. Should not be changed.
+    # Name of the payment type. "Cash" is always used when using cash registers. Should not be changed.
     name = models.CharField(max_length=255, unique=True)
     # Is used for invoicing. If enabled, the cost is to be used at a later date. Should not be changed.
     is_invoicing = models.BooleanField(default=False)
@@ -268,7 +268,7 @@ class RegisterMaster:
 
     @staticmethod
     def get_payment_types_for_open_registers():
-        # Returns the set of payments types that are possible in the open register period
+        # Returns the set of payment types that are possible in the open register period
         return PaymentType.objects.filter(register__registercount__sales_period__endTime__isnull=True,
                                           register__registercount__is_opening_count=True).distinct()
 
@@ -331,7 +331,7 @@ class ConsistencyChecker:
             ConsistencyChecker.check_payment_types()
         except IntegrityError:
             errors.append({
-                "text": "Cash register can only have cash as payments method",
+                "text": "Cash register can only have cash as payment method",
                 "location": "SalesPeriods",
                 "line": -1,
                 "severity": CRITICAL
@@ -364,11 +364,11 @@ class ConsistencyChecker:
 
     @staticmethod
     def check_payment_types():
-        # Checks for valid payments types. Currently it checks if cash register only hold cash
+        # Checks for valid payment types. Currently it checks if cash register only hold cash
         registers = Register.objects.all()
         for register in registers:
             if register.is_cash_register and register.payment_type.name != settings.CASH_PAYMENT_TYPE_NAME:
-                raise IntegrityError("Cash register can only have cash as payments method")
+                raise IntegrityError("Cash register can only have cash as payment method")
 
 
 class SalesPeriod(models.Model):

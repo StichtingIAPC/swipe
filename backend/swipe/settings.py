@@ -285,7 +285,7 @@ DELETE_STOCK_ZERO_LINES = True
 # at a different price from the stock on stock? Sensible: True
 FORCE_NEGATIVE_STOCKCHANGES_TO_MAINTAIN_COST = True
 
-# Name of cash payments type
+# Name of cash payment type
 CASH_PAYMENT_TYPE_NAME = "Cash"
 
 # Current currency. Transactions are only possible with this currency

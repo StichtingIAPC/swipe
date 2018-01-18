@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
                 ('date_created', models.DateTimeField(auto_now=True)),
                 ('date_modified', models.DateTimeField(auto_now_add=True)),
                 ('payment_currency', money.models.CurrencyField(max_length=3)),
-                ('payments', money.models.MoneyField(decimal_places=5, max_digits=28, no_currency_field=True)),
+                ('payment', money.models.MoneyField(decimal_places=5, max_digits=28, no_currency_field=True)),
             ],
             options={
                 'abstract': False,

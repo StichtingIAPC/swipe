@@ -26,12 +26,12 @@ class Migration(migrations.Migration):
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='payments',
+            model_name='payment',
             name='date_created',
             field=models.DateTimeField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='payments',
+            model_name='payment',
             name='user_created',
             field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='sales_payment_created_by', to=settings.AUTH_USER_MODEL),
             preserve_default=False,
