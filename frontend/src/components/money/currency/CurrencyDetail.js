@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import Box from '../../base/Box';
+import { fetchCurrency } from "../../../state/money/currencies/actions";
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -10,6 +11,14 @@ import Box from '../../base/Box';
 
 class CurrencyDetail extends React.Component {
 	trash = evt => evt.preventDefault();
+	componentWillMount() {
+		this.props.fetchCurrency(this.props.match.params.currencyID);
+	}
+	componentWillReceiveProps({ match }) {
+		if (match.params.currencyID !== this.props.match.params.currencyID) {
+			this.props.fetchCurrency(this.props.match.params.currencyID);
+		}
+	}
 
 	render() {
 		const { currency } = this.props;
@@ -69,5 +78,8 @@ class CurrencyDetail extends React.Component {
 export default connect(
 	state => ({
 		currency: state.money.currencies.activeObject,
-	})
+	}),
+	{
+		fetchCurrency,
+	}
 )(CurrencyDetail);
