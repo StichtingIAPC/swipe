@@ -12,7 +12,7 @@ import FontAwesome from '../../tools/icons/FontAwesome';
 
 class CurrencyEdit extends React.Component {
 	reset = (currencyID = this.props.match.params.currencyID) => {
-		const currencyId = typeof currencyID === 'object' ? this.props.match.params.currencyID : null;
+		const currencyId = typeof currencyID === 'object' ? this.props.match.params.currencyID : currencyID;
 
 		if (typeof currencyId === 'undefined' || currencyId === null) {
 			this.props.resetCurrency();
