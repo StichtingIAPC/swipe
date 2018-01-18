@@ -47,6 +47,13 @@ export function logoutError(error) {
 	};
 }
 
+export function setAuthToken(token) {
+	return {
+		type: 'AUTH_SET_TOKEN',
+		token,
+	};
+}
+
 export function setRouteAfterAuthentication(route) {
 	return {
 		type: 'AUTH_SET_ROUTE_AFTER_AUTH',
