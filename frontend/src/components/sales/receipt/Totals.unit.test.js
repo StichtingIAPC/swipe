@@ -6,6 +6,5 @@ describe('Totals', () => {
 	test('', () => {
 		const comp = shallow(<Totals total={ {currency: 'EUR', amount: 4.9} }/>);
 		expect(comp.text()).toEqual('TOTAL<Connect(MoneyAmount) />');
-		console.log(comp.children());
 	});
 });

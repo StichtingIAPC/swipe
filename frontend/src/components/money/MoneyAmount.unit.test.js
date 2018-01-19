@@ -9,7 +9,6 @@ describe('MoneyAmount', () => {
 				symbol: '€' }]} }
 			money={ { currency: 'EUR',
 				amount: 14 } } />);
-
 		expect(comp.text()).toEqual('€ 14');
 	});
 
@@ -17,7 +16,6 @@ describe('MoneyAmount', () => {
 		const comp = shallow(<MoneyAmount
 			currencies={ { currencies: []} } money={ { currency: 'EUR',
 				amount: 14 } } />);
-
 		expect(comp.text()).toEqual('¬ 14');
 	});
 });
