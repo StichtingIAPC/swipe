@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React from 'react';
 import { mount, shallow } from 'enzyme';
 import { MoneyAmount } from './MoneyAmount';
