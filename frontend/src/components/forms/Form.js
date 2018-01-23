@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import FontAwesome from '../tools/icons/FontAwesome';
+import Box from "../base/Box";
 
 export default class Form extends React.Component {
 	onSubmit = evt => {
@@ -11,41 +12,38 @@ export default class Form extends React.Component {
 
 	render() {
 		return (
-			<div className={`box${this.props.error ? ' box-danger box-solid' : ''}`}>
-				<div className="box-header with-border">
-					<h3 className="box-title">{this.props.title}</h3>
-					<div className="box-tools">
-						<div className="input-group">
-							<div className="btn-group">
-								{
-									this.props.closeLink ? (
-										<Link to={this.props.closeLink} className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
-									) : null}
-								<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Return"><FontAwesome icon="arrow-left" /></Link>
-								<a onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div className="box-body">
+			<Box error={this.props.error}>
+				<Box.Header
+					title={this.props.title}
+					buttons={
+						<React.Fragment>
+							{
+								this.props.closeLink ? (
+									<Link to={this.props.closeLink} className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
+								) : null}
+							<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Return"><FontAwesome icon="arrow-left" /></Link>
+							<a onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>
+						</React.Fragment>
+					} />
+				<Box.Body>
 					<form className="form-horizontal" onSubmit={this.onSubmit} >
-						{this.props.children}
+						{ this.props.children }
 						<div className="form-group">
 							<div className="col-sm-9 col-sm-offset-3">
 								<button className="btn btn-success">Save</button>
 							</div>
 						</div>
 					</form>
-				</div>
+				</Box.Body>
 				{
 					this.props.error ? (
-						<div className="box-footer">
+						<Box.Footer>
 							<FontAwesome icon="warning" />
 							<span>{JSON.stringify(this.props.error)}</span>
-						</div>
+						</Box.Footer>
 					) : null
 				}
-			</div>
+			</Box>
 		);
 	}
 }
