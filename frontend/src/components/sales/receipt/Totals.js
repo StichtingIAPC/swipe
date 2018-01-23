@@ -6,11 +6,7 @@ import { getSalesTotal } from '../../../state/assortment/articles/selectors';
 import { stock } from '../../../state/stock/actions';
 import MoneyAmount from '../../money/MoneyAmount';
 
-class SalesList extends React.Component {
-	componentWillMount() {
-		fetchStateRequirementsFor(this);
-	}
-
+export class Totals extends React.Component {
 	render() {
 		const { total } = this.props;
 		if (!total)
@@ -29,12 +25,6 @@ class SalesList extends React.Component {
 
 export default connect(
 	state => ({
-		...connectMixin({
-			 sales: {
-				 stock,
-			 },
-		 }, state
-		),
 		total: getSalesTotal(state),
 	})
-)(SalesList);
+)(Totals);

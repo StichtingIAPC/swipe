@@ -5,7 +5,7 @@ import {getArticleNameById, getCount } from '../../../state/assortment/articles/
 import { addToSalesListAction } from '../../../state/sales/sales/actions';
 import MoneyAmount from '../../money/MoneyAmount';
 
-class SelectorLine extends React.Component {
+export class SelectorLine extends React.Component {
 
 	render() {
 		const { count, name, stockLine, addArticle } = this.props;
