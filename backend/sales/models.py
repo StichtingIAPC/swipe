@@ -20,7 +20,7 @@ class PriceOverride(models.Model):
     Indicates that there was a price override done by a user
     """
     # The user who did/authorized the override
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     # The reason for the override
     reason = models.CharField(null=False, blank=False, max_length=255)
     # The price per unit before the override
@@ -33,7 +33,7 @@ class TransactionLine(Blame):
     should only be done via the transaction creation function as the checks are done there.
     """
     # A transaction has one or more transaction lines
-    transaction = models.ForeignKey("Transaction")
+    transaction = models.ForeignKey("Transaction", on_delete=models.PROTECT)
     # What is the id of the SellableType(0 for no SellableType)?
     num = models.IntegerField()
     # What did the customer pay per single product?
@@ -47,9 +47,9 @@ class TransactionLine(Blame):
     # Reference to order, null if stock
     order = models.IntegerField(null=True)
     # The accounting group to indicate where the money flow should be booked.
-    accounting_group = models.ForeignKey(AccountingGroup)
+    accounting_group = models.ForeignKey(AccountingGroup, on_delete=models.PROTECT)
     # The original pieceprice in case of a price override. Null if no override
-    original_price = models.OneToOneField(PriceOverride, null=True)
+    original_price = models.OneToOneField(PriceOverride, null=True, on_delete=models.PROTECT)
 
     def save(self, **kwargs):
         if type(self) == TransactionLine:
@@ -98,7 +98,7 @@ class SalesTransactionLine(TransactionLine):
     # How much did the ArticleType cost?
     cost = CostField()
     # Which ArticleType are we talking about?
-    article = models.ForeignKey(ArticleType)
+    article = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
 
     def __str__(self):
         prep = super(SalesTransactionLine, self).__str__()
@@ -118,7 +118,7 @@ class OtherCostTransactionLine(TransactionLine):
         Transaction for a product that has no stock but is orderable.
     """
     # The otherCostType used
-    other_cost_type = models.ForeignKey(OtherCostType)
+    other_cost_type = models.ForeignKey(OtherCostType, on_delete=models.PROTECT)
 
     def __str__(self):
         prep = super(OtherCostTransactionLine, self).__str__()
@@ -149,9 +149,9 @@ class RefundTransactionLine(TransactionLine):
     RefundTransactionLine itself. Furthermore, transactionlines cannot be refunded more than they are stored.
     """
     # The transaction line that is already sold.
-    sold_transaction_line = models.ForeignKey(TransactionLine, related_name="sold_line")
+    sold_transaction_line = models.ForeignKey(TransactionLine, related_name="sold_line", on_delete=models.PROTECT)
     # RMA Task from customer to refund. If null, not a refund for an existing test RMA(but could be an RMA)
-    test_rma = models.ForeignKey('rma.TestRMA', null=True, default=None)
+    test_rma = models.ForeignKey('rma.TestRMA', null=True, default=None, on_delete=models.PROTECT)
     # This flag, when True, creates an internal RMA for the product
     creates_rma = models.BooleanField(default=False)
 
@@ -205,11 +205,11 @@ class Payment(models.Model):
     transaction
     """
     # Exhange of money when something is sold to a customer
-    transaction = models.ForeignKey("Transaction")
+    transaction = models.ForeignKey("Transaction", on_delete=models.PROTECT)
     # An amount and currency the customer pays
     amount = MoneyField()
     # Which payment type is this payment added to?
-    payment_type = models.ForeignKey('register.PaymentType')
+    payment_type = models.ForeignKey('register.PaymentType', on_delete=models.PROTECT)
 
     def __str__(self):
         if not hasattr(self, 'transaction') or self.transaction is None:
@@ -233,9 +233,9 @@ class Transaction(Blame):
         of sales.
     """
     # The sales period it is connected to
-    salesperiod = models.ForeignKey('register.SalesPeriod')
+    salesperiod = models.ForeignKey('register.SalesPeriod', on_delete=models.PROTECT)
     # Customer. Null for anonymous customer
-    customer = models.ForeignKey(Customer, null=True)
+    customer = models.ForeignKey(Customer, null=True, on_delete=models.PROTECT)
 
     def __str__(self):
         return "SalesPeriodId: {}, CustomerId: {}".format(self.salesperiod_id, self.customer_id)

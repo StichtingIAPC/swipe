@@ -49,7 +49,7 @@ class VATPeriod(models.Model):
     can be queried.
     """
     # The vat tariff group
-    vat = models.ForeignKey(VAT)
+    vat = models.ForeignKey(VAT, on_delete=models.PROTECT)
     # The date this vat rate is used.
     # NOTE: Date windows should not overlap as the current vate rate calculation becomes impossible
     begin_date = models.DateField()
@@ -91,7 +91,7 @@ class AccountingGroup(models.Model):
     # Number for internal administration
     accounting_number = models.IntegerField()
     # Vat group
-    vat_group = models.ForeignKey(VAT)
+    vat_group = models.ForeignKey(VAT, on_delete=models.PROTECT)
     # Group name
     name = models.CharField(max_length=255)
 
@@ -723,7 +723,7 @@ class Denomination(models.Model):
     """
     The currency bundles that a currency has. A cash register can pay cash with only these means
     """
-    currency = models.ForeignKey(CurrencyData)
+    currency = models.ForeignKey(CurrencyData, on_delete=models.PROTECT)
     amount = models.DecimalField(decimal_places=DECIMAL_PLACES, max_digits=MAX_DIGITS)
 
     @classmethod

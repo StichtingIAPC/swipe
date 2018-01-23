@@ -18,7 +18,7 @@ from stock.models import Stock
 class Order(Blame, Shared):
     # A collection of orders of a customer ordered together
     # Customer that originates the order
-    customer = models.ForeignKey(Customer)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     notes = models.TextField(default="")
 
     @staticmethod
@@ -134,7 +134,7 @@ class OrderLineState(ImmutableBlame):
     # When did the transition happen?
     timestamp = models.DateTimeField(auto_now_add=True)
     # The OrderLine that is transitioning
-    orderline = models.ForeignKey('OrderLine')
+    orderline = models.ForeignKey('OrderLine', on_delete=models.PROTECT)
 
     def __str__(self):
         return "Orderline_id: {}, State: {}, Timestamp: {}".format(self.orderline.pk, self.state, self.timestamp)
@@ -147,9 +147,9 @@ class OrderLineState(ImmutableBlame):
 class OrderLine(Blame):
     # An order of a customer for a single product of a certain type
     # Collection including this OrderLine
-    order = models.ForeignKey(Order)
+    order = models.ForeignKey(Order, on_delete=models.PROTECT)
     # Anything the customer desires and we can supply
-    wishable = models.ForeignKey(WishableType)
+    wishable = models.ForeignKey(WishableType, on_delete=models.PROTECT)
     # Indicates where in the process this OrderLine is. Every state allows for different actions
     state = models.CharField(max_length=3, choices=sorted(OrderLineState.STATE_MEANING.items()))
     # The price the customer sees at the moment the Order(Line) is created
