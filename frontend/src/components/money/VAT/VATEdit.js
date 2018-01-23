@@ -60,8 +60,8 @@ class VATEdit extends React.Component {
 	addVatPeriod = () => this.props.setvatField(
 		'vatperiod_set',
 		this.props.vat.vatperiod_set.concat([{
-			begin_date: '',
-			end_date: '',
+			begin_date: null,
+			end_date: null,
 			vatrate: 1,
 		}])
 	);
