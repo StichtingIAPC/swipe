@@ -220,7 +220,7 @@ class Organisation(SoftDeletable):
     memo = models.TextField(blank=True, verbose_name=_("Memo"))
 
     parent_organisation = models.ForeignKey(to="Organisation", blank=True, null=True,
-                                            verbose_name=_("Parent organisation"))
+                                            verbose_name=_("Parent organisation"), on_delete=models.PROTECT)
 
     types = models.ManyToManyField(OrganisationType, blank=True, verbose_name=_("Organisation types"))
     
