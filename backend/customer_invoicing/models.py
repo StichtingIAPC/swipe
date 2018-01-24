@@ -143,12 +143,12 @@ class InvoiceFieldPerson(models.Model):
     """
     Fields for invoicing. For persons.
     """
-    name = models.ForeignKey(PersonTypeField, null=True, related_name="pers_name")
-    address = models.ForeignKey(PersonTypeField, null=True, related_name="address")
-    zip_code = models.ForeignKey(PersonTypeField, null=True, related_name="zip")
-    city = models.ForeignKey(PersonTypeField, null=True, related_name="city")
-    country = models.ForeignKey(PersonTypeField, null=True, related_name="country")
-    email_address = models.ForeignKey(PersonTypeField, null=True, related_name="email")
+    name = models.ForeignKey(PersonTypeField, null=True, related_name="pers_name", on_delete=models.PROTECT)
+    address = models.ForeignKey(PersonTypeField, null=True, related_name="address", on_delete=models.PROTECT)
+    zip_code = models.ForeignKey(PersonTypeField, null=True, related_name="zip", on_delete=models.PROTECT)
+    city = models.ForeignKey(PersonTypeField, null=True, related_name="city", on_delete=models.PROTECT)
+    country = models.ForeignKey(PersonTypeField, null=True, related_name="country", on_delete=models.PROTECT)
+    email_address = models.ForeignKey(PersonTypeField, null=True, related_name="email", on_delete=models.PROTECT)
 
     def to_int_array(self):
         return [self.name_id, self.address_id, self.zip_code_id, self.city_id, self.country_id, self.email_address_id]
@@ -167,12 +167,12 @@ class InvoiceFieldOrganisation(models.Model):
     """
     Fields for invoicing. For organisations.
     """
-    name = models.ForeignKey(OrganisationTypeField, null=True, related_name="org_name")
-    address = models.ForeignKey(OrganisationTypeField, null=True, related_name="address")
-    zip_code = models.ForeignKey(OrganisationTypeField, null=True, related_name="zip")
-    city = models.ForeignKey(OrganisationTypeField, null=True, related_name="city")
-    country = models.ForeignKey(OrganisationTypeField, null=True, related_name="country")
-    email_address = models.ForeignKey(OrganisationTypeField, null=True, related_name="email")
+    name = models.ForeignKey(OrganisationTypeField, null=True, related_name="org_name", on_delete=models.PROTECT)
+    address = models.ForeignKey(OrganisationTypeField, null=True, related_name="address", on_delete=models.PROTECT)
+    zip_code = models.ForeignKey(OrganisationTypeField, null=True, related_name="zip", on_delete=models.PROTECT)
+    city = models.ForeignKey(OrganisationTypeField, null=True, related_name="city", on_delete=models.PROTECT)
+    country = models.ForeignKey(OrganisationTypeField, null=True, related_name="country", on_delete=models.PROTECT)
+    email_address = models.ForeignKey(OrganisationTypeField, null=True, related_name="email", on_delete=models.PROTECT)
 
     def to_int_array(self):
         return [self.name_id, self.address_id, self.zip_code_id, self.city_id, self.country_id, self.email_address_id]
@@ -187,7 +187,7 @@ class CustPayment(Blame):
     A payment for an invoice. Can be only a part of the total amount to be paid
     """
 
-    cust_invoice = models.ForeignKey(CustInvoice)
+    cust_invoice = models.ForeignKey(CustInvoice, on_delete=models.PROTECT)
 
     payment = MoneyField()
 
@@ -197,7 +197,7 @@ class ReceiptCustInvoice(CustInvoice):
     An invoice that is made when a transaction is done with a paymenttype that invoices.
     """
 
-    receipt = models.ForeignKey("sales.Transaction")
+    receipt = models.ForeignKey("sales.Transaction", on_delete=models.PROTECT)
 
     def __str__(self):
         return super(ReceiptCustInvoice, self).__str__() + ", Receipt ID: {}".format(self.receipt_id)
@@ -263,7 +263,7 @@ class CustomInvoiceLine(Blame):
     A single line on a custom invoice. Contains a description of the cost and includes a price(including VAT)
     """
     # That invoice document
-    custom_invoice = models.ForeignKey(CustomCustInvoice)
+    custom_invoice = models.ForeignKey(CustomCustInvoice, on_delete=models.PROTECT)
     # Description of the sold item
     text = models.CharField(max_length=255)
     # A price

@@ -146,9 +146,9 @@ class SerialNumber(models.Model):
     # The serial number itself
     identifier = models.CharField(max_length=255)
     # The articleType to which the serial number is connected
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # The packing document where the serial number is registered
-    packing_document = models.ForeignKey(PackingDocument)
+    packing_document = models.ForeignKey(PackingDocument, on_delete=models.PROTECT)
 
     def __str__(self):
         if not hasattr(self, 'article_type') or self.article_type is None:
@@ -185,7 +185,7 @@ class PackingDocumentLine(Blame):
     # The line which will match this line
     supplier_order_line = models.ForeignKey(SupplierOrderLine, on_delete=models.PROTECT)
     # The article type
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # The cost from the supplierOrderLine
     line_cost = CostField()
     # Final cost after retrieving it from the Invoice

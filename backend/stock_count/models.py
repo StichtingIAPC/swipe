@@ -15,7 +15,7 @@ class StockCountDocument(Blame):
     The document collection all the counts of all the articles in the stock. The document is regarded as a diff
     from the previous stock count.
     """
-    stock_change_set = models.ForeignKey(StockChangeSet, null=True)
+    stock_change_set = models.ForeignKey(StockChangeSet, null=True, on_delete=models.PROTECT)
 
     def save(self, **kwargs):
         # To ensure setting the time, this should not be done by Django/database as it is not reliable when
@@ -197,9 +197,9 @@ class StockCountLine(models.Model):
     """
 
     # The document which it
-    document = models.ForeignKey(StockCountDocument)
+    document = models.ForeignKey(StockCountDocument, on_delete=models.PROTECT)
     # The article type
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # The amount present at a previous count(or 0 if there was no previous count for this product)
     previous_count = models.IntegerField()
     # How much entered the system since the previous count
@@ -214,7 +214,7 @@ class StockCountLine(models.Model):
     # The snapshot of the name of the ArticleType
     text = models.CharField(max_length=255)
     # The accounting group of the ArticleType for snapshotting
-    accounting_group = models.ForeignKey(AccountingGroup)
+    accounting_group = models.ForeignKey(AccountingGroup, on_delete=models.PROTECT)
 
     def __str__(self):
         if hasattr(self, 'document'):
@@ -251,7 +251,7 @@ class DiscrepancySolution(models.Model):
     The solutions for each article are used in order of primary key.
     """
     # The articleType to delete items from stock from
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # The stocklabel string to potentially delete the articles from. null for stock
     stock_label = models.CharField(null=True, max_length=30)
     # The stocklabel key to potentially delete articles from
@@ -398,7 +398,7 @@ class TemporaryArticleCount(models.Model):
     input as the actual count.
     """
     # The articleType to be counted
-    article_type = models.OneToOneField(ArticleType)
+    article_type = models.OneToOneField(ArticleType, on_delete=models.PROTECT)
     # The number of articles counted temporarily.
     count = models.IntegerField()
     # Checks if the amount is truly counted or just a default.

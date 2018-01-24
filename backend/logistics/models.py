@@ -19,7 +19,7 @@ class SupplierOrder(ImmutableBlame):
     """
     Order we place at a supplier
     """
-    supplier = models.ForeignKey(Supplier)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
     def __str__(self):
         return "Supplier: {}, User: {}".format(self.supplier, self.user_created)
@@ -134,13 +134,13 @@ class SupplierOrderLine(Blame):
     be left empty for stock.
     """
     # The document containing all these supplierOrderLines
-    supplier_order = models.ForeignKey(SupplierOrder)
+    supplier_order = models.ForeignKey(SupplierOrder, on_delete=models.PROTECT)
     # An articleType. Must match the supplierArticleType
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # The articleType as the supplier knows it. Must match our own articleType
-    supplier_article_type = models.ForeignKey(ArticleTypeSupplier)
+    supplier_article_type = models.ForeignKey(ArticleTypeSupplier, on_delete=models.PROTECT)
     # An orderLine to fulfill the wish of a customer for a product. Null for stockwish(anonymously)
-    order_line = models.ForeignKey(OrderLine, null=True)
+    order_line = models.ForeignKey(OrderLine, null=True, on_delete=models.PROTECT)
     # The amount of money we are going to pay for this product excluding all taxes
     line_cost = CostField()
     # A state indicating if the customer order is completed yet.
@@ -349,7 +349,7 @@ class SupplierOrderState(ImmutableBlame):
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    supplier_order_line = models.ForeignKey(SupplierOrderLine)
+    supplier_order_line = models.ForeignKey(SupplierOrderLine, on_delete=models.PROTECT)
 
     state = models.CharField(max_length=5)
 
@@ -414,7 +414,7 @@ class StockWishTableLine(Blame):
     and SupplierOrders.
     """
 
-    article_type = models.OneToOneField(ArticleType)
+    article_type = models.OneToOneField(ArticleType, on_delete=models.PROTECT)
 
     number = models.IntegerField(default=0)
 
@@ -490,13 +490,13 @@ class StockWishTableLog(ImmutableBlame):
     # The modification count to the stock
     number = models.IntegerField()
     # The article type which is modified
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # A possible reason of the modification of the StockWishTable. If set, a SupplierOrder modded the StockWishTable.
     # If set, stock_wish must be unset
-    supplier_order = models.ForeignKey(SupplierOrder, null=True)
+    supplier_order = models.ForeignKey(SupplierOrder, null=True, on_delete=models.PROTECT)
     # A possible reason of the modification of the StockWishTable. If set, a StockWish modded the StockWishTable.
     # If set, supplier_order must be unset
-    stock_wish = models.ForeignKey(StockWish, null=True)
+    stock_wish = models.ForeignKey(StockWish, null=True, on_delete=models.PROTECT)
 
     def save(self, indirect=False):
         raiseif(not indirect, IndirectionError, "Saving must be done indirectly")

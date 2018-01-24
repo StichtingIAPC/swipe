@@ -56,9 +56,9 @@ class ArticleTypeSupplier(models.Model):
         'D': 'Defunct product'
     }
     # The supplier of this information
-    supplier = models.ForeignKey(Supplier)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     # The article type linked
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # Cost of an article at the supplier
     cost = CostField()
     # Minimum number we need to order at the supplier
@@ -126,7 +126,7 @@ class VolumeDiscountPricing(models.Model):
     schemes, such as this one.
     """
 
-    article_type_supplier = models.ForeignKey(ArticleTypeSupplier)
+    article_type_supplier = models.ForeignKey(ArticleTypeSupplier, on_delete=models.PROTECT)
 
     number = models.IntegerField()
 
@@ -142,9 +142,9 @@ class SupplierTypeArticle(models.Model):
     """
 
     # A connection to a product in our own assortment via ArticleTypeSupplier
-    article_type_supplier = models.OneToOneField(ArticleTypeSupplier, null=True)
+    article_type_supplier = models.OneToOneField(ArticleTypeSupplier, null=True, on_delete=models.PROTECT)
     # The supplier of an article
-    supplier = models.ForeignKey(Supplier)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     # The unique identifier of the supplier for this product
     number = models.CharField(max_length=100)
     # The textual representation("name") of the article

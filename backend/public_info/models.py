@@ -11,7 +11,7 @@ class Sharing(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     public = models.BooleanField(default=True)
 
-    sharing_type = models.ForeignKey(ContentType)
+    sharing_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     sharing_id = models.PositiveIntegerField()
     sharing_object = GenericForeignKey(
         ct_field='sharing_type',

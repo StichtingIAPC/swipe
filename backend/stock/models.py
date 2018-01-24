@@ -25,7 +25,7 @@ class Stock(StockLabeledLine):
         count: How many are in stock?
         book_value: What's the cost per product for this product?
     """
-    article = models.ForeignKey(ArticleType)
+    article = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     count = models.IntegerField()
     book_value = CostField()
 
@@ -319,11 +319,11 @@ class StockChange(StockLabeledLine):
         is_in: Is this an in  (True) or an out (False)
         memo:  description of why this stock change happened. It's optional.
     """
-    article = models.ForeignKey(ArticleType)
+    article = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     count = models.IntegerField()
     book_value = CostField()
 
-    change_set = models.ForeignKey(StockChangeSet)
+    change_set = models.ForeignKey(StockChangeSet, on_delete=models.PROTECT)
     is_in = models.BooleanField()
     memo = models.CharField(blank=True, max_length=255)
 
@@ -404,7 +404,7 @@ class StockLockLog(models.Model):
 
     locked = models.BooleanField()
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
 
 class LockError(Exception):
