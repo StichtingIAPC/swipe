@@ -48,7 +48,7 @@ export function fetchvatFailed(id, reason) {
 }
 
 export function fetchvatFinally() {
-	return {type: 'money/vats/FETCH_FINALLY'};
+	return { type: 'money/vats/FETCH_FINALLY' };
 }
 
 export function createvat(vat) {
@@ -74,7 +74,7 @@ export function createvatFailed(vat, reason) {
 }
 
 export function createvatFinally() {
-	return {type: 'money/vats/CREATE_FINALLY'};
+	return { type: 'money/vats/CREATE_FINALLY' };
 }
 
 export function updatevat(vat) {
@@ -128,7 +128,7 @@ export function deletevatFailed(id, reason) {
 }
 
 export function deletevatFinally() {
-	return {type: 'money/vats/DELETE_FINALLY'};
+	return { type: 'money/vats/DELETE_FINALLY' };
 }
 
 export function setvatField(field, value) {
@@ -136,6 +136,12 @@ export function setvatField(field, value) {
 		type: 'money/vats/SET_FIELD',
 		field,
 		value,
+	};
+}
+
+export function resetvat() {
+	return {
+		type: 'money/vats/NEW_VAT',
 	};
 }
 

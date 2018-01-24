@@ -27,7 +27,7 @@ function* fetchvat({ id }) {
 	try {
 		const newvat = yield (yield call(
 			api.get,
-			`/money/vat/${id}`,
+			`/money/vat/${id}/`,
 		)).json();
 
 		yield put(actions.fetchvatDone(newvat));
