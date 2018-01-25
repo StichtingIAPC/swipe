@@ -11,23 +11,27 @@ import VatPeriodRow from "./VatPeriodRow";
 
 class VATEdit extends React.Component {
 	componentWillMount() {
-		this.props.fetchvat(this.props.match.params.vatId);
+		this.reset();
 	}
 
 	reset() {
 		if (this.props.match.params.vatId) {
 			this.props.fetchvat(this.props.match.params.vatId);
 		} else {
-			this.props.resetVat();
+			this.props.resetvat();
 		}
 	}
 
 	setName = ({ target: { value }}) => this.props.setvatField('name', value);
 	setActive = () => this.props.setvatField('active', !this.props.vat.active);
 
-	componentWillReceiveProps({ match }) {
+	componentWillReceiveProps({ match, fetchvat: fetch, resetvat: reset }) {
 		if (this.props.match.params.vatId !== match.params.vatId) {
-			this.props.fetchvat(this.props.match.params.vatId);
+			if (typeof match.params.vatId === 'undefined') {
+				reset();
+			} else {
+				fetch(match.params.vatId);
+			}
 		}
 	}
 
