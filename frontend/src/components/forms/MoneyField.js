@@ -8,20 +8,19 @@ import numeral from 'numeral';
  */
 
 
-
 function getFormat(currency, hasThousandsSeparator) {
-	let format = "0";
+	let format = '0';
+
 	if (hasThousandsSeparator) {
-		format = format + ",0";
+		format += ',0';
 	}
 	if (currency.digits > 0) {
-		format = format + "." + "0".repeat(currency.digits);
+		format = `${format}.${'0'.repeat(currency.digits)}`;
 	}
 	return format;
 }
 
 export default class MoneyField extends React.Component {
-
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -29,8 +28,8 @@ export default class MoneyField extends React.Component {
 			format: getFormat(props.currency, false),																	// Format used to store the value. (1000.0)
 
 		};
-		if (props.value === "") {
-			this.state.displayString = "";																				// String storing the string currently displaying
+		if (props.value === '') {
+			this.state.displayString = '';																				// String storing the string currently displaying
 		} else {
 			this.state.displayString = numeral(props.value).format(this.state.displayFormat);							// Converts the value passed on to a number, and formats it for displaying
 		}
@@ -41,33 +40,35 @@ export default class MoneyField extends React.Component {
 
 	componentWillReceiveProps(nextProps) {
 		if (nextProps.currency !== this.props.currency) {
-			this.setState({displayFormat: getFormat(nextProps.currency, true)});
+			this.setState({ displayFormat: getFormat(nextProps.currency, true) });
 		}
 	}
 
 
 	handleChange(event) {
 		const newValue = event.target.value;
-		this.setState({displayString: newValue}, () =>
+
+		this.setState({ displayString: newValue }, () =>
 			this.props.onChange(numeral(newValue).format(this.state.format)));											// Reformats the value for storing and passes on
 	}
 
 	handleBlur() {
-		this.setState({displayString: numeral(this.state.displayString).format(this.state.displayFormat)});				// On lost focus reformat the displayString for displaying
+		this.setState({ displayString: numeral(this.state.displayString).format(this.state.displayFormat) });			// On lost focus reformat the displayString for displaying
 	}
 
 	render() {
-		const {currency, children, value, onChange, ...restProps} = this.props;
+		const { currency, children, ...restProps } = this.props;
+
 		return (
 			<div className="input-group">
 				<span className="input-group-addon">{currency.symbol}</span>
 				<input
+					{...restProps}
 					type="text"
 					className="form-control"
 					value={this.state.displayString}
 					onChange={this.handleChange}
-					onBlur={this.handleBlur}
-					{...restProps}/>
+					onBlur={this.handleBlur} />
 				{children}
 			</div>
 		);
