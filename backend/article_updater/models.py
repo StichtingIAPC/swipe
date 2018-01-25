@@ -46,7 +46,7 @@ class FileParser:
 
 
 class DataTypeSupplierRelation(models.Model):
-    supplier = models.ForeignKey(Supplier)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
 
     def verify_supplier_relation_integrity(self):
         pass

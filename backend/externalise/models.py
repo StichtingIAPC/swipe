@@ -73,9 +73,9 @@ class ExternaliseLine(ImmutableBlame):
     The line that contains the history information. The products itself will enter stock.
     """
     # The document to bundle line together
-    externalise_document = models.ForeignKey(ExternaliseDocument)
+    externalise_document = models.ForeignKey(ExternaliseDocument, on_delete=models.PROTECT)
     # The article type to store in stock
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # The number of articles to store in stock
     count = models.IntegerField()
     # How much money each individual product costs

@@ -58,9 +58,9 @@ class PersonTypeFieldValue(models.Model):
         unique_together = ("typefield", "type", "object")
 
     value = models.CharField(max_length=255, verbose_name=_("Field value"))
-    typefield = models.ForeignKey(to="PersonTypeField", verbose_name=_("Person type field"))
-    type = models.ForeignKey(to="PersonType", verbose_name=_("Person type"))
-    object = models.ForeignKey(to="Person", verbose_name=_("Person"))
+    typefield = models.ForeignKey(to="PersonTypeField", verbose_name=_("Person type field"), on_delete=models.PROTECT)
+    type = models.ForeignKey(to="PersonType", verbose_name=_("Person type"), on_delete=models.PROTECT)
+    object = models.ForeignKey(to="Person", verbose_name=_("Person"), on_delete=models.PROTECT)
 
     def __str__(self):
         return self.value
@@ -149,8 +149,8 @@ class ContactOrganisation(Customer):
     information about the process. An organisation therefore, should always have a contact that we can reach
     for information purposes.
     """
-    contact = models.ForeignKey(to="Person", verbose_name=_("Person"))
-    organisation = models.ForeignKey(to="Organisation", verbose_name=_("Organisation"))
+    contact = models.ForeignKey(to="Person", verbose_name=_("Person"), on_delete=models.PROTECT)
+    organisation = models.ForeignKey(to="Organisation", verbose_name=_("Organisation"), on_delete=models.PROTECT)
 
     def verify(self):
         """
@@ -186,9 +186,9 @@ class OrganisationTypeFieldValue(models.Model):
         unique_together = ("typefield", "type", "object")
 
     value = models.CharField(max_length=255, verbose_name=_("Field value"))
-    typefield = models.ForeignKey(to="OrganisationTypeField", verbose_name=_("Organisation type field"))
-    type = models.ForeignKey(to="OrganisationType", verbose_name=_("Organisation type"))
-    object = models.ForeignKey(to="Organisation", verbose_name=_("Organisation"))
+    typefield = models.ForeignKey(to="OrganisationTypeField", verbose_name=_("Organisation type field"), on_delete=models.PROTECT)
+    type = models.ForeignKey(to="OrganisationType", verbose_name=_("Organisation type"), on_delete=models.PROTECT)
+    object = models.ForeignKey(to="Organisation", verbose_name=_("Organisation"), on_delete=models.PROTECT)
 
     def __str__(self):
         return self.value
@@ -220,7 +220,7 @@ class Organisation(SoftDeletable):
     memo = models.TextField(blank=True, verbose_name=_("Memo"))
 
     parent_organisation = models.ForeignKey(to="Organisation", blank=True, null=True,
-                                            verbose_name=_("Parent organisation"))
+                                            verbose_name=_("Parent organisation"), on_delete=models.PROTECT)
 
     types = models.ManyToManyField(OrganisationType, blank=True, verbose_name=_("Organisation types"))
     

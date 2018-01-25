@@ -105,9 +105,9 @@ class InternaliseLine(ImmutableBlame):
     logging products that are used for internal consumption.
     """
     # The document to bind the lines together
-    internalise_document = models.ForeignKey(InternaliseDocument)
+    internalise_document = models.ForeignKey(InternaliseDocument, on_delete=models.PROTECT)
     # The articleType to be used
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # The amount
     count = models.IntegerField()
     # The cost(excluding VAT) for using a single product. Will be retrieved from stock for storage in creation function.

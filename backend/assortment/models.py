@@ -19,7 +19,7 @@ class AssortmentLabel(models.Model):
     CPU to have a clockspeed: Label it. If you want your HDD to have a capacity: Label it.
     """
     value = models.TextField(max_length=64, editable=False)
-    label_type = models.ForeignKey('AssortmentLabelType', on_delete=models.CASCADE, editable=False)
+    label_type = models.ForeignKey('AssortmentLabelType', on_delete=models.PROTECT, editable=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -98,7 +98,7 @@ class AssortmentLabelType(models.Model):
     # a longer description of what this type of label does, e.g. 'the length of a cable'
     name = models.CharField(max_length=16, unique=True, editable=False)
     # the short representation that should be visible on the label, e.g. 'length'
-    unit_type = models.ForeignKey('AssortmentUnitType', on_delete=models.CASCADE, editable=False)
+    unit_type = models.ForeignKey('AssortmentUnitType', on_delete=models.PROTECT, editable=False)
     # the unittype this label uses
 
     def value_to_string(self, value, shortened=True):
