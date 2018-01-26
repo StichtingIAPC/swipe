@@ -24,14 +24,15 @@ export default class MoneyField extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			displayFormat: getFormat(props.currency, true),																// Format used for displaying the value to the user (1,000.0)
-			format: getFormat(props.currency, false),																	// Format used to store the value. (1000.0)
+			displayFormat: getFormat(props.currency, true), // Format used for displaying the value to the user (1,000.0)
+			format: getFormat(props.currency, false), // Format used to store the value. (1000.0)
 
 		};
 		if (props.value === '') {
-			this.state.displayString = '';																				// String storing the string currently displaying
+			this.state.displayString = ''; // String storing the string currently displaying
 		} else {
-			this.state.displayString = numeral(props.value).format(this.state.displayFormat);							// Converts the value passed on to a number, and formats it for displaying
+			// Converts the value passed on to a number, and formats it for displaying
+			this.state.displayString = numeral(props.value).format(this.state.displayFormat);
 		}
 		this.handleChange = this.handleChange.bind(this);
 		this.handleBlur = this.handleBlur.bind(this);
@@ -49,11 +50,15 @@ export default class MoneyField extends React.Component {
 		const newValue = event.target.value;
 
 		this.setState({ displayString: newValue }, () =>
-			this.props.onChange(numeral(newValue).format(this.state.format)));											// Reformats the value for storing and passes on
+			this.props.onChange(numeral(newValue)
+				.format(this.state.format))); // Reformats the value for storing and passes on
 	}
 
 	handleBlur() {
-		this.setState({ displayString: numeral(this.state.displayString).format(this.state.displayFormat) });			// On lost focus reformat the displayString for displaying
+		// On lost focus reformat the displayString for displaying
+		this.setState({
+			displayString: numeral(this.state.displayString).format(this.state.displayFormat),
+		});
 	}
 
 	render() {
