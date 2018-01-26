@@ -20,6 +20,7 @@ import RegisterBase from '../components/register/RegisterBase';
 import LabelsBase from '../components/assortment/LabelsBase';
 import Profile from './authentication/Profile';
 import SalesExp from "./sales/SalesBase";
+import Externalise from "./logistics/Externalise";
 
 class Application extends React.Component {
 	render() {
@@ -42,6 +43,7 @@ class Application extends React.Component {
 							<Route path={`${match.path}assortment`} component={LabelsBase} />
 							<Route path={`${match.path}profile`} component={Profile} />
 							<Route path={`${match.path}sales`} component={SalesExp} />
+							<Route path={`${match.path}logistics/externalise`} component={Externalise} />
 
 							{/* <Route path={`${match.path}/pos/register/state`} /> */}
 							<Route component={Error404} />

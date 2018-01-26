@@ -1707,7 +1707,7 @@ classie@>=0.0.1:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/classie/-/classie-1.0.0.tgz#fc9b29b47e64e374a2062fb624d05a61cd703ab2"
 
-classnames@^2.2.5:
+classnames@2.2.5, classnames@^2.2.5:
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.5.tgz#fb3801d453467649ef3603c7d61a02bd129bde6d"
 
@@ -5662,6 +5662,12 @@ rc@^1.1.7:
 re-reselect@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/re-reselect/-/re-reselect-1.0.1.tgz#6d9ebac488bc4bac07bdcd3483f2d3dc76a437c2"
+
+react-bootstrap-table-next@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/react-bootstrap-table-next/-/react-bootstrap-table-next-0.1.1.tgz#70e742a34e1226bef9fc5872f0de51b22af802ba"
+  dependencies:
+    classnames "2.2.5"
 
 react-datepicker@^0.55.0:
   version "0.55.0"
