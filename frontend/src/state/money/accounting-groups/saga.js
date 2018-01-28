@@ -5,7 +5,7 @@ import * as actions from './actions.js';
 import * as api from '../../../api';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
-function* fetchAllAccountingGroups({redirectTo}) {
+function* fetchAllAccountingGroups({ redirectTo }) {
 	try {
 		const accountingGroups = yield (yield call(
 			api.get,
@@ -23,11 +23,11 @@ function* fetchAllAccountingGroups({redirectTo}) {
 	}
 }
 
-function* fetchAccountingGroup({id}) {
+function* fetchAccountingGroup({ id }) {
 	try {
 		const newAccountingGroup = yield (yield call(
 			api.get,
-			`/money/accountinggroup/${id}`,
+			`/money/accountinggroup/${id}/`,
 		)).json();
 
 		yield put(actions.fetchAccountingGroupDone(newAccountingGroup));
@@ -38,8 +38,8 @@ function* fetchAccountingGroup({id}) {
 	}
 }
 
-function* createAccountingGroup({accountingGroup}) {
-	const document = {...accountingGroup};
+function* createAccountingGroup({ accountingGroup }) {
+	const document = { ...accountingGroup };
 
 	try {
 		const newAccountingGroup = yield (yield call(
@@ -49,7 +49,7 @@ function* createAccountingGroup({accountingGroup}) {
 		)).json();
 
 		yield put(actions.createAccountingGroupDone(newAccountingGroup));
-		yield put(actions.fetchAllAccountingGroups(`/__FILL_IN__/${newAccountingGroup.id}/`));
+		yield put(actions.fetchAllAccountingGroups(`/money/accountinggroups/${newAccountingGroup.id}/`));
 	} catch (e) {
 		yield put(actions.createAccountingGroupFailed(accountingGroup, cleanErrorMessage(e)));
 	} finally {
@@ -57,8 +57,8 @@ function* createAccountingGroup({accountingGroup}) {
 	}
 }
 
-function* updateAccountingGroup({accountingGroup}) {
-	const document = {...accountingGroup};
+function* updateAccountingGroup({ accountingGroup }) {
+	const document = { ...accountingGroup };
 
 	try {
 		const newAccountingGroup = yield (yield call(
@@ -68,7 +68,7 @@ function* updateAccountingGroup({accountingGroup}) {
 		)).json();
 
 		yield put(actions.updateAccountingGroupDone(newAccountingGroup));
-		yield put(actions.fetchAllAccountingGroups(`/__FILL_IN__/${newAccountingGroup.id}/`));
+		yield put(actions.fetchAllAccountingGroups(`/money/accountinggroups/${newAccountingGroup.id}/`));
 	} catch (e) {
 		yield put(actions.updateAccountingGroupFailed(accountingGroup, cleanErrorMessage(e)));
 	} finally {
@@ -76,8 +76,8 @@ function* updateAccountingGroup({accountingGroup}) {
 	}
 }
 
-function* deleteAccountingGroup({accountingGroup}) {
-	const document = {...accountingGroup};
+function* deleteAccountingGroup({ accountingGroup }) {
+	const document = { ...accountingGroup };
 
 	try {
 		const newAccountingGroup = yield (yield call(
@@ -87,7 +87,7 @@ function* deleteAccountingGroup({accountingGroup}) {
 		)).json();
 
 		yield put(actions.deleteAccountingGroupDone(newAccountingGroup));
-		yield put(actions.fetchAllAccountingGroups(`/__FILL_IN__/${newAccountingGroup.id}/`));
+		yield put(actions.fetchAllAccountingGroups(`/money/`));
 	} catch (e) {
 		yield put(actions.deleteAccountingGroupFailed(accountingGroup, cleanErrorMessage(e)));
 	} finally {
