@@ -392,3 +392,15 @@ class VATTests(TestCase, TestData):
         vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=None, vatrate=Decimal("1"))
         with self.assertRaises(VATError):
             vp2.save()
+
+    def test_new_vat_period_without_end_can_be_unconflicting_with_old_vat_period(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        date_2 = datetime.datetime.strptime('01012030', "%d%m%Y").date()
+        date_3 = datetime.datetime.strptime('01022031', "%d%m%Y").date()
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=Decimal("1"))
+        vp1.save()
+        vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=None, vatrate=Decimal("1"))
+        vp2.save()
+        self.assertEqual(2, VATPeriod.objects.count())
