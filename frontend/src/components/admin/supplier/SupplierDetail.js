@@ -1,23 +1,28 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../../tools/icons/FontAwesome';
+import FontAwesome from '../tools/icons/FontAwesome';
+import { fetchSupplier, newSupplier } from '../../state/suppliers/actions';
 
 class SupplierDetail extends React.Component {
-	static propTypes = {
-		params: PropTypes.shape({
-			supplierID: PropTypes.string.isRequired,
-		}).isRequired,
-	};
-
 	trash(evt) {
 		evt.preventDefault();
 	}
 
+	componentWillMount() {
+		const { params } = this.props.match;
+
+		if (Number.isNaN(+params.supplierID)) {
+			this.props.newSupplier();
+		} else {
+			this.props.fetchSupplier(params.supplierID);
+		}
+	}
+
 	render() {
-		if (!this.props.supplier)
+		if (!this.props.supplier) {
 			return null;
+		}
 
 
 		const { supplier } = this.props;
@@ -31,14 +36,14 @@ class SupplierDetail extends React.Component {
 							<div className="btn-group">
 								<Link to="/supplier/" className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
 								<Link to={`/supplier/${supplier.id}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
-								<Link onClick={::this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></Link>
+								<a onClick={::this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></a>
 							</div>
 						</div>
 					</div>
 				</div>
 				<div className="box-body">
 					<dl className="dl-horizontal">
-						{[ 'id', 'name', 'deleted', 'notes', 'searchUrl' ].map(
+						{[ 'id', 'name', 'deleted', 'notes', 'search_url' ].map(
 							key => (
 								<div key={key}>
 									<dt>{key}</dt>
@@ -54,8 +59,11 @@ class SupplierDetail extends React.Component {
 }
 
 export default connect(
-	(state, ownProps) => ({
-		...ownProps,
-		supplier: state.suppliers.suppliers.filter(s => +s.id === parseInt(ownProps.params.supplierID || '-1', 10))[0],
-	})
+	state => ({
+		supplier: state.suppliers.activeObject,
+	}),
+	{
+		fetchSupplier,
+		newSupplier,
+	}
 )(SupplierDetail);

@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../../../tools/icons/FontAwesome';
+import FontAwesome from '../../tools/icons/FontAwesome';
 
 class RegisterDetail extends React.Component {
 	trash(evt) {
@@ -12,8 +12,9 @@ class RegisterDetail extends React.Component {
 	render() {
 		const { register } = this.props;
 
-		if (!register)
+		if (!register) {
 			return null;
+		}
 
 		return (
 			<div className="box">
@@ -54,11 +55,12 @@ RegisterDetail.propTypes = { params: PropTypes.shape({ registerID: PropTypes.str
 
 export default connect(
 	(state, ownProps) => {
-		const register = state.registers.registers.filter(s => +s.id === parseInt(ownProps.params.registerID || '-1', 10))[0];
+		// TODO: use fetch method
+		const register = state.register.registers.registers.filter(s => +s.id === +ownProps.params.registerID)[0];
 
 		return {
 			register,
-			paymentType: (state.paymentTypes.paymentTypes || []).find(s => +s.id === register.payment_type),
+			paymentType: state.register.paymentTypes.paymentTypes.find(s => +s.id === register.payment_type),
 		};
 	}
 )(RegisterDetail);

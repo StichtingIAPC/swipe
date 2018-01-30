@@ -1,0 +1,28 @@
+#set($NAME = $Name.toUpperCase())
+#set($name = $Name.substring(0,1).toLowerCase() + $Name.substring(1))
+import { combineReducers } from 'redux';
+
+const default${Name} = {};
+
+export default combineReducers({
+  ${name}s: setFieldReducer([
+    '${path}/FETCH_ALL_DONE',
+  ], [], '${name}s'),
+  activeObject: objectControlReducer([
+    '${path}/SET_FIELD',
+  ], default${Name}),
+  loading: booleanControlReducer({
+    '${path}/FETCH_ALL': true,
+    '${path}/FETCH_ALL_FINALLY': false,
+  }, false),
+  populated: booleanControlReducer({
+    '${path}/FETCH_ALL_DONE': true,
+  }, false),
+  error: setFieldReducer([
+    '${path}/FETCH_ALL_FAILED',
+    '${path}/FETCH_FAILED',
+    '${path}/CREATE_FAILED',
+    '${path}/UPDATE_FAILED',
+    '${path}/DELETE_FAILED',
+  ], null, 'reason'),
+});

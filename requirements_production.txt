@@ -1,2 +1,0 @@
-# LDAP plugin for LDAP login support
-django-auth-ldap>=1.2.7

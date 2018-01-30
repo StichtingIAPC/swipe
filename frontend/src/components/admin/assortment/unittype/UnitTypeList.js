@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
-import FontAwesome from '../../../tools/icons/FontAwesome';
-import { startFetchingUnitTypes } from '../../../../actions/assortment/unitTypes';
+import { Link } from 'react-router-dom';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { fetchAllUnitTypes } from '../../../state/assortment/unit-types/actions.js';
 
 class UnitTypeList extends React.Component {
 	static propTypes = {
@@ -39,11 +39,6 @@ class UnitTypeList extends React.Component {
 		);
 	}
 
-	update(evt) {
-		evt.preventDefault();
-		this.props.update();
-	}
-
 	render() {
 		return (
 			<div className="box">
@@ -56,7 +51,7 @@ class UnitTypeList extends React.Component {
 									className={`btn btn-sm ${this.props.invalid ? 'btn-danger' : 'btn-default'} ${this.props.fetching ? 'disabled' : ''}`}
 									to="#"
 									title="Refresh"
-									onClick={::this.update}>
+									onClick={this.props.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
 								</Link>
 								<Link
@@ -82,7 +77,7 @@ class UnitTypeList extends React.Component {
 							</tr>
 						</thead>
 						<tbody>
-							{this.props.unitTypes === null ? null : this.props.unitTypes.map(
+							{this.props.unitTypes === null ? null : this.props.unitTypes.filter(el => !!el).map(
 								unitType => (
 									<UnitTypeList.RenderEntry activeID={this.props.activeID} key={unitType.id} unitType={unitType} />
 								)
@@ -105,9 +100,11 @@ class UnitTypeList extends React.Component {
 
 export default connect(
 	state => ({
-		unitTypes: state.unitTypes.unitTypes,
-		errorMsg: state.unitTypes.errorMsg,
-		fetching: state.labelTypes.fetching,
+		unitTypes: state.assortment.unitTypes.unitTypes,
+		errorMsg: state.assortment.unitTypes.errorMsg,
+		fetching: state.assortment.labelTypes.fetching,
 	}),
-	dispatch => ({ update: () => dispatch(startFetchingUnitTypes()) }),
+	{
+		update: fetchAllUnitTypes,
+	},
 )(UnitTypeList);

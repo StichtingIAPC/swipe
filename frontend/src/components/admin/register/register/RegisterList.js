@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
-import FontAwesome from '../../../tools/icons/FontAwesome';
-import { startFetchingRegisters } from '../../../../actions/register/registers';
+import { Link } from 'react-router-dom';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { startFetchingRegisters } from '../../../state/register/registers/actions.js';
 
 class RegisterList extends React.Component {
 	static propTypes = {
@@ -72,12 +72,12 @@ class RegisterList extends React.Component {
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
-								<Link
+								<a
 									className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
 									title="Refresh"
 									onClick={this.props.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
-								</Link>
+								</a>
 								<Link
 									className="btn btn-default btn-sm"
 									to="/register/register/create/"
@@ -85,9 +85,9 @@ class RegisterList extends React.Component {
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
+							<a className="btn btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
-							</Link>
+							</a>
 						</div>
 					</div>
 				</div>
@@ -127,9 +127,9 @@ class RegisterList extends React.Component {
 
 export default connect(
 	state => ({
-		errorMsg: state.registers.fetchError,
-		registers: state.registers.registers || [],
-		fetching: state.registers.fetching,
+		errorMsg: state.register.registers.fetchError,
+		registers: state.register.registers.registers || [],
+		fetching: state.register.registers.fetching,
 	}),
 	dispatch => ({
 		dispatch,

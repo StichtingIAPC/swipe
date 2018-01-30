@@ -7,21 +7,31 @@ let listeners = [];
 
 export function setToken(token) {
 	TOKEN = token;
-	for (const listener of listeners)
+	for (const listener of listeners) {
 		listener(token);
+	}
 
 	listeners = [];
+}
+
+export function __getTokenDangerous() {
+	return TOKEN;
 }
 
 export function getToken() {
 	return new Promise(
 		accept => {
-			if (TOKEN === null)
-				listeners.append(accept);
-			else
+			if (TOKEN === null) {
+				listeners.push(accept);
+			} else {
 				accept(TOKEN);
+			}
 		}
 	);
+}
+
+export function __unsafeGetToken() {
+	return TOKEN;
 }
 
 async function request(method, url, { headers = {}, ...rest } = {}, object) {
@@ -40,28 +50,29 @@ async function request(method, url, { headers = {}, ...rest } = {}, object) {
 		}
 	);
 
-	if (result.ok)
+	if (result.ok) {
 		return result;
-	throw result;
+	}
+	throw result.json();
 }
 
-export async function get(url, info) {
+export function get(url, info) {
 	return request('GET', url, info);
 }
 
-export async function post(url, object, info) {
+export function post(url, object, info) {
 	return request('POST', url, info, object);
 }
 
-export async function put(url, object, info) {
+export function put(url, object, info) {
 	return request('PUT', url, info, object);
 }
 
 /* named `del` as `delete` is a keyword in js */
-export async function del(url, object, info) {
+export function del(url, object, info) {
 	return request('DELETE', url, info, object);
 }
 
-export async function patch(url, object, info) {
+export function patch(url, object, info) {
 	return request('PATCH', url, info, object);
 }

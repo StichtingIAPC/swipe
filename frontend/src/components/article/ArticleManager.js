@@ -1,14 +1,15 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Switch, Route, Link } from 'react-router-dom';
 import { push } from 'react-router-redux';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { articles } from '../../actions/articles';
-import { labelTypes } from '../../actions/assortment/labelTypes';
-import { unitTypes } from '../../actions/assortment/unitTypes';
+import articles from '../../state/assortment/articles/actions.js';
+import { labelTypes } from '../../state/assortment/label-types/actions.js';
+import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 import ArticleSelector from './ArticleSelector';
 import FontAwesome from '../tools/icons/FontAwesome';
-import { accountingGroups } from '../../actions/money/accountingGroups';
+import { accountingGroups } from '../../state/money/accounting-groups/actions.js';
+import ArticleEdit from './ArticleEdit';
 
 class ArticleManager extends React.Component {
 	componentWillMount() {
@@ -16,23 +17,30 @@ class ArticleManager extends React.Component {
 	}
 
 	render() {
-		if (!this.props.requirementsLoaded)
+		const { match } = this.props;
+
+		if (!this.props.requirementsLoaded) {
 			return null;
+		}
 
 		return (
 			<div className="row">
 				<div className="col-sm-4">
 					<ArticleSelector
 						onSelect={this.props.selectArticle}
-						toolButtons={
+						toolButtons={[
 							<Link
+								key="hello"
 								to="/articlemanager/create/"
 								className="btn btn-success btn-sm"
-								title="Create"><FontAwesome icon="plus" /></Link>
-						} />
+								title="Create"><FontAwesome icon="plus" /></Link>,
+						]} />
 				</div>
 				<div className="col-sm-8">
-					{this.props.children}
+					<Switch>
+						<Route key="new" path={`${match.path}/new`} component={ArticleEdit} />
+						<Route key="old" path={`${match.path}/:articleID`} component={ArticleEdit} />
+					</Switch>
 				</div>
 			</div>
 		);
@@ -40,16 +48,18 @@ class ArticleManager extends React.Component {
 }
 
 export default connect(
-	state => ({
-		...connectMixin({
+	connectMixin({
+		assortment: {
 			articles,
 			labelTypes,
 			unitTypes,
+		},
+		money: {
 			accountingGroups,
-		}, state),
+		},
 	}),
-	dispatch => ({
-		dispatch,
-		selectArticle: article => dispatch(push(`/articlemanager/${article.id}/`)),
-	})
+	{
+		dispatch: evt => evt,
+		selectArticle: article => push(`/articlemanager/${article.id}/`),
+	}
 )(ArticleManager);

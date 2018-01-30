@@ -1,72 +1,96 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import Form from '../../../forms/Form';
-import { IntegerField, SelectField, StringField } from '../../../forms/fields';
-import { createAccountingGroup, updateAccountingGroup } from '../../../../actions/money/accountingGroups';
+import Form from '../../forms/Form';
+import { IntegerField, SelectField, StringField } from '../../forms/fields';
+import { createAccountingGroup, updateAccountingGroup, resetAccountingGroup, fetchAccountingGroup } from '../../../state/money/accounting-groups/actions.js';
+import { setAccountingGroupField } from '../../../state/money/accounting-groups/actions';
 
 /**
  * Created by Matthias on 26/11/2016.
  */
 
 class AccountingGroupEdit extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = this.getResetState();
+	componentWillMount() {
+		const { match: { params: { accountingGroupId }}} = this.props;
+
+		if (typeof accountingGroupId === 'undefined') {
+			this.props.resetAccountingGroup();
+		} else {
+			this.props.fetchAccountingGroup(accountingGroupId);
+		}
 	}
 
-	getResetState(props = this.props) {
-		if (props.accountingGroup !== null)
-			return { ...props.accountingGroup };
-		return {
-			name: '',
-			vat_group: '',
-			accounting_number: '',
-		};
+	componentWillReceiveProps({ match: { params: { accountingGroupId }}}) {
+		if (accountingGroupId !== this.props.match.params.accountingGroupId) {
+			if (typeof accountingGroupId === 'undefined') {
+				this.props.resetAccountingGroup();
+			} else {
+				this.props.fetchAccountingGroup(accountingGroupId);
+			}
+		}
 	}
 
-	reset() {
-		this.setState(this.getResetState());
-	}
+	reset = () => {
+		const { match } = this.props;
 
-	componentWillReceiveProps(props) {
-		this.setState(this.getResetState(props));
-	}
+		if (typeof match.params.accountingGroupId === 'undefined') {
+			this.props.resetAccountingGroup();
+		} else {
+			this.props.fetchAccountingGroup(match.params.accountingGroupId);
+		}
+	};
 
-	save(evt) {
-		evt.preventDefault();
-		if (this.props.accountingGroup)
-			this.props.updateAccountingGroup(this.state);
-		 else
-			this.props.createAccountingGroup(this.state);
-	}
+	save = () => {
+		const { accountingGroup } = this.props;
+
+		if (accountingGroup.id === null) {
+			this.props.createAccountingGroup(accountingGroup);
+		} else {
+			this.props.updateAccountingGroup(accountingGroup);
+		}
+	};
+
+	setName = ({ target: { value }}) => this.props.setAccountingGroupField('name', value);
+	setAccountingNumber = ({ target: { value }}) => this.props.setAccountingGroupField('accounting_number', value);
+	setVatGroup = ({ target: { value }}) => this.props.setAccountingGroupField('vat_group', value);
 
 	render() {
-		const accountingGroup = this.state;
+		const { accountingGroup } = this.props;
 
 		return (
 			<Form
-				title={this.props.currentID ? `Edit ${this.props.accountingGroup.name}` : 'Create new accounting group'}
-				onReset={::this.reset}
-				onSubmit={::this.save}
+				title={this.props.accountingGroup.id === null ? 'Create new accounting group' : `Edit ${this.props.accountingGroup.name}`}
+				onReset={this.reset}
+				onSubmit={this.save}
 				error={this.props.errorMsg}
-				returnLink={this.props.accountingGroup ? `/money/accountinggroup/${accountingGroup.id}/` : '/money/'}
+				returnLink={this.props.accountingGroup.id === null ? '/money/' : `/money/accountinggroup/${accountingGroup.id}/`}
 				closeLink="/money/">
-				<StringField name="Name" value={accountingGroup.name} onChange={evt => this.setState({ name: evt.target.value })} />
-				<IntegerField name="Accounting number" value={accountingGroup.accounting_number} onChange={evt => this.setState({ accounting_number: Number(evt.target.value) })} />
-				<SelectField name="VAT group" value={accountingGroup.vat_group} onChange={evt => this.setState({ vat_group: evt.target.value })} selector="id" options={this.props.VATs} />
+				<StringField
+					name="Name" value={accountingGroup.name}
+					onChange={this.setName} />
+				<IntegerField
+					name="Accounting number" value={accountingGroup.accounting_number}
+					onChange={this.setAccountingNumber} />
+				<SelectField
+					name="VAT group" value={accountingGroup.vat_group}
+					onChange={this.setVatGroup} selector="id"
+					options={this.props.vats} />
 			</Form>
 		);
 	}
 }
 
 export default connect(
-	(state, props) => ({
-		errorMsg: state.currencies.inputError,
-		accountingGroup: state.accountingGroups.accountingGroups.find(obj => +obj.id === +props.params.accountingGroupID),
-		VATs: state.VATs.VATs || [],
+	state => ({
+		errorMsg: state.money.currencies.inputError,
+		accountingGroup: state.money.accountingGroups.activeObject,
+		vats: state.money.vats.vats,
 	}),
-	dispatch => ({
-		updateAccountingGroup: currency => dispatch(updateAccountingGroup(currency)),
-		createAccountingGroup: currency => dispatch(createAccountingGroup(currency)),
-	}),
+	{
+		updateAccountingGroup,
+		createAccountingGroup,
+		resetAccountingGroup,
+		fetchAccountingGroup,
+		setAccountingGroupField,
+	},
 )(AccountingGroupEdit);

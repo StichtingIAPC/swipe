@@ -1,8 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingSuppliers } from '../../../actions/suppliers';
+import FontAwesome from '../tools/icons/FontAwesome';
+import { fetchAllSuppliers } from '../../state/suppliers/actions.js';
 
 class SupplierList extends React.Component {
 	update(event) {
@@ -111,8 +111,10 @@ class SupplierList extends React.Component {
 export default connect(
 	state => ({
 		errorMsg: state.suppliers.fetchError,
-		suppliers: state.suppliers.suppliers || [],
+		suppliers: state.suppliers.suppliers,
 		fetching: state.suppliers.fetching,
 	}),
-	dispatch => ({ update: () => dispatch(startFetchingSuppliers()) })
+	{
+		update: fetchAllSuppliers,
+	}
 )(SupplierList);

@@ -1,73 +1,62 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createLabelType, updateLabelType } from '../../../../actions/assortment/labelTypes';
-import Form from '../../../forms/Form';
-import StringField from '../../../forms/StringField';
-import SelectField from '../../../forms/SelectField';
+import { createLabelType, updateLabelType } from '../../../state/assortment/label-types/actions.js';
+import Form from '../../forms/Form';
+import StringField from '../../forms/StringField';
+import SelectField from '../../forms/SelectField';
+import { fetchLabelType, setLabelTypeField } from '../../../state/assortment/label-types/actions';
 
 class LabelTypeEdit extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = this.getResetState();
-	}
+	setName = ({ target: { value }}) => this.props.setLabelTypeField('name', value);
+	setDescription = ({ target: { value }}) => this.props.setLabelTypeField('description', value);
+	setUnitType = ({ target: { value }}) => this.props.setLabelTypeField('unit_type', Number(value));
 
 	componentWillMount() {
-		this.reset(null, this.props);
+		this.props.fetchLabelType(this.props.id);
 	}
 
-	getResetState(props = this.props) {
-		if (props.labelType !== null)
-			return { ...props.labelType };
-		return {
-			id: null,
-			name: '',
-			description: '',
-			unit_type: null,
-			labels: [],
-		};
-	}
-
-	reset(evt, props) {
-		if (evt)
-			evt.preventDefault();
-		this.setState(this.getResetState(props));
-	}
+	reset = () => this.props.fetchLabelType(this.props.id);
 
 	submit(evt) {
 		evt.preventDefault();
-		if (this.state.id === null)
-			this.props.addLabelType({ ...this.state });
-		 else
-			this.props.editLabelType({ ...this.state });
+		if (this.props.labelType.id === null) {
+			this.props.createLabelType(this.props.labelType);
+		} else {
+			this.props.updateLabelType(this.props.labelType);
+		}
 	}
 
 	componentWillReceiveProps(props) {
-		this.reset(null, props);
+		if (props.id !== this.props.id) {
+			this.props.fetchLabelType(this.props.id);
+		}
 	}
 
 	render() {
+		const { labelType, errorMsg, unitTypes } = this.props;
+
 		return (
 			<Form
-				title={`${typeof this.state.id === 'number' ? 'Edit' : 'Add'} label type`}
-				onSubmit={::this.submit}
-				onReset={::this.reset}
-				error={this.props.errorMsg}
-				returnLink={this.props.supplier ? `/assortment/labeltype/${this.props.labelType.id}/` : '/assortment/'}
+				title={`${labelType.id === null ? 'Add' : 'Edit'} label type`}
+				onSubmit={this.submit}
+				onReset={this.reset}
+				error={errorMsg}
+				returnLink={labelType.id === null ? '/assortment/' : `/assortment/labeltype/${labelType.id}/`}
 				closeLink="/assortment/">
 				<StringField
-					onChange={evt => this.setState({ name: evt.target.value })}
-					value={this.state.name}
+					onChange={this.setName}
+					value={labelType.name}
 					name="Name" />
 				<StringField
-					onChange={evt => this.setState({ description: evt.target.value })}
-					value={this.state.description}
+					onChange={this.setDescription}
+					value={labelType.description}
 					name="Description" />
 				<SelectField
-					disabled={!!this.state.id}
-					onChange={evt => this.setState({ unit_type: Number(evt.target.value) })}
-					value={this.state.unit_type || 1}
+					disabled={!!labelType.id}
+					onChange={this.setUnitType}
+					value={labelType.unit_type}
 					name="Unit type"
-					options={this.props.unitTypes}
+					options={unitTypes}
 					nameField="type_long" />
 			</Form>
 		);
@@ -75,13 +64,15 @@ class LabelTypeEdit extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({
-		errorMsg: state.labelTypes.inputError,
-		labelType: (state.labelTypes.labelTypes || []).find(el => el.id === +props.params.labelTypeID),
-		unitTypes: state.unitTypes.unitTypes,
+	state => ({
+		errorMsg: state.assortment.labelTypes.inputError,
+		labelType: state.assortment.labelTypes.activeObject,
+		unitTypes: state.assortment.unitTypes.unitTypes,
 	}),
-	dispatch => ({
-		addLabelType: arg => dispatch(createLabelType(arg)),
-		editLabelType: arg => dispatch(updateLabelType(arg)),
-	})
+	{
+		createLabelType,
+		updateLabelType,
+		fetchLabelType,
+		setLabelTypeField,
+	}
 )(LabelTypeEdit);

@@ -1,10 +1,21 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
-import FontAwesome from '../../../tools/icons/FontAwesome';
-import { incrementalTypes, valueTypes } from '../../../../constants/assortment';
+import { Link } from 'react-router-dom';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { incrementalTypes, valueTypes } from '../../../state/assortment/constants.js';
+import { fetchUnitType } from '../../../state/assortment/unit-types/actions';
 
 class UnitTypeDetail extends React.Component {
+	componentWillMount() {
+		this.props.fetchUnitType(this.props.id);
+	}
+
+	componentWillReceiveProps(props) {
+		if (props.id !== this.props.id) {
+			this.props.fetchUnitType(props.id);
+		}
+	}
+
 	render() {
 		const { unitType } = this.props;
 
@@ -47,5 +58,10 @@ class UnitTypeDetail extends React.Component {
 }
 
 export default connect(
-	(state, props) => ({ unitType: (state.unitTypes.unitTypes || []).find(el => el.id === Number(props.params.unitTypeID)) }),
+	state => ({
+		unitType: state.assortment.unitTypes.activeObject,
+	}),
+	{
+		fetchUnitType,
+	}
 )(UnitTypeDetail);

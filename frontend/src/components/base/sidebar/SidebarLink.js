@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome.js';
 
 export default class SidebarLink extends React.Component {
@@ -27,13 +27,27 @@ export default class SidebarLink extends React.Component {
 			</span>
 		) : null;
 
+		if (this.props.to) {
+			return (
+				<li className={this.state.open ? 'treeview active' : 'treeview'}>
+					<Link to={this.props.to} onClick={this.props.onClick} activeClassName={this.props.activeClassName}>
+						<FontAwesome icon={this.props.icon} />
+						<span>{this.props.text}</span>
+						{this.props.indicator}
+						{openswitch}
+					</Link>
+					{children}
+				</li>
+			);
+		}
 		return (
 			<li className={this.state.open ? 'treeview active' : 'treeview'}>
-				<Link to={this.props.to} activeClassName={this.props.activeClassName}>
+				<a onClick={this.props.onClick}>
 					<FontAwesome icon={this.props.icon} />
 					<span>{this.props.text}</span>
+					{this.props.indicator}
 					{openswitch}
-				</Link>
+				</a>
 				{children}
 			</li>
 		);
@@ -46,6 +60,7 @@ SidebarLink.propTypes = {
 	icon: PropTypes.string,
 	children: PropTypes.node,
 	activeClassName: PropTypes.string,
+	indicator: PropTypes.element,
 };
 
 SidebarLink.defaultProps = {
