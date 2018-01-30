@@ -161,6 +161,7 @@ class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
     @staticmethod
     def deconstruct_post_body(body):
         user = CRMDictParsers.user_parser(body.get("user"))
+        print("HERE")
         # Customer is Optional
         customer_int = body.get("customer", None)
         if customer_int:
@@ -170,11 +171,16 @@ class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
         payments = DictParsers.list_parser(body.get("payments"))
         payment_list = []
         for payment in payments:
+            print(payment)
             payment_list.append(SalesDictParsers.payment_parser(payment))
+        print("HER!E")
+
         transactionlines = DictParsers.list_parser(body.get("transactionlines"))
         transaction_list = []
+        print("HER!E")
         for line in transactionlines:
             transaction_list.append(SalesDictParsers.transactionline_parser(line))
+        print("There")
         data = type('', (), {})
         data.user = user
         data.customer = customer

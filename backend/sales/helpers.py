@@ -15,8 +15,8 @@ class SalesDictParsers:
         if not isinstance(obj, dict):
             raise ParseError("Payment is not a dict")
         payment_type = DictParsers.int_parser(obj.get("payment_type"))
-        amount = MoneyDictParsers.money_parser(obj.get("amount"))
-        return Payment(payment_type_id=payment_type, amount=amount)
+        money = MoneyDictParsers.money_parser(obj.get("money"))
+        return Payment(payment_type_id=payment_type, amount=money)
 
     @staticmethod
     def price_override_parser(obj: dict):
