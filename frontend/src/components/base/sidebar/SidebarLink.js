@@ -33,6 +33,7 @@ export default class SidebarLink extends React.Component {
 					<Link to={this.props.to} onClick={this.props.onClick} activeClassName={this.props.activeClassName}>
 						<FontAwesome icon={this.props.icon} />
 						<span>{this.props.text}</span>
+						{this.props.indicator}
 						{openswitch}
 					</Link>
 					{children}
@@ -41,9 +42,10 @@ export default class SidebarLink extends React.Component {
 		}
 		return (
 			<li className={this.state.open ? 'treeview active' : 'treeview'}>
-				<a to={this.props.to} onClick={this.props.onClick} activeClassName={this.props.activeClassName}>
+				<a onClick={this.props.onClick}>
 					<FontAwesome icon={this.props.icon} />
 					<span>{this.props.text}</span>
+					{this.props.indicator}
 					{openswitch}
 				</a>
 				{children}
@@ -58,6 +60,7 @@ SidebarLink.propTypes = {
 	icon: PropTypes.string,
 	children: PropTypes.node,
 	activeClassName: PropTypes.string,
+	indicator: PropTypes.element,
 };
 
 SidebarLink.defaultProps = {
