@@ -1,37 +1,17 @@
-image: nikolaik/python-nodejs:latest
-
-stages:
-  - install
-  - test
-
-testFrontendLint:
-  stage: test
-  cache:
-    paths:
-      - frontend/node_modules/
-    key: "$CI_PROJECT_IDyarn"
+Swipe_SwipeTests:
+  only:
+    - external
   script:
-    - cd frontend
-    - yarn lint
+    - /bin/true
 
-testFrontendUnit:
-  stage: test
-  cache:
-    paths:
-      - frontend/node_modules/
-    key: "$CI_PROJECT_IDyarn"
+Swipe_FrontendLint:
+  only:
+    - external
   script:
-    - cd frontend
-    - yarn --pure-lockfile
-    - yarn test-once
+    - /bin/true
 
-testBackend:
-  stage: test
-  cache:
-    paths:
-      - backend/.pip/
-    key: "$CI_PROJECT_IDpip"
+Swipe_FrontendUnitTests:
+  only:
+    - external
   script:
-    - cd backend
-    - pip install --cache-dir=.pip -r requirements.txt
-    - python3 manage.py test -k
+    - /bin/true
