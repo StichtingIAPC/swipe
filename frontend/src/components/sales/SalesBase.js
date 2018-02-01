@@ -1,17 +1,20 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { registers } from '../../state/register/registers/actions.js';
-import { currencies } from '../../state/money/currencies/actions.js';
-import { paymentTypes } from '../../state/register/payment-types/actions.js';
-import { articles } from '../../state/assortment/articles/actions';
-import { stock } from '../../state/stock/actions';
+import { registers as registersAction } from '../../state/register/registers/actions.js';
+import { currencies as currenciesAction } from '../../state/money/currencies/actions.js';
+import { paymentTypes as paymentTypesAction } from '../../state/register/payment-types/actions.js';
+import { articles as articlesAction } from '../../state/assortment/articles/actions';
+import { stock as stockAction } from '../../state/stock/actions';
 import Selector from './productselector/Selector';
 import Receipt from './receipt/Receipt';
+import { connect } from 'react-redux';
 
 class RegisterBase extends React.Component {
 	componentWillMount() {
-		fetchStateRequirementsFor(this);
+		this.props.getRegisters();
+		this.props.getPaymentTypes();
+		this.props.getCurrencies();
+		this.props.getArticles();
+		this.props.getStock();
 	}
 
 	render() {
@@ -23,9 +26,6 @@ class RegisterBase extends React.Component {
 				<div className="col-xs-6 col-md-6">
 					<Receipt />
 				</div>
-				<div className="col-xs-6 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
 			</div>
 		);
 	}
@@ -33,22 +33,13 @@ class RegisterBase extends React.Component {
 
 export default connect(
 	state => ({
-		...connectMixin({
-			register: {
-				registers,
-				paymentTypes,
-			},
-			money: {
-				currencies,
-			},
-			article: {
-				articles,
-			}, sales: {
-				stock,
-			},
-		}, state
-		),
 		stock: state.stock.stock,
-		state: state,
+	}),
+	dispatch => ({
+		getRegisters: () => dispatch(registersAction()),
+		getPaymentTypes: () => dispatch(paymentTypesAction()),
+		getCurrencies: () => dispatch(currenciesAction()),
+		getArticles: () => dispatch(articlesAction()),
+		getStock: () => dispatch(stockAction()),
 	})
 )(RegisterBase);

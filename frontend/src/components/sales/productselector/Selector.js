@@ -10,7 +10,6 @@ import SelectorLine from "./SelectorLine";
 
 class Selector extends React.Component {
 	componentWillMount() {
-		fetchStateRequirementsFor(this);
 	}
 
 	render() {
@@ -39,9 +38,6 @@ class Selector extends React.Component {
 							<SelectorLine key={e.id} stockLine={e} />)}
 					</tbody>
 				</table>
-				<div className="col-xs-8 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
 			</div>
 		);
 	}
@@ -49,16 +45,6 @@ class Selector extends React.Component {
 
 export default connect(
 	state => ({
-		...connectMixin({
-			 article: {
-				 articles,
-			 },
-			 stock: {
-				 stock,
-			 },
-
-		 }, state
-		),
 		stock: getStock(state),
 	}),
 	{

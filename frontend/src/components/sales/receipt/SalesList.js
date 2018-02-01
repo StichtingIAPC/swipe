@@ -9,9 +9,6 @@ import Box from '../../base/Box';
 import SalesListLine from './SalesListLine';
 
 class SalesList extends React.Component {
-	componentWillMount() {
-		fetchStateRequirementsFor(this);
-	}
 
 	render() {
 		const { sales } = this.props;
@@ -52,15 +49,6 @@ class SalesList extends React.Component {
 
 export default connect(
 	state => ({
-		...connectMixin({
-			article: {
-				articles,
-			},
-			stock: {
-				stock,
-			},
-		}, state
-		),
 		sales: state.sales.sales,
 	})
 	,

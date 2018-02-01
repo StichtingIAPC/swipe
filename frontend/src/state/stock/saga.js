@@ -5,7 +5,6 @@ import {doneFetchingStockList, fetchingStockListCompleted, fetchingStockListErro
 
 function* fetchStock({ redirectTo } = {}) {
 	let msg = null;
-
 	try {
 		const data = yield (yield call(
 			get,

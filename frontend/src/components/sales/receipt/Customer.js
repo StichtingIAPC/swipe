@@ -15,7 +15,6 @@ class Customer extends React.Component {
 				<div className="col-xs-8 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
-
 			</div>
 		);
 	}

@@ -10,9 +10,6 @@ import Customer from './Customer';
 import SalesList from './SalesList';
 
 class Receipt extends React.Component {
-	componentWillMount() {
-		fetchStateRequirementsFor(this);
-	}
 
 	render() {
 		return (
@@ -20,9 +17,7 @@ class Receipt extends React.Component {
 				<Customer />
 				<SalesList />
 				<PaymentTypes />
-				<div className="col-xs-8 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
+
 
 			</div>
 		);
@@ -31,19 +26,7 @@ class Receipt extends React.Component {
 
 export default connect(
 	state => ({
-		...connectMixin({
-			 money: {
-				 currencies,
-			 },
-			 article: {
-				 articles,
-			 },
-			 stock: {
-				 stock,
-			 },
 
-		 }, state
-		),
 		stock: state.stock.stock,
 		state,
 	})

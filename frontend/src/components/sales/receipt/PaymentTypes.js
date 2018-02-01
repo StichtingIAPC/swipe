@@ -15,7 +15,6 @@ import {salesCommitCreate} from "../../../state/sales/commit/actions";
 
 class PaymentTypes extends React.Component {
 	componentWillMount() {
-		fetchStateRequirementsFor(this);
 	}
 
 	render() {
@@ -45,9 +44,6 @@ class PaymentTypes extends React.Component {
 						money={{ ...total,
 							amount: total.amount - totalPaid.amount }} /></emph></td></tr>
 				</table>
-				<div className="col-xs-8 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
 				<div onClick={() => salesCommitCreate()}>asdifjasdofjasdf asdfjpadj asdfjadf<br/>HI</div>
 			</div>
 		);
@@ -56,16 +52,6 @@ class PaymentTypes extends React.Component {
 
 export default connect(
 	state => ({
-		...connectMixin({
-			register: {
-				registers,
-				paymentTypes,
-			},
-			money: {
-				currencies,
-			},
-		}, state
-		),
 		paymentTypes: getPaymentTypes(state),
 		paymentTypesAmounts: getPaymentsOnReceipt(state),
 		total: getSalesTotal(state),
