@@ -60,7 +60,10 @@ class VATPeriod(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        relevant_vat_periods = VATPeriod.objects.filter(vat=self.vat)
+        if self.id != 0:
+            relevant_vat_periods = VATPeriod.objects.filter(vat=self.vat).exclude(id=self.id)
+        else:
+            relevant_vat_periods = VATPeriod.objects.filter(vat=self.vat)
         for period in relevant_vat_periods:
             if not period.end_date:
                 if self.begin_date >= period.begin_date:
