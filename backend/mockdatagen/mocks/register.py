@@ -1,4 +1,4 @@
-from _pydecimal import Decimal
+from decimal import Decimal
 
 from mockdatagen.helpers import MockGen
 from money.models import CurrencyData, Denomination
