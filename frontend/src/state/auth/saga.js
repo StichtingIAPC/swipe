@@ -33,7 +33,6 @@ export function* onLogin({ username, password }) {
 			yield put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
-		yield put(loginError(e.non_field_errors || null));
 		// noinspection JSCheckFunctionSignatures
 		let err = yield select(state => state.auth.error && state.auth.error[0]);
 

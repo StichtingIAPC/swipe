@@ -137,23 +137,6 @@ describe('Login', () => {
 			})),
 		]);
 
-		// Test the deserialization call of the request
-		const mockfun = jest.fn().mockReturnValue('asdfghjkl;');
-
-		nextStep(generator, [
-			notDone,
-			isValue('asdfghjkl;'),
-		], {
-			ok: false,
-			json: mockfun,
-		});
-		expect(mockfun.mock.calls.length).toBe(1);
-
-		nextStep(generator, [
-			notDone,
-			isObject(put(loginError(null))),
-		], {});
-
 		nextStep(generator, [
 			notDone,
 			isObject({
@@ -189,23 +172,6 @@ describe('Login', () => {
 				}),
 			})),
 		]);
-
-		// Test the deserialization call of the request
-		const mockfun = jest.fn().mockReturnValue('asdfghjkl;');
-
-		nextStep(generator, [
-			notDone,
-			isValue('asdfghjkl;'),
-		], {
-			ok: false,
-			json: mockfun,
-		});
-		expect(mockfun.mock.calls.length).toBe(1);
-
-		nextStep(generator, [
-			notDone,
-			isObject(put(loginError(null))),
-		], {});
 
 		const result = nextStep(generator, [
 			notDone,
@@ -329,8 +295,11 @@ describe('Logout', () => {
 
 		nextStep(generator, [
 			notDone,
-			isObject(put(logoutError({ ok: false }))),
-		], { ok: false });
+			isObject(put(logoutError('Backend responded with error code 418'))),
+		], {
+			ok: false,
+			status: 418,
+		});
 
 		nextStep(generator, [ done, isValue() ]);
 	});
@@ -407,15 +376,16 @@ describe('Login restore', () => {
 
 		nextStep(generator, [
 			notDone,
-			isObject(put(loginError({ ok: false }))),
+			isObject(put(loginError('Backend responded with error code 418'))),
 		], {
 			ok: false,
+			status: 418,
 		});
 
 		nextStep(generator, [ done, isValue() ]);
 	});
 
-	test('failing due to incorrect data', () => {
+	test('failing due to incorrect token', () => {
 		const generator = onLoginRestore({
 			loginAction: {
 				data: {
@@ -451,9 +421,54 @@ describe('Login restore', () => {
 
 		nextStep(generator, [
 			notDone,
-			isObject(put(loginError({ valid: false }))),
+			isObject(put(loginError(''))),
 		], {
 			valid: false,
+		});
+
+		nextStep(generator, [ done, isValue() ]);
+	});
+
+	test('failing due to token expiry', () => {
+		const generator = onLoginRestore({
+			loginAction: {
+				data: {
+					token: '4321bcda',
+					user: {
+						username: 'usertest',
+					},
+				},
+			},
+		});
+
+		nextStep(generator, [
+			notDone,
+			isObject(call(fetch, `${config.backendUrl}/auth/validate/`, {
+				method: 'POST',
+				body: formOf({
+					token: '4321bcda',
+					username: 'usertest',
+				}),
+			})),
+		]);
+
+		const mockfun = jest.fn().mockReturnValue(';lkjhgfdsa');
+
+		nextStep(generator, [
+			notDone,
+			isValue(';lkjhgfdsa'),
+		], {
+			ok: true,
+			json: mockfun,
+		});
+		expect(mockfun.mock.calls.length).toBe(1);
+
+		nextStep(generator, [
+			notDone,
+			isObject(put(loginError('Login expired because of inactivity'))),
+		], {
+			valid: false,
+			expiry: '1970-01-01 00:00',
 		});
 
 		nextStep(generator, [ done, isValue() ]);
