@@ -17,7 +17,7 @@ export function* onLogin({ username, password }) {
 		});
 
 		if (!result.ok) {
-			throw yield result.json();
+			throw `Backend responded with error code ${result.status.toString()}`;
 		}
 
 
@@ -58,7 +58,7 @@ export function* onLogout() {
 		});
 
 		if (!result.ok) {
-			throw result;
+			throw `Backend responded with error code ${result.status.toString()}`;
 		}
 
 		yield put(logoutSuccess());
@@ -96,13 +96,19 @@ export function* onLoginRestore({ loginAction }) {
 		});
 
 		if (!result.ok) {
-			throw result;
+			throw `Backend responded with error code ${result.status.toString()}`;
 		}
 
 		const data = yield result.json();
 
 		if (!data.valid) {
-			throw data;
+			if (data.expiry) {
+				throw 'Login expired because of inactivity';
+			} else {
+				throw '';
+				// TODO in this case there has never been logged in, therefore no error message should be displayed
+				// at some point we want to make this more advanced
+			}
 		}
 
 		yield put(loginSuccess(token, data.user));
