@@ -106,8 +106,6 @@ export function* onLoginRestore({ loginAction }) {
 				throw 'Login expired because of inactivity';
 			} else {
 				throw '';
-				// TODO in this case there has never been logged in, therefore no error message should be displayed
-				// at some point we want to make this more advanced
 			}
 		}
 
