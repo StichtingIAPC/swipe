@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import Box from '../../base/Box';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import Box from '../../../base/Box';
 
 class VATDetail extends React.Component {
 	static propTypes = {

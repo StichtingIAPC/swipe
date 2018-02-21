@@ -1,8 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route } from 'react-router-dom';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { suppliers } from '../../state/suppliers/actions.js';
+import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
+import { suppliers } from '../../../state/suppliers/actions.js';
 import SupplierList from './SupplierList';
 import SupplierEdit from './SupplierEdit';
 import SupplierDetail from './SupplierDetail';

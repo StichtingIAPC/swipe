@@ -13,13 +13,13 @@ import { push } from 'react-router-redux';
 import { Error404 } from '../components/base/Error404';
 import Dashboard from '../components/Dashboard.js';
 import HelloWorld from '../components/HelloWorld.js';
-import SupplierBase from '../components/supplier/SupplierBase';
-import MoneyBase from '../components/money/MoneyBase';
+import SupplierBase from '../components/admin/supplier/SupplierBase';
+import MoneyBase from '../components/admin/money/MoneyBase';
 import ArticleManager from '../components/article/ArticleManager';
-import RegisterBase from '../components/register/RegisterBase';
-import LabelsBase from '../components/assortment/LabelsBase';
+import RegisterBase from '../components/admin/register/RegisterBase';
+import LabelsBase from '../components/admin/assortment/LabelsBase';
 import Profile from './authentication/Profile';
-import SalesExp from "./sales/SalesBase";
+import SalesExp from './sales/SalesBase';
 
 class Application extends React.Component {
 	render() {

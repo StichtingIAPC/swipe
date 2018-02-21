@@ -1,13 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route } from 'react-router-dom';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
 import CurrencyList from './currency/CurrencyList';
 import AccountingGroupList from './accountingGroup/AccountingGroupList';
 import VATList from './VAT/VATList';
-import { currencies } from '../../state/money/currencies/actions.js';
-import { vats } from '../../state/money/vats/actions.js';
-import { accountingGroups } from '../../state/money/accounting-groups/actions.js';
+import { currencies } from '../../../state/money/currencies/actions.js';
+import { vats } from '../../../state/money/vats/actions.js';
+import { accountingGroups } from '../../../state/money/accounting-groups/actions.js';
 import CurrencyEdit from './currency/CurrencyEdit';
 import CurrencyDetail from './currency/CurrencyDetail';
 import VATEdit from './VAT/VATEdit';

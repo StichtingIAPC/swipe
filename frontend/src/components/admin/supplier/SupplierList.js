@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../tools/icons/FontAwesome';
-import { fetchAllSuppliers } from '../../state/suppliers/actions.js';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { fetchAllSuppliers } from '../../../state/suppliers/actions.js';
 
 class SupplierList extends React.Component {
 	update(event) {

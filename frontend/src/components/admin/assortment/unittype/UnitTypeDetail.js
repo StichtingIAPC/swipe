@@ -1,9 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import { incrementalTypes, valueTypes } from '../../../state/assortment/constants.js';
-import { fetchUnitType } from '../../../state/assortment/unit-types/actions';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import { incrementalTypes, valueTypes } from '../../../../state/assortment/constants.js';
+import { fetchUnitType } from '../../../../state/assortment/unit-types/actions';
 
 class UnitTypeDetail extends React.Component {
 	componentWillMount() {

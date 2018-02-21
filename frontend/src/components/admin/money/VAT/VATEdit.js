@@ -1,13 +1,12 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import DatePicker from 'react-datepicker';
 
-import { createvat, updatevat, fetchvat, setvatField } from '../../../state/money/vats/actions.js';
-import Form from '../../forms/Form';
-import { BoolField, StringField } from '../../forms/fields';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import { resetvat } from "../../../state/money/vats/actions";
-import VatPeriodRow from "./VatPeriodRow";
+import { createvat, updatevat, fetchvat, setvatField } from '../../../../state/money/vats/actions.js';
+import Form from '../../../forms/Form';
+import { BoolField, StringField } from '../../../forms/fields';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import { resetvat } from '../../../../state/money/vats/actions';
+import VatPeriodRow from '../../../money/VAT/VatPeriodRow';
 
 class VATEdit extends React.Component {
 	componentWillMount() {
@@ -44,7 +43,7 @@ class VATEdit extends React.Component {
 		} else {
 			this.props.updatevat(vat);
 		}
-	}
+	};
 
 	updateVatPeriod = (period, field, value) => this.props.setvatField(
 		'vatperiod_set',

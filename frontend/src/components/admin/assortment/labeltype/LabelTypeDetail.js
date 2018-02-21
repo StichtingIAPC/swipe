@@ -1,8 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import { fetchLabelType } from '../../../state/assortment/label-types/actions';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import { fetchLabelType } from '../../../../state/assortment/label-types/actions';
 
 class LabelTypeDetail extends React.Component {
 	componentWillMount() {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createSupplier, updateSupplier } from '../../state/suppliers/actions.js';
-import Form from '../forms/Form';
-import { StringField } from '../forms/fields';
-import { fetchSupplier, newSupplier, setSupplierField } from '../../state/suppliers/actions';
+import { createSupplier, updateSupplier } from '../../../state/suppliers/actions.js';
+import Form from '../../forms/Form';
+import { StringField } from '../../forms/fields';
+import { fetchSupplier, newSupplier, setSupplierField } from '../../../state/suppliers/actions';
 
 class SupplierEdit extends React.Component {
 	componentWillMount() {

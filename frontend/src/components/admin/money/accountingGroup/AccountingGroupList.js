@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import { fetchAllAccountingGroups } from '../../../state/money/accounting-groups/actions.js';
-import Box from '../../base/Box';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import { fetchAllAccountingGroups } from '../../../../state/money/accounting-groups/actions.js';
+import Box from '../../../base/Box';
 
 class AccountingGroupList extends React.Component {
 	constructor(props) {

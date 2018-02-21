@@ -1,10 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { createCurrency, updateCurrency, resetCurrency, fetchCurrency, setCurrencyField } from '../../../state/money/currencies/actions.js';
-import Form from '../../forms/Form';
-import { CharField, IntegerField, MoneyField, StringField } from '../../forms/fields';
-import FontAwesome from '../../tools/icons/FontAwesome';
+import { createCurrency, updateCurrency, resetCurrency, fetchCurrency, setCurrencyField } from '../../../../state/money/currencies/actions.js';
+import Form from '../../../forms/Form';
+import { CharField, IntegerField, MoneyField, StringField } from '../../../forms/fields';
+import FontAwesome from '../../../tools/icons/FontAwesome';
 
 /**
  * Created by Matthias on 26/11/2016.

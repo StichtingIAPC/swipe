@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { fetchAllCurrencies } from '../../../state/money/currencies/actions.js';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import Box from '../../base/Box';
+import { fetchAllCurrencies } from '../../../../state/money/currencies/actions.js';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import Box from '../../../base/Box';
 
 /**
  * Created by Matthias on 26/11/2016.

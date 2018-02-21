@@ -1,10 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createLabelType, updateLabelType } from '../../../state/assortment/label-types/actions.js';
-import Form from '../../forms/Form';
-import StringField from '../../forms/StringField';
-import SelectField from '../../forms/SelectField';
-import { fetchLabelType, setLabelTypeField } from '../../../state/assortment/label-types/actions';
+import { createLabelType, updateLabelType } from '../../../../state/assortment/label-types/actions.js';
+import Form from '../../../forms/Form';
+import StringField from '../../../forms/StringField';
+import SelectField from '../../../forms/SelectField';
+import { fetchLabelType, setLabelTypeField } from '../../../../state/assortment/label-types/actions';
 
 class LabelTypeEdit extends React.Component {
 	setName = ({ target: { value }}) => this.props.setLabelTypeField('name', value);

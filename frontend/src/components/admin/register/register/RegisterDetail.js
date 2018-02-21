@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../../tools/icons/FontAwesome';
+import FontAwesome from '../../../tools/icons/FontAwesome';
 
 class RegisterDetail extends React.Component {
 	trash(evt) {

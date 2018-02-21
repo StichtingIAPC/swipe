@@ -6,7 +6,7 @@ import { createArticle, updateArticle } from '../../state/assortment/articles/ac
 import { BoolField, IntegerField, SelectField, StringField } from '../forms/fields';
 import FontAwesome from '../tools/icons/FontAwesome';
 import LabelField from '../forms/LabelField';
-import LabelList from '../assortment/LabelList';
+import LabelList from '../admin/assortment/LabelList';
 import { fetchArticle, newArticle, setArticleField } from '../../state/assortment/articles/actions';
 import Box from '../base/Box';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';

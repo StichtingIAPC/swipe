@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import { fetchAccountingGroup } from '../../../state/money/accounting-groups/actions';
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import { fetchAccountingGroup } from '../../../../state/money/accounting-groups/actions';
 
 /**
  * Created by Matthias on 26/11/2016.

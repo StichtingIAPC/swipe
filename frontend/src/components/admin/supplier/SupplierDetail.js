@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../tools/icons/FontAwesome';
-import { fetchSupplier, newSupplier } from '../../state/suppliers/actions';
+import FontAwesome from '../../tools/icons/FontAwesome';
+import { fetchSupplier, newSupplier } from '../../../state/suppliers/actions';
 
 class SupplierDetail extends React.Component {
 	trash(evt) {

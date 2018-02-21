@@ -1,11 +1,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createUnitType, updateUnitType } from '../../../state/assortment/unit-types/actions.js';
-import Form from '../../forms/Form';
-import StringField from '../../forms/StringField';
-import SelectField from '../../forms/SelectField';
-import { incrementalTypes, valueTypes } from '../../../state/assortment/constants';
-import { fetchUnitType, setUnitTypeField } from '../../../state/assortment/unit-types/actions';
+import { createUnitType, updateUnitType } from '../../../../state/assortment/unit-types/actions.js';
+import Form from '../../../forms/Form';
+import StringField from '../../../forms/StringField';
+import SelectField from '../../../forms/SelectField';
+import { incrementalTypes, valueTypes } from '../../../../state/assortment/constants';
+import { fetchUnitType, setUnitTypeField } from '../../../../state/assortment/unit-types/actions';
 
 class UnitTypeEdit extends React.Component {
 	componentWillMount() {

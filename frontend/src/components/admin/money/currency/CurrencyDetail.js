@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import FontAwesome from '../../tools/icons/FontAwesome';
-import Box from '../../base/Box';
-import { fetchCurrency } from "../../../state/money/currencies/actions";
+import FontAwesome from '../../../tools/icons/FontAwesome';
+import Box from '../../../base/Box';
+import { fetchCurrency } from '../../../../state/money/currencies/actions';
 
 /**
  * Created by Matthias on 26/11/2016.
