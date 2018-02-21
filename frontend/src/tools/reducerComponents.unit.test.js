@@ -1,7 +1,8 @@
 /* eslint-disable no-undefined,no-undef */
 import {
-	booleanControlReducer, collectReducers, objectControlReducer, resetFieldReducer,
-	setFieldReducer
+	booleanControlReducer, collectReducers, idToObjectMappingReducer, multiIdToObjectMappingReducer,
+	objectControlReducer, reducerMappedById, resetFieldReducer,
+	setFieldReducer,
 } from './reducerComponents';
 
 describe('reducerComponent should run correctly with a basic implementation of such a reducer for component: ', () => {
@@ -103,5 +104,124 @@ describe('reducerComponent should run correctly with a basic implementation of s
 		expect(resetFieldReducerInstance(undefined, {})).toBe(false);
 		expect(resetFieldReducerInstance(true, { type: actionOne })).toBe(false);
 		expect(resetFieldReducerInstance(true, {})).toBe(true);
+	});
+
+	test('idToObjectMappingReducer', () => {
+		const actionOne = 'ACTION';
+		const objectField = 'field';
+		const idField = 'id';
+		const types = [ actionOne ];
+		const defaultValue = {};
+		const object = {
+			id: 1,
+			val: 'oldObject',
+		};
+		const newObject = {
+			id: 1,
+			val: 'newObject',
+		};
+		const startTestState = { 1: object };
+
+		const objectMappingInstance = idToObjectMappingReducer(types, defaultValue, objectField, idField);
+
+		expect(objectMappingInstance(undefined, {})).toBe(defaultValue);
+		expect(objectMappingInstance(startTestState, {})).toBe(startTestState);
+		expect(objectMappingInstance(startTestState, {
+			type: actionOne,
+			[objectField]: object,
+		})).toEqual({
+			1: object,
+		});
+		expect(objectMappingInstance({}, {
+			type: actionOne,
+			[objectField]: object,
+		})).toEqual(startTestState);
+		expect(objectMappingInstance(startTestState, {
+			type: actionOne,
+			[objectField]: newObject,
+		})[1]).toBe(newObject);
+	});
+
+	test('multiIdToObjectMappingReducer', () => {
+		const actionOne = 'ACTION';
+		const objectField = 'field';
+		const idField = 'id';
+		const types = [ actionOne ];
+		const defaultValue = {};
+		const object1 = {
+			id: 1,
+			val: 'oldObject',
+		};
+		const object2 = {
+			id: 2,
+			val: 'oldObject2',
+		};
+		const newObject = {
+			id: 1,
+			val: 'newObject',
+		};
+		const startTestState = { 1: object1 };
+
+		const objectMappingInstance = multiIdToObjectMappingReducer(types, defaultValue, objectField, idField);
+
+		expect(objectMappingInstance(undefined, {})).toBe(defaultValue);
+		expect(objectMappingInstance(startTestState, {})).toBe(startTestState);
+		expect(objectMappingInstance(startTestState, {
+			type: actionOne,
+			field: [ newObject ],
+		})).toEqual({ 1: newObject });
+		expect(objectMappingInstance(startTestState, {
+			type: actionOne,
+			field: [ object2 ],
+		})).toEqual({
+			1: object1,
+			2: object2,
+		});
+		expect(objectMappingInstance(startTestState, {
+			type: actionOne,
+			field: [ newObject, object2 ],
+		})).toEqual({
+			1: newObject,
+			2: object2,
+		});
+	});
+	test('reducerMappedById', () => {
+		const actionOne = 'ACTION1';
+		const actionTwo = 'ACTION2';
+		const forField = 'id';
+		const defaultState = {};
+		const startingState = { EUR: false };
+
+		const reducerMappedInstance = reducerMappedById(forField, booleanControlReducer({ [actionOne]: true,
+			[actionTwo]: false }, false), defaultState);
+
+		expect(reducerMappedInstance(undefined, {})).toBe(defaultState);
+		expect(reducerMappedInstance(startingState, {})).toBe(startingState);
+		expect(reducerMappedInstance(startingState, { id: 'JPY' })).toEqual({
+			JPY: false,
+			EUR: false,
+		});
+		expect(reducerMappedInstance(startingState, {
+			id: 'JPY',
+			type: actionOne,
+		})).toEqual({
+			EUR: false,
+			JPY: true,
+		});
+		expect(reducerMappedInstance(startingState, {
+			id: 'JPY',
+			type: actionTwo,
+		})).toEqual({
+			EUR: false,
+			JPY: false,
+		});
+		expect(reducerMappedInstance(startingState, {
+			id: 'EUR',
+			type: actionOne,
+		})).toEqual({ EUR: true });
+		expect(reducerMappedInstance(startingState, {
+			id: 'EUR',
+			type: actionTwo,
+		})).toBe(startingState);
 	});
 });

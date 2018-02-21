@@ -36,4 +36,55 @@ export const collectReducers = (...reducers) =>
 	(state, action) => reducers.reduce((_state, reducer) => reducer(_state, action), state);
 
 export const resetFieldReducer = (types, defaultValue) =>
-	(state = defaultValue, action) => types.includes(action.type) ? defaultValue : state;
+	(state = defaultValue, action) => {
+		if (types.includes(action.type)) {
+			return defaultValue;
+		}
+		return state;
+	};
+
+export const idToObjectMappingReducer = (types, defaultValue, fieldName, idFieldName) =>
+	(state = defaultValue, action) => {
+		if (types.includes(action.type)) {
+			const object = action[fieldName];
+
+			return {
+				...state,
+				[object[idFieldName]]: object,
+			};
+		}
+		return state;
+	};
+
+export const multiIdToObjectMappingReducer = (types, defaultValue, fieldName, idFieldName) =>
+	(state = defaultValue, action) => {
+		if (types.includes(action.type)) {
+			const objects = action[fieldName];
+
+			return objects.reduce((result, object) => ({
+				...result,
+				[object[idFieldName]]: object,
+			}), state);
+		}
+		return state;
+	};
+
+export const reducerMappedById = (identifier, wrappedReducer, defaultValue) =>
+	(state = defaultValue, action) => {
+		const id = action[identifier];
+
+		if (typeof id !== 'undefined') {
+			const currentValue = state[id];
+			const newValue = wrappedReducer(state[id], action);
+
+			if (currentValue === newValue) {
+				return state;
+			}
+			return {
+				...state,
+				[id]: newValue,
+			};
+		}
+
+		return state;
+	};
