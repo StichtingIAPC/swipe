@@ -1,4 +1,4 @@
-from _pydecimal import Decimal
+from decimal import Decimal
 
 from article.models import ArticleType
 from assortment.models import AssortmentUnitType, AssortmentLabelType, AssortmentLabel

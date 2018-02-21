@@ -404,3 +404,14 @@ class VATTests(TestCase, TestData):
         vp2 = VATPeriod(vat=v1, begin_date=date_3, end_date=None, vatrate=Decimal("1"))
         vp2.save()
         self.assertEqual(2, VATPeriod.objects.count())
+
+    def test_editing_vat_period(self):
+        v1 = VAT(name="VATFoo", active=True)
+        v1.save()
+        date_1 = datetime.datetime.strptime('01012010', "%d%m%Y").date()
+        date_2 = datetime.datetime.strptime('01012030', "%d%m%Y").date()
+        date_3 = datetime.datetime.strptime('01022031', "%d%m%Y").date()
+        vp1 = VATPeriod(vat=v1, begin_date=date_1, end_date=date_2, vatrate=Decimal("1"))
+        vp1.save()
+        vp1.end_date = date_3
+        vp1.save()

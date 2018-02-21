@@ -18,7 +18,7 @@ class Command(BaseCommand):
             help='Actually run the command.'
         )
 
-    def handle(self, *args, ok, **options):
+    def handle(self, ok, *args, **options):
         # Check for --yes-i-am-sure flag
         if not ok:
             self.stdout.write("To actually run the command, use the option '--yes-i-am-sure'. ")
