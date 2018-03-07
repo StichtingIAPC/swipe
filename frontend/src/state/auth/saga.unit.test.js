@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { nextStep, isObject, done, isValue, notDone, formOf, exportsSagas, doThrow } from '../../tools/sagaTestHelpers';
+import { nextStep, isObject, done, isValue, notDone, formOf, exportsSagas } from '../../tools/sagaTestHelpers';
 
 import { onLogin, onLogout, onLoginRestore, onLoginSuccess, onLogoutSuccess, onLoginError, saga } from './saga.js';
 import fetch from 'isomorphic-fetch';
@@ -137,13 +137,38 @@ describe('Login', () => {
 			})),
 		]);
 
+		// Test the deserialization call of the request
+		const mockfun = jest.fn().mockReturnValue('asdfghjkl;');
+
 		nextStep(generator, [
 			notDone,
-			isObject(put(loginError('Backend responded with error code 418'))),
+			isValue('asdfghjkl;'),
 		], {
 			ok: false,
-			status: 418,
+			json: mockfun,
 		});
+		expect(mockfun.mock.calls.length).toBe(1);
+
+		nextStep(generator, [
+			notDone,
+			isObject(put(loginError(null))),
+		], {});
+
+		nextStep(generator, [
+			notDone,
+			isObject({
+				'@@redux-saga/IO': true,
+				'SELECT': {
+					args: [],
+				},
+			}),
+		]);
+
+		nextStep(generator, [
+			notDone,
+			isObject(put(loginError('Failed to connect'))),
+		], 'Failed to connect');
+
 		nextStep(generator, [ done, isValue() ]);
 	});
 
@@ -153,6 +178,7 @@ describe('Login', () => {
 			password: 'testpassword',
 		});
 
+		// Test the request
 		nextStep(generator, [
 			notDone,
 			isObject(call(fetch, `mock_url/auth/login/`, {
@@ -164,12 +190,39 @@ describe('Login', () => {
 			})),
 		]);
 
-		doThrow(generator, [
+		// Test the deserialization call of the request
+		const mockfun = jest.fn().mockReturnValue('asdfghjkl;');
+
+		nextStep(generator, [
 			notDone,
-			isObject(put(loginError('Unable to connect to server'))),
+			isValue('asdfghjkl;'),
 		], {
-			message: 'Failed to fetch',
+			ok: false,
+			json: mockfun,
 		});
+		expect(mockfun.mock.calls.length).toBe(1);
+
+		nextStep(generator, [
+			notDone,
+			isObject(put(loginError(null))),
+		], {});
+
+		const result = nextStep(generator, [
+			notDone,
+			isObject({
+				'@@redux-saga/IO': true,
+				'SELECT': {
+					args: [],
+				},
+			}),
+		]);
+
+		expect(result.value.SELECT.selector({ auth: { error: [ 'ASDF' ]}})).toBe('ASDF');
+
+		nextStep(generator, [
+			notDone,
+			isObject(put(loginError('Server not connected, please try again later.'))),
+		], null);
 
 		nextStep(generator, [ done, isValue() ]);
 	});
@@ -276,11 +329,8 @@ describe('Logout', () => {
 
 		nextStep(generator, [
 			notDone,
-			isObject(put(logoutError('Backend responded with error code 418'))),
-		], {
-			ok: false,
-			status: 418,
-		});
+			isObject(put(logoutError({ ok: false }))),
+		], { ok: false });
 
 		nextStep(generator, [ done, isValue() ]);
 	});
@@ -357,16 +407,15 @@ describe('Login restore', () => {
 
 		nextStep(generator, [
 			notDone,
-			isObject(put(loginError('Backend responded with error code 418'))),
+			isObject(put(loginError({ ok: false }))),
 		], {
 			ok: false,
-			status: 418,
 		});
 
 		nextStep(generator, [ done, isValue() ]);
 	});
 
-	test('failing due to incorrect token', () => {
+	test('failing due to incorrect data', () => {
 		const generator = onLoginRestore({
 			loginAction: {
 				data: {
@@ -402,54 +451,9 @@ describe('Login restore', () => {
 
 		nextStep(generator, [
 			notDone,
-			isObject(put(loginError(''))),
+			isObject(put(loginError({ valid: false }))),
 		], {
 			valid: false,
-		});
-
-		nextStep(generator, [ done, isValue() ]);
-	});
-
-	test('failing due to token expiry', () => {
-		const generator = onLoginRestore({
-			loginAction: {
-				data: {
-					token: '4321bcda',
-					user: {
-						username: 'usertest',
-					},
-				},
-			},
-		});
-
-		nextStep(generator, [
-			notDone,
-			isObject(call(fetch, `${config.backendUrl}/auth/validate/`, {
-				method: 'POST',
-				body: formOf({
-					token: '4321bcda',
-					username: 'usertest',
-				}),
-			})),
-		]);
-
-		const mockfun = jest.fn().mockReturnValue(';lkjhgfdsa');
-
-		nextStep(generator, [
-			notDone,
-			isValue(';lkjhgfdsa'),
-		], {
-			ok: true,
-			json: mockfun,
-		});
-		expect(mockfun.mock.calls.length).toBe(1);
-
-		nextStep(generator, [
-			notDone,
-			isObject(put(loginError('Login expired because of inactivity'))),
-		], {
-			valid: false,
-			expiry: '1970-01-01 00:00',
 		});
 
 		nextStep(generator, [ done, isValue() ]);
