@@ -8,6 +8,7 @@ import { articles } from '../../state/assortment/articles/actions';
 import { stock } from '../../state/stock/actions';
 import Selector from './productselector/Selector';
 import Receipt from './receipt/Receipt';
+import PaymentButton from "./PaymentButton";
 
 class RegisterBase extends React.Component {
 	componentWillMount() {
@@ -26,6 +27,7 @@ class RegisterBase extends React.Component {
 				<div className="col-xs-6 col-md-8">
 					{this.props.requirementsLoaded ? this.props.children : null}
 				</div>
+				<PaymentButton/>
 			</div>
 		);
 	}
