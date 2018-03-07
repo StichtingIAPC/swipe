@@ -1,13 +1,28 @@
 import React from 'react';
+import fetchAllCurrencies from '../../state/money/currencies/actions';
+import { connect } from 'react-redux';
 
 /**
  * Created by Matthias on 30/11/2016.
  */
 
-export default class MoneyField extends React.Component {
-	render() {
-		const { currency, value, onChange, children, ...restProps } = this.props;
+export class MoneyField extends React.Component {
+	componentDidMount() {
+		this.props.fetchCurrencies();
+	}
 
+	render() {
+		let { currency } = this.props;
+		const { currency: _, value, onChange, children, name } = this.props;
+
+		if (typeof currency === 'string') {
+			const validCurrencies = this.props.currencies.filter(c => c.iso === currency);
+
+			if (validCurrencies.length <= 0) {
+				return <div />;
+			}
+			currency = validCurrencies[0];
+		}
 		return (
 			<div className="input-group">
 				<span className="input-group-addon">{currency.symbol}</span>
@@ -17,7 +32,7 @@ export default class MoneyField extends React.Component {
 					value={MoneyField.valueToString(value, currency)}
 					placeholder = {MoneyField.getPlaceholder(currency)}
 					onChange={onChange}
-					{...restProps} />
+					name={name} />
 				{children}
 			</div>
 		);
@@ -39,3 +54,12 @@ export default class MoneyField extends React.Component {
 		return `0.${'0'.repeat(currency.digits)}`;
 	}
 }
+
+export default connect(
+	state => ({
+		currencies: state.money.currencies.currencies,
+	}),
+	{
+		fetchCurrencies: fetchAllCurrencies,
+	}
+)(MoneyField);

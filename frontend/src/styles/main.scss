@@ -189,3 +189,7 @@ $label-border-radius: 4px;
 		border-color: #999999;
 	}
 }
+
+.input-group .form-control {
+	z-index: 0 !important;
+}

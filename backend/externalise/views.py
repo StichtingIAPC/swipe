@@ -70,7 +70,7 @@ class ExternaliseDocumentListView(mixins.ListModelMixin,
 
     def post(self, request):
         externalise_request = ExternaliseRequest(user=request.data.get("user"),
-                                                 article_information_list=request.data.get("article_information_list"),
+                                                 article_information_list=request.data.get("externaliseline_set"),
                                                  memo=request.data.get("memo"))
         externalise_representation = ExternaliseDocumentSerializer(instance=externalise_request.create_externalise_document()).data
         return HttpResponse(content=json.dumps(externalise_representation), content_type="application/json")
