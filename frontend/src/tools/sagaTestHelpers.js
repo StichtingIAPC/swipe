@@ -31,6 +31,16 @@ export const nextStep = (generator, tests, ...args) => {
 	return result;
 };
 
+export const doThrow = (generator, tests, ...args) => {
+	const result = generator.throw(...args);
+
+	for (const t of tests) {
+		t(result);
+	}
+
+	return result;
+};
+
 export const formOf = fields => {
 	const form = new FormData();
 
