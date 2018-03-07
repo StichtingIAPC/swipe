@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { nextStep, isObject, done, isValue, notDone, formOf, exportsSagas } from '../../tools/sagaTestHelpers';
+import { nextStep, isObject, done, isValue, notDone, formOf, exportsSagas, doThrow } from '../../tools/sagaTestHelpers';
 
 import { onLogin, onLogout, onLoginRestore, onLoginSuccess, onLogoutSuccess, onLoginError, saga } from './saga.js';
 import fetch from 'isomorphic-fetch';
@@ -139,19 +139,11 @@ describe('Login', () => {
 
 		nextStep(generator, [
 			notDone,
-			isObject({
-				'@@redux-saga/IO': true,
-				'SELECT': {
-					args: [],
-				},
-			}),
-		]);
-
-		nextStep(generator, [
-			notDone,
-			isObject(put(loginError('Failed to connect'))),
-		], 'Failed to connect');
-
+			isObject(put(loginError('Backend responded with error code 418'))),
+		], {
+			ok: false,
+			status: 418,
+		});
 		nextStep(generator, [ done, isValue() ]);
 	});
 
@@ -161,7 +153,6 @@ describe('Login', () => {
 			password: 'testpassword',
 		});
 
-		// Test the request
 		nextStep(generator, [
 			notDone,
 			isObject(call(fetch, `mock_url/auth/login/`, {
@@ -173,22 +164,12 @@ describe('Login', () => {
 			})),
 		]);
 
-		const result = nextStep(generator, [
+		doThrow(generator, [
 			notDone,
-			isObject({
-				'@@redux-saga/IO': true,
-				'SELECT': {
-					args: [],
-				},
-			}),
-		]);
-
-		expect(result.value.SELECT.selector({ auth: { error: [ 'ASDF' ]}})).toBe('ASDF');
-
-		nextStep(generator, [
-			notDone,
-			isObject(put(loginError('Server not connected, please try again later.'))),
-		], null);
+			isObject(put(loginError('Unable to connect to server'))),
+		], {
+			message: 'Failed to fetch',
+		});
 
 		nextStep(generator, [ done, isValue() ]);
 	});
