@@ -43,3 +43,8 @@ export default connect(
 		getStock: () => dispatch(stockAction()),
 	})
 )(RegisterBase);
+
+
+function dispatchIfFalse(truth, func){
+	if (truth())  func();
+}

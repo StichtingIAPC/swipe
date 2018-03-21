@@ -1,7 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import { get } from '../../api.js';
-import {doneFetchingStockList, fetchingStockListCompleted, fetchingStockListError, STOCK_FETCH_START} from './actions';
+import {doneFetchingStockList, fetchingStockListCompleted, fetchingStockListError, STOCK_FETCH_ACTION} from './actions';
 
 function* fetchStock({ redirectTo } = {}) {
 	let msg = null;
@@ -29,5 +29,5 @@ function* fetchStock({ redirectTo } = {}) {
 }
 
 export default function* stockSaga() {
-	yield takeLatest(STOCK_FETCH_START, fetchStock);
+	yield takeLatest(STOCK_FETCH_ACTION, fetchStock);
 }

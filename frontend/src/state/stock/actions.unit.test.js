@@ -5,15 +5,15 @@ import {
 	doneFetchingStockList, fetchingStockListCompleted, fetchingStockListError, startFetchingStockList,
 	STOCK_FETCH_COMPLETED, STOCK_FETCH_DONE,
 	STOCK_FETCH_FAILED,
-	STOCK_FETCH_START
+	STOCK_FETCH_ACTION
 } from './actions';
 describe('Action tests for sales.actions', () => {
 
-	test('STOCK_FETCH_START without redirect adds no redirect', () => {
-		expect(startFetchingStockList(undefined)).toEqual({ type: STOCK_FETCH_START });
+	test('STOCK_FETCH_ACTION without redirect adds no redirect', () => {
+		expect(startFetchingStockList(undefined)).toEqual({ type: STOCK_FETCH_ACTION });
 	});
-	test('STOCK_FETCH_START with redirectTo adds redirect', () => {
-		expect(startFetchingStockList({ redirectTo: 'aa' })).toEqual({ type: STOCK_FETCH_START, redirectTo: 'aa' });
+	test('STOCK_FETCH_ACTION with redirectTo adds redirect', () => {
+		expect(startFetchingStockList({ redirectTo: 'aa' })).toEqual({ type: STOCK_FETCH_ACTION, redirectTo: 'aa' });
 	});
 
 	test('STOCK_FETCH_DONE', () => {
