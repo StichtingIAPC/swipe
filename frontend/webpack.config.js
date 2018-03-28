@@ -30,6 +30,7 @@ module.exports = {
 		publicPath: '/dist/',
 		filename: 'bundle.js',
 	},
+	devtool: 'inline-source-map',
 	module: {
 		rules: [
 			{
@@ -61,7 +62,6 @@ module.exports = {
 	resolve: {
 		modules: [ 'node_modules' ],
 	},
-	//devtool: 'cheap-module-source-map',
 	devServer: {
 		headers: { "Access-Control-Allow-Origin": "*" },
 		contentBase: './public/',
