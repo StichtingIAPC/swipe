@@ -18,11 +18,15 @@ export default class Form extends React.Component {
 					buttons={
 						<React.Fragment>
 							{
+								this.props.returnLink ?
+									<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Return"><FontAwesome icon="arrow-left" /></Link> : null
+							}
+							<a onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>
+							{
 								this.props.closeLink ? (
 									<Link to={this.props.closeLink} className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
-								) : null}
-							<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Return"><FontAwesome icon="arrow-left" /></Link>
-							<a onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>
+								) : null
+							}
 						</React.Fragment>
 					} />
 				<Box.Body>
@@ -50,12 +54,10 @@ export default class Form extends React.Component {
 
 Form.propTypes = {
 	children: PropTypes.node.isRequired,
-	returnLink: PropTypes.string.isRequired,
+	returnLink: PropTypes.string,
 	closeLink: PropTypes.string,
 	title: PropTypes.string.isRequired,
 	onReset: PropTypes.func.isRequired,
 	onSubmit: PropTypes.func.isRequired,
 	error: PropTypes.string,
 };
-
-Form.defaultProps = { returnLink: '/' };

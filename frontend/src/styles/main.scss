@@ -190,6 +190,10 @@ $label-border-radius: 4px;
 	}
 }
 
+.input-group .form-control {
+	z-index: 0 !important;
+}
+
 .indicator-red {
   margin-left: 5px;
   color: #B01815;

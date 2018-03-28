@@ -12,7 +12,9 @@ class Sidebar extends React.Component {
 				<section className="sidebar">
 					<ul className="sidebar-menu">
 						<SidebarLink text="Sales" icon="shopping-cart" to="/sales/" indicator={<RegisterOpenIndicator />} />
-
+						<SidebarLink text="Logistics" icon="truck" >
+							<SidebarLink text="Externalise" icon="external-link-square" to="/logistics/externalise" />
+						</SidebarLink>
 						<SidebarLink text="Article manager" icon="cube" to="/articlemanager/" />
 						<SidebarLink text="Admin">
 							<SidebarLink text="Supplier" icon="truck" to="/supplier/" />

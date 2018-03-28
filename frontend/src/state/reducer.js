@@ -9,6 +9,7 @@ import sidebar from './sidebar/reducer.js';
 import suppliers from './suppliers/reducer.js';
 import sales from './sales/reducer.js';
 import stock from './stock/reducer.js';
+import logistics from './logistics/reducer.js';
 
 export default combineReducers({
 	routing: routerReducer,
@@ -20,4 +21,5 @@ export default combineReducers({
 	suppliers,
 	sales,
 	stock,
+	logistics,
 });
