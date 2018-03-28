@@ -81,41 +81,54 @@ class ExternaliseAdd extends Component {
 			error={this.props.error}
 			closeLink="/logistics/externalise/">
 			<StringField onChange={this.setMemo} name="Memo" value={this.props.externalise.memo} />
-			{this.props.externalise.externaliseline_set.map((line, index) => (
-				<div key={index}>
-					<div className="form-group">
-						<label className="col-sm-3 control-label" htmlFor="article">Article</label>
-						<div className="col-sm-9">
-							<ArticleTypeSelector
-								onChange={this.updateArticleField(index, 'article')}
-								name="article"
-								value={this.props.externalise.externaliseline_set[index].article &&
-										this.props.externalise.externaliseline_set[index].article.id} />
-						</div>
-					</div>
-					<div className="form-group">
-						<label className="col-sm-3 control-label" htmlFor="cost">Price</label>
-						<div className="col-sm-9">
-							<MoneyField
-								onChange={this.updateArticleFieldArticle(index)}
-								name="cost"
-								currency={this.props.externalise.externaliseline_set[index].amount &&
-											this.props.externalise.externaliseline_set[index].amount.currency}
-								value={this.props.externalise.externaliseline_set[index].amount &&
-										this.props.externalise.externaliseline_set[index].amount.amount} />
-						</div>
-					</div>
-					<IntegerField
-						name="Count"
-						value={this.props.externalise.externaliseline_set[index].count}
-						onChange={this.updateArticleFieldCount(index)} />
-					<span className="input-group-btn">
-						<a className="btn btn-danger" onClick={this.removeArticle(index)}>
-							<FontAwesome icon="trash" />
-						</a>
-					</span>
-				</div>
-			))}
+			<table className="table">
+				<thead>
+					<tr>
+						<th>Article</th>
+						<th width="150px">Price</th>
+						<th width="80px">Count</th>
+						<th width="50px" />
+					</tr>
+				</thead>
+				<tbody>
+					{this.props.externalise.externaliseline_set.map((line, index) => (
+						<tr key={index}>
+							<td className="form-group col">
+								<ArticleTypeSelector
+									onChange={this.updateArticleField(index, 'article')}
+									name="article"
+									value={this.props.externalise.externaliseline_set[index].article &&
+									this.props.externalise.externaliseline_set[index].article.id} />
+							</td>
+							<td className="form-group col">
+								<MoneyField
+									onChange={this.updateArticleFieldArticle(index)}
+									name="cost"
+									currency={this.props.externalise.externaliseline_set[index].amount &&
+										this.props.externalise.externaliseline_set[index].amount.currency}
+									value={this.props.externalise.externaliseline_set[index].amount &&
+									this.props.externalise.externaliseline_set[index].amount.amount} />
+							</td>
+							<td>
+								<input
+									className="form-control"
+									type="number"
+									min={0}
+									step={1}
+									value={this.props.externalise.externaliseline_set[index].count}
+									onChange={this.updateArticleFieldCount(index)} />
+							</td>
+							<td>
+								<span className="input-group-btn">
+									<a className="btn btn-danger" onClick={this.removeArticle(index)}>
+										<FontAwesome icon="trash" />
+									</a>
+								</span>
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
 			<a className="btn btn-success" onClick={this.addArticle}>Add article</a>
 		</Form>;
 	}
