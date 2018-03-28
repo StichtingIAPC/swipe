@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { logout as doLogout } from '../../../state/auth/actions';
 import SidebarLink from './SidebarLink';
+import RegisterOpenIndicator from '../../register/RegisterOpenIndicator';
 
 class Sidebar extends React.Component {
 	render() {
@@ -10,7 +11,7 @@ class Sidebar extends React.Component {
 			<aside className="main-sidebar">
 				<section className="sidebar">
 					<ul className="sidebar-menu">
-						<SidebarLink text="Sales" icon="shopping-cart" to="/sales/" />
+						<SidebarLink text="Sales" icon="shopping-cart" to="/sales/" indicator={<RegisterOpenIndicator />} />
 						<SidebarLink text="Logistics" icon="truck" >
 							<SidebarLink text="Externalise" icon="external-link-square" to="/logistics/externalise" />
 						</SidebarLink>

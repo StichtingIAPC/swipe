@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import FontAwesome from '../../tools/icons/FontAwesome';
+import { fetchAccountingGroup } from '../../../state/money/accounting-groups/actions';
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -10,12 +11,17 @@ import FontAwesome from '../../tools/icons/FontAwesome';
 class AccountingGroupDetail extends React.Component {
 	trash = evt => evt.preventDefault();
 
+	componentWillMount() {
+		this.props.fetchAccountingGroup(this.props.match.params.accountingGroupId);
+	}
+	componentWillReceiveProps({ match: { params: { accountingGroupId }}}) {
+		if (accountingGroupId !== this.props.match.params.accountingGroupId) {
+			this.props.fetchAccountingGroup(accountingGroupId);
+		}
+	}
+
 	render() {
 		const { accountingGroup } = this.props;
-
-		if (!accountingGroup) {
-			return null;
-		}
 
 		return (
 			<div className="box">
@@ -60,5 +66,8 @@ export default connect(
 			accountingGroup,
 			vat: (state.money.vats.vats || []).find(el => +el.id === +accountingGroup.vat_group),
 		};
+	},
+	{
+		fetchAccountingGroup,
 	}
 )(AccountingGroupDetail);

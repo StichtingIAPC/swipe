@@ -296,6 +296,21 @@ class RegisterMaster:
             closed_register_counts_ids.append(reg.id)
         return RegisterCount.objects.filter(id__in=closed_register_counts_ids)
 
+    @staticmethod
+    # Gets the last register count for each register, dummied for registers without counts
+    def get_last_register_counts():
+        registers = Register.objects.all()
+        counts = []
+        for register in registers:
+            count_exists = RegisterCount.objects.filter(register=register).exists()
+            if count_exists:
+                counts.append(RegisterCount.objects.filter(register=register).latest('time_created'))
+            else:
+                counts.append(RegisterCount(register=register, sales_period_id=-1, is_opening_count=False,
+                                            amount=Decimal("0"),
+                                            time_created=timezone.now()))
+        return counts  # type: List[RegisterCount]
+
 
 class ConsistencyChecker:
     """

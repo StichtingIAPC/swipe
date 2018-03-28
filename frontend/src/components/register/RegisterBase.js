@@ -23,8 +23,8 @@ class RegisterBase extends React.Component {
 		return (
 			<div className="row">
 				<div className="col-xs-4 col-md-4">
-					<RegisterList supplierID={this.props.params.registerID || ''} />
-					<PaymentTypeList paymentTypeID={this.props.params.paymentTypeID || ''} />
+					<RegisterList supplierID={this.props.match.params.registerID || ''} />
+					<PaymentTypeList paymentTypeID={this.props.match.params.paymentTypeID || ''} />
 				</div>
 				<div className="col-xs-8 col-md-8">
 					{

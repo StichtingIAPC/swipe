@@ -138,6 +138,11 @@ export function setAccountingGroupField(field, value) {
 		value,
 	};
 }
+export function resetAccountingGroup() {
+	return {
+		type: 'money/accounting-groups/NEW_ACCOUNTINGGROUP',
+	};
+}
 
 export default fetchAllAccountingGroups;
 export {

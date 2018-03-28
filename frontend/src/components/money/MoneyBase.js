@@ -46,8 +46,8 @@ export class MoneyBase extends React.Component {
 								<Route path={`${match.path}/vat/:vatId/edit`} component={VATEdit} />
 								<Route path={`${match.path}/vat/:vatId`} component={VATDetail} />
 								<Route path={`${match.path}/accountinggroup/create`} component={AccountingGroupEdit} />
-								<Route path={`${match.path}/accountinggroup/:accountingGroupID/edit`} component={AccountingGroupEdit} />
-								<Route path={`${match.path}/accountinggroup/:accountingGroupID`} component={AccountingGroupDetail} />
+								<Route path={`${match.path}/accountinggroup/:accountingGroupId/edit`} component={AccountingGroupEdit} />
+								<Route path={`${match.path}/accountinggroup/:accountingGroupId/`} component={AccountingGroupDetail} />
 							</Switch>
 						) : null
 					}

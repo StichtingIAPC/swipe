@@ -38,7 +38,7 @@ class ExternaliseAdd extends Component {
 				})
 			);
 		};
-	updateArticleFieldArticle = index => ({ target: { value }}) => {
+	updateArticleFieldArticle = index => (value) => {
 		this.props.setExternaliseField(
 			'externaliseline_set',
 			this.props.externalise.externaliseline_set.map((el, i) => {

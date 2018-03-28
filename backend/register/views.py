@@ -281,3 +281,14 @@ class SalesPeriodLatestView(mixins.ListModelMixin,
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+
+class LastCountView(mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin,
+                            generics.GenericAPIView):
+    serializer_class = RegisterCountSerializer
+
+    def get_queryset(self):
+        return RegisterMaster.get_last_register_counts()
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
