@@ -8,6 +8,7 @@ import { FETCH_ALL_ACTION, CREATE_ACTION, CREATE_SUCCESS, fetchAllAction as fetc
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
 export function* fetchAll() {
+	console.log("Fuck!");
 	try {
 		const externalizations = yield (yield call(
 			api.get,

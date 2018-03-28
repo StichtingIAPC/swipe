@@ -34,6 +34,22 @@ export class MoneyField extends React.Component {
 
 
 	componentWillReceiveProps(nextProps) {
+		if (!this.props.currencies) {
+			this.setState({
+				displayFormat: getFormat(this.props.currency, true), // Format used for displaying the value to the user (1,000.0)
+				format: getFormat(this.props.currency, false), // Format used to store the value. (1000.0)
+			});
+			if (this.props.value === '') {
+				this.setState({
+					displayString: '', // String storing the string currently displaying
+				});
+			} else {
+			// Converts the value passed on to a number, and formats it for displaying
+				this.setState({
+					displayString: numeral(this.props.value).format(this.state.displayFormat),
+				});
+			}
+		}
 		if (nextProps.currency !== this.props.currency) {
 			this.setState({ displayFormat: getFormat(nextProps.currency, true) });
 		}
@@ -55,25 +71,9 @@ export class MoneyField extends React.Component {
 		});
 	}
 
-	componentWillMount() {
-		this.props.fetchCurrencies();
-	}
-
 	componentDidMount() {
-		this.setState({
-			displayFormat: getFormat(this.props.currency, true), // Format used for displaying the value to the user (1,000.0)
-			format: getFormat(this.props.currency, false), // Format used to store the value. (1000.0)
-		});
-		if (this.props.value === '') {
-			this.setState({
-				displayString: '', // String storing the string currently displaying
-			});
-		} else {
-			// Converts the value passed on to a number, and formats it for displaying
-			this.setState({
-				displayString: numeral(this.props.value).format(this.state.displayFormat),
-			});
-		}
+		console.log("In did mount");
+		this.props.fetchCurrencies();
 	}
 
 	render() {
