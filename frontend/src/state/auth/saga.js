@@ -3,7 +3,14 @@ import { push } from 'react-router-redux';
 import config from '../../config.js';
 import fetch from 'isomorphic-fetch';
 import { __unsafeGetToken, setToken } from '../../api';
-import { logoutError, logoutSuccess, setAuthToken, loginError, loginSuccess, setRouteAfterAuthentication } from './actions';
+import {
+	logoutError,
+	logoutSuccess,
+	setAuthToken,
+	loginError,
+	loginSuccess,
+	setRouteAfterAuthentication
+} from './actions';
 
 export function* onLogin({ username, password }) {
 	const form = new FormData();
@@ -17,9 +24,19 @@ export function* onLogin({ username, password }) {
 		});
 
 		if (!result.ok) {
-			throw yield result.json();
-		}
+			if (result.status === 401) {
+				const text = yield result.text();
 
+				if (text) {
+					yield put(loginError(text));
+				} else {
+					yield put(loginError('Unable to log in'));
+				}
+			} else {
+				yield put(loginError(`Backend responded with error code ${result.status.toString()}`));
+			}
+			return;
+		}
 
 		const data = yield result.json();
 
@@ -33,15 +50,11 @@ export function* onLogin({ username, password }) {
 			yield put(setRouteAfterAuthentication('/'));
 		}
 	} catch (e) {
-		yield put(loginError(e.non_field_errors || null));
-		// noinspection JSCheckFunctionSignatures
-		let err = yield select(state => state.auth.error && state.auth.error[0]);
-
-		// eslint-disable-next-line
-		if (err === null || err === undefined) {
-			err = 'Server not connected, please try again later.';
+		if (e.message === 'Failed to fetch') {
+			yield put(loginError('Unable to connect to server'));
+		} else {
+			yield put(loginError(e));
 		}
-		yield put(loginError(err));
 	}
 }
 
@@ -58,7 +71,7 @@ export function* onLogout() {
 		});
 
 		if (!result.ok) {
-			throw result;
+			throw `Backend responded with error code ${result.status.toString()}`;
 		}
 
 		yield put(logoutSuccess());
@@ -96,13 +109,17 @@ export function* onLoginRestore({ loginAction }) {
 		});
 
 		if (!result.ok) {
-			throw result;
+			throw `Backend responded with error code ${result.status.toString()}`;
 		}
 
 		const data = yield result.json();
 
 		if (!data.valid) {
-			throw data;
+			if (data.expiry) {
+				throw 'Login expired because of inactivity';
+			} else {
+				throw '';
+			}
 		}
 
 		yield put(loginSuccess(token, data.user));

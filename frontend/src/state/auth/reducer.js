@@ -59,8 +59,14 @@ export default combineReducers({ // TODO: AUTH_LOGIN_SUCCESS: setToken(action.da
 			'AUTH_LOGIN_SUCCESS',
 		], null, 'data.user'),
 	),
-	error: setFieldReducer([
-		'AUTH_LOGIN_ERROR',
-		'AUTH_LOGOUT_ERROR',
-	], null, 'error'),
+	error: collectReducers(
+		setFieldReducer([
+			'AUTH_LOGIN_ERROR',
+			'AUTH_LOGOUT_ERROR',
+		], null, 'error'),
+		resetFieldReducer([
+			'AUTH_LOGIN_SUCCESS',
+			'AUTH_LOGOUT_SUCCESS',
+		], null),
+	),
 });

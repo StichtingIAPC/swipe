@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
+from rest_framework import serializers
 
 User = settings.AUTH_USER_MODEL
 
@@ -35,10 +36,12 @@ class Logout(View):
 
 class Login(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError:
+            return HttpResponse(status=401, content="Username or password incorrect")
         user = serializer.validated_data['user']
-
         Token.objects.filter(user=user).filter(
             created__lt=timezone.now() - timedelta(hours=settings.AUTH_TOKEN_VALID_TIME_HOURS)).delete()
         token, created = Token.objects.get_or_create(user=user)
