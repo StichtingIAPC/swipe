@@ -6,13 +6,13 @@ import {
 	resetFieldReducer, collectReducers, pathControlReducer
 } from '../../../tools/reducerComponents';
 import {
-	FETCH_ALL_ACTION,
-	FETCH_ALL_FINALLY,
-	FETCH_ALL_ERROR,
-	FETCH_ALL_SUCCESS,
-	NEW_ACTION,
-	SET_FIELD_ACTION,
-	CREATE_SUCCESS
+    FETCH_ALL_ACTION,
+    FETCH_ALL_FINALLY,
+    FETCH_ALL_ERROR,
+    FETCH_ALL_SUCCESS,
+    NEW_ACTION,
+    SET_FIELD_ACTION,
+    CREATE_SUCCESS, SET_VALIDATIONS
 } from './actions';
 
 const defaultExternalisation = {
@@ -40,6 +40,9 @@ export default combineReducers({
 			SET_FIELD_ACTION,
 		], defaultExternalisation),
 	),
+    validations: setFieldReducer([
+        SET_VALIDATIONS,
+        ], {}, 'validations'),
 	error: setFieldReducer([
 		FETCH_ALL_ERROR,
 	], null, 'reason'),
