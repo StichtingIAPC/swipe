@@ -104,7 +104,7 @@ class ExternaliseAdd extends Component {
 								<MoneyField
 									onChange={this.updateArticleFieldArticle(index)}
 									name="cost"
-									currency={this.props.externalise.externaliseline_set[index].amount &&
+									currencyISO={this.props.externalise.externaliseline_set[index].amount &&
 										this.props.externalise.externaliseline_set[index].amount.currency}
 									value={this.props.externalise.externaliseline_set[index].amount &&
 									this.props.externalise.externaliseline_set[index].amount.amount} />

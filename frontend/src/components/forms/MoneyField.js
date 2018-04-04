@@ -33,35 +33,37 @@ export class MoneyField extends React.Component {
 	}
 
 
-	componentWillReceiveProps(nextProps) {
-		if (!this.props.currencies) {
-			this.setState({
-				displayFormat: getFormat(this.props.currency, true), // Format used for displaying the value to the user (1,000.0)
-				format: getFormat(this.props.currency, false), // Format used to store the value. (1000.0)
-			});
-			if (this.props.value === '') {
-				this.setState({
-					displayString: '', // String storing the string currently displaying
-				});
-			} else {
-			// Converts the value passed on to a number, and formats it for displaying
-				this.setState({
-					displayString: numeral(this.props.value).format(this.state.displayFormat),
-				});
+	static getDerivedStateFromProps(nextProps, prevState) {
+		const nextState = {};
+
+		if (nextProps.currencies) {
+			if (typeof prevState.currency === 'undefined' || nextProps.currencyISO !== prevState.currency.iso) {
+				nextState.currency = nextProps.currencies.find(c => c.iso === nextProps.currencyISO);
+				nextState.displayFormat = getFormat(nextState.currency, true); // Format used for displaying the value to the user (1,000.0)
+				nextState.format = getFormat(nextState.currency, false); // Format used to store the value. (1000.0)
+				if (nextProps.value === '') {
+					nextState.displayString = '';
+				} else {
+					nextState.displayString = numeral(nextProps.value).format(nextState.displayFormat);
+				}
 			}
 		}
-		if (nextProps.currency !== this.props.currency) {
-			this.setState({ displayFormat: getFormat(nextProps.currency, true) });
-		}
+		return {
+			...prevState,
+			...nextState,
+		};
 	}
 
+	componentWillReceiveProps(nextProps) {
+		this.setState(MoneyField.getDerivedStateFromProps(nextProps, this.state));
+	}
 
 	handleChange(event) {
 		const newValue = event.target.value;
 
 		this.setState({ displayString: newValue }, () =>
-			this.props.onChange(numeral(newValue)
-				.format(this.state.format))); // Reformats the value for storing and passes on
+			this.props.onChange(
+				numeral(newValue).format(this.state.format))); // Reformats the value for storing and passes on
 	}
 
 	handleBlur() {
@@ -72,25 +74,19 @@ export class MoneyField extends React.Component {
 	}
 
 	componentDidMount() {
-		console.log("In did mount");
 		this.props.fetchCurrencies();
 	}
 
 	render() {
-		let { currency } = this.props;
-		const { currency: _, value, onChange, children, name, ...restProps } = this.props;
+		const { currencyISO, fetchCurrencies, children, name, ...restProps } = this.props;
 
-		if (typeof currency === 'string') {
-			const validCurrencies = this.props.currencies.filter(c => c.iso === currency);
-
-			if (validCurrencies.length <= 0) {
-				return <div />;
-			}
-			currency = validCurrencies[0];
+		if (typeof this.state.currency === 'undefined') {
+			return <div />;
 		}
+
 		return (
 			<div className="input-group">
-				<span className="input-group-addon">{currency.symbol}</span>
+				<span className="input-group-addon">{this.state.currency.symbol}</span>
 				<input
 					{...restProps}
 					type="text"

@@ -85,7 +85,7 @@ class CurrencyEdit extends React.Component {
 						{currency.denomination_set.map((denomination, index) => (
 							<div key={denomination.id || index} className="">
 								<MoneyField
-									currency={currency}
+									currencyISO={currency.iso}
 									value={denomination.amount}
 									{...(
 										denomination.id ?
