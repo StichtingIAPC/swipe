@@ -6,11 +6,14 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django_gravatar.helpers import get_gravatar_url
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework import serializers
+
+from authorization.util import get_auth_token, is_token_expired, get_token_expiry
 
 User = settings.AUTH_USER_MODEL
 
@@ -95,6 +98,36 @@ class Validate(View):
                     'username': user.username,
                     'permissions': user.get_all_permissions(),
                     'gravatarUrl': 'https://www.gravatar.com/avatar/' + m.hexdigest(),
+                    'firstName': user.first_name,
+                    'lastName': user.last_name,
+                    'email': user.email,
+                }
+            })
+
+        return JSONResponse({
+            'valid': False,
+        })
+
+    def get(self, request):
+        token = get_auth_token(request.META['HTTP_AUTHORIZATION'])
+
+        if token is not None and token.user is not None:
+            if is_token_expired(token):
+                return JSONResponse({
+                    'valid': False,
+                    'expiry': get_token_expiry(token).strftime('%Y-%m-%d %H:%M'),
+                })
+
+            user = token.user
+
+            return JSONResponse({
+                'valid': True,
+                'expiry': get_token_expiry(token).strftime('%Y-%m-%d %H:%M'),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'permissions': user.get_all_permissions(),
+                    'gravatarUrl': get_gravatar_url(user.email),
                     'firstName': user.first_name,
                     'lastName': user.last_name,
                     'email': user.email,

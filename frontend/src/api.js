@@ -3,6 +3,8 @@ import fetch from 'isomorphic-fetch';
 import config from './config';
 
 let TOKEN = null;
+let TOKEN_REFRESH_LOCK = null;
+let refresh_listeners = [];
 let listeners = [];
 
 export function setToken(token) {
@@ -34,15 +36,36 @@ export function __unsafeGetToken() {
 	return TOKEN;
 }
 
-async function request(method, url, { headers = {}, ...rest } = {}, object) {
-	const token = await getToken();
+export async function refreshAuthToken(token) {
+	if (TOKEN_REFRESH_LOCK) {
+		await new Promise((resolve, reject) => {
+			refresh_listeners.push(resolve);
+		});
+		return;
+	}
+
+	TOKEN_REFRESH_LOCK = true;
+
+	// eslint-disable-next-line no-use-before-define
+	const response = await post('/auth/token-refresh/', { token }, { token });
+
+	if (response.ok) {
+		setToken((await response.json()).token);
+	}
+
+	TOKEN_REFRESH_LOCK = false;
+	refresh_listeners.forEach(resolver => resolver());
+}
+
+async function request(method, url, { headers = {}, token = false, ...rest } = {}, object) {
+	const authToken = token ? token : await getToken();
 	const result = await fetch(
 		config.backendUrl + url,
 		{
 			method,
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Token ${token}`,
+				'Authorization': `JWT ${authToken}`,
 				...headers,
 			},
 			body: object ? JSON.stringify(object) : undefined,
@@ -53,7 +76,21 @@ async function request(method, url, { headers = {}, ...rest } = {}, object) {
 	if (result.ok) {
 		return result;
 	}
-	throw result.json();
+
+	if (result.status === 400) {
+		const data = await result.json();
+
+		if (data.non_field_errors && data.non_field_errors.indexOf('Signature has expired.') > -1) {
+			await refreshAuthToken(token);
+			return request(method, url, {
+				headers,
+				token,
+				...rest,
+			}, object);
+		}
+		throw data;
+	}
+	throw await result.json();
 }
 
 export function get(url, info) {

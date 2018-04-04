@@ -2,9 +2,8 @@ import { call, put, select, takeEvery } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import config from '../../config.js';
 import fetch from 'isomorphic-fetch';
-import { __unsafeGetToken, setToken } from '../../api';
+import { setToken, post } from '../../api';
 import {
-	logoutError,
 	logoutSuccess,
 	setAuthToken,
 	loginError,
@@ -18,7 +17,7 @@ export function* onLogin({ username, password }) {
 	form.append('username', username);
 	form.append('password', password);
 	try {
-		const result = yield call(fetch, `${config.backendUrl}/auth/login/`, {
+		const result = yield call(fetch, `${config.backendUrl}/auth/token-auth/`, {
 			method: 'POST',
 			body: form,
 		});
@@ -59,54 +58,28 @@ export function* onLogin({ username, password }) {
 }
 
 export function* onLogout() {
-	const token = __unsafeGetToken();
-
-	const form = new FormData();
-
-	form.append('token', token);
-	try {
-		const result = yield call(fetch, `${config.backendUrl}/auth/logout/`, {
-			method: 'POST',
-			body: form,
-		});
-
-		if (!result.ok) {
-			throw `Backend responded with error code ${result.status.toString()}`;
-		}
-
-		yield put(logoutSuccess());
-		yield put(push('/authentication/login'));
-	} catch (e) {
-		yield put(logoutError(e));
-	}
+	yield put(logoutSuccess());
+	yield put(push('/authentication/login'));
 }
 
 export function* onLoginRestore({ loginAction }) {
 	if (!loginAction) {
 		yield put(loginError('Login restore failed'));
-		// noinspection JSValidateTypes
 		return;
 	}
 	const action = loginAction.data;
 
 	if (!(action && action.token && action.user && action.user.username)) {
 		yield put(loginError('Login restore failed'));
-		// noinspection JSValidateTypes
 		return;
 	}
 
-	const { token, user: { username }} = action;
-
-	const form = new FormData();
-
-	form.append('token', token);
-	form.append('username', username);
+	const { token } = action;
 
 	try {
-		const result = yield call(fetch, `${config.backendUrl}/auth/validate/`, {
-			method: 'POST',
-			body: form,
-		});
+		const result = yield call(post, '/auth/token-verify/', {
+			token,
+		}, { token });
 
 		if (!result.ok) {
 			throw `Backend responded with error code ${result.status.toString()}`;
@@ -118,7 +91,7 @@ export function* onLoginRestore({ loginAction }) {
 			if (data.expiry) {
 				throw 'Login expired because of inactivity';
 			} else {
-				throw '';
+				throw 'Login is not valid (anymore)';
 			}
 		}
 
