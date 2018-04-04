@@ -1,14 +1,15 @@
-import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import { call, put, takeEvery, takeLatest, select } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import store from '../../store';
 
 import * as api from '../../../api';
-import * as actions from './actions.js';
-import { FETCH_ALL_ACTION, CREATE_ACTION, CREATE_SUCCESS, fetchAllAction as fetchAllExternalises } from './actions';
+import * as actions from './actions';
+
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
+import { getExternalisationActiveObject } from './selectors';
+import { validate, validator } from '../../../tools/validations/validators';
 
 export function* fetchAll() {
-	console.log("Fuck!");
 	try {
 		const externalizations = yield (yield call(
 			api.get,
@@ -36,7 +37,7 @@ export function* create({ externalise }) {
 		externaliseline_set: externalise.externaliseline_set.map(e => ({
 			...e,
 			// eslint-disable-next-line
-			amount: undefined,
+            amount: undefined,
 			cost: e.amount,
 			article: e.article.id,
 		})),
@@ -60,12 +61,24 @@ export function* create({ externalise }) {
 }
 
 export function* createSuccess() {
-	yield put(fetchAllExternalises());
+	yield put(actions.fetchAllAction());
 	yield put(push('/logistics/externalise'));
 }
 
+const validations = [
+	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => 'Memo field not long enough'),
+	validator('memo', 'Memo', memo => memo.length < 9 ? null : () => 'Memo field too long'),
+];
+
+export function* externalizeValidator() {
+	const current = yield select(getExternalisationActiveObject);
+	const res = validate(current, validations);
+	yield put(actions.setValidations(res));
+}
+
 export default function* saga() {
-	yield takeLatest(FETCH_ALL_ACTION, fetchAll);
-	yield takeEvery(CREATE_ACTION, create);
-	yield takeLatest(CREATE_SUCCESS, createSuccess);
+	yield takeEvery(actions.SET_FIELD_ACTION, externalizeValidator);
+	yield takeLatest(actions.FETCH_ALL_ACTION, fetchAll);
+	yield takeEvery(actions.CREATE_ACTION, create);
+	yield takeLatest(actions.CREATE_SUCCESS, createSuccess);
 }
