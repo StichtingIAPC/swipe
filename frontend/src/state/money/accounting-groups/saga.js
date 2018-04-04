@@ -2,15 +2,12 @@ import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 
 import * as actions from './actions.js';
-import * as api from '../../../api';
+import * as api from './api';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
 function* fetchAllAccountingGroups({ redirectTo }) {
 	try {
-		const accountingGroups = yield (yield call(
-			api.get,
-			'/money/accountinggroup/',
-		)).json();
+		const accountingGroups = yield (yield call(api.getAll)).json();
 
 		yield put(actions.fetchAllAccountingGroupsDone(accountingGroups));
 		if (redirectTo) {
@@ -25,10 +22,7 @@ function* fetchAllAccountingGroups({ redirectTo }) {
 
 function* fetchAccountingGroup({ id }) {
 	try {
-		const newAccountingGroup = yield (yield call(
-			api.get,
-			`/money/accountinggroup/${id}/`,
-		)).json();
+		const newAccountingGroup = yield (yield call(api.get, id)).json();
 
 		yield put(actions.fetchAccountingGroupDone(newAccountingGroup));
 	} catch (e) {
@@ -42,11 +36,7 @@ function* createAccountingGroup({ accountingGroup }) {
 	const document = { ...accountingGroup };
 
 	try {
-		const newAccountingGroup = yield (yield call(
-			api.post,
-			'/money/accountinggroup/',
-			document,
-		)).json();
+		const newAccountingGroup = yield (yield call(api.post, document)).json();
 
 		yield put(actions.createAccountingGroupDone(newAccountingGroup));
 		yield put(actions.fetchAllAccountingGroups(`/money/accountinggroups/${newAccountingGroup.id}/`));
@@ -61,11 +51,7 @@ function* updateAccountingGroup({ accountingGroup }) {
 	const document = { ...accountingGroup };
 
 	try {
-		const newAccountingGroup = yield (yield call(
-			api.put,
-			`/money/accountinggroup/${accountingGroup.id}/`,
-			document,
-		)).json();
+		const newAccountingGroup = yield (yield call(api.put, accountingGroup.id, document)).json();
 
 		yield put(actions.updateAccountingGroupDone(newAccountingGroup));
 		yield put(actions.fetchAllAccountingGroups(`/money/accountinggroups/${newAccountingGroup.id}/`));
@@ -80,11 +66,7 @@ function* deleteAccountingGroup({ accountingGroup }) {
 	const document = { ...accountingGroup };
 
 	try {
-		const newAccountingGroup = yield (yield call(
-			api.del,
-			`/money/accountinggroup/${accountingGroup.id}/`,
-			document,
-		)).json();
+		const newAccountingGroup = yield (yield call(api.del, accountingGroup.id, document)).json();
 
 		yield put(actions.deleteAccountingGroupDone(newAccountingGroup));
 		yield put(actions.fetchAllAccountingGroups(`/money/`));

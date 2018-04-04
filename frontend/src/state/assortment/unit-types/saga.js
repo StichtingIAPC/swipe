@@ -2,15 +2,12 @@ import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 
 import * as actions from './actions.js';
-import * as api from '../../../api';
+import * as api from './api';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
 function* fetchAllUnitTypes({ redirectTo }) {
 	try {
-		const unitTypes = yield (yield call(
-			api.get,
-			'/assortment/unittypes/',
-		)).json();
+		const unitTypes = yield (yield call(api.getAll)).json();
 
 		yield put(actions.fetchAllUnitTypesDone(unitTypes));
 		if (redirectTo) {
@@ -25,10 +22,7 @@ function* fetchAllUnitTypes({ redirectTo }) {
 
 function* fetchUnitType({ id }) {
 	try {
-		const newUnitType = yield (yield call(
-			api.get,
-			`/assortment/unittypes/${id}`,
-		)).json();
+		const newUnitType = yield (yield call(api.get, id)).json();
 
 		yield put(actions.fetchUnitTypeDone(newUnitType));
 	} catch (e) {
@@ -42,11 +36,7 @@ function* createUnitType({ unitType }) {
 	const document = { ...unitType };
 
 	try {
-		const newUnitType = yield (yield call(
-			api.post,
-			'/assortment/unittypes/',
-			document,
-		)).json();
+		const newUnitType = yield (yield call(api.post, document)).json();
 
 		yield put(actions.createUnitTypeDone(newUnitType));
 		yield put(actions.fetchAllUnitTypes(`/assortment/`));
@@ -61,11 +51,7 @@ function* updateUnitType({ unitType }) {
 	const document = { ...unitType };
 
 	try {
-		const newUnitType = yield (yield call(
-			api.put,
-			`/assortment/unittypes/${unitType.id}/`,
-			document,
-		)).json();
+		const newUnitType = yield (yield call(api.put, unitType.id, document)).json();
 
 		yield put(actions.updateUnitTypeDone(newUnitType));
 		yield put(actions.fetchAllUnitTypes(`/assortment/`));
@@ -80,11 +66,7 @@ function* deleteUnitType({ unitType }) {
 	const document = { ...unitType };
 
 	try {
-		const newUnitType = yield (yield call(
-			api.del,
-			`/assortment/unittypes/${unitType.id}/`,
-			document,
-		)).json();
+		const newUnitType = yield (yield call(api.del, unitType.id, document)).json();
 
 		yield put(actions.deleteUnitTypeDone(newUnitType));
 		yield put(actions.fetchAllUnitTypes(`/assortment/`));

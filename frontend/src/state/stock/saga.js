@@ -1,16 +1,13 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { get } from '../../api.js';
-import {doneFetchingStockList, fetchingStockListCompleted, fetchingStockListError, STOCK_FETCH_START} from './actions';
+import * as api from './api';
+import { doneFetchingStockList, fetchingStockListCompleted, fetchingStockListError, STOCK_FETCH_START } from './actions';
 
 function* fetchStock({ redirectTo } = {}) {
 	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			get,
-			'/stock/',
-		)).json();
+		const data = yield (yield call(api.getAll)).json();
 
 		yield put(doneFetchingStockList(data));
 		if (redirectTo) {
