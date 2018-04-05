@@ -2,53 +2,83 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import FontAwesome from '../tools/icons/FontAwesome';
-import Box from "../base/Box";
+import { Box } from 'reactjs-admin-lte';
+import { Button, ButtonGroup } from 'react-bootstrap';
 
+/**
+ * Provides a simple box which accepts a form. Also supports displaying an error and can change box type depending on
+ * the presence of warnings or errors.
+ *
+ * @prop children: PropTypes.node.isRequired
+ *      All content to be displayed in the from. This should contain at least the form.
+ * @prop returnLink: PropTypes.string
+ *      An optional return button will use this as a 'to' prop in 'Link' component.
+ * @prop closeLink: PropTypes.string
+ *      An optional close button will use this as a 'to' prop in 'Link' component.
+ * @prop title: PropTypes.string.isRequired
+ *      The title of the form.
+ * @prop onReset: PropTypes.func.isRequired
+ *      This should clear the content of the form and is called when the reset button is pressed.
+ * @prop error: PropTypes.string
+ *      This will be displayed as an error below the form and change the box style to 'danger'.
+ * @prop hasErrors: PropTypes.bool
+ *      This will change the box style to 'danger'. Use this make the box change with form validations.
+ * @prop hasWarnings: PropTypes.bool
+ *      This will change the box style to 'warning'. Use this make the box change with form validations.
+ */
 export default class Form extends React.Component {
-	onSubmit = evt => {
-		evt.preventDefault();
-		return this.props.onSubmit(evt);
+	onSubmit = event => {
+		event.preventDefault();
+		return this.props.onSubmit(event);
 	};
 
 	render() {
-		return (
-			<Box error={this.props.error}>
-				<Box.Header
-					title={this.props.title}
-					buttons={
-						<React.Fragment>
-							{
-								this.props.returnLink ?
-									<Link to={this.props.returnLink} className="btn btn-default btn-sm" title="Return"><FontAwesome icon="arrow-left" /></Link> : null
-							}
-							<a onClick={this.props.onReset} className="btn btn-warning btn-sm" title="Reset"><FontAwesome icon="repeat" /></a>
-							{
-								this.props.closeLink ? (
-									<Link to={this.props.closeLink} className="btn btn-default btn-sm" title="Close"><FontAwesome icon="close" /></Link>
-								) : null
-							}
-						</React.Fragment>
-					} />
-				<Box.Body>
-					<form className="form-horizontal" onSubmit={this.onSubmit} >
-						{ this.props.children }
-						<div className="form-group">
-							<div className="col-sm-9 col-sm-offset-3">
-								<button className="btn btn-success">Save</button>
-							</div>
-						</div>
-					</form>
-				</Box.Body>
-				{
-					this.props.error ? (
-						<Box.Footer>
-							<FontAwesome icon="warning" />
-							<span>{JSON.stringify(this.props.error)}</span>
-						</Box.Footer>
-					) : null
-				}
-			</Box>
-		);
+		return <Box
+			style={this.props.error || this.props.hasErrors ? 'danger' : this.props.hasWarnings ? 'warning' : 'primary'}>
+			<Box.Header>
+				<Box.Title>{this.props.title}</Box.Title>
+				<Box.Tools>
+					<ButtonGroup>
+						{
+							this.props.returnLink ? (
+								<Link
+									className="btn btn-default btn-sm"
+									to={this.props.returnLink}
+									title="Return">
+									<FontAwesome icon="arrow-left" />
+								</Link>
+							) : null
+						}
+						<Button
+							bsSize="small"
+							bsStyle="warning"
+							title="Reset"
+							onClick={this.props.onReset}>
+							<FontAwesome icon="repeat" />
+						</Button>
+						{
+							this.props.closeLink ? (
+								<Link
+									className="btn btn-default btn-sm"
+									to={this.props.closeLink}
+									title="Close">
+									<FontAwesome icon="close" />
+								</Link>
+							) : null
+						}
+					</ButtonGroup>
+				</Box.Tools>
+			</Box.Header>
+			<Box.Body children={this.props.children} />
+			{
+				this.props.error ? (
+					<Box.Footer className="text-danger">
+						<FontAwesome icon="warning" />
+						<span> {this.props.error}</span>
+					</Box.Footer>
+				) : null
+			}
+		</Box>;
 	}
 }
 
@@ -58,6 +88,7 @@ Form.propTypes = {
 	closeLink: PropTypes.string,
 	title: PropTypes.string.isRequired,
 	onReset: PropTypes.func.isRequired,
-	onSubmit: PropTypes.func.isRequired,
 	error: PropTypes.string,
+	hasErrors: PropTypes.bool,
+	hasWarnings: PropTypes.bool,
 };
