@@ -23,3 +23,12 @@ export const validate = (state, validators) => validators.reduce((memo, runner) 
 	...memo,
 	...runner(state),
 }), {});
+
+export const hasError = (state) => {
+	for (let [key, value] of Object.entries(state)){
+		if (value.type === 'error') {
+			return true;
+		}
+	}
+	return false;
+}
