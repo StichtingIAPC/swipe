@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
 import { fetchAllAction as fetchAllExternalisations } from '../../../state/logistics/externalise/actions';
+import { Button, ButtonGroup, Table } from 'react-bootstrap';
+import { Box } from 'reactjs-admin-lte';
 
 class List extends Component {
 	componentWillMount() {
@@ -13,30 +15,32 @@ class List extends Component {
 	}
 
 	render() {
-		return <div className="box">
-			<div className="box-header">
-				<div className="box-title">
+		// eslint-disable-next-line react/style-prop-object
+		return <Box style="primary">
+			<Box.Header>
+				<Box.Title>
 					Externalisations
-				</div>
-				<div className="box-tools">
-					<div className="btn-group">
-						<a
-							className={`btn btn-sm btn-default ${this.props.loading ? 'disabled' : ''}`}
+				</Box.Title>
+				<Box.Tools>
+					<ButtonGroup>
+						<Button
+							bsSize="small"
 							title="Refresh"
-							onClick={this.props.fetchExternalisations}>
+							onClick={this.props.fetchExternalisations}
+							disabled={this.props.loading}>
 							<FontAwesome icon={`refresh ${this.props.loading ? 'fa-spin' : ''}`} />
-						</a>
+						</Button>
 						<Link
 							className="btn btn-default btn-sm"
 							to="/logistics/externalise/create/"
-							title="Create new register">
+							title="Create new externalisation">
 							<FontAwesome icon="plus" />
 						</Link>
-					</div>
-				</div>
-			</div>
-			<div className="box-body">
-				<table className="table">
+					</ButtonGroup>
+				</Box.Tools>
+			</Box.Header>
+			<Box.Body>
+				<Table responsive striped hover>
 					<thead>
 						<tr>
 							<th>Article</th>
@@ -49,17 +53,17 @@ class List extends Component {
 						{
 							this.props.externalises.map(extl => (
 								<tr key={extl.article.id + extl.memo}>
-									<td>{ extl.article.name }</td>
-									<td>{ extl.memo }</td>
+									<td>{extl.article.name}</td>
+									<td>{extl.memo}</td>
 									<td><MoneyAmount money={extl.amount} /></td>
-									<td>{ extl.count }</td>
+									<td>{extl.count}</td>
 								</tr>
 							))
 						}
 					</tbody>
-				</table>
-			</div>
-		</div>;
+				</Table>
+			</Box.Body>
+		</Box>;
 	}
 }
 
@@ -69,5 +73,5 @@ export default connect(
 		loading: state.logistics.externalise.loading,
 		populated: state.logistics.externalise.populated,
 	}),
-	{ fetchExternalisations: fetchAllExternalisations }
+	{ fetchExternalisations: fetchAllExternalisations },
 )(List);
