@@ -1,5 +1,5 @@
-import { call, put, takeEvery, takeLatest, select } from 'redux-saga/effects';
-import { push } from 'react-router-redux';
+import {call, put, takeEvery, takeLatest, select} from 'redux-saga/effects';
+import {push} from 'react-router-redux';
 import store from '../../store';
 
 import * as api from './api';
@@ -28,12 +28,12 @@ export function* fetchAll() {
 	}
 }
 
-export function* create({ externalise }) {
+export function* create({externalise}) {
 	const document = {
 		externaliseline_set: externalise.externaliseline_set.map(e => ({
 			...e,
 			// eslint-disable-next-line
-            amount: undefined,
+			amount: undefined,
 			cost: e.amount,
 			article: e.article.id,
 		})),
@@ -56,14 +56,29 @@ export function* createSuccess() {
 	yield put(actions.fetchAllAction());
 	yield put(push('/logistics/externalise'));
 }
-const isMoney = (str) => {console.log(str); return str.match("^[0-9]+(\\.[0-9][0-9]?)?$")};
-const validations = [
-	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => ({type:'error', text:'Memo field not long enough'})),
-	validator('memo', 'Memo', memo => memo.length < 24 ? null : () =>  ({type:'warning', text:'Memo field too long'})),
-	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && isMoney(current.amount.amount), true)  ? null : () =>  ({type:'error', text:'Some money input is invalid.'})),
-	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && current.count>0, true)  ? null : () =>  ({type:'error', text:'Some product count is invalid.'})),
-	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && current.article, true)  ? null : () =>  ({type:'error', text:'Some product is not set.'})),
 
+const isMoney = (str) => {
+	console.log(str);
+	return str.match("^[0-9]+(\\.[0-9][0-9]?)?$");
+};
+const validations = [
+	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => ({
+		type: 'error',
+		text: 'Memo field not long enough',
+	})),
+	validator('memo', 'Memo', memo => memo.length < 24 ? null : () => ({type: 'warning', text: 'Memo field too long'})),
+	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && isMoney(current.amount.amount), true) ? null : () => ({
+		type: 'error',
+		text: 'Some money input is invalid.',
+	})),
+	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && current.count > 0, true) ? null : () => ({
+		type: 'error',
+		text: 'Some product count is invalid.',
+	})),
+	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && current.article, true) ? null : () => ({
+		type: 'error',
+		text: 'Some product is not set.',
+	})),
 ];
 
 export function* externalizeValidator() {
