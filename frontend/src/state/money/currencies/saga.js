@@ -3,14 +3,11 @@ import { push } from 'react-router-redux';
 
 import * as actions from './actions.js';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
-import * as api from '../../../api';
+import * as api from './api';
 
 function* fetchAllCurrencies({ redirectTo }) {
 	try {
-		const currencies = yield (yield call(
-			api.get,
-			'/money/currency/',
-		)).json();
+		const currencies = yield (yield call(api.getAll)).json();
 
 		yield put(actions.fetchAllCurrenciesDone(currencies));
 		if (redirectTo) {
@@ -25,10 +22,7 @@ function* fetchAllCurrencies({ redirectTo }) {
 
 function* fetchCurrency({ id }) {
 	try {
-		const newCurrency = yield (yield call(
-			api.get,
-			`/money/currency/${id}/`,
-		)).json();
+		const newCurrency = yield (yield call(api.get, id)).json();
 
 		yield put(actions.fetchCurrencyDone(newCurrency));
 	} catch (e) {
@@ -42,11 +36,7 @@ function* createCurrency({ currency }) {
 	const document = { ...currency };
 
 	try {
-		const newCurrency = yield (yield call(
-			api.post,
-			'/money/currency/',
-			document,
-		)).json();
+		const newCurrency = yield (yield call(api.post, document)).json();
 
 		yield put(actions.createCurrencyDone(newCurrency));
 		yield put(actions.fetchAllCurrencies(`/money/currency/${newCurrency.iso}`));
@@ -61,11 +51,7 @@ function* updateCurrency({ currency }) {
 	const document = { ...currency };
 
 	try {
-		const newCurrency = yield (yield call(
-			api.put,
-			`/money/currency/${currency.iso}/`,
-			document,
-		)).json();
+		const newCurrency = yield (yield call(api.put, currency.iso, document)).json();
 
 		yield put(actions.updateCurrencyDone(newCurrency));
 		yield put(actions.fetchAllCurrencies(`/money/currency/${newCurrency.iso}`));
@@ -80,11 +66,8 @@ function* deleteCurrency({ currency }) {
 	const document = { ...currency };
 
 	try {
-		const newCurrency = yield (yield call(
-			api.del,
-			`/money/currency/${currency.iso}/`,
-			document,
-		)).json();
+		// TODO: Check if document is really needed here
+		const newCurrency = yield (yield call(api.del, currency.iso, document)).json();
 
 		yield put(actions.deleteCurrencyDone(newCurrency));
 		yield put(actions.fetchAllCurrencies(`/money/currency/${newCurrency.iso}`));

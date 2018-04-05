@@ -3,14 +3,11 @@ import { push } from 'react-router-redux';
 
 import * as actions from './actions.js';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
-import * as api from '../../../api';
+import * as api from './api';
 
 function* fetchAllLabelTypes({ redirectTo }) {
 	try {
-		const labelType = yield (yield call(
-			api.get,
-			'/assortment/labeltypes/',
-		)).json();
+		const labelType = yield (yield call(api.getAll)).json();
 
 		yield put(actions.fetchAllLabelTypesDone(labelType));
 		if (redirectTo) {
@@ -25,10 +22,7 @@ function* fetchAllLabelTypes({ redirectTo }) {
 
 function* fetchLabelType({ id }) {
 	try {
-		const newLabelType = yield (yield call(
-			api.get,
-			`/assortment/labeltypes/${id}`,
-		)).json();
+		const newLabelType = yield (yield call(api.get, id)).json();
 
 		yield put(actions.fetchLabelTypeDone(newLabelType));
 	} catch (e) {
@@ -42,11 +36,7 @@ function* createLabelType({ labelType }) {
 	const document = { ...labelType };
 
 	try {
-		const newLabelType = yield (yield call(
-			api.post,
-			'/assortment/labeltypes/',
-			document,
-		)).json();
+		const newLabelType = yield (yield call(api.post, document)).json();
 
 		yield put(actions.createLabelTypeDone(newLabelType));
 		yield put(actions.fetchAllLabelTypes('/assortment/'));
@@ -61,11 +51,7 @@ function* updateLabelType({ labelType }) {
 	const document = { ...labelType };
 
 	try {
-		const newLabelType = yield (yield call(
-			api.put,
-			`/assortment/labeltypes/${labelType.id}/`,
-			document,
-		)).json();
+		const newLabelType = yield (yield call(api.put, labelType.id, document)).json();
 
 		yield put(actions.updateLabelTypeDone(newLabelType));
 		yield put(actions.fetchAllLabelTypes('/assortment/'));
@@ -80,11 +66,7 @@ function* deleteLabelType({ labelType }) {
 	const document = { ...labelType };
 
 	try {
-		const newLabelType = yield (yield call(
-			api.del,
-			`/assortment/labeltypes/${labelType.id}/`,
-			document,
-		)).json();
+		const newLabelType = yield (yield call(api.del, labelType.id, document)).json();
 
 		yield put(actions.deleteLabelTypeDone(newLabelType));
 		yield put(actions.fetchAllLabelTypes(`/assortment/`));
