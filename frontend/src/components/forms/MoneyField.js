@@ -1,11 +1,11 @@
 import React from 'react';
 import fetchAllCurrencies from '../../state/money/currencies/actions';
 
-import {connect} from 'react-redux';
-import Form from "./Form";
-import PropTypes from "prop-types";
-import {FormControl, FormGroup, InputGroup} from "react-bootstrap";
-import {getCurrencyByIso} from "../../state/money/currencies/selectors";
+import { connect } from 'react-redux';
+import Form from './Form';
+import PropTypes from 'prop-types';
+import { FormControl, FormGroup, InputGroup } from 'react-bootstrap';
+import { getCurrencyByIso } from '../../state/money/currencies/selectors';
 
 export class MoneyField extends React.Component {
 	componentDidMount() {
@@ -20,9 +20,8 @@ export class MoneyField extends React.Component {
 						<InputGroup.Addon>{this.props.currencyObj.symbol}</InputGroup.Addon>
 						<FormControl
 							type="text"
-							onChange={(event) => this.props.onChange(event.target.value.replace(",", "."))}
-							name={this.props.name}
-						/>
+							onChange={event => this.props.onChange(event.target.value.replace(',', '.'))}
+							name={this.props.name} />
 					</InputGroup>
 				</FormGroup>
 			</div>
