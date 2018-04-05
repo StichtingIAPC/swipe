@@ -1,10 +1,12 @@
-import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import { call, put, takeEvery, takeLatest, select } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import store from '../../store';
 
 import * as api from './api';
 import * as actions from './actions';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
+import { getExternalisationActiveObject } from './selectors';
+import { validate, validator } from '../../../tools/validations/validators';
 
 export function* fetchAll() {
 	try {
@@ -31,7 +33,7 @@ export function* create({ externalise }) {
 		externaliseline_set: externalise.externaliseline_set.map(e => ({
 			...e,
 			// eslint-disable-next-line
-			amount: undefined,
+            amount: undefined,
 			cost: e.amount,
 			article: e.article.id,
 		})),
@@ -55,7 +57,19 @@ export function* createSuccess() {
 	yield put(push('/logistics/externalise'));
 }
 
+const validations = [
+	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => 'Memo field not long enough'),
+	validator('memo', 'Memo', memo => memo.length < 9 ? null : () => 'Memo field too long'),
+];
+
+export function* externalizeValidator() {
+	const current = yield select(getExternalisationActiveObject);
+	const res = validate(current, validations);
+	yield put(actions.setValidations(res));
+}
+
 export default function* saga() {
+	yield takeEvery(actions.SET_FIELD_ACTION, externalizeValidator);
 	yield takeLatest(actions.FETCH_ALL_ACTION, fetchAll);
 	yield takeEvery(actions.CREATE_ACTION, create);
 	yield takeLatest(actions.CREATE_SUCCESS, createSuccess);
