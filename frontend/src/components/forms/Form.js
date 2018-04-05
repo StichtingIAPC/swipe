@@ -19,15 +19,26 @@ export default class Form extends React.Component {
 						<React.Fragment>
 							{
 								this.props.returnLink ?
-									<Link to={this.props.returnLink} className="btn btn-default btn-sm"
-										  title="Return"><FontAwesome icon="arrow-left"/></Link> : null
+									<Link
+										to={this.props.returnLink}
+										className="btn btn-default btn-sm"
+										title="Return">
+										<FontAwesome
+											icon="arrow-left"/>
+									</Link> : null
 							}
-							<a onClick={this.props.onReset} className="btn btn-warning btn-sm"
-							   title="Reset"><FontAwesome icon="repeat"/></a>
+							<a
+								onClick={this.props.onReset}
+								className="btn btn-warning btn-sm"
+								title="Reset">
+								<FontAwesome icon="repeat" />
+							</a>
 							{
 								this.props.closeLink ? (
-									<Link to={this.props.closeLink} className="btn btn-default btn-sm"
-										  title="Close"><FontAwesome icon="close"/></Link>
+									<Link
+										to={this.props.closeLink}
+										className="btn btn-default btn-sm"
+										title="Close"><FontAwesome icon="close"/></Link>
 								) : null
 							}
 						</React.Fragment>
