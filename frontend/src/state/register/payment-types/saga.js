@@ -1,6 +1,6 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { get, post, put as api_put } from '../../../api.js';
+import * as api from './api';
 import {
 	doneFetchingPaymentTypes,
 	paymentTypeFetchError,
@@ -12,10 +12,7 @@ function* fetchPaymentTypes({ redirectTo } = {}) {
 	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			get,
-			'/register/paymenttypes/',
-		)).json();
+		const data = yield (yield call(api.getAll)).json();
 
 		yield put(doneFetchingPaymentTypes(data));
 		if (redirectTo) {
@@ -38,11 +35,7 @@ function* createPaymentType({ paymentType } = {}) {
 	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			post,
-			'/register/paymenttypes/',
-			document,
-		)).json();
+		const data = yield (yield call(api.post, document)).json();
 
 		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {
@@ -62,11 +55,7 @@ function* updatePaymentType({ paymentType } = {}) {
 	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			api_put,
-			`/register/paymenttypes/${paymentType.id}/`,
-			document,
-		)).json();
+		const data = yield (yield call(api.put, document)).json();
 
 		yield put(startFetchingPaymentTypes({ redirectTo: `/register/paymenttype/${data.id}/` }));
 	} catch (e) {

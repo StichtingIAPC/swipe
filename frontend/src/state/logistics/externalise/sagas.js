@@ -2,19 +2,15 @@ import { call, put, takeEvery, takeLatest, select } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import store from '../../store';
 
-import * as api from '../../../api';
+import * as api from './api';
 import * as actions from './actions';
-
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 import { getExternalisationActiveObject } from './selectors';
 import { validate, validator } from '../../../tools/validations/validators';
 
 export function* fetchAll() {
 	try {
-		const externalizations = yield (yield call(
-			api.get,
-			'/externalise/',
-		)).json();
+		const externalizations = yield (yield call(api.getAll)).json();
 
 		const exts = [].concat.apply([], externalizations.map(e => e.externaliseline_set.map(en => ({
 			memo: e.memo,
@@ -25,7 +21,7 @@ export function* fetchAll() {
 
 		yield put(actions.fetchAllSuccess(exts));
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 		yield put(actions.fetchAllError(e));
 	} finally {
 		yield put(actions.fetchAllFinally());
@@ -46,11 +42,7 @@ export function* create({ externalise }) {
 	};
 
 	try {
-		const newExternalise = yield (yield call(
-			api.post,
-			'/externalise/',
-			document,
-		)).json();
+		const newExternalise = yield (yield call(api.post, document)).json();
 
 		yield put(actions.createSuccess(newExternalise));
 	} catch (e) {
