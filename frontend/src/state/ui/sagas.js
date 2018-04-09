@@ -27,5 +27,4 @@ export function* toastAction(action) {
 export default function* saga() {
 	yield takeEvery(actions.ARE_YOU_SURE_ACTION, areYouSureSaga);
 	yield takeEvery(actions.TOAST_ACTION, toastAction);
-
 }
