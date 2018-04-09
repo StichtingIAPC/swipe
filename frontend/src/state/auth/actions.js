@@ -1,3 +1,5 @@
+import {ARE_YOU_SURE_ACTION, areYouSureAction} from "../ui/actions";
+
 export function startLogin(username, password) {
 	return {
 		type: 'AUTH_START_LOGIN',
@@ -30,8 +32,12 @@ export function loginError(error) {
 	};
 }
 
-export function logout() {
+export function directLogout() {
 	return { type: 'AUTH_START_LOGOUT' };
+}
+
+export function logout() {
+	return areYouSureAction(directLogout(), "Are you sure you want to log out?", "Logout succesful!", "");
 }
 
 export function logoutSuccess() {
