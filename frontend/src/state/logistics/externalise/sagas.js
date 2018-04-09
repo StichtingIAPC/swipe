@@ -6,7 +6,7 @@ import * as api from './api';
 import * as actions from './actions';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 import { getExternalisationActiveObject } from './selectors';
-import { validate, validator } from '../../../tools/validations/validators';
+import { isMoney, validate, validator } from '../../../tools/validations/validators';
 
 export function* fetchAll() {
 	try {
@@ -57,9 +57,6 @@ export function* createSuccess() {
 	yield put(push('/logistics/externalise'));
 }
 
-const isMoney = (str) => {
-	return str.match("^[0-9]{1,16}(\\.[0-9]{1,5})?$");
-};
 const validations = [
 	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => ({
 		type: 'error',

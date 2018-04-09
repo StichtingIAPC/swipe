@@ -36,3 +36,12 @@ export const hasError = (state) => {
 	}
 	return false;
 };
+
+/**
+ * Asserts that something is indeed a valid money string
+ * @param str String: the string
+ * @returns boolean
+ */
+export const isMoney = (str) => {
+	return str.match("^[0-9]{1,16}(\\.[0-9]{1,5})?$");
+};
