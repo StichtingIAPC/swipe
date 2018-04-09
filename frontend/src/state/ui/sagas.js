@@ -19,12 +19,12 @@ export function* areYouSureSaga(action) {
 	}
 }
 
-export function* toastAction(action) {
+export function* toastSaga(action) {
 	if (action.text !== "")
 		yield swal(action.text);
 }
 
 export default function* saga() {
 	yield takeEvery(actions.ARE_YOU_SURE_ACTION, areYouSureSaga);
-	yield takeEvery(actions.TOAST_ACTION, toastAction);
+	yield takeEvery(actions.TOAST_ACTION, toastSaga);
 }
