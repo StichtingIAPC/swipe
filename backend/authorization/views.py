@@ -52,6 +52,7 @@ class Login(ObtainAuthToken):
         return Response({
             'token': token.key,
             'user': {
+                'id': user.id,
                 'username': user.username,
                 'permissions': user.get_all_permissions(),
                 'gravatarUrl': 'https://www.gravatar.com/avatar/' + m.hexdigest(),
@@ -91,6 +92,7 @@ class Validate(View):
                 'valid': True,
                 'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
                 'user': {
+                    'id': user.id,
                     'username': user.username,
                     'permissions': user.get_all_permissions(),
                     'gravatarUrl': 'https://www.gravatar.com/avatar/' + m.hexdigest(),

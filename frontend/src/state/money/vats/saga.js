@@ -3,14 +3,11 @@ import { push } from 'react-router-redux';
 
 import * as actions from './actions.js';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
-import * as api from '../../../api';
+import * as api from './api';
 
 function* fetchAllvats({ redirectTo }) {
 	try {
-		const vats = yield (yield call(
-			api.get,
-			'/money/vat/',
-		)).json();
+		const vats = yield (yield call(api.getAll)).json();
 
 		yield put(actions.fetchAllvatsDone(vats));
 		if (redirectTo) {
@@ -25,10 +22,7 @@ function* fetchAllvats({ redirectTo }) {
 
 function* fetchvat({ id }) {
 	try {
-		const newvat = yield (yield call(
-			api.get,
-			`/money/vat/${id}/`,
-		)).json();
+		const newvat = yield (yield call(api.get, id)).json();
 
 		yield put(actions.fetchvatDone(newvat));
 	} catch (e) {
@@ -42,11 +36,7 @@ function* createvat({ vat }) {
 	const document = { ...vat };
 
 	try {
-		const newvat = yield (yield call(
-			api.post,
-			'/money/vat/',
-			document,
-		)).json();
+		const newvat = yield (yield call(api.post, document)).json();
 
 		yield put(actions.createvatDone(newvat));
 		yield put(actions.fetchAllvats(`/money/vat/${newvat.id}/`));
@@ -61,11 +51,7 @@ function* updatevat({ vat }) {
 	const document = { ...vat };
 
 	try {
-		const newvat = yield (yield call(
-			api.put,
-			`/money/vat/${vat.id}/`,
-			document,
-		)).json();
+		const newvat = yield (yield call(api.put, vat.id, document)).json();
 
 		yield put(actions.updatevatDone(newvat));
 		yield put(actions.fetchAllvats(`/money/vat/${newvat.id}/`));
@@ -80,11 +66,7 @@ function* deletevat({ vat }) {
 	const document = { ...vat };
 
 	try {
-		const newvat = yield (yield call(
-			api.del,
-			`/money/vat/${vat.id}/`,
-			document,
-		)).json();
+		const newvat = yield (yield call(api.del, vat.id, document)).json();
 
 		yield put(actions.deletevatDone(newvat));
 		yield put(actions.fetchAllvats(`/money/vat/${newvat.id}/`));

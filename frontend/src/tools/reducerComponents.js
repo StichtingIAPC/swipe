@@ -23,6 +23,43 @@ export const objectControlReducer = (setFieldTypes, defaultValue) =>
 		return state;
 	};
 
+export const pathControlReducer = (setFieldTypes, defaultValue) =>
+	(state = defaultValue, action) => {
+		if (setFieldTypes.includes(action.type) && state[action.field] !== action.value) {
+			const fields = action.field.split('.');
+
+			if (fields.reduce((s = {}, f) => s[f], state) === action.value) {
+				return state;
+			}
+
+			const newState = Object.assign({}, state);
+			let temp = newState;
+
+			// eslint-disable-next-line
+			for (let i = 0; i < fields.length; i++) {
+				if (i === fields.length - 1) {
+					if (temp[fields[i]] === action.value) {
+						return state;
+					}
+					temp[fields[i]] = action.value;
+					return newState;
+				}
+				temp[fields[i]] = Object.assign({}, temp[fields[i]]);
+				if (!temp[fields[i]]) {
+					temp[fields[i]] = {};
+				}
+				temp = temp[fields[i]];
+			}
+
+			return {
+				...state,
+				[action.field]: action.value,
+			};
+		}
+		return state;
+	};
+
+
 // give an object of actionType=>boolean for setting this boolean in a composed state
 export const booleanControlReducer = (types, defaultValue) =>
 	(state = defaultValue, action) => {

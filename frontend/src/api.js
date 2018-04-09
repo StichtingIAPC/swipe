@@ -14,10 +14,6 @@ export function setToken(token) {
 	listeners = [];
 }
 
-export function __getTokenDangerous() {
-	return TOKEN;
-}
-
 export function getToken() {
 	return new Promise(
 		accept => {
@@ -34,7 +30,7 @@ export function __unsafeGetToken() {
 	return TOKEN;
 }
 
-async function request(method, url, { headers = {}, ...rest } = {}, object) {
+async function request(method, url, object) {
 	const token = await getToken();
 	const result = await fetch(
 		config.backendUrl + url,
@@ -43,10 +39,8 @@ async function request(method, url, { headers = {}, ...rest } = {}, object) {
 			headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Token ${token}`,
-				...headers,
 			},
 			body: object ? JSON.stringify(object) : undefined,
-			...rest,
 		}
 	);
 
@@ -56,23 +50,7 @@ async function request(method, url, { headers = {}, ...rest } = {}, object) {
 	throw result.json();
 }
 
-export function get(url, info) {
-	return request('GET', url, info);
-}
 
-export function post(url, object, info) {
-	return request('POST', url, info, object);
-}
-
-export function put(url, object, info) {
-	return request('PUT', url, info, object);
-}
-
-/* named `del` as `delete` is a keyword in js */
-export function del(url, object, info) {
-	return request('DELETE', url, info, object);
-}
-
-export function patch(url, object, info) {
-	return request('PATCH', url, info, object);
+export default function api(method, endpoint, body) {
+	return request(method, endpoint, body);
 }
