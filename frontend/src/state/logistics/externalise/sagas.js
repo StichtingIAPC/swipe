@@ -59,7 +59,7 @@ export function* createSuccess() {
 
 const isMoney = (str) => {
 	console.log(str);
-	return str.match("^[0-9]+(\\.[0-9][0-9]?)?$");
+	return str.match("^[0-9]{1,16}(\\.[0-9][0-9]?[0-9]?[0-9]?[0-9]?)?$");
 };
 const validations = [
 	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => ({
