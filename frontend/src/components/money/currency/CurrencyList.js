@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { fetchAllCurrencies } from '../../../state/money/currencies/actions.js';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import Box from '../../base/Box';
+import { Box } from 'reactjs-admin-lte';
 
 /**
  * Created by Matthias on 26/11/2016.
