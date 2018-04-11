@@ -6,8 +6,8 @@ import { Box } from 'reactjs-admin-lte';
 import { Button, ButtonGroup } from 'react-bootstrap';
 
 /**
- * Provides a simple box which accepts a form. Also supports displaying an error and can change box type depending on
- * the presence of warnings or errors.
+ * Provides a simple box which acts as a container, most likely for forms. Also supports displaying an error and can
+ * change box type depending on the presence of warnings or errors.
  *
  * @prop children: PropTypes.node.isRequired
  *      All content to be displayed in the from. This should contain at least the form.
@@ -17,7 +17,7 @@ import { Button, ButtonGroup } from 'react-bootstrap';
  *      An optional close button will use this as a 'to' prop in 'Link' component.
  * @prop title: PropTypes.string.isRequired
  *      The title of the form.
- * @prop onReset: PropTypes.func.isRequired
+ * @prop onReset: PropTypes.func
  *      This should clear the content of the form and is called when the reset button is pressed.
  * @prop error: PropTypes.string
  *      This will be displayed as an error below the form and change the box style to 'danger'.
@@ -26,7 +26,7 @@ import { Button, ButtonGroup } from 'react-bootstrap';
  * @prop hasWarnings: PropTypes.bool
  *      This will change the box style to 'warning'. Use this make the box change with form validations.
  */
-export default class Form extends React.Component {
+export default class Card extends React.Component {
 	onSubmit = event => {
 		event.preventDefault();
 		return this.props.onSubmit(event);
@@ -34,6 +34,7 @@ export default class Form extends React.Component {
 
 	render() {
 		return <Box
+			// eslint-disable-next-line no-nested-ternary
 			style={this.props.error || this.props.hasErrors ? 'danger' : this.props.hasWarnings ? 'warning' : 'primary'}>
 			<Box.Header>
 				<Box.Title>{this.props.title}</Box.Title>
@@ -49,13 +50,17 @@ export default class Form extends React.Component {
 								</Link>
 							) : null
 						}
-						<Button
-							bsSize="small"
-							bsStyle="warning"
-							title="Reset"
-							onClick={this.props.onReset}>
-							<FontAwesome icon="repeat" />
-						</Button>
+						{
+							this.props.onReset ? (
+								<Button
+									bsSize="small"
+									bsStyle="warning"
+									title="Reset"
+									onClick={this.props.onReset}>
+									<FontAwesome icon="repeat" />
+								</Button>
+							) : null
+						}
 						{
 							this.props.closeLink ? (
 								<Link
@@ -82,12 +87,12 @@ export default class Form extends React.Component {
 	}
 }
 
-Form.propTypes = {
+Card.propTypes = {
 	children: PropTypes.node.isRequired,
 	returnLink: PropTypes.string,
 	closeLink: PropTypes.string,
 	title: PropTypes.string.isRequired,
-	onReset: PropTypes.func.isRequired,
+	onReset: PropTypes.func,
 	error: PropTypes.string,
 	hasErrors: PropTypes.bool,
 	hasWarnings: PropTypes.bool,
