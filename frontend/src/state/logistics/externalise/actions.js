@@ -1,4 +1,6 @@
 export const FETCH_ALL_ACTION = 'logistics/externalise/fetchAll';
+export const SET_LOADING_ACTION = 'logistics/externalise/loading';
+
 export const FETCH_ALL_SUCCESS = 'logistics/externalise/fetchAll/success';
 export const FETCH_ALL_ERROR = 'logistics/externalise/fetchAll/error';
 export const SET_VALIDATIONS = 'logistics/externalise/validations';
@@ -11,6 +13,7 @@ export const CREATE_FINALLY = 'logistics/externalise/create/finally';
 
 export const NEW_ACTION = 'logistics/externalise/new';
 export const SET_FIELD_ACTION = 'logistics/externalise/setField';
+
 
 export const fetchAllAction = () => ({ type: FETCH_ALL_ACTION });
 export const fetchAllSuccess = externalisations => ({ type: FETCH_ALL_SUCCESS,
@@ -31,6 +34,9 @@ export const createError = error => ({ type: CREATE_ERROR,
 export const createFinally = () => ({ type: CREATE_FINALLY });
 
 export const newAction = () => ({ type: NEW_ACTION });
+
+export const setLoadingAction = () => ({ type: SET_LOADING_ACTION });
+
 export const setFieldAction = (field, value) => ({ type: SET_FIELD_ACTION,
 	field,
 	value });
