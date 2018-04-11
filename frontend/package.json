@@ -49,7 +49,8 @@
     "reactjs-admin-lte": "^0.6.0",
     "redux": "^3.6.0",
     "redux-saga": "^0.15.3",
-    "reselect": "^3.0.1"
+    "reselect": "^3.0.1",
+    "sweetalert": "^2.1.0"
   },
   "devDependencies": {
     "babel-core": "^6.24.1",
