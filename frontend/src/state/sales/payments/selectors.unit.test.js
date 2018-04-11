@@ -3,7 +3,7 @@
 
 import { getPaymentsOnReceipt, getPaymentTypes } from './selectors';
 describe('Testing selector for state.payments', () => {
-	test('addPaymentType', () => {
+	test('setAmountOfPaymentType', () => {
 		const state = { register: { paymentTypes: { paymentTypes: [ 'maestro' ]}}};
 		expect(getPaymentTypes(state)).toEqual([ 'maestro' ]);
 	});

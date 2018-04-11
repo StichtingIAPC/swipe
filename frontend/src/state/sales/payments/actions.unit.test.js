@@ -4,12 +4,12 @@ import {
 	ADD_PAYMENT_TYPE_TO_RECEIPT,
 	REMOVE_PAYMENT_TYPE_FROM_RECEIPT,
 	removePaymentType,
-	addPaymentType
+	setAmountOfPaymentType
 } from './actions';
 
 describe('Action tests for sales.payments', () => {
-	test('addPaymentType', () => {
-		expect(addPaymentType('MAESTRO', 4)).toEqual({ type: ADD_PAYMENT_TYPE_TO_RECEIPT,
+	test('setAmountOfPaymentType', () => {
+		expect(setAmountOfPaymentType('MAESTRO', 4)).toEqual({ type: ADD_PAYMENT_TYPE_TO_RECEIPT,
 			paymentType: 'MAESTRO',
 			amount: 4 });
 	});

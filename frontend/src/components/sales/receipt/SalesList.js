@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
 import { articles } from '../../../state/assortment/articles/actions';
-import { addToSalesListAction } from '../../../state/sales/sales/actions';
+import { mutateSalesLineOfArticle } from '../../../state/sales/sales/actions';
 import { stock } from '../../../state/stock/actions';
 import Totals from './Totals';
 import Box from '../../base/Box';
@@ -53,7 +53,7 @@ export default connect(
 	})
 	,
 	{
-		addArticle: addToSalesListAction,
+		addArticle: mutateSalesLineOfArticle,
 		dispatch: args => args,
 	}
 )(SalesList);

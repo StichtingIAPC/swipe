@@ -4,9 +4,9 @@ import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 import * as api from '../../../api';
 import { SALES_COMMIT_CREATE, salesCommitCreateDone, salesCommitCreateFailed, salesCommitCreateFinally } from './actions';
 import { takeEvery } from 'redux-saga';
-import { getPaymentsOnReceiptAsList } from "../payments/selectors";
-import {getSales} from "../sales/selectors";
-import {getCurrentUser} from "../../auth/selectors";
+import { getPaymentsOnReceiptAsList } from '../payments/selectors';
+import { getSales } from '../sales/selectors';
+import { getCurrentUser } from '../../auth/selectors';
 
 function* createSalesTransaction() {
 	console.log((yield select(getCurrentUser)).id);
@@ -15,10 +15,12 @@ function* createSalesTransaction() {
 		transactionlines: yield select(getSales),
 		user: (yield select(getCurrentUser)).id,
 	};
+
 	console.log(document);
 	try {
 		const result = yield (yield call(
-			api.post,
+			api,
+			'POST',
 			'/sales/transactions/create/',
 			document,
 		)).json();

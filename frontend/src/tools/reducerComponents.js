@@ -63,7 +63,9 @@ export const pathControlReducer = (setFieldTypes, defaultValue) =>
 // give an object of actionType=>boolean for setting this boolean in a composed state
 export const booleanControlReducer = (types, defaultValue) =>
 	(state = defaultValue, action) => {
-		if (typeof types[action.type] !== 'undefined') {
+		if (types[action.type] === 'toggle') {
+			return !state;
+		} else if (typeof types[action.type] !== 'undefined') {
 			return types[action.type];
 		}
 		return state;

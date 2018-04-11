@@ -1,14 +1,27 @@
 /* eslint-disable no-undefined */
-import { ADD_PAYMENT_TYPE_TO_RECEIPT, REMOVE_PAYMENT_TYPE_FROM_RECEIPT } from './actions';
-const initialState = {};
+import {
+	RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT,
+	SET_AMOUNT_OF_PAYMENT_TYPE_ON_RECEIPT,
+	TOGGLE_SPLIT_PAYMENT
+} from './actions';
+import {
+	booleanControlReducer, collectReducers, objectControlReducer,
+	resetFieldReducer
+} from '../../../tools/reducerComponents';
+import { combineReducers } from 'redux';
 
-export default function payments(state = initialState, action) {
-	console.log(action.paymentType)
-	if (action.type === ADD_PAYMENT_TYPE_TO_RECEIPT) {
-		return { ...state, [action.paymentType.name]: action.amount };
-	}
-	if (action.type === REMOVE_PAYMENT_TYPE_FROM_RECEIPT) {
-		return { ...state, [action.paymentType.name]: undefined };
-	}
-	return state;
-}
+export default combineReducers({
+	paymentTypes: collectReducers(
+		objectControlReducer(
+			[ SET_AMOUNT_OF_PAYMENT_TYPE_ON_RECEIPT ],
+			{}
+		),
+		resetFieldReducer(
+			[ RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT ],
+			{}
+		)),
+	paymentIsSplit: booleanControlReducer({
+		[TOGGLE_SPLIT_PAYMENT]: 'toggle',
+	},
+	false),
+});

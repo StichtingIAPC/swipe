@@ -72,7 +72,6 @@ export class MoneyField extends React.Component {
 	}
 
 	componentDidMount() {
-		console.log("In did mount");
 		this.props.fetchCurrencies();
 	}
 

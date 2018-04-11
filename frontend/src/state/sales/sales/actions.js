@@ -1,15 +1,14 @@
-export const SALES_ADD_PRODUCT = 'sales/add/product';
+export const SALES_MUTATE_SALES_LINE = 'sales/add/product';
 
-export function addToSalesList(article, count, currentAmount) {
+export function mutateSalesLineOfArticle(article, amount) {
 	return {
-		type: SALES_ADD_PRODUCT,
+		type: SALES_MUTATE_SALES_LINE,
 		article,
-		count,
-		currentAmount,
+		amount,
 	};
 }
 
 export {
-	addToSalesList as addToSalesListAction
+	mutateSalesLineOfArticle as mutateSalesLineOfArticleAction
 };
 

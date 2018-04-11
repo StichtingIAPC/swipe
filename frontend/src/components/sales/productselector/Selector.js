@@ -5,7 +5,7 @@ import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequ
 import { articles } from '../../../state/assortment/articles/actions';
 import { stock } from '../../../state/stock/actions';
 import { getStock } from '../../../state/assortment/articles/selectors';
-import { addToSalesListAction } from '../../../state/sales/sales/actions';
+import { mutateSalesLineOfArticle } from '../../../state/sales/sales/actions';
 import SelectorLine from "./SelectorLine";
 
 class Selector extends React.Component {
@@ -48,7 +48,7 @@ export default connect(
 		stock: getStock(state),
 	}),
 	{
-		addArticle: addToSalesListAction,
+		addArticle: mutateSalesLineOfArticle,
 		dispatch: args => args,
 	}
 )(Selector);

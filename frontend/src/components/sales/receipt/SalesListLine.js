@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import { getArticleNameById, getCount } from '../../../state/assortment/articles/selectors';
-import { addToSalesListAction } from '../../../state/sales/sales/actions';
+import { mutateSalesLineOfArticle } from '../../../state/sales/sales/actions';
 import MoneyAmount from '../../money/MoneyAmount';
 
 class SelectorLine extends React.Component {
@@ -28,7 +28,7 @@ export default connect(
 		name: getArticleNameById(state, props.stockLine.article),
 	}),
 	{
-		addArticle: addToSalesListAction,
+		addArticle: mutateSalesLineOfArticle,
 		dispatch: args => args,
 	}
 )(SelectorLine);
