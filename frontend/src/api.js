@@ -1,5 +1,5 @@
 /* eslint-disable no-undefined */
-import fetch from 'isomorphic-fetch';
+import fetch from 'node-fetch';
 import config from './config';
 
 let TOKEN = null;
@@ -32,7 +32,7 @@ export function __unsafeGetToken() {
 
 async function request(method, url, object) {
 	const token = await getToken();
-	const result = await fetch(
+	const result = await fetch(new Request(
 		config.backendUrl + url,
 		{
 			method,
