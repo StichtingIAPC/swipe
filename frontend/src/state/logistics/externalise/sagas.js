@@ -1,12 +1,12 @@
-import { call, put, takeEvery, takeLatest, select } from 'redux-saga/effects';
-import { push } from 'react-router-redux';
+import {call, put, takeEvery, takeLatest, select} from 'redux-saga/effects';
+import {push} from 'react-router-redux';
 import store from '../../store';
 
 import * as api from './api';
 import * as actions from './actions';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 import { getExternalisationActiveObject } from './selectors';
-import { validate, validator } from '../../../tools/validations/validators';
+import { isMoney, validate, validator } from '../../../tools/validations/validators';
 
 export function* fetchAll() {
 	try {
@@ -28,12 +28,12 @@ export function* fetchAll() {
 	}
 }
 
-export function* create({ externalise }) {
+export function* create({externalise}) {
 	const document = {
 		externaliseline_set: externalise.externaliseline_set.map(e => ({
 			...e,
 			// eslint-disable-next-line
-            amount: undefined,
+			amount: undefined,
 			cost: e.amount,
 			article: e.article.id,
 		})),
@@ -58,8 +58,23 @@ export function* createSuccess() {
 }
 
 const validations = [
-	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => 'Memo field not long enough'),
-	validator('memo', 'Memo', memo => memo.length < 9 ? null : () => 'Memo field too long'),
+	validator('memo', 'Memo', memo => memo.length > 3 ? null : () => ({
+		type: 'error',
+		text: 'Memo field not long enough',
+	})),
+	validator('memo', 'Memo', memo => memo.length < 24 ? null : () => ({type: 'warning', text: 'Memo field too long'})),
+	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && isMoney(current.amount.amount), true) ? null : () => ({
+		type: 'error',
+		text: 'Some money input is invalid.',
+	})),
+	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && current.count > 0, true) ? null : () => ({
+		type: 'error',
+		text: 'Some product count is invalid.',
+	})),
+	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && current.article, true) ? null : () => ({
+		type: 'error',
+		text: 'Some product is not set.',
+	})),
 ];
 
 export function* externalizeValidator() {
@@ -70,6 +85,8 @@ export function* externalizeValidator() {
 
 export default function* saga() {
 	yield takeEvery(actions.SET_FIELD_ACTION, externalizeValidator);
+	yield takeEvery(actions.CREATE_ACTION, externalizeValidator);
+
 	yield takeLatest(actions.FETCH_ALL_ACTION, fetchAll);
 	yield takeEvery(actions.CREATE_ACTION, create);
 	yield takeLatest(actions.CREATE_SUCCESS, createSuccess);

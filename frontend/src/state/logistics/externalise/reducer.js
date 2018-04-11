@@ -17,6 +17,7 @@ import {
 
 const defaultExternalisation = {
 	id: null,
+	memo: '',
 	externaliseline_set: [],
 };
 
