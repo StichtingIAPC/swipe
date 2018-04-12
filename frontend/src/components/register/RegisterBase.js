@@ -1,7 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route } from 'react-router-dom';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import { registers } from '../../state/register/registers/actions.js';
 import RegisterList from './register/RegisterList';
 import PaymentTypeList from './paymentType/PaymentTypeList';

@@ -1,9 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
-
 import { getSalesTotal } from '../../../state/assortment/articles/selectors';
-import { stock } from '../../../state/stock/actions';
 import MoneyAmount from '../../money/MoneyAmount';
 
 export class Totals extends React.Component {

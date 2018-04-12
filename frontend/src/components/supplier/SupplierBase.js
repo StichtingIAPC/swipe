@@ -1,15 +1,17 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Switch, Route } from 'react-router-dom';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { suppliers } from '../../state/suppliers/actions.js';
+import { Route, Switch } from 'react-router-dom';
 import SupplierList from './SupplierList';
 import SupplierEdit from './SupplierEdit';
 import SupplierDetail from './SupplierDetail';
+import { fetchAllSuppliers } from '../../state/suppliers/actions';
+import { getSupplierData, getSupplierLoading, getSupplierPopulated } from '../../state/suppliers/selectors';
 
 class SupplierBase extends React.Component {
-	componentWillMount() {
-		fetchStateRequirementsFor(this);
+	static getDerivedStateFromProps(nextProps) {
+		if (!nextProps.isPopulated && !nextProps.isLoading) {
+			nextProps.fetchExternalisations();
+		}
 	}
 
 	render() {
@@ -37,5 +39,11 @@ class SupplierBase extends React.Component {
 }
 
 export default connect(
-	connectMixin({ suppliers })
+	state => ({
+		suppliers: getSupplierData(state),
+		isLoading: getSupplierLoading(state),
+		isPopulated: getSupplierPopulated(state),
+	}),
+	{ fetchSuppliers: fetchAllSuppliers },
 )(SupplierBase);
+

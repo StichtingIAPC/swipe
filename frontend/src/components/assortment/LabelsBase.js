@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import { Switch, Route } from 'react-router-dom';
 import LabelTypeList from './labeltype/LabelTypeList';
 import UnitTypeList from './unittype/UnitTypeList';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import { labelTypes } from '../../state/assortment/label-types/actions.js';
 import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 import LabelTypeEdit from './labeltype/LabelTypeEdit';

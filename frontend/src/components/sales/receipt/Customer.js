@@ -1,6 +1,5 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
 
 class Customer extends React.Component {
 	componentWillMount() {

@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { connectMixin } from '../../core/stateRequirements';
 import { labelTypes } from '../../state/assortment/label-types/actions.js';
 import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 import AsyncSelectBox from '../base/AsyncSelectBox';

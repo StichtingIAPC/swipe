@@ -1,6 +1,5 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
 
 import { currencies } from '../../../state/money/currencies/actions.js';
 import { articles } from '../../../state/assortment/articles/actions';

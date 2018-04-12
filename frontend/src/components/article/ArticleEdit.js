@@ -8,7 +8,6 @@ import FontAwesome from '../tools/icons/FontAwesome';
 import LabelField from '../forms/LabelField';
 import LabelList from '../assortment/LabelList';
 import { fetchArticle, newArticle, setArticleField } from '../../state/assortment/articles/actions';
-import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import { accountingGroups } from '../../state/money/accounting-groups/actions';
 import { labelTypes } from '../../state/assortment/label-types/actions';
 import { unitTypes } from '../../state/assortment/unit-types/actions';
