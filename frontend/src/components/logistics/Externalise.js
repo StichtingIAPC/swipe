@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 
-import { Link, Switch, Route } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 
 import ExternaliseList from './externalise/ExternaliseList';
 import ExternaliseAdd from './externalise/ExternaliseAdd';
+import { Col, Row } from 'react-bootstrap';
 
 export default class Externalise extends Component {
 	cols = [
@@ -33,14 +34,14 @@ export default class Externalise extends Component {
 		return (
 			<Switch>
 				<Route path={`${this.props.match.path}/create`}>
-					<div className="row">
-						<div className="col-xs-8 col-md-8">
+					<Row>
+						<Col xs={8} md={8}>
 							<ExternaliseList />
-						</div>
-						<div className="col-xs-4 col-md-4">
+						</Col>
+						<Col xs={4} md={4}>
 							<ExternaliseAdd />
-						</div>
-					</div>
+						</Col>
+					</Row>
 				</Route>
 				<Route path={`${this.props.match.path}`}>
 					<ExternaliseList />

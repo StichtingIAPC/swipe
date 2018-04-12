@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createRegister, updateRegister } from '../../../state/register/registers/actions.js';
-import Form from '../../forms/Form';
+import Card from '../../base/Card';
 import { BoolField, SelectField, StringField } from '../../forms/fields';
 
 class RegisterEdit extends React.Component {
@@ -59,7 +59,7 @@ class RegisterEdit extends React.Component {
 		const updateValue = key => evt => this.setState({ [key]: evt.target.value });
 
 		return (
-			<Form
+			<Card
 				title={`${this.state.id ? 'Edit' : 'Add'} register`}
 				onSubmit={::this.submit}
 				onReset={::this.reset}
@@ -89,7 +89,7 @@ class RegisterEdit extends React.Component {
 					name="Payment type"
 					value={this.state.payment_type}
 					options={this.props.paymentTypes} />
-			</Form>
+			</Card>
 		);
 	}
 }

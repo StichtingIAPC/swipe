@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createUnitType, updateUnitType } from '../../../state/assortment/unit-types/actions.js';
-import Form from '../../forms/Form';
+import Card from '../../base/Card';
 import StringField from '../../forms/StringField';
 import SelectField from '../../forms/SelectField';
 import { incrementalTypes, valueTypes } from '../../../state/assortment/constants';
@@ -43,7 +43,7 @@ class UnitTypeEdit extends React.Component {
 		const { unitType, errorMsg, id } = this.props;
 
 		return (
-			<Form
+			<Card
 				title={`${typeof unitType.id === 'number' ? 'Edit' : 'Add'} unit type`}
 				onSubmit={this.submit}
 				onReset={this.reset}
@@ -69,7 +69,7 @@ class UnitTypeEdit extends React.Component {
 					value={unitType.incremental_type || ' '}
 					name="Incrementing using"
 					options={incrementalTypes} />
-			</Form>
+			</Card>
 		);
 	}
 }

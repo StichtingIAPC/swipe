@@ -370,7 +370,6 @@ module.exports = {
 		'react/self-closing-comp': WARN,
 		'react/style-prop-object': ERROR,
 
-		'react/jsx-boolean-value': [ ERROR, 'always' ],
 		'react/jsx-closing-bracket-location': [ ERROR, 'after-props' ],
 		'react/jsx-first-prop-new-line': [ ERROR, 'multiline' ],
 		'react/jsx-indent': [ ERROR, 'tab' ],
