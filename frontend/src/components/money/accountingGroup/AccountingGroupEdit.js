@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import Form from '../../forms/Form';
+import Card from '../../base/Card';
 import { IntegerField, SelectField, StringField } from '../../forms/fields';
 import { createAccountingGroup, updateAccountingGroup, resetAccountingGroup, fetchAccountingGroup } from '../../../state/money/accounting-groups/actions.js';
 import { setAccountingGroupField } from '../../../state/money/accounting-groups/actions';
@@ -58,7 +58,7 @@ class AccountingGroupEdit extends React.Component {
 		const { accountingGroup } = this.props;
 
 		return (
-			<Form
+			<Card
 				title={this.props.accountingGroup.id === null ? 'Create new accounting group' : `Edit ${this.props.accountingGroup.name}`}
 				onReset={this.reset}
 				onSubmit={this.save}
@@ -75,7 +75,7 @@ class AccountingGroupEdit extends React.Component {
 					name="VAT group" value={accountingGroup.vat_group}
 					onChange={this.setVatGroup} selector="id"
 					options={this.props.vats} />
-			</Form>
+			</Card>
 		);
 	}
 }

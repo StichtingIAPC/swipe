@@ -67,7 +67,7 @@ class SupplierEdit extends React.Component {
 		const urlErrorType = validation_url ? validation_url.type : 'success';
 
 		return (
-			<Card
+			<Form
 				title={`${NEW ? 'Add' : 'Edit'} supplier`}
 				onSubmit={this.submit}
 				onReset={this.reset}

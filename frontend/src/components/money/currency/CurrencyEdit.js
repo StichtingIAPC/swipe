@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { createCurrency, updateCurrency, resetCurrency, fetchCurrency, setCurrencyField } from '../../../state/money/currencies/actions.js';
-import Form from '../../forms/Form';
+import Card from '../../base/Card';
 import { CharField, IntegerField, MoneyField, StringField } from '../../forms/fields';
 import FontAwesome from '../../tools/icons/FontAwesome';
 
@@ -68,7 +68,7 @@ class CurrencyEdit extends React.Component {
 		const removeDenom = index => () => this.props.setCurrencyField('denomination_set', this.props.currency.denomination_set.filter((_, i) => i !== index));
 
 		return (
-			<Form
+			<Card
 				title={this.props.match.params.currencyID ? `Edit ${this.props.currency.name}` : 'Create new currency'}
 				onReset={this.reset}
 				onSubmit={this.props.match.params.currencyID ? this.update : this.create}
@@ -106,7 +106,7 @@ class CurrencyEdit extends React.Component {
 						<a className="btn btn-success" onClick={this.addDenomination}>Add denomination</a>
 					</div>
 				</div>
-			</Form>
+			</Card>
 		);
 	}
 }

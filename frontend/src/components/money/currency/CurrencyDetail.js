@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import Box from '../../base/Box';
+import { Box } from 'reactjs-admin-lte';
 import { fetchCurrency } from '../../../state/money/currencies/actions';
 
 /**

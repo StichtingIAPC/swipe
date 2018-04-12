@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createLabelType, updateLabelType } from '../../../state/assortment/label-types/actions.js';
-import Form from '../../forms/Form';
+import Card from '../../base/Card';
 import StringField from '../../forms/StringField';
 import SelectField from '../../forms/SelectField';
 import { fetchLabelType, setLabelTypeField } from '../../../state/assortment/label-types/actions';
@@ -36,7 +36,7 @@ class LabelTypeEdit extends React.Component {
 		const { labelType, errorMsg, unitTypes } = this.props;
 
 		return (
-			<Form
+			<Card
 				title={`${labelType.id === null ? 'Add' : 'Edit'} label type`}
 				onSubmit={this.submit}
 				onReset={this.reset}
@@ -58,7 +58,7 @@ class LabelTypeEdit extends React.Component {
 					name="Unit type"
 					options={unitTypes}
 					nameField="type_long" />
-			</Form>
+			</Card>
 		);
 	}
 }

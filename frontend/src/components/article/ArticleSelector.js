@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import articles from '../../state/assortment/articles/actions.js';
 import { labelTypes } from '../../state/assortment/label-types/actions.js';
@@ -7,7 +6,7 @@ import { unitTypes } from '../../state/assortment/unit-types/actions.js';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
 import FontAwesome from '../tools/icons/FontAwesome';
 import LabelList from '../assortment/LabelList';
-import Box from '../base/Box';
+import { Box } from 'reactjs-admin-lte';
 
 class ArticleSelector extends React.Component {
 	constructor(props) {
