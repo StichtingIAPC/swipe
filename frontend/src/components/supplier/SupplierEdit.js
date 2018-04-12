@@ -2,8 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { createSupplier, updateSupplier } from '../../state/suppliers/actions.js';
 import Card from '../base/Card';
-import Form from '../forms/Form';
-import { StringField } from '../forms/fields';
 import { fetchSupplier, newSupplier, setSupplierField } from '../../state/suppliers/actions';
 import { Button, ButtonToolbar, ControlLabel, FormControl, FormGroup, HelpBlock } from 'react-bootstrap';
 import { getSupplierActiveObject, getSupplierValidations } from '../../state/suppliers/selector';
@@ -67,7 +65,7 @@ class SupplierEdit extends React.Component {
 		const urlErrorType = validation_url ? validation_url.type : 'success';
 
 		return (
-			<Form
+			<Card
 				title={`${NEW ? 'Add' : 'Edit'} supplier`}
 				onSubmit={this.submit}
 				onReset={this.reset}
@@ -75,8 +73,6 @@ class SupplierEdit extends React.Component {
 				returnLink={NEW ? '/supplier/' : `/supplier/${supplier.id}`}
 				closeLink="/supplier/">
 				<form>
-
-
 					<FormGroup
 						controlId="formBasicText"
 						validationState={nameErrorType}>
