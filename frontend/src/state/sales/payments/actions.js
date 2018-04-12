@@ -1,7 +1,7 @@
 /* eslint-disable object-property-newline */
-export const ADD_PAYMENT_TYPE_TO_RECEIPT = 'sales/payments/paymentType/add';
-export const REMOVE_PAYMENT_TYPE_FROM_RECEIPT = 'sales/payments/paymentType/add';
+export const SALES_PAYMENT_TYPES_ADD_TO_RECEIPT = 'sales/payments/paymentType/add';
+export const SALES_PAYMENT_TYPE_REMOVE_FROM_RECEIPT = 'sales/payments/paymentType/remove';
 
-export const addPaymentType = (paymentType, amount) => ({ type: ADD_PAYMENT_TYPE_TO_RECEIPT, paymentType, amount });
-export const removePaymentType = paymentType => ({ type: REMOVE_PAYMENT_TYPE_FROM_RECEIPT, paymentType });
+export const addPaymentType = (paymentType, amount) => ({ type: SALES_PAYMENT_TYPES_ADD_TO_RECEIPT, paymentType, amount });
+export const removePaymentType = paymentType => ({ type: SALES_PAYMENT_TYPE_REMOVE_FROM_RECEIPT, paymentType });
 

@@ -1,109 +1,130 @@
-export function fetchAllLabelTypes(redirectTo) {
-	return { type: 'assortment/label-types/FETCH_ALL',
-		redirectTo };
-}
+export const ASSORTMENT_LABEL_TYPES_FETCH_ALL_START = 'assortment/label_types/fetchAll/start';
+export const ASSORTMENT_LABEL_TYPES_FETCH_ALL_SUCCESS = 'assortment/label_types/fetchAll/success';
+export const ASSORTMENT_LABEL_TYPES_FETCH_ALL_FAIL = 'assortment/label_types/fetchAll/fail';
+export const ASSORTMENT_LABEL_TYPES_FETCH_ALL_FINALLY = 'assortment/label_types/fetchAll/finally';
 
-export function fetchAllLabelTypesDone(labelTypes) {
-	return { type: 'assortment/label-types/FETCH_ALL_DONE',
-		labelTypes };
-}
+export const ASSORTMENT_LABEL_TYPES_FETCH_START = 'assortment/label_types/fetch/start';
+export const ASSORTMENT_LABEL_TYPES_FETCH_SUCCESS = 'assortment/label_types/fetch/success';
+export const ASSORTMENT_LABEL_TYPES_FETCH_FAIL = 'assortment/label_types/fetch/fail';
+export const ASSORTMENT_LABEL_TYPES_FETCH_FINALLY = 'assortment/label_types/fetch/finally';
 
-export function fetchAllLabelTypesFailed(reason) {
-	return { type: 'assortment/label-types/FETCH_ALL_FAILED',
-		reason };
-}
+export const ASSORTMENT_LABEL_TYPES_CREATE_START = 'assortment/label_types/create/start';
+export const ASSORTMENT_LABEL_TYPES_CREATE_SUCCESS = 'assortment/label_types/create/success';
+export const ASSORTMENT_LABEL_TYPES_CREATE_FAIL = 'assortment/label_types/create/fail';
+export const ASSORTMENT_LABEL_TYPES_CREATE_FINALLY = 'assortment/label_types/create/finally';
 
-export function fetchAllLabelTypesFinally() {
-	return { type: 'assortment/label-types/FETCH_ALL_FINALLY' };
-}
+export const ASSORTMENT_LABEL_TYPES_UPDATE_START = 'assortment/label_types/update/start';
+export const ASSORTMENT_LABEL_TYPES_UPDATE_SUCCESS = 'assortment/label_types/update/success';
+export const ASSORTMENT_LABEL_TYPES_UPDATE_FAIL = 'assortment/label_types/update/fail';
+export const ASSORTMENT_LABEL_TYPES_UPDATE_FINALLY = 'assortment/label_types/update/finally';
 
-export function fetchLabelType(id) {
-	return { type: 'assortment/label-types/FETCH',
-		id };
-}
+export const ASSORTMENT_LABEL_TYPES_DELETE_START = 'assortment/label_types/delete/start';
+export const ASSORTMENT_LABEL_TYPES_DELETE_SUCCESS = 'assortment/label_types/delete/success';
+export const ASSORTMENT_LABEL_TYPES_DELETE_FAIL = 'assortment/label_types/delete/fail';
+export const ASSORTMENT_LABEL_TYPES_DELETE_FINALLY = 'assortment/label_types/delete/finally';
 
-export function fetchLabelTypeDone(labelType) {
-	return { type: 'assortment/label-types/FETCH_DONE',
-		labelType };
-}
+export const ASSORTMENT_LABEL_TYPES_SET_FIELD = 'assortment/label_types/setField';
 
-export function fetchLabelTypeFailed(id, reason) {
-	return { type: 'assortment/label-types/FETCH_FAILED',
-		id,
-		reason };
-}
+export const fetchAllLabelTypesStart = redirectTo => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_ALL_START,
+	redirectTo,
+});
 
-export function fetchLabelTypeFinally() {
-	return { type: 'assortment/label-types/FETCH_FINALLY' };
-}
+export const fetchAllLabelTypesSuccess = labelTypes => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_ALL_SUCCESS,
+	labelTypes,
+});
 
-export function createLabelType(labelType) {
-	return { type: 'assortment/label-types/CREATE',
-		labelType };
-}
+export const fetchAllLabelTypesFail = reason => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_ALL_FAIL,
+	reason,
+});
 
-export function createLabelTypeDone(labelType) {
-	return { type: 'assortment/label-types/CREATE_DONE',
-		labelType };
-}
+export const fetchAllLabelTypesFinally = () => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_ALL_FINALLY,
+});
 
-export function createLabelTypeFailed(labelType, reason) {
-	return { type: 'assortment/label-types/CREATE_FAILED',
-		labelType,
-		reason };
-}
+export const fetchLabelTypeStart = id => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_START,
+	id,
+});
 
-export function createLabelTypeFinally() {
-	return { type: 'assortment/label-types/CREATE_FINALLY' };
-}
+export const fetchLabelTypeSuccess = labelType => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_SUCCESS,
+	labelType,
+});
 
-export function updateLabelType(labelType) {
-	return { type: 'assortment/label-types/UPDATE',
-		labelType };
-}
+export const fetchLabelTypeFail = (id, reason) => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_FAIL,
+	id,
+	reason,
+});
 
-export function updateLabelTypeDone(labelType) {
-	return { type: 'assortment/label-types/UPDATE_DONE',
-		labelType };
-}
+export const fetchLabelTypeFinally = () => ({
+	type: ASSORTMENT_LABEL_TYPES_FETCH_FINALLY,
+});
+export const createLabelTypeStart = labelType => ({
+	type: ASSORTMENT_LABEL_TYPES_CREATE_START,
+	labelType,
+});
 
-export function updateLabelTypeFailed(labelType, reason) {
-	return { type: 'assortment/label-types/UPDATE_FAILED',
-		labelType,
-		reason };
-}
+export const createLabelTypeSuccess = labelType => ({
+	type: ASSORTMENT_LABEL_TYPES_CREATE_SUCCESS,
+	labelType,
+});
 
-export function updateLabelTypeFinally() {
-	return { type: 'assortment/label-types/UPDATE_FINALLY' };
-}
+export const createLabelTypeFail = (labelType, reason) => ({
+	type: ASSORTMENT_LABEL_TYPES_CREATE_FAIL,
+	labelType,
+	reason,
+});
 
-export function deleteLabelType(id) {
-	return { type: 'assortment/label-types/DELETE',
-		id };
-}
+export const createLabelTypeFinally = () => ({
+	type: ASSORTMENT_LABEL_TYPES_CREATE_FINALLY,
+});
 
-export function deleteLabelTypeDone(id) {
-	return { type: 'assortment/label-types/DELETE_DONE',
-		id };
-}
+export const updateLabelTypeStart = labelType => ({
+	type: ASSORTMENT_LABEL_TYPES_UPDATE_START,
+	labelType,
+});
 
-export function deleteLabelTypeFailed(id, reason) {
-	return { type: 'assortment/label-types/DELETE_FAILED',
-		id,
-		reason };
-}
+export const updateLabelTypeSuccess = labelType => ({
+	type: ASSORTMENT_LABEL_TYPES_UPDATE_SUCCESS,
+	labelType,
+});
 
-export function deleteLabelTypeFinally() {
-	return { type: 'assortment/label-types/DELETE_FINALLY' };
-}
+export const updateLabelTypeFail = (labelType, reason) => ({
+	type: ASSORTMENT_LABEL_TYPES_UPDATE_FAIL,
+	labelType,
+	reason,
+});
 
-export function setLabelTypeField(field, value) {
-	return { type: 'assortment/label-types/SET_FIELD',
-		field,
-		value };
-}
+export const updateLabelTypeFinally = () => ({
+	type: ASSORTMENT_LABEL_TYPES_UPDATE_FINALLY,
+});
 
-export default fetchAllLabelTypes;
-export {
-	fetchAllLabelTypes as labelTypes
-};
+export const deleteLabelTypeStart = id => ({
+	type: ASSORTMENT_LABEL_TYPES_DELETE_START,
+	id,
+});
+
+export const deleteLabelTypeSuccess = id => ({
+	type: ASSORTMENT_LABEL_TYPES_DELETE_SUCCESS,
+	id,
+});
+
+export const deleteLabelTypeFail = (id, reason) => ({
+	type: ASSORTMENT_LABEL_TYPES_DELETE_FAIL,
+	id,
+	reason,
+});
+
+export const deleteLabelTypeFinally = () => ({
+	type: ASSORTMENT_LABEL_TYPES_DELETE_FINALLY,
+});
+
+export const setLabelTypeField = (field, value) => ({
+	type: ASSORTMENT_LABEL_TYPES_SET_FIELD,
+	field,
+	value,
+});

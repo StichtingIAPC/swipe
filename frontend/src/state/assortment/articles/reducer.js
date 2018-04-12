@@ -1,6 +1,10 @@
 import { combineReducers } from 'redux';
+import * as actions from './actions';
 import {
-	booleanControlReducer, collectReducers, objectControlReducer, resetFieldReducer,
+	booleanControlReducer,
+	collectReducers,
+	objectControlReducer,
+	resetFieldReducer,
 	setFieldReducer,
 } from '../../../tools/reducerComponents';
 
@@ -16,31 +20,31 @@ const defaultArticle = {
 
 export default combineReducers({
 	articles: setFieldReducer([
-		'assortment/articles/FETCH_ALL_DONE',
+		actions.ASSORTMENT_ARTICLES_FETCH_ALL_SUCCESS,
 	], [], 'articles'),
 	activeObject: collectReducers(
 		resetFieldReducer([
-			'assortment/articles/NEW_ARTICLE',
+			actions.ASSORTMENT_ARTICLES_NEW_ARTICLE,
 		], defaultArticle),
 		objectControlReducer([
-			'assortment/articles/SET_FIELD',
+			actions.ASSORTMENT_ARTICLES_SET_FIELD,
 		], defaultArticle),
 		setFieldReducer([
-			'assortment/articles/FETCH_DONE',
+			actions.ASSORTMENT_ARTICLES_FETCH_SUCCESS,
 		], defaultArticle, 'article'),
 	),
 	loading: booleanControlReducer({
-		'assortment/articles/FETCH_ALL': true,
-		'assortment/articles/FETCH_ALL_FINALLY': false,
+		[actions.ASSORTMENT_ARTICLES_FETCH_ALL_START]: true,
+		[actions.ASSORTMENT_ARTICLES_FETCH_ALL_FINALLY]: false,
 	}, false),
 	populated: booleanControlReducer({
-		'assortment/articles/FETCH_ALL_DONE': true,
+		[actions.ASSORTMENT_ARTICLES_FETCH_ALL_SUCCESS]: true,
 	}, false),
 	error: setFieldReducer([
-		'assortment/articles/FETCH_ALL_FAILED',
-		'assortment/articles/FETCH_FAILED',
-		'assortment/articles/CREATE_FAILED',
-		'assortment/articles/UPDATE_FAILED',
-		'assortment/articles/DELETE_FAILED',
+		actions.ASSORTMENT_ARTICLES_FETCH_ALL_FAIL,
+		actions.ASSORTMENT_ARTICLES_FETCH_FAIL,
+		actions.ASSORTMENT_ARTICLES_CREATE_FAIL,
+		actions.ASSORTMENT_ARTICLES_UPDATE_FAIL,
+		actions.ASSORTMENT_ARTICLES_DELETE_FAIL,
 	], null, 'reason'),
 });

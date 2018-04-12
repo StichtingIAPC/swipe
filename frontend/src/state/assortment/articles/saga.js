@@ -9,12 +9,12 @@ function* fetchAllArticles({ redirectTo }) {
 	try {
 		const article = yield (yield call(api.getAll)).json();
 
-		yield put(actions.fetchAllArticlesDone(article));
+		yield put(actions.fetchAllArticlesSuccess(article));
 		if (redirectTo) {
 			yield put(push(redirectTo));
 		}
 	} catch (e) {
-		yield put(actions.fetchAllArticlesFailed(cleanErrorMessage(e)));
+		yield put(actions.fetchAllArticlesFail(cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.fetchAllArticlesFinally());
 	}
@@ -24,9 +24,9 @@ function* fetchArticle({ id }) {
 	try {
 		const newArticle = yield (yield call(api.get, id)).json();
 
-		yield put(actions.fetchArticleDone(newArticle));
+		yield put(actions.fetchArticleSuccess(newArticle));
 	} catch (e) {
-		yield put(actions.fetchArticleFailed(id, cleanErrorMessage(e)));
+		yield put(actions.fetchArticleFail(id, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.fetchArticleFinally());
 	}
@@ -38,10 +38,10 @@ function* createArticle({ article }) {
 	try {
 		const newArticle = yield (yield call(api.post, document)).json();
 
-		yield put(actions.createArticleDone(newArticle));
-		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
+		yield put(actions.createArticleSuccess(newArticle));
+		yield put(actions.fetchAllArticlesStart(`/articlemanager/${newArticle.id}/`));
 	} catch (e) {
-		yield put(actions.createArticleFailed(document, cleanErrorMessage(e)));
+		yield put(actions.createArticleFail(document, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.createArticleFinally());
 	}
@@ -53,10 +53,10 @@ function* updateArticle({ article }) {
 	try {
 		const newArticle = yield (yield call(api.put, article.id, document)).json();
 
-		yield put(actions.updateArticleDone(newArticle));
-		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
+		yield put(actions.updateArticleSuccess(newArticle));
+		yield put(actions.fetchAllArticlesStart(`/articlemanager/${newArticle.id}/`));
 	} catch (e) {
-		yield put(actions.updateArticleFailed(article, cleanErrorMessage(e)));
+		yield put(actions.updateArticleFail(article, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.updateArticleFinally());
 	}
@@ -68,19 +68,19 @@ function* deleteArticle({ article }) {
 	try {
 		const newArticle = yield (yield call(api.del, article.id, document)).json();
 
-		yield put(actions.deleteArticleDone(newArticle));
-		yield put(actions.fetchAllArticles(`/articlemanager/`));
+		yield put(actions.deleteArticleSuccess(newArticle));
+		yield put(actions.fetchAllArticlesStart(`/articlemanager/`));
 	} catch (e) {
-		yield put(actions.deleteArticleFailed(article, cleanErrorMessage(e)));
+		yield put(actions.deleteArticleFail(article, cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.deleteArticleFinally());
 	}
 }
 
 export default function* saga() {
-	yield takeLatest('assortment/articles/FETCH_ALL', fetchAllArticles);
-	yield takeLatest('assortment/articles/FETCH', fetchArticle);
-	yield takeEvery('assortment/articles/CREATE', createArticle);
-	yield takeEvery('assortment/articles/UPDATE', updateArticle);
-	yield takeEvery('assortment/articles/DELETE', deleteArticle);
+	yield takeLatest(actions.ASSORTMENT_ARTICLES_FETCH_ALL_START, fetchAllArticles);
+	yield takeLatest(actions.ASSORTMENT_ARTICLES_FETCH_START, fetchArticle);
+	yield takeEvery(actions.ASSORTMENT_ARTICLES_CREATE_START, createArticle);
+	yield takeEvery(actions.ASSORTMENT_ARTICLES_UPDATE_START, updateArticle);
+	yield takeEvery(actions.ASSORTMENT_ARTICLES_DELETE_START, deleteArticle);
 }

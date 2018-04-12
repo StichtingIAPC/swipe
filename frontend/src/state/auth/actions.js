@@ -1,5 +1,17 @@
 import {ARE_YOU_SURE_ACTION, areYouSureAction} from "../ui/actions";
 
+export const AUTH_LOGIN_START = 'auth/login/start';
+export const AUTH_LOGIN_RESTORE_START = 'auth/login/restore/start';
+export const AUTH_LOGIN_SUCCESS = 'auth/login/success';
+export const AUTH_LOGIN_FAIL = 'auth/login/fail';
+
+export const AUTH_LOGOUT_START = 'auth/logout/start';
+export const AUTH_LOGOUT_SUCCESS = 'auth/logout/success';
+export const AUTH_LOGOUT_FAIL = 'auth/logout/fail';
+
+export const AUTH_SET_TOKEN = 'auth/setToken';
+export const AUTH_SET_ROUTE_AFTER_AUTH = 'auth/setRouteAfterAuth';
+
 export function startLogin(username, password) {
 	return {
 		type: 'AUTH_START_LOGIN',
@@ -8,29 +20,15 @@ export function startLogin(username, password) {
 	};
 }
 
-export function loginRestore(loginAction) {
-	return {
-		type: 'AUTH_LOGIN_RESTORE',
-		loginAction,
-	};
-}
+export const loginRestore = loginAction => ({
+	type: AUTH_LOGIN_RESTORE_START,
+	loginAction,
+});
 
-export function loginSuccess(token, user) {
-	return {
-		type: 'AUTH_LOGIN_SUCCESS',
-		data: {
-			token,
-			user,
-		},
-	};
-}
-
-export function loginError(error) {
-	return {
-		type: 'AUTH_LOGIN_ERROR',
-		error,
-	};
-}
+export const loginError = error => ({
+	type: AUTH_LOGIN_FAIL,
+	error,
+});
 
 export function directLogout() {
 	return { type: 'AUTH_START_LOGOUT' };
@@ -46,23 +44,18 @@ export function logoutSuccess() {
 	};
 }
 
-export function logoutError(error) {
-	return {
-		type: 'AUTH_LOGOUT_ERROR',
-		error,
-	};
-}
+export const logoutError = error => ({
+	type: AUTH_LOGOUT_FAIL,
+	error,
+});
 
-export function setAuthToken(token) {
-	return {
-		type: 'AUTH_SET_TOKEN',
-		token,
-	};
-}
+export const setAuthToken = token => ({
+	type: AUTH_SET_TOKEN,
+	token,
+});
 
-export function setRouteAfterAuthentication(route) {
-	return {
-		type: 'AUTH_SET_ROUTE_AFTER_AUTH',
-		route,
-	};
-}
+export const setRouteAfterAuthentication = route => ({
+	type: AUTH_SET_ROUTE_AFTER_AUTH,
+	route,
+});
+

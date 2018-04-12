@@ -3,8 +3,8 @@
 
 import {
 	doneFetchingStockList, fetchingStockListCompleted, fetchingStockListError, startFetchingStockList,
-	STOCK_FETCH_COMPLETED, STOCK_FETCH_DONE,
-	STOCK_FETCH_FAILED,
+	STOCK_FETCH_FINALLY, STOCK_FETCH_DONE,
+	STOCK_FETCH_FAIL,
 	STOCK_FETCH_START
 } from './actions';
 describe('Action tests for sales.actions', () => {
@@ -20,11 +20,11 @@ describe('Action tests for sales.actions', () => {
 		expect(doneFetchingStockList([ 'a' ])).toEqual({ type: STOCK_FETCH_DONE, stock: [ 'a' ]});
 	});
 
-	test('STOCK_FETCH_FAILED', () => {
-		expect(fetchingStockListError('something went wrong')).toEqual({ type: STOCK_FETCH_FAILED, error: 'something went wrong' });
+	test('STOCK_FETCH_FAIL', () => {
+		expect(fetchingStockListError('something went wrong')).toEqual({ type: STOCK_FETCH_FAIL, error: 'something went wrong' });
 	});
 
-	test('STOCK_FETCH_FAILED', () => {
-		expect(fetchingStockListCompleted()).toEqual({ type: STOCK_FETCH_COMPLETED });
+	test('STOCK_FETCH_FAIL', () => {
+		expect(fetchingStockListCompleted()).toEqual({ type: STOCK_FETCH_FINALLY });
 	});
 });

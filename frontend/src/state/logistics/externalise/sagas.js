@@ -26,7 +26,7 @@ export function* fetchAll() {
 		yield put(actions.fetchAllSuccess(exts));
 	} catch (e) {
 		console.error(e);
-		yield put(actions.fetchAllError(e));
+		yield put(actions.fetchAllFail(e));
 	} finally {
 		yield put(actions.fetchAllFinally());
 	}
@@ -50,14 +50,14 @@ export function* create({ externalise }) {
 
 		yield put(actions.createSuccess(newExternalise));
 	} catch (e) {
-		yield put(actions.createError(cleanErrorMessage(e)));
+		yield put(actions.createFail(cleanErrorMessage(e)));
 	} finally {
 		yield put(actions.createFinally());
 	}
 }
 
 export function* createSuccess() {
-	yield put(actions.fetchAllAction());
+	yield put(actions.fetchAllStart());
 	yield put(push('/logistics/externalise'));
 }
 

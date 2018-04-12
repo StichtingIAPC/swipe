@@ -1,150 +1,125 @@
-export function fetchAllCurrencies(redirectTo) {
-	return {
-		type: 'money/currencies/FETCH_ALL',
-		redirectTo,
-	};
-}
+export const MONEY_CURRENCIES_FETCH_ALL_START = 'money/currencies/fetchAll/start';
+export const MONEY_CURRENCIES_FETCH_ALL_SUCCESS = 'money/currencies/fetchAll/success';
+export const MONEY_CURRENCIES_FETCH_ALL_FAIL = 'money/currencies/fetchAll/fail';
+export const MONEY_CURRENCIES_FETCH_ALL_FINALLY = 'money/currencies/fetchAll/finally';
 
-export function fetchAllCurrenciesDone(currencies) {
-	return {
-		type: 'money/currencies/FETCH_ALL_DONE',
-		currencies,
-	};
-}
+export const MONEY_CURRENCIES_FETCH_START = 'money/currencies/fetch/start';
+export const MONEY_CURRENCIES_FETCH_SUCCESS = 'money/currencies/fetch/success';
+export const MONEY_CURRENCIES_FETCH_FAIL = 'money/currencies/fetch/fail';
+export const MONEY_CURRENCIES_FETCH_FINALLY = 'money/currencies/fetch/finally';
 
-export function fetchAllCurrenciesFailed(reason) {
-	return {
-		type: 'money/currencies/FETCH_ALL_FAILED',
-		reason,
-	};
-}
+export const MONEY_CURRENCIES_CREATE_START = 'money/currencies/create/start';
+export const MONEY_CURRENCIES_CREATE_SUCCESS = 'money/currencies/create/success';
+export const MONEY_CURRENCIES_CREATE_FAIL = 'money/currencies/create/fail';
+export const MONEY_CURRENCIES_CREATE_FINALLY = 'money/currencies/create/finally';
 
-export function fetchAllCurrenciesFinally() {
-	return {
-		type: 'money/currencies/FETCH_ALL_FINALLY',
-	};
-}
+export const MONEY_CURRENCIES_UPDATE_START = 'money/currencies/update/start';
+export const MONEY_CURRENCIES_UPDATE_SUCCESS = 'money/currencies/update/success';
+export const MONEY_CURRENCIES_UPDATE_FAIL = 'money/currencies/update/fail';
+export const MONEY_CURRENCIES_UPDATE_FINALLY = 'money/currencies/update/finally';
 
-export function fetchCurrency(id) {
-	return {
-		type: 'money/currencies/FETCH',
-		id,
-	};
-}
+export const MONEY_CURRENCIES_DELETE_START = 'money/currencies/delete/start';
+export const MONEY_CURRENCIES_DELETE_SUCCESS = 'money/currencies/delete/success';
+export const MONEY_CURRENCIES_DELETE_FAIL = 'money/currencies/delete/fail';
+export const MONEY_CURRENCIES_DELETE_FINALLY = 'money/currencies/delete/finally';
 
-export function fetchCurrencyDone(currency) {
-	return {
-		type: 'money/currencies/FETCH_DONE',
-		currency,
-	};
-}
+export const MONEY_CURRENCIES_SET_FIELD = 'money/currencies/setField';
+export const MONEY_CURRENCIES_NEW_CURRENCY = 'money/currencies/newCurrency';
 
-export function fetchCurrencyFailed(id, reason) {
-	return {
-		type: 'money/currencies/FETCH_FAILED',
-		id,
-		reason,
-	};
-}
+export const fetchAllCurrencies = redirectTo => ({
+	type: MONEY_CURRENCIES_FETCH_ALL_START,
+	redirectTo,
+});
 
-export function fetchCurrencyFinally() {
-	return {type: 'money/currencies/FETCH_FINALLY'};
-}
+export const fetchAllCurrenciesDone = currencies => ({
+	type: MONEY_CURRENCIES_FETCH_ALL_SUCCESS,
+	currencies,
+});
 
-export function createCurrency(currency) {
-	return {
-		type: 'money/currencies/CREATE',
-		currency,
-	};
-}
+export const fetchAllCurrenciesFailed = reason => ({
+	type: MONEY_CURRENCIES_FETCH_ALL_FAIL,
+	reason,
+});
 
-export function createCurrencyDone(currency) {
-	return {
-		type: 'money/currencies/CREATE_DONE',
-		currency,
-	};
-}
+export const fetchAllCurrenciesFinally = () => ({
+	type: MONEY_CURRENCIES_FETCH_ALL_FINALLY,
+});
 
-export function createCurrencyFailed(currency, reason) {
-	return {
-		type: 'money/currencies/CREATE_FAILED',
-		currency,
-		reason,
-	};
-}
+export const fetchCurrency = id => ({
+	type: MONEY_CURRENCIES_FETCH_START,
+	id,
+});
 
-export function createCurrencyFinally() {
-	return {type: 'money/currencies/CREATE_FINALLY'};
-}
+export const fetchCurrencyDone = currency => ({
+	type: MONEY_CURRENCIES_FETCH_SUCCESS,
+	currency,
+});
 
-export function updateCurrency(currency) {
-	return {
-		type: 'money/currencies/UPDATE',
-		currency,
-	};
-}
+export const fetchCurrencyFailed = (id, reason) => ({
+	type: MONEY_CURRENCIES_FETCH_FAIL,
+	id,
+	reason,
+});
 
-export function updateCurrencyDone(currency) {
-	return {
-		type: 'money/currencies/UPDATE_DONE',
-		currency,
-	};
-}
+export const createCurrency = currency => ({
+	type: MONEY_CURRENCIES_CREATE_START,
+	currency,
+});
 
-export function updateCurrencyFailed(currency, reason) {
-	return {
-		type: 'money/currencies/UPDATE_FAILED',
-		currency,
-		reason,
-	};
-}
+export const createCurrencyDone = currency => ({
+	type: MONEY_CURRENCIES_CREATE_SUCCESS,
+	currency,
+});
 
-export function updateCurrencyFinally() {
-	return {
-		type: 'money/currencies/UPDATE_FINALLY',
-	};
-}
+export const createCurrencyFailed = (currency, reason) => ({
+	type: MONEY_CURRENCIES_CREATE_FAIL,
+	currency,
+	reason,
+});
 
-export function deleteCurrency(id) {
-	return {
-		type: 'money/currencies/DELETE',
-		id,
-	};
-}
+export const updateCurrency = currency => ({
+	type: MONEY_CURRENCIES_UPDATE_START,
+	currency,
+});
 
-export function deleteCurrencyDone(id) {
-	return {
-		type: 'money/currencies/DELETE_DONE',
-		id,
-	};
-}
+export const updateCurrencyDone = currency => ({
+	type: MONEY_CURRENCIES_UPDATE_SUCCESS,
+	currency,
+});
 
-export function deleteCurrencyFailed(id, reason) {
-	return {
-		type: 'money/currencies/DELETE_FAILED',
-		id,
-		reason,
-	};
-}
+export const updateCurrencyFailed = (currency, reason) => ({
+	type: MONEY_CURRENCIES_UPDATE_FAIL,
+	currency,
+	reason,
+});
 
-export function deleteCurrencyFinally() {
-	return {type: 'money/currencies/DELETE_FINALLY'};
-}
+export const updateCurrencyFinally = () => ({
+	type: MONEY_CURRENCIES_UPDATE_FINALLY,
+});
 
-export function setCurrencyField(field, value) {
-	return {
-		type: 'money/currencies/SET_FIELD',
-		field,
-		value,
-	};
-}
-export function resetCurrency() {
-	return {
-		type: 'money/currencies/NEW_CURRENCY',
-	};
-}
+export const deleteCurrency = id => ({
+	type: MONEY_CURRENCIES_DELETE_START,
+	id,
+});
 
-export default fetchAllCurrencies;
-export {
-	fetchAllCurrencies as currencies
-};
+export const deleteCurrencyDone = id => ({
+	type: MONEY_CURRENCIES_DELETE_SUCCESS,
+	id,
+});
+
+export const deleteCurrencyFailed = (id, reason) => ({
+	type: MONEY_CURRENCIES_DELETE_FAIL,
+	id,
+	reason,
+});
+
+export const setCurrencyField = (field, value) => ({
+	type: MONEY_CURRENCIES_SET_FIELD,
+	field,
+	value,
+});
+
+export const resetCurrency = () => ({
+	type: MONEY_CURRENCIES_NEW_CURRENCY,
+});
+
