@@ -1,14 +1,18 @@
-import {call, put, takeEvery, takeLatest, select} from 'redux-saga/effects';
-import {push} from 'react-router-redux';
+import { call, put, takeEvery, takeLatest, select } from 'redux-saga/effects';
+import { push } from 'react-router-redux';
 import store from '../../store';
 
 import * as api from './api';
 import * as actions from './actions';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
-import { getExternalisationActiveObject } from './selectors';
+import { getExternalisationActiveObject, getExternalisationLoading } from './selectors';
 import { isMoney, validate, validator } from '../../../tools/validations/validators';
 
 export function* fetchAll() {
+	if (yield select(getExternalisationLoading)) {
+		return;
+	}
+	yield put(actions.setLoadingAction());
 	try {
 		const externalizations = yield (yield call(api.getAll)).json();
 
@@ -28,7 +32,7 @@ export function* fetchAll() {
 	}
 }
 
-export function* create({externalise}) {
+export function* create({ externalise }) {
 	const document = {
 		externaliseline_set: externalise.externaliseline_set.map(e => ({
 			...e,
@@ -62,7 +66,10 @@ const validations = [
 		type: 'error',
 		text: 'Memo field not long enough',
 	})),
-	validator('memo', 'Memo', memo => memo.length < 24 ? null : () => ({type: 'warning', text: 'Memo field too long'})),
+	validator('memo', 'Memo', memo => memo.length < 24 ? null : () => ({
+		type: 'warning',
+		text: 'Memo field too long',
+	})),
 	validator('externaliseline_set', 'Externalize set', set => set.reduce((accumulator, current) => accumulator && isMoney(current.amount.amount), true) ? null : () => ({
 		type: 'error',
 		text: 'Some money input is invalid.',
@@ -80,6 +87,7 @@ const validations = [
 export function* externalizeValidator() {
 	const current = yield select(getExternalisationActiveObject);
 	const res = validate(current, validations);
+
 	yield put(actions.setValidations(res));
 }
 
