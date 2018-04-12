@@ -12,7 +12,7 @@ import {
 	FETCH_ALL_SUCCESS,
 	NEW_ACTION,
 	SET_FIELD_ACTION,
-	CREATE_SUCCESS, SET_VALIDATIONS
+	CREATE_SUCCESS, SET_VALIDATIONS, SET_LOADING_ACTION
 } from './actions';
 
 const defaultExternalisation = {
@@ -25,13 +25,17 @@ export default combineReducers({
 	externalisations: setFieldReducer([
 		FETCH_ALL_SUCCESS,
 	], [], 'externalisations'),
-	loading: booleanControlReducer({
-		[FETCH_ALL_ACTION]: true,
+	isLoading: booleanControlReducer({
+		[SET_LOADING_ACTION]: true,
 		[FETCH_ALL_FINALLY]: false,
 	}, false),
-	populated: booleanControlReducer({
+	isPopulated: booleanControlReducer({
 		[FETCH_ALL_SUCCESS]: true,
 	}, false),
+	error: setFieldReducer([
+		FETCH_ALL_ERROR,
+	], null, 'reason'),
+
 	activeObject: collectReducers(
 		resetFieldReducer([
 			NEW_ACTION,
@@ -44,7 +48,4 @@ export default combineReducers({
 	validations: setFieldReducer([
 		SET_VALIDATIONS,
 	], {}, 'validations'),
-	error: setFieldReducer([
-		FETCH_ALL_ERROR,
-	], null, 'reason'),
 });

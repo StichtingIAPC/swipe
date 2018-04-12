@@ -7,7 +7,7 @@ export function getAll() {
 }
 
 export function get(id) {
-	return api('GET', `${ENDPOINT}${id}`);
+	return api('GET', `${ENDPOINT}${id}/`);
 }
 
 export function post(data) {
@@ -15,9 +15,9 @@ export function post(data) {
 }
 
 export function put(id, data) {
-	return api('PUT', `${ENDPOINT}${id}`, data);
+	return api('PUT', `${ENDPOINT}${id}/`, data);
 }
 
 export function del(id) {
-	return api('DELETE', `${ENDPOINT}${id}`);
+	return api('DELETE', `${ENDPOINT}${id}/`);
 }

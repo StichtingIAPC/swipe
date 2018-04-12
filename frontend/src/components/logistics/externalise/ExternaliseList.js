@@ -4,12 +4,17 @@ import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
 import { fetchAllAction as fetchAllExternalisations } from '../../../state/logistics/externalise/actions';
+import {
+	getExternalisationData,
+	getExternalisationLoading,
+	getExternalisationPopulated
+} from "../../../state/logistics/externalise/selectors";
 import { Button, ButtonGroup, Table } from 'react-bootstrap';
 import { Box } from 'reactjs-admin-lte';
 
 class List extends Component {
 	componentWillMount() {
-		if (!this.props.populated && !this.props.loading) {
+		if (!this.props.isPopulated && !this.props.isLoading) {
 			this.props.fetchExternalisations();
 		}
 	}
@@ -27,8 +32,8 @@ class List extends Component {
 							bsSize="small"
 							title="Refresh"
 							onClick={this.props.fetchExternalisations}
-							disabled={this.props.loading}>
-							<FontAwesome icon={`refresh ${this.props.loading ? 'fa-spin' : ''}`} />
+							disabled={this.props.isLoading}>
+							<FontAwesome icon={`refresh ${this.props.isLoading ? 'fa-spin' : ''}`} />
 						</Button>
 						<Link
 							className="btn btn-default btn-sm"
@@ -69,9 +74,9 @@ class List extends Component {
 
 export default connect(
 	state => ({
-		externalises: state.logistics.externalise.externalisations,
-		loading: state.logistics.externalise.loading,
-		populated: state.logistics.externalise.populated,
+		externalises: getExternalisationData(state),
+		isLoading: getExternalisationLoading(state),
+		isPopulated: getExternalisationPopulated(state),
 	}),
 	{ fetchExternalisations: fetchAllExternalisations },
 )(List);
