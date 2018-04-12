@@ -19,7 +19,6 @@ class Sidebar extends React.Component {
 						<SidebarLink text="Admin">
 							<SidebarLink text="Supplier" icon="truck" to="/supplier/" />
 							<SidebarLink text="Money config" icon="money" to="/money/" />
-							<SidebarLink text="Register" icon="credit-card" to="/register/" />
 							<SidebarLink text="Labels" icon="tag" to="/assortment/" />
 						</SidebarLink>
 						<li><br /></li>

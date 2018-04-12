@@ -3,27 +3,21 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import FontAwesome from '../tools/icons/FontAwesome';
 import { fetchSupplier, newSupplier } from '../../state/suppliers/actions';
+import { getSupplierActiveObject } from "../../state/suppliers/selector";
 
 class SupplierDetail extends React.Component {
 	trash(evt) {
 		evt.preventDefault();
 	}
 
-	componentWillMount() {
-		const { params } = this.props.match;
-
-		if (Number.isNaN(+params.supplierID)) {
-			this.props.newSupplier();
-		} else {
-			this.props.fetchSupplier(params.supplierID);
-		}
+	componentDidMount() {
+		this.props.fetchSupplier(this.props.match.params.supplierID);
 	}
 
 	render() {
 		if (!this.props.supplier) {
 			return null;
 		}
-
 
 		const { supplier } = this.props;
 
@@ -60,7 +54,7 @@ class SupplierDetail extends React.Component {
 
 export default connect(
 	state => ({
-		supplier: state.suppliers.activeObject,
+		supplier: getSupplierActiveObject(state),
 	}),
 	{
 		fetchSupplier,

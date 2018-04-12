@@ -24,9 +24,9 @@ class SupplierBase extends React.Component {
 					{
 						this.props.requirementsLoaded ? (
 							<Switch>
-								<Route key="new" path={`${match.path}/create`} component={SupplierEdit} />
-								<Route key="old" path={`${match.path}/:supplierID/edit`} component={SupplierEdit} />
-								<Route key="old" path={`${match.path}/:supplierID`} component={SupplierDetail} />
+								<Route path={`${match.path}/create`} component={SupplierEdit} />
+								<Route path={`${match.path}/:supplierID/edit`} component={SupplierEdit} />
+								<Route path={`${match.path}/:supplierID`} component={SupplierDetail} />
 							</Switch>
 						) : null
 					}

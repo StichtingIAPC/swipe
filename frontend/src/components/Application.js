@@ -7,7 +7,6 @@ import { toggleSidebar } from '../state/sidebar/actions.js';
 import Topbar from '../components/base/topbar/Topbar.js';
 import Sidebar from '../components/base/sidebar/Sidebar.js';
 
-import { push } from 'react-router-redux';
 
 // Subrouters
 import { Error404 } from '../components/base/Error404';
@@ -16,7 +15,6 @@ import HelloWorld from '../components/HelloWorld.js';
 import SupplierBase from '../components/supplier/SupplierBase';
 import MoneyBase from '../components/money/MoneyBase';
 import ArticleManager from '../components/article/ArticleManager';
-import RegisterBase from '../components/register/RegisterBase';
 import LabelsBase from '../components/assortment/LabelsBase';
 import Profile from './authentication/Profile';
 import SalesExp from './sales/SalesBase';
@@ -41,13 +39,11 @@ class Application extends React.Component {
 								<Route path={`${match.path}supplier`} component={SupplierBase} />
 								<Route path={`${match.path}money`} component={MoneyBase} />
 								<Route path={`${match.path}articlemanager`} component={ArticleManager} />
-								<Route path={`${match.path}register`} component={RegisterBase} />
 								<Route path={`${match.path}assortment`} component={LabelsBase} />
 								<Route path={`${match.path}profile`} component={Profile} />
 								<Route path={`${match.path}sales`} component={SalesExp} />
 								<Route path={`${match.path}logistics/externalise`} component={Externalise} />
 
-								{/* <Route path={`${match.path}/pos/register/state`} /> */}
 								<Route component={Error404} />
 							</Switch>
 						</div>

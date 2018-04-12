@@ -4,6 +4,9 @@ import { push } from 'react-router-redux';
 import * as actions from './actions.js';
 import * as api from './api';
 import { cleanErrorMessage } from '../../tools/sagaHelpers';
+import { validate, validator } from '../../tools/validations/validators';
+import { select } from 'redux-saga/es/effects';
+import { getSupplierActiveObject } from './selector';
 
 function* fetchAllSuppliers({ redirectTo }) {
 	try {
@@ -77,7 +80,32 @@ function* deleteSupplier({ supplier }) {
 	}
 }
 
+const validations = [
+	validator('notes', 'Notes', memo => memo.length > 3 ? null : () => ({
+		type: 'error',
+		text: 'Notes field not long enough',
+	})),
+	validator('search_url', 'Search url', memo => memo.length > 3 ? null : () => ({
+		type: 'error',
+		text: 'Search url field not long enough',
+	})),
+	validator('name', 'Name', memo => memo.length > 3 ? null : () => ({
+		type: 'error',
+		text: 'Name field not long enough',
+	})),
+];
+
+export function* supplierValidator() {
+	const current = yield select(getSupplierActiveObject);
+	const res = validate(current, validations);
+
+	yield put(actions.setValidations(res));
+}
+
 export default function* saga() {
+	yield takeEvery('suppliers/SET_FIELD', supplierValidator);
+
+
 	yield takeLatest('suppliers/FETCH_ALL', fetchAllSuppliers);
 	yield takeLatest('suppliers/FETCH', fetchSupplier);
 	yield takeEvery('suppliers/CREATE', createSupplier);

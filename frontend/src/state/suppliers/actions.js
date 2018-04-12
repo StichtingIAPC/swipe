@@ -1,3 +1,8 @@
+export const SET_VALIDATIONS = 'suppliers/validations';
+
+export const setValidations = validations => ({ type: SET_VALIDATIONS,
+	validations });
+
 export function fetchAllSuppliers(redirectTo) {
 	return {
 		type: 'suppliers/FETCH_ALL',

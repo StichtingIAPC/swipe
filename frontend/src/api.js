@@ -32,7 +32,7 @@ export function __unsafeGetToken() {
 
 async function request(method, url, object) {
 	const token = await getToken();
-	const result = await fetch(new Request(
+	const result = await fetch(
 		config.backendUrl + url,
 		{
 			method,

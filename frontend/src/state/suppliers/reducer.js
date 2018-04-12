@@ -3,6 +3,7 @@ import {
 	booleanControlReducer, collectReducers, objectControlReducer,
 	resetFieldReducer, setFieldReducer,
 } from '../../tools/reducerComponents';
+import { SET_VALIDATIONS } from './actions';
 
 const defaultSupplier = {
 	id: null,
@@ -27,6 +28,9 @@ export default combineReducers({
 			'suppliers/FETCH_DONE',
 		], defaultSupplier, 'supplier')
 	),
+	validations: setFieldReducer([
+		SET_VALIDATIONS,
+	], {}, 'validations'),
 	loading: booleanControlReducer({
 		'suppliers/FETCH_ALL': true,
 		'suppliers/FETCH_ALL_FINALLY': false,

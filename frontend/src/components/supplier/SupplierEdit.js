@@ -1,9 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createSupplier, updateSupplier } from '../../state/suppliers/actions.js';
+import Card from '../base/Card';
 import Form from '../forms/Form';
 import { StringField } from '../forms/fields';
 import { fetchSupplier, newSupplier, setSupplierField } from '../../state/suppliers/actions';
+import { Button, ButtonToolbar, ControlLabel, FormControl, FormGroup, HelpBlock } from 'react-bootstrap';
+import { getSupplierActiveObject, getSupplierValidations } from '../../state/suppliers/selector';
+import { hasError } from '../../tools/validations/validators';
 
 class SupplierEdit extends React.Component {
 	componentWillMount() {
@@ -24,8 +28,9 @@ class SupplierEdit extends React.Component {
 		}
 	}
 
-	submit = (evt) => {
+	submit = evt => {
 		evt.preventDefault();
+		console.log(this.props.supplier.id);
 		if (this.props.supplier.id === null) {
 			this.props.createSupplier(this.props.supplier);
 		} else {
@@ -49,24 +54,80 @@ class SupplierEdit extends React.Component {
 		const { supplier } = this.props;
 		const NEW = supplier.id === null;
 
+		const validation_name = this.props.validations ? this.props.validations['name'] : {};
+		const nameValidation = validation_name ? validation_name.text : '';
+		const nameErrorType = validation_name ? validation_name.type : 'success';
+
+		const validation_memo = this.props.validations ? this.props.validations['notes'] : {};
+		const memoValidation = validation_memo ? validation_memo.text : '';
+		const memoErrorType = validation_memo ? validation_memo.type : 'success';
+
+		const validation_url = this.props.validations ? this.props.validations['search_url'] : {};
+		const urlValidation = validation_url ? validation_url.text : '';
+		const urlErrorType = validation_url ? validation_url.type : 'success';
+
 		return (
-			<Form
+			<Card
 				title={`${NEW ? 'Add' : 'Edit'} supplier`}
 				onSubmit={this.submit}
 				onReset={this.reset}
 				error={this.props.errorMsg}
 				returnLink={NEW ? '/supplier/' : `/supplier/${supplier.id}`}
 				closeLink="/supplier/">
-				<StringField onChange={this.setName} value={supplier.name} name="Name" />
-				<StringField onChange={this.setNotes} value={supplier.notes} name="Notes" />
-				<StringField onChange={this.setSearch_url} value={supplier.search_url} name="Search Url" />
-			</Form>
+				<form>
+
+
+					<FormGroup
+						controlId="formBasicText"
+						validationState={nameErrorType}>
+						<ControlLabel>Name</ControlLabel>
+						<FormControl
+							type="text"
+							value={supplier.name}
+							placeholder="Enter Supplier name"
+							onChange={this.setName} />
+						<FormControl.Feedback />
+						<HelpBlock>{nameValidation}</HelpBlock>
+					</FormGroup>
+					<FormGroup
+						controlId="formBasicText"
+						validationState={memoErrorType}>
+						<ControlLabel>Memo</ControlLabel>
+						<FormControl
+							type="text"
+							value={supplier.notes}
+							placeholder="Enter Memo"
+							onChange={this.setNotes} />
+						<FormControl.Feedback />
+						<HelpBlock>{memoValidation}</HelpBlock>
+					</FormGroup>
+					<FormGroup
+						controlId="formBasicText"
+						validationState={urlErrorType}>
+						<ControlLabel>Url</ControlLabel>
+						<FormControl
+							type="text"
+							value={supplier.search_url}
+							placeholder="Search Url"
+							onChange={this.setSearch_url} />
+						<FormControl.Feedback />
+						<HelpBlock>{urlValidation}</HelpBlock>
+					</FormGroup>
+					<ButtonToolbar>
+						<Button
+							bsStyle="success"
+							onClick={this.submit}
+							disabled={hasError(this.props.validations)}>Save</Button>
+					</ButtonToolbar>
+				</form>
+			</Card>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
-	supplier: state.suppliers.activeObject,
+	supplier: getSupplierActiveObject(state),
+	validations: getSupplierValidations(state),
 });
 
 export default connect(
