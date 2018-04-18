@@ -1,150 +1,137 @@
-export function fetchAllAccountingGroups(redirectTo) {
-	return {
-		type: 'money/accounting-groups/FETCH_ALL',
-		redirectTo,
-	};
-}
+export const MONEY_ACCOUNTING_GROUPS_FETCH_ALL_START = 'money/accounting-groups/fetchAll/start';
+export const MONEY_ACCOUNTING_GROUPS_FETCH_ALL_SUCCESS = 'money/accounting-groups/fetchAll/success';
+export const MONEY_ACCOUNTING_GROUPS_FETCH_ALL_FAIL = 'money/accounting-groups/fetchAll/fail';
+export const MONEY_ACCOUNTING_GROUPS_FETCH_ALL_FINALLY = 'money/accounting-groups/fetchAll/finally';
 
-export function fetchAllAccountingGroupsDone(accountingGroups) {
-	return {
-		type: 'money/accounting-groups/FETCH_ALL_DONE',
-		accountingGroups,
-	};
-}
+export const MONEY_ACCOUNTING_GROUPS_FETCH_START = 'money/accounting-groups/fetch/start';
+export const MONEY_ACCOUNTING_GROUPS_FETCH_SUCCESS = 'money/accounting-groups/fetch/success';
+export const MONEY_ACCOUNTING_GROUPS_FETCH_FAIL = 'money/accounting-groups/fetch/fail';
+export const MONEY_ACCOUNTING_GROUPS_FETCH_FINALLY = 'money/accounting-groups/fetch/finally';
 
-export function fetchAllAccountingGroupsFailed(reason) {
-	return {
-		type: 'money/accounting-groups/FETCH_ALL_FAILED',
-		reason,
-	};
-}
+export const MONEY_ACCOUNTING_GROUPS_CREATE_START = 'money/accounting-groups/create/start';
+export const MONEY_ACCOUNTING_GROUPS_CREATE_SUCCESS = 'money/accounting-groups/create/success';
+export const MONEY_ACCOUNTING_GROUPS_CREATE_FAIL = 'money/accounting-groups/create/fail';
+export const MONEY_ACCOUNTING_GROUPS_CREATE_FINALLY = 'money/accounting-groups/create/finally';
 
-export function fetchAllAccountingGroupsFinally() {
-	return {
-		type: 'money/accounting-groups/FETCH_ALL_FINALLY',
-	};
-}
+export const MONEY_ACCOUNTING_GROUPS_UPDATE_START = 'money/accounting-groups/update/start';
+export const MONEY_ACCOUNTING_GROUPS_UPDATE_SUCCESS = 'money/accounting-groups/update/success';
+export const MONEY_ACCOUNTING_GROUPS_UPDATE_FAIL = 'money/accounting-groups/update/fail';
+export const MONEY_ACCOUNTING_GROUPS_UPDATE_FINALLY = 'money/accounting-groups/update/finally';
 
-export function fetchAccountingGroup(id) {
-	return {
-		type: 'money/accounting-groups/FETCH',
-		id,
-	};
-}
+export const MONEY_ACCOUNTING_GROUPS_DELETE_START = 'money/accounting-groups/delete/start';
+export const MONEY_ACCOUNTING_GROUPS_DELETE_SUCCESS = 'money/accounting-groups/delete/success';
+export const MONEY_ACCOUNTING_GROUPS_DELETE_FAIL = 'money/accounting-groups/delete/fail';
+export const MONEY_ACCOUNTING_GROUPS_DELETE_FINALLY = 'money/accounting-groups/delete/finally';
 
-export function fetchAccountingGroupDone(accountingGroup) {
-	return {
-		type: 'money/accounting-groups/FETCH_DONE',
-		accountingGroup,
-	};
-}
+export const MONEY_ACCOUNTING_GROUPS_SET_FIELD = 'money/accounting-groups/setField';
+export const MONEY_ACCOUNTING_GROUPS_NEW_ACCOUNTINGGROUP = 'money/accounting-groups/newAccountinggroup';
 
-export function fetchAccountingGroupFailed(id, reason) {
-	return {
-		type: 'money/accounting-groups/FETCH_FAILED',
-		id,
-		reason,
-	};
-}
+export const fetchAllAccountingGroupsStart = redirectTo => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_ALL_START,
+	redirectTo,
+});
 
-export function fetchAccountingGroupFinally() {
-	return {type: 'money/accounting-groups/FETCH_FINALLY'};
-}
+export const fetchAllAccountingGroupsSuccess = accountingGroups => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_ALL_SUCCESS,
+	accountingGroups,
+});
 
-export function createAccountingGroup(accountingGroup) {
-	return {
-		type: 'money/accounting-groups/CREATE',
-		accountingGroup,
-	};
-}
+export const fetchAllAccountingGroupsFail = reason => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_ALL_FAIL,
+	reason,
+});
 
-export function createAccountingGroupDone(accountingGroup) {
-	return {
-		type: 'money/accounting-groups/CREATE_DONE',
-		accountingGroup,
-	};
-}
+export const fetchAllAccountingGroupsFinally = () => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_ALL_FINALLY,
+});
 
-export function createAccountingGroupFailed(accountingGroup, reason) {
-	return {
-		type: 'money/accounting-groups/CREATE_FAILED',
-		accountingGroup,
-		reason,
-	};
-}
+export const fetchAccountingGroupStart = id => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_START,
+	id,
+});
 
-export function createAccountingGroupFinally() {
-	return {type: 'money/accounting-groups/CREATE_FINALLY'};
-}
+export const fetchAccountingGroupSuccess = accountingGroup => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_SUCCESS,
+	accountingGroup,
+});
 
-export function updateAccountingGroup(accountingGroup) {
-	return {
-		type: 'money/accounting-groups/UPDATE',
-		accountingGroup,
-	};
-}
+export const fetchAccountingGroupFail = (id, reason) => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_FAIL,
+	id,
+	reason,
+});
 
-export function updateAccountingGroupDone(accountingGroup) {
-	return {
-		type: 'money/accounting-groups/UPDATE_DONE',
-		accountingGroup,
-	};
-}
+export const fetchAccountingGroupFinally = () => ({
+	type: MONEY_ACCOUNTING_GROUPS_FETCH_FINALLY,
+});
 
-export function updateAccountingGroupFailed(accountingGroup, reason) {
-	return {
-		type: 'money/accounting-groups/UPDATE_FAILED',
-		accountingGroup,
-		reason,
-	};
-}
+export const createAccountingGroupStart = accountingGroup => ({
+	type: MONEY_ACCOUNTING_GROUPS_CREATE_START,
+	accountingGroup,
+});
 
-export function updateAccountingGroupFinally() {
-	return {
-		type: 'money/accounting-groups/UPDATE_FINALLY',
-	};
-}
+export const createAccountingGroupSuccess = accountingGroup => ({
+	type: MONEY_ACCOUNTING_GROUPS_CREATE_SUCCESS,
+	accountingGroup,
+});
 
-export function deleteAccountingGroup(id) {
-	return {
-		type: 'money/accounting-groups/DELETE',
-		id,
-	};
-}
+export const createAccountingGroupFail = (accountingGroup, reason) => ({
+	type: MONEY_ACCOUNTING_GROUPS_CREATE_FAIL,
+	accountingGroup,
+	reason,
+});
 
-export function deleteAccountingGroupDone(id) {
-	return {
-		type: 'money/accounting-groups/DELETE_DONE',
-		id,
-	};
-}
+export const createAccountingGroupFinally = () => ({
+	type: MONEY_ACCOUNTING_GROUPS_CREATE_FINALLY,
+});
 
-export function deleteAccountingGroupFailed(id, reason) {
-	return {
-		type: 'money/accounting-groups/DELETE_FAILED',
-		id,
-		reason,
-	};
-}
+export const updateAccountingGroupStart = accountingGroup => ({
+	type: MONEY_ACCOUNTING_GROUPS_UPDATE_START,
+	accountingGroup,
+});
 
-export function deleteAccountingGroupFinally() {
-	return {type: 'money/accounting-groups/DELETE_FINALLY'};
-}
+export const updateAccountingGroupSuccess = accountingGroup => ({
+	type: MONEY_ACCOUNTING_GROUPS_UPDATE_SUCCESS,
+	accountingGroup,
+});
 
-export function setAccountingGroupField(field, value) {
-	return {
-		type: 'money/accounting-groups/SET_FIELD',
-		field,
-		value,
-	};
-}
-export function resetAccountingGroup() {
-	return {
-		type: 'money/accounting-groups/NEW_ACCOUNTINGGROUP',
-	};
-}
+export const updateAccountingGroupFail = (accountingGroup, reason) => ({
+	type: MONEY_ACCOUNTING_GROUPS_UPDATE_FAIL,
+	accountingGroup,
+	reason,
+});
 
-export default fetchAllAccountingGroups;
-export {
-	fetchAllAccountingGroups as accountingGroups
-};
+export const updateAccountingGroupFinally = () => ({
+	type: MONEY_ACCOUNTING_GROUPS_UPDATE_FINALLY,
+});
+
+export const deleteAccountingGroupStart = id => ({
+	type: MONEY_ACCOUNTING_GROUPS_DELETE_START,
+	id,
+});
+
+export const deleteAccountingGroupSuccess = id => ({
+	type: MONEY_ACCOUNTING_GROUPS_DELETE_SUCCESS,
+	id,
+});
+
+export const deleteAccountingGroupFail = (id, reason) => ({
+	type: MONEY_ACCOUNTING_GROUPS_DELETE_FAIL,
+	id,
+	reason,
+});
+
+export const deleteAccountingGroupFinally = () => ({
+	type: MONEY_ACCOUNTING_GROUPS_DELETE_FINALLY,
+});
+
+export const setAccountingGroupField = (field, value) => ({
+	type: MONEY_ACCOUNTING_GROUPS_SET_FIELD,
+	field,
+	value,
+});
+
+export const resetAccountingGroup = () => ({
+	type: MONEY_ACCOUNTING_GROUPS_NEW_ACCOUNTINGGROUP,
+});
+

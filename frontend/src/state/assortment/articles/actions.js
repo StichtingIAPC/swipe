@@ -1,131 +1,131 @@
-export function fetchAllArticles(redirectTo) {
-	return { type: 'assortment/articles/FETCH_ALL',
-		redirectTo };
-}
+export const ASSORTMENT_ARTICLES_FETCH_ALL_START =		'assortment/articles/fetch/all/start';
+export const ASSORTMENT_ARTICLES_FETCH_ALL_SUCCESS =	'assortment/articles/fetch/all/success';
+export const ASSORTMENT_ARTICLES_FETCH_ALL_FAIL =		'assortment/articles/fetch/all/fail';
+export const ASSORTMENT_ARTICLES_FETCH_ALL_FINALLY =	'assortment/articles/fetch/all/finally';
+export const ASSORTMENT_ARTICLES_FETCH_START =			'assortment/articles/fetch/start';
+export const ASSORTMENT_ARTICLES_FETCH_SUCCESS =		'assortment/articles/fetch/success';
+export const ASSORTMENT_ARTICLES_FETCH_FAIL =			'assortment/articles/fetch/fail';
+export const ASSORTMENT_ARTICLES_FETCH_FINALLY =		'assortment/articles/fetch/finally';
+export const ASSORTMENT_ARTICLES_CREATE_START =			'assortment/articles/create/start';
+export const ASSORTMENT_ARTICLES_CREATE_SUCCESS =		'assortment/articles/create/success';
+export const ASSORTMENT_ARTICLES_CREATE_FAIL =			'assortment/articles/create/fail';
+export const ASSORTMENT_ARTICLES_CREATE_FINALLY = 		'assortment/articles/create/finally';
+export const ASSORTMENT_ARTICLES_UPDATE_START = 		'assortment/articles/update/start';
+export const ASSORTMENT_ARTICLES_UPDATE_SUCCESS = 		'assortment/articles/update/success';
+export const ASSORTMENT_ARTICLES_UPDATE_FAIL = 			'assortment/articles/update/fail';
+export const ASSORTMENT_ARTICLES_UPDATE_FINALLY = 		'assortment/articles/update/finally';
+export const ASSORTMENT_ARTICLES_DELETE_START =			'assortment/articles/delete/start';
+export const ASSORTMENT_ARTICLES_DELETE_SUCCESS =		'assortment/articles/delete/success';
+export const ASSORTMENT_ARTICLES_DELETE_FAIL =			'assortment/articles/delete/fail';
+export const ASSORTMENT_ARTICLES_DELETE_FINALLY =		'assortment/articles/delete/finally';
+export const ASSORTMENT_ARTICLES_SET_FIELD =			'assortment/articles/setField';
+export const ASSORTMENT_ARTICLES_NEW_ARTICLE =			'assortment/articles/newArticle';
 
-export function fetchAllArticlesDone(articles) {
-	return { type: 'assortment/articles/FETCH_ALL_DONE',
-		articles };
-}
+export const fetchAllArticlesStart = redirectTo => ({
+	type: ASSORTMENT_ARTICLES_FETCH_ALL_START,
+	redirectTo,
+});
 
-export function fetchAllArticlesFailed(reason) {
-	return { type: 'assortment/articles/FETCH_ALL_FAILED',
-		reason };
-}
+export const fetchAllArticlesSuccess = articles => ({
+	type: ASSORTMENT_ARTICLES_FETCH_ALL_SUCCESS,
+	articles,
+});
 
-export function fetchAllArticlesFinally() {
-	return { type: 'assortment/articles/FETCH_ALL_FINALLY' };
-}
+export const fetchAllArticlesFail = reason => ({
+	type: ASSORTMENT_ARTICLES_FETCH_ALL_FAIL,
+	reason,
+});
 
-export function fetchArticle(id) {
-	return { type: 'assortment/articles/FETCH',
-		id };
-}
+export const fetchAllArticlesFinally = () => ({
+	type: ASSORTMENT_ARTICLES_FETCH_ALL_FINALLY,
+});
 
-export function fetchArticleDone(article) {
-	return { type: 'assortment/articles/FETCH_DONE',
-		article };
-}
+export const fetchArticleStart = id => ({
+	type: ASSORTMENT_ARTICLES_FETCH_START,
+	id,
+});
 
-export function fetchArticleFailed(id, reason) {
-	return { type: 'assortment/articles/FETCH_FAILED',
-		id,
-		reason };
-}
+export const fetchArticleSuccess = article => ({
+	type: ASSORTMENT_ARTICLES_FETCH_SUCCESS,
+	article,
+});
 
-export function fetchArticleFinally() {
-	return { type: 'assortment/articles/FETCH_FINALLY' };
-}
+export const fetchArticleFail = (id, reason) => ({
+	type: ASSORTMENT_ARTICLES_FETCH_FAIL,
+	id,
+	reason,
+});
 
-export function createArticle(article) {
-	return { type: 'assortment/articles/CREATE',
-		article };
-}
+export const fetchArticleFinally = () => ({
+	type: ASSORTMENT_ARTICLES_FETCH_FINALLY,
+});
 
-export function createArticleDone(article) {
-	return { type: 'assortment/articles/CREATE_DONE',
-		article };
-}
+export const createArticleStart = article => ({
+	type: ASSORTMENT_ARTICLES_CREATE_START,
+	article,
+});
 
-export function createArticleFailed(article, reason) {
-	return {
-		type: 'assortment/articles/CREATE_FAILED',
-		article,
-		reason,
-	};
-}
+export const createArticleSuccess = article => ({
+	type: ASSORTMENT_ARTICLES_CREATE_SUCCESS,
+	article,
+});
 
-export function createArticleFinally() {
-	return { type: 'assortment/articles/CREATE_FINALLY' };
-}
+export const createArticleFail = (article, reason) => ({
+	type: ASSORTMENT_ARTICLES_CREATE_FAIL,
+	article,
+	reason,
+});
 
-export function updateArticle(article) {
-	return {
-		type: 'assortment/articles/UPDATE',
-		article,
-	};
-}
+export const createArticleFinally = () => ({
+	type: ASSORTMENT_ARTICLES_CREATE_FINALLY,
+});
 
-export function updateArticleDone(article) {
-	return {
-		type: 'assortment/articles/UPDATE_DONE',
-		article,
-	};
-}
+export const updateArticleStart = article => ({
+	type: ASSORTMENT_ARTICLES_UPDATE_START,
+	article,
+});
 
-export function updateArticleFailed(article, reason) {
-	return {
-		type: 'assortment/articles/UPDATE_FAILED',
-		article,
-		reason,
-	};
-}
+export const updateArticleSuccess = article => ({
+	type: ASSORTMENT_ARTICLES_UPDATE_SUCCESS,
+	article,
+});
 
-export function updateArticleFinally() {
-	return { type: 'assortment/articles/UPDATE_FINALLY' };
-}
+export const updateArticleFail = (article, reason) => ({
+	type: ASSORTMENT_ARTICLES_UPDATE_FAIL,
+	article,
+	reason,
+});
 
-export function deleteArticle(id) {
-	return {
-		type: 'assortment/articles/DELETE',
-		id,
-	};
-}
+export const updateArticleFinally = () => ({
+	type: ASSORTMENT_ARTICLES_UPDATE_FINALLY,
+});
 
-export function deleteArticleDone(id) {
-	return {
-		type: 'assortment/articles/DELETE_DONE',
-		id,
-	};
-}
+export const deleteArticleStart = id => ({
+	type: ASSORTMENT_ARTICLES_DELETE_START,
+	id,
+});
 
-export function deleteArticleFailed(id, reason) {
-	return {
-		type: 'assortment/articles/DELETE_FAILED',
-		id,
-		reason,
-	};
-}
+export const deleteArticleSuccess = id => ({
+	type: ASSORTMENT_ARTICLES_DELETE_SUCCESS,
+	id,
+});
 
-export function deleteArticleFinally() {
-	return { type: 'assortment/articles/DELETE_FINALLY' };
-}
+export const deleteArticleFail = (id, reason) => ({
+	type: ASSORTMENT_ARTICLES_DELETE_FAIL,
+	id,
+	reason,
+});
 
-export function setArticleField(field, value) {
-	return {
-		type: 'assortment/articles/SET_FIELD',
-		field,
-		value,
-	};
-}
+export const deleteArticleFinally = () => ({
+	type: ASSORTMENT_ARTICLES_DELETE_FINALLY,
+});
 
-export function newArticle() {
-	return {
-		type: 'assortment/articles/NEW_ARTICLE',
-	};
-}
+export const setArticleField = (field, value) => ({
+	type: ASSORTMENT_ARTICLES_SET_FIELD,
+	field,
+	value,
+});
 
-export default fetchAllArticles;
-export {
-	fetchAllArticles as articles
-};
+export const newArticle = () => ({
+	type: ASSORTMENT_ARTICLES_NEW_ARTICLE,
+});

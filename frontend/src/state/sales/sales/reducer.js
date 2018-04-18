@@ -1,8 +1,8 @@
-import { SALES_ADD_PRODUCT } from './actions';
+import { SALES_SALES_ADD_PRODUCT } from './actions';
 const initialState = [];
 
 export default function salesReducer(state = initialState, action) {
-	if (action.type === SALES_ADD_PRODUCT) {
+	if (action.type === SALES_SALES_ADD_PRODUCT) {
 		const salesLine = state.find(art => art.id === action.article.id);
 		const newCount = Math.min(Math.max(0, (salesLine ? salesLine.count : 0) + action.count), action.currentAmount);
 

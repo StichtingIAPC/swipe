@@ -1,110 +1,133 @@
-export function fetchAllUnitTypes(redirectTo) {
-	return { type: 'assortment/unit-types/FETCH_ALL',
-		redirectTo };
-}
+export const ASSORTMENT_UNIT_TYPES_FETCH_ALL_START = 'assortment/unit_types/fetch/all/start';
+export const ASSORTMENT_UNIT_TYPES_FETCH_ALL_SUCCESS = 'assortment/unit_types/fetch/all/success';
+export const ASSORTMENT_UNIT_TYPES_FETCH_ALL_FAIL = 'assortment/unit_types/fetch/all/fail';
+export const ASSORTMENT_UNIT_TYPES_FETCH_ALL_FINALLY = 'assortment/unit_types/fetch/all/finally';
 
-export function fetchAllUnitTypesDone(unitTypes) {
-	return { type: 'assortment/unit-types/FETCH_ALL_DONE',
-		unitTypes };
-}
+export const ASSORTMENT_UNIT_TYPES_FETCH_START = 'assortment/unit_types/fetch/start';
+export const ASSORTMENT_UNIT_TYPES_FETCH_SUCCESS = 'assortment/unit_types/fetch/success';
+export const ASSORTMENT_UNIT_TYPES_FETCH_FAIL = 'assortment/unit_types/fetch/fail';
+export const ASSORTMENT_UNIT_TYPES_FETCH_FINALLY = 'assortment/unit_types/fetch/finally';
 
-export function fetchAllUnitTypesFailed(reason) {
-	return { type: 'assortment/unit-types/FETCH_ALL_FAILED',
-		reason };
-}
+export const ASSORTMENT_UNIT_TYPES_CREATE_START = 'assortment/unit_types/create/start';
+export const ASSORTMENT_UNIT_TYPES_CREATE_SUCCESS = 'assortment/unit_types/create/success';
+export const ASSORTMENT_UNIT_TYPES_CREATE_FAIL = 'assortment/unit_types/create/fail';
+export const ASSORTMENT_UNIT_TYPES_CREATE_FINALLY = 'assortment/unit_types/create/finally';
 
-export function fetchAllUnitTypesFinally() {
-	return { type: 'assortment/unit-types/FETCH_ALL_FINALLY' };
-}
+export const ASSORTMENT_UNIT_TYPES_UPDATE_START = 'assortment/unit_types/update/start';
+export const ASSORTMENT_UNIT_TYPES_UPDATE_SUCCESS = 'assortment/unit_types/update/success';
+export const ASSORTMENT_UNIT_TYPES_UPDATE_FAIL = 'assortment/unit_types/update/fail';
+export const ASSORTMENT_UNIT_TYPES_UPDATE_FINALLY = 'assortment/unit_types/update/finally';
 
-export function fetchUnitType(id) {
-	return { type: 'assortment/unit-types/FETCH',
-		id };
-}
+export const ASSORTMENT_UNIT_TYPES_DELETE_START = 'assortment/unit_types/delete/start';
+export const ASSORTMENT_UNIT_TYPES_DELETE_SUCCESS = 'assortment/unit_types/delete/success';
+export const ASSORTMENT_UNIT_TYPES_DELETE_FAIL = 'assortment/unit_types/delete/fail';
+export const ASSORTMENT_UNIT_TYPES_DELETE_FINALLY = 'assortment/unit_types/delete/finally';
 
-export function fetchUnitTypeDone(unitType) {
-	return { type: 'assortment/unit-types/FETCH_DONE',
-		unitType };
-}
+export const ASSORTMENT_UNIT_TYPES_SET_FIELD = 'assortment/unit_types/setField';
 
-export function fetchUnitTypeFailed(id, reason) {
-	return { type: 'assortment/unit-types/FETCH_FAILED',
-		id,
-		reason };
-}
 
-export function fetchUnitTypeFinally() {
-	return { type: 'assortment/unit-types/FETCH_FINALLY' };
-}
+export const fetchAllUnitTypes = redirectTo => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_ALL_START,
+	redirectTo,
+});
 
-export function createUnitType(unitType) {
-	return { type: 'assortment/unit-types/CREATE',
-		unitType };
-}
+export const fetchAllUnitTypesDone = unitTypes => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_ALL_SUCCESS,
+	unitTypes,
+});
 
-export function createUnitTypeDone(unitType) {
-	return { type: 'assortment/unit-types/CREATE_DONE',
-		unitType };
-}
+export const fetchAllUnitTypesFailed = reason => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_ALL_FAIL,
+	reason,
+});
 
-export function createUnitTypeFailed(unitType, reason) {
-	return { type: 'assortment/unit-types/CREATE_FAILED',
-		unitType,
-		reason };
-}
+export const fetchAllUnitTypesFinally = () => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_ALL_FINALLY,
+});
 
-export function createUnitTypeFinally() {
-	return { type: 'assortment/unit-types/CREATE_FINALLY' };
-}
+export const fetchUnitType = id => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_START,
+	id,
+});
 
-export function updateUnitType(unitType) {
-	return { type: 'assortment/unit-types/UPDATE',
-		unitType };
-}
+export const fetchUnitTypeDone = unitType => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_SUCCESS,
+	unitType,
+});
 
-export function updateUnitTypeDone(unitType) {
-	return { type: 'assortment/unit-types/UPDATE_DONE',
-		unitType };
-}
+export const fetchUnitTypeFailed = (id, reason) => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_FAIL,
+	id,
+	reason,
+});
 
-export function updateUnitTypeFailed(unitType, reason) {
-	return { type: 'assortment/unit-types/UPDATE_FAILED',
-		unitType,
-		reason };
-}
+export const fetchUnitTypeFinally = () => ({
+	type: ASSORTMENT_UNIT_TYPES_FETCH_FINALLY,
+});
 
-export function updateUnitTypeFinally() {
-	return { type: 'assortment/unit-types/UPDATE_FINALLY' };
-}
+export const createUnitType = unitType => ({
+	type: ASSORTMENT_UNIT_TYPES_CREATE_START,
+	unitType,
+});
 
-export function deleteUnitType(id) {
-	return { type: 'assortment/unit-types/DELETE',
-		id };
-}
+export const createUnitTypeDone = unitType => ({
+	type: ASSORTMENT_UNIT_TYPES_CREATE_SUCCESS,
+	unitType,
+});
 
-export function deleteUnitTypeDone(id) {
-	return { type: 'assortment/unit-types/DELETE_DONE',
-		id };
-}
+export const createUnitTypeFailed = (unitType, reason) => ({
+	type: ASSORTMENT_UNIT_TYPES_CREATE_FAIL,
+	unitType,
+	reason,
+});
 
-export function deleteUnitTypeFailed(id, reason) {
-	return { type: 'assortment/unit-types/DELETE_FAILED',
-		id,
-		reason };
-}
+export const createUnitTypeFinally = () => ({
+	type: ASSORTMENT_UNIT_TYPES_CREATE_FINALLY,
+});
 
-export function deleteUnitTypeFinally() {
-	return { type: 'assortment/unit-types/DELETE_FINALLY' };
-}
+export const updateUnitType = unitType => ({
+	type: ASSORTMENT_UNIT_TYPES_UPDATE_START,
+	unitType,
+});
 
-export function setUnitTypeField(field, value) {
-	return { type: 'assortment/unit-types/SET_FIELD',
-		field,
-		value };
-}
+export const updateUnitTypeDone = unitType => ({
+	type: ASSORTMENT_UNIT_TYPES_UPDATE_SUCCESS,
+	unitType,
+});
 
-export default fetchAllUnitTypes;
+export const updateUnitTypeFailed = (unitType, reason) => ({
+	type: ASSORTMENT_UNIT_TYPES_UPDATE_FAIL,
+	unitType,
+	reason,
+});
 
-export {
-	fetchAllUnitTypes as unitTypes
-};
+export const updateUnitTypeFinally = () => ({
+	type: ASSORTMENT_UNIT_TYPES_UPDATE_FINALLY,
+});
+
+export const deleteUnitType = id => ({
+	type: ASSORTMENT_UNIT_TYPES_DELETE_START,
+	id,
+});
+
+export const deleteUnitTypeDone = id => ({
+	type: ASSORTMENT_UNIT_TYPES_DELETE_SUCCESS,
+	id,
+});
+
+export const deleteUnitTypeFailed = (id, reason) => ({
+	type: ASSORTMENT_UNIT_TYPES_DELETE_FAIL,
+	id,
+	reason,
+});
+
+export const deleteUnitTypeFinally = () => ({
+	type: ASSORTMENT_UNIT_TYPES_DELETE_FINALLY,
+});
+
+export const setUnitTypeField = (field, value) => ({
+	type: ASSORTMENT_UNIT_TYPES_SET_FIELD,
+	field,
+	value,
+});
+

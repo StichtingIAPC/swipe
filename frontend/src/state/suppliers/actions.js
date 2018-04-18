@@ -1,151 +1,135 @@
-export function fetchAllSuppliers(redirectTo) {
-	return {
-		type: 'suppliers/FETCH_ALL',
-		redirectTo,
-	};
-}
+export const SUPPLIERS_FETCH_ALL_START = 'suppliers/fetchAll/start';
+export const SUPPLIERS_FETCH_ALL_SUCCESS = 'suppliers/fetchAll/success';
+export const SUPPLIERS_FETCH_ALL_FAIL = 'suppliers/fetchAll/fail';
+export const SUPPLIERS_FETCH_ALL_FINALLY = 'suppliers/fetchAll/finally';
 
-export function fetchAllSuppliersDone(suppliers) {
-	return {
-		type: 'suppliers/FETCH_ALL_DONE',
-		suppliers,
-	};
-}
+export const SUPPLIERS_FETCH_START = 'suppliers/fetch/start';
+export const SUPPLIERS_FETCH_SUCCESS = 'suppliers/fetch/success';
+export const SUPPLIERS_FETCH_FAIL = 'suppliers/fetch/fail';
+export const SUPPLIERS_FETCH_FINALLY = 'suppliers/fetch/finally';
 
-export function fetchAllSuppliersFailed(reason) {
-	return {
-		type: 'suppliers/FETCH_ALL_FAILED',
-		reason,
-	};
-}
+export const SUPPLIERS_CREATE_START = 'suppliers/create/start';
+export const SUPPLIERS_CREATE_SUCCESS = 'suppliers/create/success';
+export const SUPPLIERS_CREATE_FAIL = 'suppliers/create/fail';
+export const SUPPLIERS_CREATE_FINALLY = 'suppliers/create/finally';
 
-export function fetchAllSuppliersFinally() {
-	return {
-		type: 'suppliers/FETCH_ALL_FINALLY',
-	};
-}
+export const SUPPLIERS_UPDATE_START = 'suppliers/update/start';
+export const SUPPLIERS_UPDATE_SUCCESS = 'suppliers/update/success';
+export const SUPPLIERS_UPDATE_FAIL = 'suppliers/update/fail';
+export const SUPPLIERS_UPDATE_FINALLY = 'suppliers/update/finally';
 
-export function fetchSupplier(id) {
-	return {
-		type: 'suppliers/FETCH',
-		id,
-	};
-}
+export const SUPPLIERS_DELETE_START = 'suppliers/delete/start';
+export const SUPPLIERS_DELETE_SUCCESS = 'suppliers/delete/success';
+export const SUPPLIERS_DELETE_FAIL = 'suppliers/delete/fail';
+export const SUPPLIERS_DELETE_FINALLY = 'suppliers/delete/finally';
 
-export function fetchSupplierDone(supplier) {
-	return {
-		type: 'suppliers/FETCH_DONE',
-		supplier,
-	};
-}
+export const SUPPLIERS_SET_FIELD = 'suppliers/setField';
+export const SUPPLIERS_NEW_SUPPLIER = 'suppliers/newSupplier';
 
-export function fetchSupplierFailed(id, reason) {
-	return {
-		type: 'suppliers/FETCH_FAILED',
-		id,
-		reason,
-	};
-}
+export const fetchAllSuppliers = redirectTo => ({
+	type: SUPPLIERS_FETCH_ALL_START,
+	redirectTo,
+});
 
-export function fetchSupplierFinally() {
-	return { type: 'suppliers/FETCH_FINALLY' };
-}
+export const fetchAllSuppliersDone = suppliers => ({
+	type: SUPPLIERS_FETCH_ALL_SUCCESS,
+	suppliers,
+});
 
-export function createSupplier(supplier) {
-	return {
-		type: 'suppliers/CREATE',
-		supplier,
-	};
-}
+export const fetchAllSuppliersFailed = reason => ({
+	type: SUPPLIERS_FETCH_ALL_FAIL,
+	reason,
+});
 
-export function createSupplierDone(supplier) {
-	return {
-		type: 'suppliers/CREATE_DONE',
-		supplier,
-	};
-}
+export const fetchAllSuppliersFinally = () => ({ type: SUPPLIERS_FETCH_ALL_FINALLY });
 
-export function createSupplierFailed(supplier, reason) {
-	return {
-		type: 'suppliers/CREATE_FAILED',
-		supplier,
-		reason,
-	};
-}
+export const fetchSupplier = id => ({
+	type: SUPPLIERS_FETCH_START,
+	id,
+});
 
-export function createSupplierFinally() {
-	return { type: 'suppliers/CREATE_FINALLY' };
-}
+export const fetchSupplierDone = supplier => ({
+	type: SUPPLIERS_FETCH_SUCCESS,
+	supplier,
+});
 
-export function updateSupplier(supplier) {
-	return {
-		type: 'suppliers/UPDATE',
-		supplier,
-	};
-}
+export const fetchSupplierFailed = (id, reason) => ({
+	type: SUPPLIERS_FETCH_FAIL,
+	id,
+	reason,
+});
 
-export function updateSupplierDone(supplier) {
-	return {
-		type: 'suppliers/UPDATE_DONE',
-		supplier,
-	};
-}
+export const fetchSupplierFinally = () => ({
+	type: SUPPLIERS_FETCH_FINALLY,
+});
 
-export function updateSupplierFailed(supplier, reason) {
-	return {
-		type: 'suppliers/UPDATE_FAILED',
-		supplier,
-		reason,
-	};
-}
+export const createSupplier = supplier => ({
+	type: SUPPLIERS_CREATE_START,
+	supplier,
+});
 
-export function updateSupplierFinally() {
-	return {
-		type: 'suppliers/UPDATE_FINALLY',
-	};
-}
+export const createSupplierDone = supplier => ({
+	type: SUPPLIERS_CREATE_SUCCESS,
+	supplier,
+});
 
-export function deleteSupplier(id) {
-	return {
-		type: 'suppliers/DELETE',
-		id,
-	};
-}
+export const createSupplierFailed = (supplier, reason) => ({
+	type: SUPPLIERS_CREATE_FAIL,
+	supplier,
+	reason,
+});
 
-export function deleteSupplierDone(id) {
-	return {
-		type: 'suppliers/DELETE_DONE',
-		id,
-	};
-}
+export const createSupplierFinally = () => ({
+	type: SUPPLIERS_CREATE_FINALLY,
+});
 
-export function deleteSupplierFailed(id, reason) {
-	return {
-		type: 'suppliers/DELETE_FAILED',
-		id,
-		reason,
-	};
-}
+export const updateSupplier = supplier => ({
+	type: SUPPLIERS_UPDATE_START,
+	supplier,
+});
 
-export function deleteSupplierFinally() {
-	return { type: 'suppliers/DELETE_FINALLY' };
-}
+export const updateSupplierDone = supplier => ({
+	type: SUPPLIERS_UPDATE_SUCCESS,
+	supplier,
+});
 
-export function setSupplierField(field, value) {
-	return {
-		type: 'suppliers/SET_FIELD',
-		field,
-		value,
-	};
-}
+export const updateSupplierFailed = (supplier, reason) => ({
+	type: SUPPLIERS_UPDATE_FAIL,
+	supplier,
+	reason,
+});
 
-export function newSupplier() {
-	return {
-		type: 'suppliers/NEW_SUPPLIER',
-	};
-}
+export const updateSupplierFinally = () => ({
+	type: SUPPLIERS_UPDATE_FINALLY,
+});
 
-export default fetchAllSuppliers;
-export {
-	fetchAllSuppliers as suppliers
-};
+export const deleteSupplier = id => ({
+	type: SUPPLIERS_DELETE_START,
+	id,
+});
+
+export const deleteSupplierDone = id => ({
+	type: SUPPLIERS_DELETE_SUCCESS,
+	id,
+});
+
+export const deleteSupplierFailed = (id, reason) => ({
+	type: SUPPLIERS_DELETE_FAIL,
+	id,
+	reason,
+});
+
+export const deleteSupplierFinally = () => ({
+	type: SUPPLIERS_DELETE_FINALLY,
+});
+
+export const setSupplierField = (field, value) => ({
+	type: SUPPLIERS_SET_FIELD,
+	field,
+	value,
+});
+
+export const newSupplier = () => ({
+	type: SUPPLIERS_NEW_SUPPLIER,
+});
+

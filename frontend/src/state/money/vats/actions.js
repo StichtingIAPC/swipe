@@ -1,151 +1,137 @@
-export function fetchAllvats(redirectTo) {
-	return {
-		type: 'money/vats/FETCH_ALL',
-		redirectTo,
-	};
-}
+export const MONEY_VATS_FETCH_ALL_START = 'money/vats/fetchAll/start';
+export const MONEY_VATS_FETCH_ALL_SUCCESS = 'money/vats/fetchAll/success';
+export const MONEY_VATS_FETCH_ALL_FAIL = 'money/vats/fetchAll/fail';
+export const MONEY_VATS_FETCH_ALL_FINALLY = 'money/vats/fetchAll/finally';
 
-export function fetchAllvatsDone(vats) {
-	return {
-		type: 'money/vats/FETCH_ALL_DONE',
-		vats,
-	};
-}
+export const MONEY_VATS_FETCH_START = 'money/vats/fetch/start';
+export const MONEY_VATS_FETCH_SUCCESS = 'money/vats/fetch/success';
+export const MONEY_VATS_FETCH_FAIL = 'money/vats/fetch/fail';
+export const MONEY_VATS_FETCH_FINALLY = 'money/vats/fetch/finally';
 
-export function fetchAllvatsFailed(reason) {
-	return {
-		type: 'money/vats/FETCH_ALL_FAILED',
-		reason,
-	};
-}
+export const MONEY_VATS_CREATE_START = 'money/vats/create/start';
+export const MONEY_VATS_CREATE_SUCCESS = 'money/vats/create/success';
+export const MONEY_VATS_CREATE_FAIL = 'money/vats/create/fail';
+export const MONEY_VATS_CREATE_FINALLY = 'money/vats/create/finally';
 
-export function fetchAllvatsFinally() {
-	return {
-		type: 'money/vats/FETCH_ALL_FINALLY',
-	};
-}
+export const MONEY_VATS_UPDATE_START = 'money/vats/update/start';
+export const MONEY_VATS_UPDATE_SUCCESS = 'money/vats/update/success';
+export const MONEY_VATS_UPDATE_FAIL = 'money/vats/update/fail';
+export const MONEY_VATS_UPDATE_FINALLY = 'money/vats/update/finally';
 
-export function fetchvat(id) {
-	return {
-		type: 'money/vats/FETCH',
-		id,
-	};
-}
+export const MONEY_VATS_DELETE_START = 'money/vats/delete/start';
+export const MONEY_VATS_DELETE_SUCCESS = 'money/vats/delete/success';
+export const MONEY_VATS_DELETE_FAIL = 'money/vats/delete/fail';
+export const MONEY_VATS_DELETE_FINALLY = 'money/vats/delete/finally';
 
-export function fetchvatDone(vat) {
-	return {
-		type: 'money/vats/FETCH_DONE',
-		vat,
-	};
-}
+export const MONEY_VATS_SET_FIELD = 'money/vats/setField';
+export const MONEY_VATS_NEW_VAT = 'money/vats/newVat';
 
-export function fetchvatFailed(id, reason) {
-	return {
-		type: 'money/vats/FETCH_FAILED',
-		id,
-		reason,
-	};
-}
+export const fetchAllVatsStart = redirectTo => ({
+	type: MONEY_VATS_FETCH_ALL_START,
+	redirectTo,
+});
 
-export function fetchvatFinally() {
-	return { type: 'money/vats/FETCH_FINALLY' };
-}
+export const fetchAllVatsDone = vats => ({
+	type: MONEY_VATS_FETCH_ALL_SUCCESS,
+	vats,
+});
 
-export function createvat(vat) {
-	return {
-		type: 'money/vats/CREATE',
-		vat,
-	};
-}
+export const fetchAllVatsFail = reason => ({
+	type: MONEY_VATS_FETCH_ALL_FAIL,
+	reason,
+});
 
-export function createvatDone(vat) {
-	return {
-		type: 'money/vats/CREATE_DONE',
-		vat,
-	};
-}
+export const fetchAllVatsFinally = () => ({
+	type: MONEY_VATS_FETCH_ALL_FINALLY,
+});
 
-export function createvatFailed(vat, reason) {
-	return {
-		type: 'money/vats/CREATE_FAILED',
-		vat,
-		reason,
-	};
-}
+export const fetchVatStart = id => ({
+	type: MONEY_VATS_FETCH_START,
+	id,
+});
 
-export function createvatFinally() {
-	return { type: 'money/vats/CREATE_FINALLY' };
-}
+export const fetchVatDone = vat => ({
+	type: MONEY_VATS_FETCH_SUCCESS,
+	vat,
+});
 
-export function updatevat(vat) {
-	return {
-		type: 'money/vats/UPDATE',
-		vat,
-	};
-}
+export const fetchVatFail = (id, reason) => ({
+	type: MONEY_VATS_FETCH_FAIL,
+	id,
+	reason,
+});
 
-export function updatevatDone(vat) {
-	return {
-		type: 'money/vats/UPDATE_DONE',
-		vat,
-	};
-}
+export const fetchVatFinally = () => ({
+	type: MONEY_VATS_FETCH_FINALLY,
+});
 
-export function updatevatFailed(vat, reason) {
-	return {
-		type: 'money/vats/UPDATE_FAILED',
-		vat,
-		reason,
-	};
-}
+export const createVatStart = vat => ({
+	type: MONEY_VATS_CREATE_START,
+	vat,
+});
 
-export function updatevatFinally() {
-	return {
-		type: 'money/vats/UPDATE_FINALLY',
-	};
-}
+export const createVatDone = vat => ({
+	type: MONEY_VATS_CREATE_SUCCESS,
+	vat,
+});
 
-export function deletevat(id) {
-	return {
-		type: 'money/vats/DELETE',
-		id,
-	};
-}
+export const createVatFail = (vat, reason) => ({
+	type: MONEY_VATS_CREATE_FAIL,
+	vat,
+	reason,
+});
 
-export function deletevatDone(id) {
-	return {
-		type: 'money/vats/DELETE_DONE',
-		id,
-	};
-}
+export const createVatFinally = () => ({
+	type: MONEY_VATS_CREATE_FINALLY,
+});
 
-export function deletevatFailed(id, reason) {
-	return {
-		type: 'money/vats/DELETE_FAILED',
-		id,
-		reason,
-	};
-}
+export const updateVatStart = vat => ({
+	type: MONEY_VATS_UPDATE_START,
+	vat,
+});
 
-export function deletevatFinally() {
-	return { type: 'money/vats/DELETE_FINALLY' };
-}
+export const updateVatDone = vat => ({
+	type: MONEY_VATS_UPDATE_SUCCESS,
+	vat,
+});
 
-export function setvatField(field, value) {
-	return {
-		type: 'money/vats/SET_FIELD',
-		field,
-		value,
-	};
-}
+export const updateVatFail = (vat, reason) => ({
+	type: MONEY_VATS_UPDATE_FAIL,
+	vat,
+	reason,
+});
 
-export function resetvat() {
-	return {
-		type: 'money/vats/NEW_VAT',
-	};
-}
+export const updateVatFinally = () => ({
+	type: MONEY_VATS_UPDATE_FINALLY,
+});
 
-export default fetchAllvats;
-export {
-	fetchAllvats as vats
-};
+export const deleteVatStart = id => ({
+	type: MONEY_VATS_DELETE_START,
+	id,
+});
+
+export const deleteVatDone = id => ({
+	type: MONEY_VATS_DELETE_SUCCESS,
+	id,
+});
+
+export const deleteVatFail = (id, reason) => ({
+	type: MONEY_VATS_DELETE_FAIL,
+	id,
+	reason,
+});
+
+export const deleteVatFinally = () => ({
+	type: MONEY_VATS_DELETE_FINALLY,
+});
+
+export const setVatField = (field, value) => ({
+	type: MONEY_VATS_SET_FIELD,
+	field,
+	value,
+});
+
+export const resetVat = () => ({
+	type: MONEY_VATS_NEW_VAT,
+});
+
