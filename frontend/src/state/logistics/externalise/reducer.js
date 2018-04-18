@@ -2,17 +2,19 @@ import { combineReducers } from 'redux';
 import {
 	setFieldReducer,
 	booleanControlReducer,
-	objectControlReducer,
-	resetFieldReducer, collectReducers, pathControlReducer
+	resetFieldReducer,
+	collectReducers,
+	pathControlReducer,
 } from '../../../tools/reducerComponents';
 import {
-	FETCH_ALL_ACTION,
-	FETCH_ALL_FINALLY,
-	FETCH_ALL_ERROR,
-	FETCH_ALL_SUCCESS,
-	NEW_ACTION,
-	SET_FIELD_ACTION,
-	CREATE_SUCCESS, SET_VALIDATIONS, SET_LOADING_ACTION
+	LOGISTICS_EXTRNALIZE_FETCH_ALL_FINALLY,
+	LOGISTICS_EXTRNALIZE_FETCH_ALL_FAIL,
+	LOGISTICS_EXTRNALIZE_FETCH_ALL_SUCCESS,
+	LOGISTICS_EXTRNALIZE_NEW,
+	LOGISTICS_EXTRNALIZE_SET_FIELD,
+	LOGISTICS_EXTRNALIZE_CREATE_SUCCESS,
+	LOGISTICS_EXTRNALIZE_SET_VALIDATIONS,
+	LOGISTICS_EXTRNALIZE_SET_LOADING,
 } from './actions';
 
 const defaultExternalisation = {
@@ -23,29 +25,29 @@ const defaultExternalisation = {
 
 export default combineReducers({
 	externalisations: setFieldReducer([
-		FETCH_ALL_SUCCESS,
+		LOGISTICS_EXTRNALIZE_FETCH_ALL_SUCCESS,
 	], [], 'externalisations'),
 	isLoading: booleanControlReducer({
-		[SET_LOADING_ACTION]: true,
-		[FETCH_ALL_FINALLY]: false,
+		[LOGISTICS_EXTRNALIZE_SET_LOADING]: true,
+		[LOGISTICS_EXTRNALIZE_FETCH_ALL_FINALLY]: false,
 	}, false),
 	isPopulated: booleanControlReducer({
-		[FETCH_ALL_SUCCESS]: true,
+		[LOGISTICS_EXTRNALIZE_FETCH_ALL_SUCCESS]: true,
 	}, false),
 	error: setFieldReducer([
-		FETCH_ALL_ERROR,
+		LOGISTICS_EXTRNALIZE_FETCH_ALL_FAIL,
 	], null, 'reason'),
 
 	activeObject: collectReducers(
 		resetFieldReducer([
-			NEW_ACTION,
-			CREATE_SUCCESS,
+			LOGISTICS_EXTRNALIZE_NEW,
+			LOGISTICS_EXTRNALIZE_CREATE_SUCCESS,
 		], defaultExternalisation),
 		pathControlReducer([
-			SET_FIELD_ACTION,
+			LOGISTICS_EXTRNALIZE_SET_FIELD,
 		], defaultExternalisation),
 	),
 	validations: setFieldReducer([
-		SET_VALIDATIONS,
+		LOGISTICS_EXTRNALIZE_SET_VALIDATIONS,
 	], {}, 'validations'),
 });

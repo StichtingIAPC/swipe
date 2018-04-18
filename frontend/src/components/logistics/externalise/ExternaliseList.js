@@ -3,7 +3,7 @@ import MoneyAmount from '../../money/MoneyAmount';
 import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
-import { fetchAllAction as fetchAllExternalisations } from '../../../state/logistics/externalise/actions';
+import { fetchAllExternalizesStart as fetchAllExternalisations } from '../../../state/logistics/externalise/actions';
 import {
 	getExternalisationData,
 	getExternalisationLoading,

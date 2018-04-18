@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
 import {
-	createAction as createExternalise,
-	newAction as resetExternalise,
-	newAction as newExternalise,
-	setFieldAction as setExternaliseField,
+	createExternalizeStart as createExternalise,
+	newExternalize as resetExternalise,
+	newExternalize as newExternalise,
+	setField as setExternaliseField,
 } from '../../../state/logistics/externalise/actions';
 
 import Card from '../../base/Card';

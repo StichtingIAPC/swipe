@@ -23,12 +23,12 @@ export function* fetchAll() {
 			article: en.article_type,
 		}))));
 
-		yield put(actions.fetchAllSuccess(exts));
+		yield put(actions.fetchAllExternalizesSuccess(exts));
 	} catch (e) {
 		console.error(e);
-		yield put(actions.fetchAllError(e));
+		yield put(actions.fetchAllExternalizesFail(e));
 	} finally {
-		yield put(actions.fetchAllFinally());
+		yield put(actions.fetchAllExternalizesFinally());
 	}
 }
 
@@ -48,16 +48,16 @@ export function* create({ externalise }) {
 	try {
 		const newExternalise = yield (yield call(api.post, document)).json();
 
-		yield put(actions.createSuccess(newExternalise));
+		yield put(actions.createExternalizeSuccess(newExternalise));
 	} catch (e) {
-		yield put(actions.createError(cleanErrorMessage(e)));
+		yield put(actions.createExternalizeFail(cleanErrorMessage(e)));
 	} finally {
-		yield put(actions.createFinally());
+		yield put(actions.createExternalizeFinally());
 	}
 }
 
 export function* createSuccess() {
-	yield put(actions.fetchAllAction());
+	yield put(actions.fetchAllExternalizesStart());
 	yield put(push('/logistics/externalise'));
 }
 
@@ -92,10 +92,10 @@ export function* externalizeValidator() {
 }
 
 export default function* saga() {
-	yield takeEvery(actions.SET_FIELD_ACTION, externalizeValidator);
-	yield takeEvery(actions.CREATE_ACTION, externalizeValidator);
+	yield takeEvery(actions.LOGISTICS_EXTRNALIZE_SET_FIELD, externalizeValidator);
+	yield takeEvery(actions.LOGISTICS_EXTRNALIZE_CREATE_START, externalizeValidator);
 
-	yield takeLatest(actions.FETCH_ALL_ACTION, fetchAll);
-	yield takeEvery(actions.CREATE_ACTION, create);
-	yield takeLatest(actions.CREATE_SUCCESS, createSuccess);
+	yield takeLatest(actions.LOGISTICS_EXTRNALIZE_FETCH_ALL_START, fetchAll);
+	yield takeEvery(actions.LOGISTICS_EXTRNALIZE_CREATE_START, create);
+	yield takeLatest(actions.LOGISTICS_EXTRNALIZE_CREATE_SUCCESS, createSuccess);
 }
