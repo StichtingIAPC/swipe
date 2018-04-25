@@ -58,6 +58,9 @@ module.exports = {
 	},
 	plugins: [
 		new webpack.DefinePlugin(Object.assign({}, defaults, replacements)),
+		new webpack.DefinePlugin({
+			"process.env": { NODE_ENV: "'production'" }
+		}),
 	],
 	resolve: {
 		modules: [ 'node_modules' ],
