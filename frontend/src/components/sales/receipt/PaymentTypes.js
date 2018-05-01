@@ -1,6 +1,6 @@
-/* eslint-disable no-alert */
 import React from 'react';
 import { connect } from 'react-redux';
+import Big from 'big.js';
 
 import { getPaymentsOnReceipt, getPaymentTypes, getIsPaymentSplit } from '../../../state/sales/payments/selectors';
 import { getSalesTotal } from '../../../state/assortment/articles/selectors';
@@ -12,6 +12,22 @@ import {
 import MoneyAmount from '../../money/MoneyAmount';
 import { salesCommitCreate as salesCommitCreateAction } from '../../../state/sales/commit/actions';
 import MoneyField from '../../forms/MoneyField';
+import { Col, Button, ButtonToolbar } from 'react-bootstrap';
+import FontAwesome from '../../tools/icons/FontAwesome';
+
+function getIconForPaymentType(paymentType) {
+	switch (paymentType.name) {
+		case 'Cash':
+			return 'money';
+		case 'Maestro':
+			return 'credit-card-alt';
+		case 'Invoice':
+			return 'file-text';
+		default:
+			return null;
+	}
+}
+
 
 function PaymentTypes(props) {
 	const { paymentTypes, paymentTypesAmounts, isPaymentSplit, setPaymentType, resetPaymentTypes, salesCommitCreate, toggleSplitPayment, total } = props;
@@ -21,64 +37,84 @@ function PaymentTypes(props) {
 	}
 
 	return (
-		<div className="row">
-			<table>
-				<tbody>
-					<tr>
-						{paymentTypes.map(paymentType => <td key={paymentType.id}>
-							<button
-								style={{ width: '100px' }}
+		<div className="row" >
+			<ButtonToolbar >
+				{paymentTypes.map(paymentType =>
+					<Col key={paymentType.id} md={3} >
+						<Button
+							bsStyle="primary"
+							block
+							onClick={() => {
+								resetPaymentTypes();
+								setPaymentType(paymentType, {
+									...total,
+									amount: total.amount,
+								});
+							}}
+							disabled={isPaymentSplit} >
+							<FontAwesome icon={getIconForPaymentType(paymentType)} /> {paymentType.name}
+						</Button >
+					</Col >
+				)}
+				<Col md={3} >
+					<Button
+						block
+						onClick={() => {
+							if (isPaymentSplit) {
+								resetPaymentTypes();
+							}
+							toggleSplitPayment();
+						}} >
+						<FontAwesome icon="th-list" /> split payment
+					</Button >
+				</Col >
+			</ButtonToolbar >
+			{isPaymentSplit ?
+				paymentTypes.map(paymentType =>
+					<Col md={3} key={paymentType.id} >
+						<ButtonToolbar block >
+							<Button
 								onClick={() => {
-									resetPaymentTypes();
+									let amountLeft = new Big(total.amount)
+										.minus(Object.values(paymentTypesAmounts).reduce(
+											(sumBig, paymentTypeAmount) => sumBig.plus(paymentTypeAmount.amount), new Big(0))
+										);
+
+									if (amountLeft.lt(0)) {
+										amountLeft = new Big(0);
+									}
+
+									const currentAmountPaymentType = paymentTypesAmounts[paymentType.id] ? new Big(paymentTypesAmounts[paymentType.id].amount) : new Big(0);
+
 									setPaymentType(paymentType, {
 										...total,
-										amount: total.amount,
+										amount: currentAmountPaymentType.plus(amountLeft).toFixed(5),
 									});
-								}}
-								disabled={isPaymentSplit} >
-								{paymentType.name}
-							</button>
-						</td>)}
-						<td>
-							<button
-								onClick={() => {
-									resetPaymentTypes();
-									toggleSplitPayment();
 								}} >
-								split payment
-							</button>
-						</td>
-					</tr>
-					{isPaymentSplit ?
-						<tr>
-							{paymentTypes.map(paymentType => <td key={paymentType.id}>
-								<MoneyField
-									style={{ width: '100px' }}
-									currency={'EUR'}
-									onChange={amount => setPaymentType(paymentType, {
+								<FontAwesome icon="arrow-down" /> Fill
+							</Button >
+							<Button
+								onClick={() => {
+									setPaymentType(paymentType, {
 										...total,
-										amount,
-									})} />
-							</td>)}
-						</tr> :
-						null}
-					{/*<tr>*/}
-						{/*{paymentTypes.map(paymentType =>*/}
-							{/*<td key={paymentType.id} >*/}
-								{/*<MoneyAmount*/}
-									{/*money={paymentTypesAmounts[paymentType.id] || {*/}
-										{/*amount: 0,*/}
-										{/*currency: 'EUR',*/}
-									{/*}} />*/}
-							{/*</td>)}*/}
-						{/*<td>*/}
-							{/*{isPaymentSplit.toString()}*/}
-						{/*</td>*/}
-					{/*</tr>*/}
-				</tbody>
-			</table>
-			<button onClick={() => salesCommitCreate()}>sell!</button>
-		</div>
+										amount: 0,
+									});
+								}} >
+								<FontAwesome icon="arrow-up" /> Empty
+							</Button >
+						</ButtonToolbar >
+						<MoneyField
+							currency={'EUR'}
+							onChange={amount => setPaymentType(paymentType, {
+								...total,
+								amount,
+							})}
+							value={paymentTypesAmounts[paymentType.id] ? paymentTypesAmounts[paymentType.id].amount : 0} />
+					</Col >
+				) :
+				null}
+			<button onClick={() => salesCommitCreate()} >sell!</button >
+		</div >
 	);
 }
 

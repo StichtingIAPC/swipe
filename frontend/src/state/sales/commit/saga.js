@@ -4,14 +4,14 @@ import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 import * as api from '../../../api';
 import { SALES_COMMIT_CREATE, salesCommitCreateDone, salesCommitCreateFailed, salesCommitCreateFinally } from './actions';
 import { takeEvery } from 'redux-saga';
-import { getPaymentsOnReceiptAsList } from '../payments/selectors';
+import { getPaymentsOnReceiptAsListForAPI } from '../payments/selectors';
 import { getSales } from '../sales/selectors';
 import { getCurrentUser } from '../../auth/selectors';
 
 function* createSalesTransaction() {
 	console.log((yield select(getCurrentUser)).id);
 	const document = {
-		payments: yield select(getPaymentsOnReceiptAsList),
+		payments: yield select(getPaymentsOnReceiptAsListForAPI),
 		transactionlines: yield select(getSales),
 		user: (yield select(getCurrentUser)).id,
 	};
