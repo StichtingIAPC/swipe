@@ -46,7 +46,7 @@ function PaymentTypes(props) {
 							block={true}
 							onClick={() => {
 								resetPaymentTypes();
-								setPaymentType(paymentType, {
+								setPaymentType(paymentType.id, {
 									...total,
 									amount: total.amount,
 								});
@@ -95,7 +95,7 @@ function PaymentTypes(props) {
 							</Button >
 							<Button
 								onClick={() => {
-									setPaymentType(paymentType, {
+									setPaymentType(paymentType.id, {
 										...total,
 										amount: 0,
 									});
@@ -105,7 +105,7 @@ function PaymentTypes(props) {
 						</ButtonToolbar >
 						<MoneyField
 							currency={'EUR'}
-							onChange={amount => setPaymentType(paymentType, {
+							onChange={amount => setPaymentType(paymentType.id, {
 								...total,
 								amount,
 							})}

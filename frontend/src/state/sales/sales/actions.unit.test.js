@@ -2,15 +2,21 @@
 
 import {
 	SALES_MUTATE_SALES_LINE,
-	addToSalesListAction
+	mutateSalesLineOfArticle
 } from './actions';
 
 describe('Action tests for sales.actions', () => {
-	test('addToSalesListAction', () => {
-		expect(addToSalesListAction('article', 4, 6)).toEqual({
+	test('mutateSalesLineOfArticle add', () => {
+		expect(mutateSalesLineOfArticle('article', 4)).toEqual({
 			type: SALES_MUTATE_SALES_LINE,
 			article: 'article',
-			count: 4,
-			currentAmount: 6 });
+			amount: 4 });
+	});
+
+	test('mutateSalesLineOfArticle subtract', () => {
+		expect(mutateSalesLineOfArticle('article', -4)).toEqual({
+			type: SALES_MUTATE_SALES_LINE,
+			article: 'article',
+			amount: -4 });
 	});
 });
