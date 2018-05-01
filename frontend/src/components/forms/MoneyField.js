@@ -2,7 +2,6 @@ import React from 'react';
 import fetchAllCurrencies from '../../state/money/currencies/actions';
 
 import { connect } from 'react-redux';
-import Form from './Form';
 import PropTypes from 'prop-types';
 import { FormControl, FormGroup, InputGroup } from 'react-bootstrap';
 import { getCurrencyByIso } from '../../state/money/currencies/selectors';

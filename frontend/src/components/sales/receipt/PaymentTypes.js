@@ -43,7 +43,7 @@ function PaymentTypes(props) {
 					<Col key={paymentType.id} md={3} >
 						<Button
 							bsStyle="primary"
-							block
+							block={true}
 							onClick={() => {
 								resetPaymentTypes();
 								setPaymentType(paymentType, {
@@ -58,7 +58,7 @@ function PaymentTypes(props) {
 				)}
 				<Col md={3} >
 					<Button
-						block
+						block={true}
 						onClick={() => {
 							if (isPaymentSplit) {
 								resetPaymentTypes();
@@ -72,7 +72,7 @@ function PaymentTypes(props) {
 			{isPaymentSplit ?
 				paymentTypes.map(paymentType =>
 					<Col md={3} key={paymentType.id} >
-						<ButtonToolbar block >
+						<ButtonToolbar block={true} >
 							<Button
 								onClick={() => {
 									let amountLeft = new Big(total.amount)
