@@ -9,7 +9,7 @@ from crm.serializers import CustomerSerializer, PersonSerializer, OrganisationSe
 
 
 class CustomerView(mixins.RetrieveModelMixin,
-                      generics.GenericAPIView):
+                  generics.GenericAPIView):
 
     def get_queryset(self):
         return Customer.objects.all()
@@ -22,6 +22,31 @@ class CustomerView(mixins.RetrieveModelMixin,
     def delete(self, request, *args, **kwargs):
         Customer.objects.filter(id=kwargs['pk']).delete()
         return HttpResponse(content={'deleted':True}, status=200)
+
+
+class CustomerByNameView(mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                       generics.GenericAPIView):
+
+    lookup_field = 'name'
+
+    serializer_class = CustomerSerializer
+
+    def get_queryset(self):
+        customers = Customer.objects.all()
+        persons = []
+        for customer in customers:
+            if hasattr(customer, 'person'):
+                if self.kwargs['name'] in customer.person.name:
+                    persons.append(customer)
+            elif hasattr(customer, 'organisation'):
+                if self.kwargs['name'] in customer.organisation.name:
+                    persons.append(customer)
+        print(persons)
+        return persons
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 class PersonView(mixins.RetrieveModelMixin,
@@ -43,7 +68,6 @@ class PersonView(mixins.RetrieveModelMixin,
     def delete(self, request, *args, **kwargs):
         Person.objects.filter(id=kwargs['pk']).delete()
         return HttpResponse(content={'deleted':True}, status=200)
-
 
 
 class PersonCreateView(mixins.CreateModelMixin,
