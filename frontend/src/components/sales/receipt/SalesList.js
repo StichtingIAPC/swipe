@@ -5,8 +5,8 @@ import { articles } from '../../../state/assortment/articles/actions';
 import { mutateSalesLineOfArticle } from '../../../state/sales/sales/actions';
 import { stock } from '../../../state/stock/actions';
 import Totals from './Totals';
-import Box from '../../base/Box';
 import SalesListLine from './SalesListLine';
+import { Box } from 'reactjs-admin-lte';
 
 class SalesList extends React.Component {
 

@@ -7,12 +7,12 @@ import { AppContainer } from 'react-hot-loader';
 import { Provider } from 'react-redux';
 import Routes from './Routes.js';
 import { ConnectedRouter, push } from 'react-router-redux';
-import 'font-awesome/css/font-awesome.min.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import 'admin-lte/dist/css/AdminLTE.min.css';
 import 'admin-lte/dist/css/skins/skin-blue.min.css';
+import 'font-awesome/css/font-awesome.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import 'react-select/dist/react-select.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/main.scss';
 // Pages
 import saga from './state/saga.js';

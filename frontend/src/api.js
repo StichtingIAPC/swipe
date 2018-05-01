@@ -1,5 +1,4 @@
 /* eslint-disable no-undefined */
-import fetch from 'isomorphic-fetch';
 import config from './config';
 
 let TOKEN = null;

@@ -2,6 +2,7 @@ import React from 'react';
 import fetchAllCurrencies from '../../state/money/currencies/actions';
 
 import { connect } from 'react-redux';
+import Card from '../base/Card';
 import PropTypes from 'prop-types';
 import { FormControl, FormGroup, InputGroup } from 'react-bootstrap';
 import { getCurrencyByIso } from '../../state/money/currencies/selectors';
@@ -13,18 +14,16 @@ export class MoneyField extends React.Component {
 
 	render() {
 		return (
-			<div className="input-group">
-				<FormGroup>
-					<InputGroup>
-						<InputGroup.Addon>{this.props.currencyObj.symbol}</InputGroup.Addon>
-						<FormControl
-							type="text"
-							value={this.props.value}
-							onChange={event => this.props.onChange(event.target.value.replace(',', '.'))}
-							name={this.props.name} />
-					</InputGroup>
-				</FormGroup>
-			</div>
+			<FormGroup>
+				<InputGroup>
+					<InputGroup.Addon>{this.props.currencyObj.symbol}</InputGroup.Addon>
+					<FormControl
+						type="text"
+						value={this.props.value}
+						onChange={event => this.props.onChange(event.target.value.replace(',', '.'))}
+						name={this.props.name} />
+				</InputGroup>
+			</FormGroup>
 		);
 	}
 }
@@ -37,7 +36,7 @@ export default connect(
 		fetchCurrencies: fetchAllCurrencies,
 	}
 )(MoneyField);
-MoneyField.propTypes = {
+Card.propTypes = {
 	currency: PropTypes.string.isRequired,
 	value: PropTypes.string.isRequired,
 	onChange: PropTypes.func.isRequired,

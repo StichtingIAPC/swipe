@@ -2,16 +2,16 @@ import React, { Component } from 'react';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
 import {
-	newAction as resetExternalise,
-	setFieldAction as setExternaliseField,
 	createAction as createExternalise,
-	newAction as newExternalise
+	newAction as resetExternalise,
+	newAction as newExternalise,
+	setFieldAction as setExternaliseField,
 } from '../../../state/logistics/externalise/actions';
 
-import Form from '../../forms/Form';
+import Card from '../../base/Card';
 import ArticleTypeSelector from '../../article/ArticleTypeSelector';
-import { CharField, IntegerField, MoneyField, StringField } from '../../forms/fields';
-import { ControlLabel, FormControl, FormGroup, HelpBlock } from 'react-bootstrap';
+import { MoneyField } from '../../forms/fields';
+import { Button, ButtonToolbar, ControlLabel, FormControl, FormGroup, HelpBlock, Table } from 'react-bootstrap';
 import { getExternalisationActiveObjectValidations } from '../../../state/logistics/externalise/selectors';
 import { hasError } from '../../../tools/validations/validators';
 
@@ -43,7 +43,7 @@ class ExternaliseAdd extends Component {
 						};
 					}
 					return el;
-				})
+				}),
 			);
 		};
 	updateArticleFieldArticle = index => value => {
@@ -60,7 +60,7 @@ class ExternaliseAdd extends Component {
 					return e;
 				}
 				return el;
-			})
+			}),
 		);
 	};
 	updateArticleFieldCount = index => ({ target: { value }}) => {
@@ -74,7 +74,7 @@ class ExternaliseAdd extends Component {
 					};
 				}
 				return el;
-			})
+			}),
 		);
 	};
 
@@ -90,82 +90,84 @@ class ExternaliseAdd extends Component {
 		const externalizeSetValidationText = externalizeSetValidation ? externalizeSetValidation.text : '';
 		const externalizeSetErrorType = externalizeSetValidation ? externalizeSetValidation.type : 'success';
 
-		return <Form
+		return <Card
 			title="Add new externalisation"
-			disabled={hasError(this.props.validations)}
 			onReset={this.reset}
-			onSubmit={this.create}
 			error={this.props.error}
 			closeLink="/logistics/externalise/">
-			<FormGroup
-				controlId="formBasicText"
-				validationState={memoErrorType}>
-				<ControlLabel>Memo</ControlLabel>
-				<FormControl
-					type="text"
-					value={this.props.externalise.memo}
-					placeholder="Enter text"
-					onChange={this.setMemo} />
-				<FormControl.Feedback />
-				<HelpBlock>{memoValidation}</HelpBlock>
-			</FormGroup>
-			<FormGroup
-				controlId="externalizeSets"
-				validationState={externalizeSetErrorType}>
-				<table className="table">
-					<thead>
-						<tr>
-							<th>Article</th>
-							<th width="150px">Price</th>
-							<th width="80px">Count</th>
-							<th width="50px" />
-						</tr>
-					</thead>
-					<tbody>
-						{this.props.externalise.externaliseline_set.map((line, index) => (
-							<tr key={index}>
-								<td className="form-group col">
-									<ArticleTypeSelector
-										onChange={this.updateArticleField(index, 'article')}
-										name="article"
-										value={this.props.externalise.externaliseline_set[index].article &&
-									this.props.externalise.externaliseline_set[index].article.id} />
-								</td>
-								<td className="form-group col">
-									<MoneyField
-										onChange={this.updateArticleFieldArticle(index)}
-										name="cost"
-										currency={this.props.externalise.externaliseline_set[index].amount &&
-									this.props.externalise.externaliseline_set[index].amount.currency}
-										value={this.props.externalise.externaliseline_set[index].amount &&
-									this.props.externalise.externaliseline_set[index].amount.amount} />
-								</td>
-								<td>
-									<input
-										className="form-control"
-										type="number"
-										min={0}
-										step={1}
-										value={this.props.externalise.externaliseline_set[index].count}
-										onChange={this.updateArticleFieldCount(index)} />
-								</td>
-								<td>
-									<span className="input-group-btn">
-										<a className="btn btn-danger" onClick={this.removeArticle(index)}>
-											<FontAwesome icon="trash" />
-										</a>
-									</span>
-								</td>
+			<form>
+				<FormGroup
+					controlId="formBasicText"
+					validationState={memoErrorType}>
+					<ControlLabel>Memo</ControlLabel>
+					<FormControl
+						type="text"
+						value={this.props.externalise.memo}
+						placeholder="Enter text"
+						onChange={this.setMemo} />
+					<FormControl.Feedback />
+					<HelpBlock>{memoValidation}</HelpBlock>
+				</FormGroup>
+				<FormGroup
+					controlId="externalizeSets"
+					validationState={externalizeSetErrorType}>
+					<Table>
+						<thead>
+							<tr>
+								<th>Article</th>
+								<th width="150px">Price</th>
+								<th width="80px">Count</th>
+								<th width="50px" />
 							</tr>
-						))}
-					</tbody>
-				</table>
-				<FormControl.Feedback />
-				<HelpBlock>{externalizeSetValidationText}</HelpBlock>
-			</FormGroup>
+						</thead>
+						<tbody>
+							{this.props.externalise.externaliseline_set.map((line, index) => (
+								<tr key={index}>
+									<td className="form-group col">
+										<ArticleTypeSelector
+											onChange={this.updateArticleField(index, 'article')}
+											name="article"
+											value={this.props.externalise.externaliseline_set[index].article &&
+											this.props.externalise.externaliseline_set[index].article.id} />
+									</td>
+									<td className="form-group col">
+										<MoneyField
+											onChange={this.updateArticleFieldArticle(index)}
+											name="cost"
+											currency={this.props.externalise.externaliseline_set[index].amount &&
+											this.props.externalise.externaliseline_set[index].amount.currency}
+											value={this.props.externalise.externaliseline_set[index].amount &&
+											this.props.externalise.externaliseline_set[index].amount.amount} />
+									</td>
+									<td>
+										<FormControl
+											type="number"
+											value={this.props.externalise.externaliseline_set[index].count}
+											onChange={this.updateArticleFieldCount(index)}
+											bsClass="form-control no-validation-padding" />
+									</td>
+									<td>
+										<Button bsStyle="danger" onClick={this.removeArticle(index)}>
+											<FontAwesome icon="trash" />
+										</Button>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</Table>
+					<FormControl.Feedback />
+					<HelpBlock>{externalizeSetValidationText}</HelpBlock>
+				</FormGroup>
 
-			<a className="btn btn-success" onClick={this.addArticle}>Add article</a>
-		</Form>;
+				<ButtonToolbar>
+					<Button bsStyle="default" onClick={this.addArticle}><FontAwesome icon="plus" /></Button>
+					<Button
+						bsStyle="success"
+						onClick={this.create}
+						disabled={hasError(this.props.validations)}>Save</Button>
+				</ButtonToolbar>
+			</form>
+		</Card>;
 	}
 }
 
@@ -180,5 +182,5 @@ export default connect(
 		setExternaliseField,
 		createExternalise,
 		newExternalise,
-	}
+	},
 )(ExternaliseAdd);
