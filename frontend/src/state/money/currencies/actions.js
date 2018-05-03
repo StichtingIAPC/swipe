@@ -1,3 +1,8 @@
+export const SET_VALIDATIONS = 'money/currencies/validations';
+
+export const setValidations = validations => ({ type: SET_VALIDATIONS,
+	validations });
+
 export function fetchAllCurrencies(redirectTo) {
 	return {
 		type: 'money/currencies/FETCH_ALL',

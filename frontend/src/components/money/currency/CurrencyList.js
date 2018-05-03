@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { fetchAllCurrencies } from '../../../state/money/currencies/actions.js';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { Box } from 'reactjs-admin-lte';
+import { Button, ButtonGroup } from "react-bootstrap";
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -89,6 +90,28 @@ class CurrencyList extends React.Component {
 						</React.Fragment>
 					),
 				}}>
+				<Box.Header>
+					<Box.Title>
+					Currencies
+					</Box.Title>
+					<Box.Tools>
+						<ButtonGroup>
+							<Button
+								bsSize="small"
+								title="Refresh"
+								onClick={this.props.fetchAllCurrencies}
+								disabled={this.props.fetching}>
+								<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
+							</Button>
+							<Link
+								className="btn btn-default btn-sm"
+								to="/money/currency/create/"
+								title="Create new currency">
+								<FontAwesome icon="plus" />
+							</Link>
+						</ButtonGroup>
+					</Box.Tools>
+				</Box.Header>
 				<div className="box-body">
 					<table className="table table-striped">
 						<thead>

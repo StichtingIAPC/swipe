@@ -18,8 +18,10 @@ export class MoneyField extends React.Component {
 				<InputGroup>
 					<InputGroup.Addon>{this.props.currencyObj.symbol}</InputGroup.Addon>
 					<FormControl
+						value={this.props.value}
 						type="text"
 						onChange={event => this.props.onChange(event.target.value.replace(',', '.'))}
+						disabled = {!!this.props.disabled}
 						name={this.props.name} />
 				</InputGroup>
 			</FormGroup>
@@ -38,5 +40,5 @@ export default connect(
 Card.propTypes = {
 	currency: PropTypes.string.isRequired,
 	value: PropTypes.string.isRequired,
-	onChange: PropTypes.func.isRequired,
+	onChange: PropTypes.func,
 };

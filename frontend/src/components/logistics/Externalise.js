@@ -7,28 +7,7 @@ import ExternaliseAdd from './externalise/ExternaliseAdd';
 import { Col, Row } from 'react-bootstrap';
 
 export default class Externalise extends Component {
-	cols = [
-		{
-			dataField: 'article',
-			text: 'Article',
-			sort: true,
-		},
-		{
-			dataField: 'memo',
-			text: 'Memo',
-			sort: false,
-		},
-		{
-			dataField: 'amount',
-			text: 'Book value per article',
-			sort: false,
-		},
-		{
-			dataField: 'count',
-			text: 'Count',
-			sort: true,
-		},
-	];
+
 
 	render() {
 		return (

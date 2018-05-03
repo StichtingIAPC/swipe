@@ -20,7 +20,6 @@ class List extends Component {
 	}
 
 	render() {
-		// eslint-disable-next-line react/style-prop-object
 		return <Box style="primary">
 			<Box.Header>
 				<Box.Title>

@@ -1,10 +1,17 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { createCurrency, updateCurrency, resetCurrency, fetchCurrency, setCurrencyField } from '../../../state/money/currencies/actions.js';
+import {
+	createCurrency,
+	updateCurrency,
+	resetCurrency,
+	fetchCurrency,
+	setCurrencyField
+} from '../../../state/money/currencies/actions.js';
 import Card from '../../base/Card';
 import { CharField, IntegerField, MoneyField, StringField } from '../../forms/fields';
-import FontAwesome from '../../tools/icons/FontAwesome';
+import { hasError } from '../../../tools/validations/validators';
+import { Button, ButtonToolbar, ControlLabel, FormControl, FormGroup, HelpBlock } from 'react-bootstrap';
+import { getCurrencyValidations } from '../../../state/money/currencies/selectors';
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -20,6 +27,17 @@ class CurrencyEdit extends React.Component {
 			this.props.fetchCurrency(currencyId);
 		}
 	};
+
+	submit = evt => {
+		evt.preventDefault();
+
+		if (!this.props.match.params.currencyID) {
+			this.props.createCurrency(this.props.currency);
+		} else {
+			this.props.updateCurrency(this.props.currency);
+		}
+	};
+
 
 	componentWillMount() {
 		this.reset();
@@ -50,7 +68,7 @@ class CurrencyEdit extends React.Component {
 		const { currency } = this.props;
 
 		const updateDenom = index =>
-			(value) => {
+			value => {
 				this.props.setCurrencyField(
 					'denomination_set',
 					this.props.currency.denomination_set.map((el, i) => {
@@ -64,6 +82,17 @@ class CurrencyEdit extends React.Component {
 					})
 				);
 			};
+		const iso_name = this.props.validations ? this.props.validations['iso'] : {};
+		const isoValidation = iso_name ? iso_name.text : '';
+		const isoErrorType = iso_name ? iso_name.type : 'success';
+
+		const nameName = this.props.validations ? this.props.validations['name'] : {};
+		const nameValidation = nameName ? nameName.text : '';
+		const nameErrorType = nameName ? nameName.type : 'success';
+
+		const digitError = this.props.validations ? this.props.validations['digits'] : {};
+		const digitValidation = digitError ? digitError.text : '';
+		const digitErrorType = digitError ? digitError.type : 'success';
 
 		const removeDenom = index => () => this.props.setCurrencyField('denomination_set', this.props.currency.denomination_set.filter((_, i) => i !== index));
 
@@ -71,41 +100,79 @@ class CurrencyEdit extends React.Component {
 			<Card
 				title={this.props.match.params.currencyID ? `Edit ${this.props.currency.name}` : 'Create new currency'}
 				onReset={this.reset}
-				onSubmit={this.props.match.params.currencyID ? this.update : this.create}
 				error={this.props.errorMsg}
 				returnLink={this.props.match.params.currencyID ? `/money/currency/${currency.iso}/` : '/money/'}
 				closeLink="/money/">
-				<CharField disabled={this.props.match.params.currencyID} onChange={this.setIso} name="ISO value" value={currency.iso} minLength={3} maxLength={3} />
-				<StringField onChange={this.setName} name="Name" value={currency.name} />
-				<IntegerField min={-23} max={5} onChange={this.setDigits} name="digits" value={currency.digits} />
-				<CharField disabled={this.props.match.params.currencyID} onChange={this.setSymbol} name="Currency symbol" value={currency.symbol} minLength={1} maxLength={5} />
-				<div className="form-group">
-					<label className="col-sm-3 control-label">Denominations</label>
-					<div className="col-sm-9">
-						{currency.denomination_set.map((denomination, index) => (
-							<div key={denomination.id || index} className="">
-								<MoneyField
-									currency={currency}
-									value={denomination.amount}
-									{...(
-										denomination.id ?
-											{ disabled: true } :
-											{ onChange: updateDenom(index) })
-									}>
-									{denomination.id ? null : (
-										<span className="input-group-btn">
-											<a className="btn btn-danger" onClick={removeDenom(index)}>
-												<FontAwesome icon="trash" />
-											</a>
-										</span>
-									)}
-								</MoneyField>
-								<br />
-							</div>
-						))}
-						<a className="btn btn-success" onClick={this.addDenomination}>Add denomination</a>
+				<form>
+					<FormGroup
+						controlId="formBasicText"
+						validationState={isoErrorType}>
+						<ControlLabel>ISO</ControlLabel>
+						<FormControl
+							disabled={this.props.match.params.currencyID}
+							type="text"
+							value={currency.iso}
+							placeholder="ISO value"
+							onChange={this.setIso} />
+						<FormControl.Feedback />
+						<HelpBlock>{isoValidation}</HelpBlock>
+					</FormGroup>
+					<FormGroup
+						controlId="formBasicText"
+						validationState={nameErrorType}>
+						<ControlLabel>Name</ControlLabel>
+						<FormControl
+							type="text"
+							value={currency.name}
+							placeholder="Name"
+							name="name"
+							onChange={this.setName} />
+						<FormControl.Feedback />
+						<HelpBlock>{nameValidation}</HelpBlock>
+					</FormGroup>
+
+					<FormGroup
+						controlId="formBasicText"
+						validationState={digitErrorType}>
+						<ControlLabel>Digits</ControlLabel>
+						<FormControl
+							type="number"
+							value={currency.digits}
+							placeholder="2"
+							name="Digits"
+							onChange={this.setDigits} />
+						<FormControl.Feedback />
+						<HelpBlock>{digitValidation}</HelpBlock>
+					</FormGroup>
+					<CharField
+						disabled={this.props.match.params.currencyID} onChange={this.setSymbol}
+						name="Currency symbol" value={currency.symbol} minLength={1} maxLength={5} />
+					<div className="form-group">
+						<label className="col-sm-3 control-label">Denominations</label>
+						<div className="col-sm-9">
+							{currency.denomination_set.map((denomination, index) => (
+								<div key={denomination.id || index} className="">
+									<MoneyField
+										currency={currency.iso}
+										value={denomination.amount}
+										{...(
+											denomination.id ?
+												{ disabled: true } :
+												{ onChange: updateDenom(index) })
+										} />
+									<br />
+								</div>
+							))}
+							<a className="btn btn-success" onClick={this.addDenomination}>Add denomination</a>
+						</div>
 					</div>
-				</div>
+					<ButtonToolbar>
+						<Button
+							bsStyle="success"
+							onClick={this.submit}
+							disabled={hasError(this.props.validations)}>Save</Button>
+					</ButtonToolbar>
+				</form>
 			</Card>
 		);
 	}
@@ -115,6 +182,7 @@ export default connect(
 	state => ({
 		errorMsg: state.money.currencies.error,
 		currency: state.money.currencies.activeObject,
+		validations: getCurrencyValidations(state),
 	}),
 	{
 		updateCurrency,

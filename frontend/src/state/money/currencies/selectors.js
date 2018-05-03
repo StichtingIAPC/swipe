@@ -7,3 +7,5 @@ export const getCurrencyByIso = (state, iso) => {
 
 	return {iso: "ERR", symbol: "«"};
 };
+export const getCurrencyActiveObject = (state) => state.money.currencies.activeObject;
+export const getCurrencyValidations = (state) => state.money.currencies.validations;

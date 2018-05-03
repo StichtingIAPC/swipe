@@ -4,6 +4,10 @@ import { push } from 'react-router-redux';
 import * as actions from './actions.js';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 import * as api from './api';
+import { validate, validator } from '../../../tools/validations/validators';
+import { select } from 'redux-saga/es/effects';
+
+import { getCurrencyActiveObject } from './selectors';
 
 function* fetchAllCurrencies({ redirectTo }) {
 	try {
@@ -78,7 +82,38 @@ function* deleteCurrency({ currency }) {
 	}
 }
 
+const validations = [
+	validator('iso', 'ISO', memo => (memo.length == 3 ? null : () => ({
+		type: 'error',
+		text: 'ISO not 3 characters',
+	}))),
+	validator('name', 'Name', name => (name.length > 2 ? null : () => ({
+		type: 'error',
+		text: 'Currency name too short',
+	}))),
+	validator('digits', 'Digits', digits => (digits < 5 ? null : () => ({
+		type: 'error',
+		text: 'Too many digits.',
+	}))),
+	validator('digits', 'Digits', digits => (digits > -6 ? null : () => ({
+		type: 'error',
+		text: 'Too many negative digits.',
+	}))),
+	validator('digits', 'Digits', digits => (digits ? null : () => ({
+		type: 'error',
+		text: 'Not a number.',
+	}))),
+];
+
+export function* moneyValidator() {
+	const current = yield select(getCurrencyActiveObject);
+	const res = validate(current, validations);
+	yield put(actions.setValidations(res));
+}
+
 export default function* saga() {
+	yield takeEvery('money/currencies/SET_FIELD', moneyValidator);
+
 	yield takeLatest('money/currencies/FETCH_ALL', fetchAllCurrencies);
 	yield takeLatest('money/currencies/FETCH', fetchCurrency);
 	yield takeEvery('money/currencies/CREATE', createCurrency);

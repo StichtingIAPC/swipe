@@ -4,6 +4,7 @@ import {
 	collectReducers, objectControlReducer, resetFieldReducer,
 	setFieldReducer,
 } from '../../../tools/reducerComponents';
+import { SET_VALIDATIONS } from './actions';
 
 const defaultCurrency = {
 	iso: '',
@@ -28,6 +29,9 @@ export default combineReducers({
 			'money/currencies/FETCH_DONE',
 		], defaultCurrency, 'currency')
 	),
+	validations: setFieldReducer([
+		SET_VALIDATIONS,
+	], {}, 'validations'),
 	loading: booleanControlReducer({
 		'money/currencies/FETCH_ALL': true,
 		'money/currencies/FETCH_ALL_FINALLY': false,
