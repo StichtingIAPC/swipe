@@ -6,9 +6,10 @@ from article.serializers import ArticleTypeSerializer
 from supplier.models import ArticleTypeSupplier
 from supplier.serializers import ArticleTypeSupplierSerializer
 from tools.json_parsers import ParseError
+from www.models import SwipeLoginRequired
 
 
-class ArticleTypeListView(mixins.ListModelMixin,
+class ArticleTypeListView(SwipeLoginRequired, mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           generics.GenericAPIView):
     queryset = ArticleType.objects.all()
@@ -21,7 +22,7 @@ class ArticleTypeListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class ArticleTypeView(mixins.RetrieveModelMixin,
+class ArticleTypeView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       generics.GenericAPIView):
     queryset = ArticleType.objects.all()
@@ -34,19 +35,21 @@ class ArticleTypeView(mixins.RetrieveModelMixin,
         return self.update(request, *args, **kwargs)
 
 
-class UpdateArticleTypeSupplierView(mixins.UpdateModelMixin,
-                              generics.GenericAPIView):
+class UpdateArticleTypeSupplierView(SwipeLoginRequired, mixins.UpdateModelMixin,
+                                    generics.GenericAPIView):
     serializer_class = ArticleTypeSupplierSerializer
 
     lookup_field = 'supplier'
 
     def get_queryset(self):
-        return ArticleTypeSupplier.objects.filter(article_type=self.kwargs["article_type"], supplier=self.kwargs["supplier"])
+        return ArticleTypeSupplier.objects.filter(article_type=self.kwargs["article_type"],
+                                                  supplier=self.kwargs["supplier"])
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
-class ArticleTypeSupplierView(mixins.ListModelMixin,
+
+class ArticleTypeSupplierView(SwipeLoginRequired, mixins.ListModelMixin,
                               mixins.CreateModelMixin,
                               generics.GenericAPIView):
     serializer_class = ArticleTypeSupplierSerializer
@@ -59,4 +62,3 @@ class ArticleTypeSupplierView(mixins.ListModelMixin,
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
-
