@@ -1,5 +1,9 @@
+import inspect
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
+from rest_framework.exceptions import PermissionDenied
+
 import swipe.settings
 
 
@@ -29,3 +33,21 @@ class SwipeLoginRequired(LoginRequiredMixin):
         # The super 'dispatch' call does not exist for this Mixin
         # Other mixins provide this functionality
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
+
+
+def swipe_authorize(request, permission):
+    """
+    :param request: the request object from the View
+    :type request: rest_framework.request.Request
+    :param permission: a string with the specified permission
+    :type permission: str
+    :return:
+    """
+    security = None
+    if hasattr(swipe.settings, "SECURITY_DISABLED"):
+        security = swipe.settings.SECURITY_DISABLED
+    if security:
+        return
+    if not request.user.is_authenticated or not request.user.has_perm(permission):
+        raise PermissionDenied
+    return

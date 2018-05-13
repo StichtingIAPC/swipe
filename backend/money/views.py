@@ -1,10 +1,9 @@
-from collections import OrderedDict
-
+from django.contrib.auth.decorators import login_required
 from rest_framework import mixins, generics
 
-from money.models import CurrencyData, Denomination, VAT, AccountingGroup, Currency, Money, Price, Cost
+from money.models import CurrencyData, Denomination, VAT, AccountingGroup
 from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer, AccountingGroupSerializer
-from tools.json_parsers import ParseError, DictParsers
+from www.models import swipe_authorize
 
 
 class CurrencyListView(mixins.ListModelMixin,
@@ -15,6 +14,7 @@ class CurrencyListView(mixins.ListModelMixin,
     serializer_class = CurrencySerializer
 
     def get(self, request, *args, **kwargs):
+        swipe_authorize(request, "doesNotExist")
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
