@@ -322,3 +322,31 @@ class Organisation(SoftDeletable):
                 }
 
         return type_fields
+
+
+class SwipePermissionGroup(models.Model):
+    name = models.CharField(max_length=255, blank=False, unique=True)
+    users = models.ManyToManyField(to=User, db_index=True)
+
+    def __repr__(self):
+        return self.name
+
+
+class SwipePermission(models.Model):
+    name = models.CharField(max_length=255, blank=False, db_index=True, unique=True)
+    groups = models.ManyToManyField(to=SwipePermissionGroup, db_index=True)
+
+    @staticmethod
+    def user_has_permission(user, permission):
+        """
+        Checks if a user has a permission
+        :param user: The user to check the permission against
+        :type user: User
+        :param permission: The permission to be checked in string form
+        :type permission: str
+        :return:
+        """
+        return SwipePermission.objects.filter(name=permission, groups__users=user).exists()
+
+    def __repr__(self):
+        return self.name

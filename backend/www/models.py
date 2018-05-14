@@ -3,6 +3,7 @@ import inspect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from rest_framework.exceptions import PermissionDenied
+from crm.models import SwipePermission
 
 import swipe.settings
 
@@ -48,6 +49,7 @@ def swipe_authorize(request, permission):
         security = swipe.settings.SECURITY_DISABLED
     if security:
         return
-    if not request.user.is_authenticated or not request.user.has_perm(permission):
+    if not request.user.is_authenticated or (not request.user.is_superuser
+                                             and not SwipePermission.user_has_permission(request.user, permission)):
         raise PermissionDenied
     return
