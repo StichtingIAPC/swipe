@@ -1,5 +1,6 @@
 import inspect
 
+from django.apps import AppConfig
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from rest_framework.exceptions import PermissionDenied
