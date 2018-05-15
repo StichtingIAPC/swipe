@@ -1,50 +1,94 @@
 import React from 'react';
-import { registers as registersAction } from '../../state/register/registers/actions.js';
-import { currencies as currenciesAction } from '../../state/money/currencies/actions.js';
-import { paymentTypes as paymentTypesAction } from '../../state/register/payment-types/actions.js';
-import { articles as articlesAction } from '../../state/assortment/articles/actions';
-import { stock as stockAction } from '../../state/stock/actions';
+import { connect } from 'react-redux';
+import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
+import { registers } from '../../state/register/registers/actions.js';
+import { currencies } from '../../state/money/currencies/actions.js';
+import { paymentTypes } from '../../state/register/payment-types/actions.js';
+import { articles } from '../../state/assortment/articles/actions';
+import { stock } from '../../state/stock/actions';
 import Selector from './productselector/Selector';
 import Receipt from './receipt/Receipt';
-import { connect } from 'react-redux';
+import Customer from './receipt/Customer';
+import PaymentTypes from './receipt/PaymentTypes';
+import { Col, Row } from 'react-bootstrap';
+import { getPaymentTypes } from '../../state/sales/payments/selectors';
+import { setCustomer } from '../../state/sales/actions';
+import { getCustomer } from '../../state/sales/selectors';
+import { setPaymentTypes } from '../../state/sales/payments/actions';
+import { addToSalesList, addToSalesListAction, receiptAddProductAction } from '../../state/sales/sales/actions';
 
-class RegisterBase extends React.Component {
+class SalesBase extends React.Component {
 	componentWillMount() {
-		this.props.getRegisters();
-		this.props.getPaymentTypes();
-		this.props.getCurrencies();
-		this.props.getArticles();
-		this.props.getStock();
+		fetchStateRequirementsFor(this);
 	}
+
+	addArticle = (article, count) => {
+		this.props.addArticle(article, count);
+	};
+
+	removeArticle = (article, count) => this.addArticle(article, -count);
+
+	setCustomer = customer => {
+		this.props.setCustomer(customer);
+	};
+
+	setPaymentTypes = paymentTypeDivision => {
+		this.props.setPaymentTypes(paymentTypeDivision);
+	};
 
 	render() {
 		return (
-			<div className="row">
-				<div className="col-xs-6 col-md-6">
-					<Selector />
-				</div>
-				<div className="col-xs-6 col-md-6">
-					<Receipt />
-				</div>
-			</div>
+			<React.Fragment>
+				<Row>
+					<Col xs={12} md={12}>
+						<Customer onChange={this.setCustomer} customer={this.props.customer} />
+					</Col>
+				</Row>
+				<Row>
+					<Col xs={12} md={6}>
+						<Selector onArticleAdd={this.addArticle} stock={this.props.stock} receipt={this.props.receipt} />
+					</Col>
+					<Col xs={12} md={6}>
+						<Receipt onArticleRemove={this.removeArticle} receipt={this.props.receipt} />
+					</Col>
+				</Row>
+				<Row>
+					<Col xs={12} md={12}>
+						<PaymentTypes onPaymentTypesChanged={this.setPaymentTypes} paymentTypes={this.props.paymentTypes} />
+					</Col>
+				</Row>
+			</React.Fragment>
 		);
 	}
 }
 
 export default connect(
 	state => ({
+		...connectMixin({
+			register: {
+				registers,
+				paymentTypes,
+			},
+			money: {
+				currencies,
+			},
+			article: {
+				articles,
+			},
+			sales: {
+				stock,
+			},
+		}, state),
 		stock: state.stock.stock,
+		paymentTypes: getPaymentTypes(state),
+		customer: getCustomer(state),
+		receipt: state.sales.sales,
+		state,
 	}),
-	dispatch => ({
-		getRegisters: () => dispatch(registersAction()),
-		getPaymentTypes: () => dispatch(paymentTypesAction()),
-		getCurrencies: () => dispatch(currenciesAction()),
-		getArticles: () => dispatch(articlesAction()),
-		getStock: () => dispatch(stockAction()),
-	})
-)(RegisterBase);
-
-
-function dispatchIfFalse(truth, func){
-	if (truth())  func();
-}
+	{
+		setCustomer,
+		setPaymentTypes,
+		addSale: addToSalesListAction,
+		addProduct: receiptAddProductAction,
+	}
+)(SalesBase);

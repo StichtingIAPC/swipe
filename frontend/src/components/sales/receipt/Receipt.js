@@ -1,33 +1,17 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
 
-import { currencies } from '../../../state/money/currencies/actions.js';
-import { articles } from '../../../state/assortment/articles/actions';
-import { stock } from '../../../state/stock/actions';
-import PaymentTypes from './PaymentTypes';
-import Customer from './Customer';
-import SalesList from './SalesList';
+import PropTypes from 'prop-types';
 
-class Receipt extends React.Component {
-
+export default class Receipt extends React.Component {
 	render() {
-		return (
-			<div className="row">
-				<Customer />
-				<SalesList />
-				<PaymentTypes />
-
-
-			</div>
-		);
+		return <div style={{ border: '1px solid black' }}>
+			Receipt here!
+		</div>;
 	}
 }
 
-export default connect(
-	state => ({
+Receipt.propTypes = {
+	onArticleRemove: PropTypes.func.isRequired,
+	receipt: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
 
-		stock: state.stock.stock,
-		state,
-	})
-)(Receipt);

@@ -1,14 +1,25 @@
-export const SALES_MUTATE_SALES_LINE = 'sales/add/product';
+export const SALES_ADD_PRODUCT = 'sales/add/product';
+export const SALES_RECEIPT_ADD_PRODUCT = 'sales/add/product/dummy';
 
-export function mutateSalesLineOfArticle(article, amount) {
+export function addToSalesList(article, count, currentAmount) {
 	return {
-		type: SALES_MUTATE_SALES_LINE,
+		type: SALES_ADD_PRODUCT,
 		article,
-		amount,
+		count,
+		currentAmount,
+	};
+}
+
+export function receiptAddProduct(articleId, count) {
+	return {
+		type: SALES_RECEIPT_ADD_PRODUCT,
+		article: articleId,
+		count,
 	};
 }
 
 export {
-	mutateSalesLineOfArticle as mutateSalesLineOfArticleAction
+	addToSalesList as addToSalesListAction,
+	receiptAddProduct as receiptAddProductAction,
 };
 

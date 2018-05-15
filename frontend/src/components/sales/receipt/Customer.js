@@ -1,30 +1,15 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
+import PropTypes from 'prop-types';
 
-class Customer extends React.Component {
-	componentWillMount() {
-		fetchStateRequirementsFor(this);
-	}
-
+export default class Customer extends React.Component {
 	render() {
-		return (
-			<div className="row">
-				This component does not as of yet exist. Sorry.
-
-				<div className="col-xs-8 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
-			</div>
-		);
+		return <div style={{ border: '1px solid black' }}>
+			Customer selector
+		</div>;
 	}
 }
 
-export default connect(
-	state => ({
-		...connectMixin({
-		 }, state
-		),
-		state,
-	})
-)(Customer);
+Customer.propTypes = {
+	onChange: PropTypes.func.isRequired,
+	customer: PropTypes.object,
+};
