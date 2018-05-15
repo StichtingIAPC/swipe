@@ -1,31 +1,37 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { connectMixin, fetchStateRequirementsFor } from '../../../core/stateRequirements';
+import PropTypes from 'prop-types';
+import Select from 'react-select';
 
-class Customer extends React.Component {
+class CustomerSelector extends React.Component {
 	componentWillMount() {
-		fetchStateRequirementsFor(this);
 	}
 
 	render() {
+		const customerList = this.props.customers.map(customer => ({ value: customer.id, label: customer.name }));
+
 		return (
 			<div className="row">
-				This component does not as of yet exist. Sorry.
 
-				<div className="col-xs-8 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
+				<Select
+					name="form-field-name"
+					value={1}
+					onChange={obj => this.props.onCustomerChanged(obj.value)}
+					options={customerList} />
+				<br />
 
 			</div>
 		);
 	}
 }
 
+CustomerSelector.proptypes = {
+	onCustomerChanged: PropTypes.func.isRequired,
+	customer: PropTypes.number.isRequired,
+};
+
 export default connect(
 	state => ({
-		...connectMixin({
-		 }, state
-		),
-		state,
-	})
-)(Customer);
+		customers: state.crm,
+	}),
+)(CustomerSelector);
