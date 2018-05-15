@@ -24,19 +24,7 @@ const defaultExternalisation = {
 };
 
 export default combineReducers({
-	externalisations: setFieldReducer([
-		LOGISTICS_EXTRNALIZE_FETCH_ALL_SUCCESS,
-	], [], 'externalisations'),
-	isLoading: booleanControlReducer({
-		[LOGISTICS_EXTRNALIZE_SET_LOADING]: true,
-		[LOGISTICS_EXTRNALIZE_FETCH_ALL_FINALLY]: false,
-	}, false),
-	isPopulated: booleanControlReducer({
-		[LOGISTICS_EXTRNALIZE_FETCH_ALL_SUCCESS]: true,
-	}, false),
-	error: setFieldReducer([
-		LOGISTICS_EXTRNALIZE_FETCH_ALL_FAIL,
-	], null, 'reason'),
+	...crudReducers(),
 
 	activeObject: collectReducers(
 		resetFieldReducer([

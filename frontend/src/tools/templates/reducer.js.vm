@@ -2,7 +2,7 @@
 #set($name = $Name.substring(0,1).toLowerCase() + $Name.substring(1))
 import { combineReducers } from 'redux';
 
-const default${Name} = {};
+export const ${NAME} = {};
 
 export default combineReducers({
   ${name}s: setFieldReducer([
@@ -13,7 +13,7 @@ export default combineReducers({
   ], default${Name}),
   loading: booleanControlReducer({
     '${path}/FETCH_ALL': true,
-    '${path}/FETCH_ALL_FINALLY': false,
+    '${path}/LOGISTICS_EXTRNALIZE_FETCH_ALL_FINALLY': false,
   }, false),
   populated: booleanControlReducer({
     '${path}/FETCH_ALL_DONE': true,

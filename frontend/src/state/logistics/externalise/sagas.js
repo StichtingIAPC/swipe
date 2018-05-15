@@ -3,7 +3,7 @@ import { push } from 'react-router-redux';
 import store from '../../store';
 
 import * as api from './api';
-import * as actions from './actions';
+import actions from './actions';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 import { getExternalisationActiveObject, getExternalisationLoading } from './selectors';
 import { isMoney, validate, validator } from '../../../tools/validations/validators';
@@ -12,7 +12,7 @@ export function* fetchAll() {
 	if (yield select(getExternalisationLoading)) {
 		return;
 	}
-	yield put(actions.setLoadingAction());
+	yield put(actions.fetchAllSetLoading());
 	try {
 		const externalizations = yield (yield call(api.getAll)).json();
 
@@ -23,12 +23,12 @@ export function* fetchAll() {
 			article: en.article_type,
 		}))));
 
-		yield put(actions.fetchAllExternalizesSuccess(exts));
+		yield put(actions.fetchAllSuccess(exts));
 	} catch (e) {
 		console.error(e);
-		yield put(actions.fetchAllExternalizesFail(e));
+		yield put(actions.fetchAllFail(e));
 	} finally {
-		yield put(actions.fetchAllExternalizesFinally());
+		yield put(actions.fetchAllFinally());
 	}
 }
 
@@ -48,16 +48,16 @@ export function* create({ externalise }) {
 	try {
 		const newExternalise = yield (yield call(api.post, document)).json();
 
-		yield put(actions.createExternalizeSuccess(newExternalise));
+		yield put(actions.createSuccess(newExternalise));
 	} catch (e) {
-		yield put(actions.createExternalizeFail(cleanErrorMessage(e)));
+		yield put(actions.createFail(cleanErrorMessage(e)));
 	} finally {
-		yield put(actions.createExternalizeFinally());
+		yield put(actions.createFinally());
 	}
 }
 
 export function* createSuccess() {
-	yield put(actions.fetchAllExternalizesStart());
+	yield put(actions.fetchAllStart());
 	yield put(push('/logistics/externalise'));
 }
 
@@ -92,10 +92,10 @@ export function* externalizeValidator() {
 }
 
 export default function* saga() {
-	yield takeEvery(actions.LOGISTICS_EXTRNALIZE_SET_FIELD, externalizeValidator);
-	yield takeEvery(actions.LOGISTICS_EXTRNALIZE_CREATE_START, externalizeValidator);
+	yield takeEvery(actions.SET_FIELD, externalizeValidator);
+	yield takeEvery(actions.CREATE_START, externalizeValidator);
 
-	yield takeLatest(actions.LOGISTICS_EXTRNALIZE_FETCH_ALL_START, fetchAll);
-	yield takeEvery(actions.LOGISTICS_EXTRNALIZE_CREATE_START, create);
-	yield takeLatest(actions.LOGISTICS_EXTRNALIZE_CREATE_SUCCESS, createSuccess);
+	yield takeLatest(actions.FETCH_ALL_START, fetchAll);
+	yield takeEvery(actions.CREATE_START, create);
+	yield takeLatest(actions.CREATE_SUCCESS, createSuccess);
 }
