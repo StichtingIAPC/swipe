@@ -16,7 +16,7 @@ class CustomerSelector extends React.Component {
 				<Select
 					name="form-field-name"
 					value={1}
-					onChange={obj => this.props.onCustomerChanged(obj.value)}
+					onChange={obj => this.props.onChange(obj.value)}
 					options={customerList} />
 				<br />
 
@@ -26,7 +26,7 @@ class CustomerSelector extends React.Component {
 }
 
 CustomerSelector.proptypes = {
-	onCustomerChanged: PropTypes.func.isRequired,
+	onChange: PropTypes.func.isRequired,
 	customer: PropTypes.number.isRequired,
 };
 
