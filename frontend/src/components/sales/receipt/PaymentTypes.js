@@ -1,23 +1,11 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+
 import Big from 'big.js';
 
-import {
-	getPaymentsOnReceipt,
-	getPaymentTypes,
-	getIsPaymentSplit,
-	getPaymentTypesTotalValidations
-} from '../../../state/sales/payments/selectors';
-import { getSalesTotal } from '../../../state/assortment/articles/selectors';
-import {
-	setAmountOfPaymentType as setPaymentTypeAction,
-	toggleSplitPayment as toggleSplitPaymentAction,
-	resetPaymentTypes as resetPaymentTypesAction,
-} from '../../../state/sales/payments/actions';
-import MoneyAmount from '../../money/MoneyAmount';
-import { salesCommitCreate as salesCommitCreateAction } from '../../../state/sales/commit/actions';
 import MoneyField from '../../forms/MoneyField';
-import { Col, Button, ButtonToolbar, FormControl, FormGroup, HelpBlock } from 'react-bootstrap';
+import { Col, Button, ButtonToolbar, FormGroup, HelpBlock } from 'react-bootstrap';
 import FontAwesome from '../../tools/icons/FontAwesome';
 
 function getIconForPaymentType(paymentType) {
@@ -34,13 +22,13 @@ function getIconForPaymentType(paymentType) {
 }
 
 
-function PaymentTypes(props) {
-	const { paymentTypes, paymentTypesAmounts, isPaymentSplit, setPaymentType, resetPaymentTypes, salesCommitCreate, toggleSplitPayment, total, validations } = props;
+export default function PaymentTypes(props) {
+	const { paymentTypes, paymentTypeAmounts, onPaymentTypeSet, onPaymentTypesReset, onToggleSplit, isSplit, salesTotal, validations } = props;
 	const validation_total = validations ? validations.total : {};
 	const totalValidationText = validation_total ? validation_total.text : '';
 	const totalErrorType = validation_total ? validation_total.type : 'success';
 
-	if (paymentTypes === null) {
+	if (paymentTypeAmounts === null) {
 		return <div />;
 	}
 
@@ -53,13 +41,13 @@ function PaymentTypes(props) {
 							bsStyle="primary"
 							block={true}
 							onClick={() => {
-								resetPaymentTypes();
-								setPaymentType(paymentType.id, {
-									...total,
-									amount: total.amount,
+								onPaymentTypesReset();
+								onPaymentTypeSet(paymentType.id, {
+									...salesTotal,
+									amount: salesTotal.amount,
 								});
 							}}
-							disabled={isPaymentSplit} >
+							disabled={isSplit} >
 							<FontAwesome icon={getIconForPaymentType(paymentType)} /> {paymentType.name}
 						</Button >
 					</Col >
@@ -68,16 +56,16 @@ function PaymentTypes(props) {
 					<Button
 						block={true}
 						onClick={() => {
-							if (isPaymentSplit) {
-								resetPaymentTypes();
+							if (isSplit) {
+								onPaymentTypesReset();
 							}
-							toggleSplitPayment();
+							onToggleSplit();
 						}} >
 						<FontAwesome icon="th-list" /> split payment
 					</Button >
 				</Col >
 			</ButtonToolbar >
-			{isPaymentSplit ?
+			{isSplit ?
 				<FormGroup
 					controlId="formPaymentTypesSplit"
 					validationState={totalErrorType}>
@@ -87,8 +75,8 @@ function PaymentTypes(props) {
 							<ButtonToolbar block={true} >
 								<Button
 									onClick={() => {
-										let amountLeft = new Big(total.amount)
-											.minus(Object.values(paymentTypesAmounts).reduce(
+										let amountLeft = new Big(salesTotal.amount)
+											.minus(Object.values(paymentTypeAmounts).reduce(
 												(sumBig, paymentTypeAmount) => sumBig.plus(paymentTypeAmount.amount), new Big(0))
 											);
 
@@ -96,10 +84,10 @@ function PaymentTypes(props) {
 											amountLeft = new Big(0);
 										}
 
-										const currentAmountPaymentType = paymentTypesAmounts[paymentType.id] ? new Big(paymentTypesAmounts[paymentType.id].amount) : new Big(0);
+										const currentAmountPaymentType = paymentTypeAmounts[paymentType.id] ? new Big(paymentTypeAmounts[paymentType.id].amount) : new Big(0);
 
-										setPaymentType(paymentType.id, {
-											...total,
+										onPaymentTypeSet(paymentType.id, {
+											...salesTotal,
 											amount: currentAmountPaymentType.plus(amountLeft).toFixed(5),
 										});
 									}} >
@@ -107,8 +95,8 @@ function PaymentTypes(props) {
 								</Button >
 								<Button
 									onClick={() => {
-										setPaymentType(paymentType.id, {
-											...total,
+										onPaymentTypeSet(paymentType.id, {
+											...salesTotal,
 											amount: 0,
 										});
 									}} >
@@ -117,32 +105,25 @@ function PaymentTypes(props) {
 							</ButtonToolbar >
 							<MoneyField
 								currency={'EUR'}
-								onChange={amount => setPaymentType(paymentType.id, {
-									...total,
+								onChange={amount => onPaymentTypeSet(paymentType.id, {
+									...salesTotal,
 									amount,
 								})}
-								value={paymentTypesAmounts[paymentType.id] ? paymentTypesAmounts[paymentType.id].amount : 0} />
+								value={paymentTypeAmounts[paymentType.id] ? paymentTypeAmounts[paymentType.id].amount : '0'} />
 						</Col >
 					)
 					}</FormGroup > : null}
-			<button onClick={() => salesCommitCreate()} >sell!</button >
 		</div >
 	);
 }
 
-export default connect(
-	state => ({
-		paymentTypes: getPaymentTypes(state),
-		paymentTypesAmounts: getPaymentsOnReceipt(state),
-		isPaymentSplit: getIsPaymentSplit(state),
-		total: getSalesTotal(state),
-		validations: getPaymentTypesTotalValidations(state),
-	}),
-	{
-		setPaymentType: setPaymentTypeAction,
-		resetPaymentTypes: resetPaymentTypesAction,
-		salesCommitCreate: salesCommitCreateAction,
-		toggleSplitPayment: toggleSplitPaymentAction,
-		dispatch: args => args,
-	}
-)(PaymentTypes);
+PaymentTypes.propTypes = {
+	onToggleSplit: PropTypes.func.isRequired,
+	isSplit: PropTypes.bool.isRequired,
+	onPaymentTypesReset: PropTypes.func.isRequired,
+	onPaymentTypeSet: PropTypes.func.isRequired,
+	paymentTypeAmounts: PropTypes.object.isRequired,
+	salesTotal: PropTypes.string.isRequired,
+	validations: PropTypes.object.isRequired,
+	paymentTypes: PropTypes.array.isRequired,
+};

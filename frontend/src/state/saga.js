@@ -7,6 +7,7 @@ import stockSaga from './stock/saga.js';
 import logisticsSaga from './logistics/saga.js';
 import uiSaga from './ui/sagas.js';
 import salesSaga from './sales/saga.js';
+
 export default function* saga() {
 	yield* assortmentSaga();
 	yield* authSaga();

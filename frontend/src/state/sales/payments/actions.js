@@ -11,7 +11,7 @@ export const setAmountOfPaymentType = (paymentTypeID, amount) => ({
 	value: amount,
 });
 
-export const resetPaymentTypes = () => ({
+export const resetAmountOfPaymentTypes = () => ({
 	type: RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT,
 });
 

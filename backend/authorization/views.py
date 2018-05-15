@@ -59,7 +59,6 @@ class Login(ObtainAuthToken):
                 'firstName': user.first_name,
                 'lastName': user.last_name,
                 'email': user.email,
-                'id': user.id,
             },
         })
 
@@ -99,7 +98,6 @@ class Validate(View):
                     'firstName': user.first_name,
                     'lastName': user.last_name,
                     'email': user.email,
-                    'id': user.id,
                 }
             })
 
