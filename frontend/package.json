@@ -4,7 +4,7 @@
   "description": "Swipe Frontend Environment",
   "main": "index.js",
   "scripts": {
-    "build": "yarn --pure-lockfile && webpack -p",
+    "build": "yarn --pure-lockfile && webpack",
     "dev": "yarn --pure-lockfile && webpack-dev-server --inline --hot --history-api-fallback",
     "lint": "yarn --pure-lockfile && eslint src",
     "lint-fix": "eslint src --fix",
