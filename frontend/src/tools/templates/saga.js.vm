@@ -3,7 +3,7 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 
-import * as actions from './action.js';
+import * as actions from './actions.js';
 
 function* fetchAll${Name}s({ redirectTo }) {
 	try {
