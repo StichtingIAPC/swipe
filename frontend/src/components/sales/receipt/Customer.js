@@ -4,11 +4,12 @@ import PropTypes from 'prop-types';
 import Select from 'react-select';
 
 class CustomerSelector extends React.Component {
-	componentWillMount () {
+	componentWillMount() {
 	}
 
-	render () {
-		const customerList = this.props.customers.map (customer => ({ value: customer.id, label: customer.name }));
+	render() {
+		const customerList = this.props.customers.map(customer => ({ value: customer.id,
+			label: customer.name }));
 
 		return (
 			<div className="row">
@@ -18,11 +19,9 @@ class CustomerSelector extends React.Component {
 						id={this.props.id}
 						value={this.props.customer}
 						onChange={obj => this.props.onChange(obj ? obj.value : null)}
-						options={customerList}/>
-					<br/>
+						options={customerList} />
+					<br />
 				</div>
-
-
 			</div>
 		);
 	}
@@ -34,8 +33,8 @@ CustomerSelector.proptypes = {
 	id: PropTypes.string.isRequired,
 };
 
-export default connect (
+export default connect(
 	state => ({
 		customers: state.crm,
 	}),
-) (CustomerSelector);
+)(CustomerSelector);
