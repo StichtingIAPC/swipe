@@ -15,8 +15,8 @@ class CustomerSelector extends React.Component {
 
 				<Select
 					name="form-field-name"
-					value={1}
-					onChange={obj => this.props.onChange(obj.value)}
+					value={this.props.customer}
+					onChange={obj => this.props.onChange(obj ? obj.value : null)}
 					options={customerList} />
 				<br />
 
