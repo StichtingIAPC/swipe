@@ -45,7 +45,6 @@ class SupplierEdit extends React.Component {
 	setNotes = ({ target: { value }}) => this.props.setSupplierField('notes', value);
 	setSearch_url = ({ target: { value }}) => this.props.setSupplierField('search_url', value);
 
-
 	render() {
 		const { supplier } = this.props;
 		const NEW = supplier.id === null;
