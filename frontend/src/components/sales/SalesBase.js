@@ -41,7 +41,7 @@ class SalesBase extends React.Component {
 			<React.Fragment>
 				<Row>
 					<Col xs={12} md={12}>
-						<Customer onChange={this.setCustomer} customer={this.props.customer} />
+						<Customer id="customer" onChange={this.setCustomer} customer={this.props.customer} />
 					</Col>
 				</Row>
 				<Row>

@@ -13,10 +13,9 @@ class CustomerSelector extends React.Component {
 		return (
 			<div className="row">
 				<div className="col-md-6 form-group">
-					<label htmlFor="custSelect">Customer</label>
+					<label htmlFor={this.props.id}>Customer</label>
 					<Select
-						id="custSelect"
-						name="form-field-name"
+						id={this.props.id}
 						value={this.props.customer}
 						onChange={obj => this.props.onChange(obj ? obj.value : null)}
 						options={customerList}/>
@@ -32,6 +31,7 @@ class CustomerSelector extends React.Component {
 CustomerSelector.proptypes = {
 	onChange: PropTypes.func.isRequired,
 	customer: PropTypes.number.isRequired,
+	id: PropTypes.string.isRequired,
 };
 
 export default connect (
