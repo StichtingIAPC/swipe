@@ -326,7 +326,7 @@ class Organisation(SoftDeletable):
 
 class SwipePermissionGroup(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
-    users = models.ManyToManyField(to=User, db_index=True)
+    users = models.ManyToManyField(to=User, db_index=True, blank=True)
 
     def __repr__(self):
         return self.name
@@ -334,7 +334,7 @@ class SwipePermissionGroup(models.Model):
 
 class SwipePermission(models.Model):
     name = models.CharField(max_length=255, blank=False, db_index=True, unique=True)
-    groups = models.ManyToManyField(to=SwipePermissionGroup, db_index=True)
+    groups = models.ManyToManyField(to=SwipePermissionGroup, db_index=True, blank=True)
 
     @staticmethod
     def user_has_permission(user, permission):
