@@ -5,9 +5,10 @@ from rest_framework import mixins, generics
 from money.models import CurrencyData, Denomination, VAT, AccountingGroup, Currency, Money, Price, Cost
 from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer, AccountingGroupSerializer
 from tools.json_parsers import ParseError, DictParsers
+from www.models import SwipeLoginRequired
 
 
-class CurrencyListView(mixins.ListModelMixin,
+class CurrencyListView(SwipeLoginRequired, mixins.ListModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
     queryset = CurrencyData.objects.all() \
@@ -21,7 +22,7 @@ class CurrencyListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class CurrencyView(mixins.UpdateModelMixin,
+class CurrencyView(SwipeLoginRequired, mixins.UpdateModelMixin,
                    mixins.RetrieveModelMixin,
                    generics.GenericAPIView):
     queryset = CurrencyData.objects.all() \
@@ -35,13 +36,13 @@ class CurrencyView(mixins.UpdateModelMixin,
         return self.update(request, *args, **kwargs)
 
 
-class DenominationDelete(mixins.DestroyModelMixin,
+class DenominationDelete(SwipeLoginRequired, mixins.DestroyModelMixin,
                          generics.GenericAPIView):
     queryset = Denomination.objects.all()
     serializer_class = DenominationSerializer
 
 
-class VATListView(mixins.ListModelMixin,
+class VATListView(SwipeLoginRequired, mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
     queryset = VAT.objects.all() \
@@ -55,7 +56,7 @@ class VATListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class VATView(mixins.UpdateModelMixin,
+class VATView(SwipeLoginRequired, mixins.UpdateModelMixin,
               mixins.RetrieveModelMixin,
               generics.GenericAPIView):
     queryset = VAT.objects.all() \
@@ -69,7 +70,7 @@ class VATView(mixins.UpdateModelMixin,
         return self.update(request, *args, **kwargs)
 
 
-class AccountingGroupListView(mixins.ListModelMixin,
+class AccountingGroupListView(SwipeLoginRequired, mixins.ListModelMixin,
                               mixins.CreateModelMixin,
                               generics.GenericAPIView):
     queryset = AccountingGroup.objects.all()
@@ -82,7 +83,7 @@ class AccountingGroupListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class AccountingGroupView(mixins.UpdateModelMixin,
+class AccountingGroupView(SwipeLoginRequired, mixins.UpdateModelMixin,
                           mixins.RetrieveModelMixin,
                           generics.GenericAPIView):
     queryset = AccountingGroup.objects.all()

@@ -14,9 +14,10 @@ from logistics.serializers import SupplierOrderSerializer, SupplierOrderLineSeri
 from money.models import Cost
 from supplier.models import Supplier
 from tools.util import raiseif
+from www.models import SwipeLoginRequired
 
 
-class SupplierOrderListView(mixins.ListModelMixin,
+class SupplierOrderListView(SwipeLoginRequired, mixins.ListModelMixin,
                       generics.GenericAPIView):
     serializer_class = SupplierOrderSerializer
 
@@ -75,7 +76,7 @@ class SupplierOrderRequest:
             return [article, self.amount, cost]
 
 
-class SupplierOrderView(mixins.RetrieveModelMixin,
+class SupplierOrderView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                         generics.GenericAPIView):
     serializer_class = SupplierOrderSerializer
 
@@ -86,7 +87,7 @@ class SupplierOrderView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class SupplierOrderLineListView(mixins.ListModelMixin,
+class SupplierOrderLineListView(SwipeLoginRequired, mixins.ListModelMixin,
                                 generics.GenericAPIView):
     serializer_class = SupplierOrderLineSerializer
 
@@ -97,7 +98,7 @@ class SupplierOrderLineListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class SupplierOrderLineView(mixins.RetrieveModelMixin,
+class SupplierOrderLineView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                                 generics.GenericAPIView):
     serializer_class = SupplierOrderLineSerializer
 
@@ -108,7 +109,7 @@ class SupplierOrderLineView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class SupplierOrderStateListView(mixins.ListModelMixin,
+class SupplierOrderStateListView(SwipeLoginRequired, mixins.ListModelMixin,
                                 generics.GenericAPIView):
     serializer_class = SupplierOrderStateSerializer
 
@@ -119,7 +120,7 @@ class SupplierOrderStateListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class SupplierOrderStateByStateView(mixins.ListModelMixin,
+class SupplierOrderStateByStateView(SwipeLoginRequired, mixins.ListModelMixin,
                                mixins.CreateModelMixin,
                                generics.GenericAPIView):
         serializer_class = SupplierOrderStateSerializer
@@ -131,7 +132,7 @@ class SupplierOrderStateByStateView(mixins.ListModelMixin,
             return self.list(request, *args, **kwargs)
 
 
-class SupplierOrderStateBySupplierOrderLineView(mixins.ListModelMixin,
+class SupplierOrderStateBySupplierOrderLineView(SwipeLoginRequired, mixins.ListModelMixin,
                                mixins.CreateModelMixin,
                                generics.GenericAPIView):
         serializer_class = SupplierOrderStateSerializer
@@ -143,7 +144,7 @@ class SupplierOrderStateBySupplierOrderLineView(mixins.ListModelMixin,
             return self.list(request, *args, **kwargs)
 
 
-class SupplierOrderStateView(mixins.RetrieveModelMixin,
+class SupplierOrderStateView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                             generics.GenericAPIView):
     serializer_class = SupplierOrderStateSerializer
 
@@ -154,7 +155,7 @@ class SupplierOrderStateView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class StockWishView(mixins.CreateModelMixin,
+class StockWishView(SwipeLoginRequired, mixins.CreateModelMixin,
                     generics.GenericAPIView):
     serializer_class = StockWishSerializer
 
@@ -196,7 +197,7 @@ class StockWishRequest:
             return (article, self.amount_ordered)
 
 
-class StockWishTableLogListView(mixins.ListModelMixin,
+class StockWishTableLogListView(SwipeLoginRequired, mixins.ListModelMixin,
                                 generics.GenericAPIView):
     serializer_class = StockWishTableLogSerializer
 
@@ -207,7 +208,7 @@ class StockWishTableLogListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class StockWishTableLogView(mixins.RetrieveModelMixin,
+class StockWishTableLogView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                                 generics.GenericAPIView):
     serializer_class = StockWishTableLogSerializer
 
@@ -218,7 +219,7 @@ class StockWishTableLogView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class StockWishTableLogViewByStockWish(mixins.ListModelMixin,
+class StockWishTableLogViewByStockWish(SwipeLoginRequired, mixins.ListModelMixin,
                                 generics.GenericAPIView):
     serializer_class = StockWishTableLogSerializer
 

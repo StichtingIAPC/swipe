@@ -4,9 +4,10 @@ from rest_framework import mixins
 from assortment.models import AssortmentUnitType, AssortmentLabelType
 from assortment.serializers import UnitTypeSerializer, LabelTypeSerializer, LabelTypeSerializerWithEdit, \
     UnitTypeSerializerWithEdit
+from www.models import SwipeLoginRequired
 
 
-class UnitTypeListView(mixins.ListModelMixin,
+class UnitTypeListView(SwipeLoginRequired, mixins.ListModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
     queryset = AssortmentUnitType.objects.all()
@@ -19,7 +20,7 @@ class UnitTypeListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class UnitTypeDetailView(mixins.RetrieveModelMixin,
+class UnitTypeDetailView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          generics.GenericAPIView):
     queryset = AssortmentUnitType.objects.all()
@@ -32,7 +33,7 @@ class UnitTypeDetailView(mixins.RetrieveModelMixin,
         return self.update(request, *args, **kwargs)
 
 
-class LabelTypeListView(mixins.ListModelMixin,
+class LabelTypeListView(SwipeLoginRequired, mixins.ListModelMixin,
                         mixins.CreateModelMixin,
                         generics.GenericAPIView):
     queryset = AssortmentLabelType.objects.all()
@@ -45,7 +46,7 @@ class LabelTypeListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class LabelTypeDetailView(mixins.RetrieveModelMixin,
+class LabelTypeDetailView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                           mixins.UpdateModelMixin,
                           generics.GenericAPIView):
     queryset = AssortmentLabelType.objects.all()

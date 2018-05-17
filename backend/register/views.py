@@ -14,9 +14,10 @@ from money.serializers import DenominationSerializer
 from register.serializers import RegisterSerializer, PaymentTypeSerializer, \
     RegisterCountSerializer, SalesPeriodSerializer
 from tools.json_parsers import ParseError, DictParsers
+from www.models import SwipeLoginRequired
 
 
-class RegisterListView(mixins.ListModelMixin,
+class RegisterListView(SwipeLoginRequired, mixins.ListModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
     queryset = Register.objects.select_related(
@@ -49,7 +50,7 @@ class RegisterListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class RegisterOpenedView(mixins.ListModelMixin,
+class RegisterOpenedView(SwipeLoginRequired, mixins.ListModelMixin,
                          generics.GenericAPIView):
     serializer_class = RegisterCountSerializer
     queryset = RegisterCount.objects\
@@ -61,7 +62,7 @@ class RegisterOpenedView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class RegisterClosedView(mixins.ListModelMixin,
+class RegisterClosedView(SwipeLoginRequired, mixins.ListModelMixin,
                          generics.GenericAPIView):
     serializer_class = RegisterCountSerializer
 
@@ -72,7 +73,7 @@ class RegisterClosedView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class RegisterView(mixins.RetrieveModelMixin,
+class RegisterView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    generics.GenericAPIView):
     queryset = Register.objects.all()
@@ -85,7 +86,7 @@ class RegisterView(mixins.RetrieveModelMixin,
         return self.update(request, *args, **kwargs)
 
 
-class PaymentTypeListView(mixins.ListModelMixin,
+class PaymentTypeListView(SwipeLoginRequired, mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           generics.GenericAPIView):
     queryset = PaymentType.objects.all()
@@ -98,7 +99,7 @@ class PaymentTypeListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class PaymentTypeView(mixins.RetrieveModelMixin,
+class PaymentTypeView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       generics.GenericAPIView):
     queryset = PaymentType.objects.all()
@@ -111,7 +112,7 @@ class PaymentTypeView(mixins.RetrieveModelMixin,
         return self.update(request, *args, **kwargs)
 
 
-class RegisterCountListView(mixins.ListModelMixin,
+class RegisterCountListView(SwipeLoginRequired, mixins.ListModelMixin,
                             mixins.CreateModelMixin,
                             generics.GenericAPIView):
     queryset = RegisterCount.objects.prefetch_related(
@@ -129,7 +130,7 @@ class RegisterCountListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class RegisterCountView(mixins.RetrieveModelMixin,
+class RegisterCountView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                         generics.GenericAPIView):
     queryset = RegisterCount.objects.all()
     serializer_class = RegisterCountSerializer
@@ -138,7 +139,7 @@ class RegisterCountView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class RegisterOpenView(mixins.RetrieveModelMixin,
+class RegisterOpenView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                        generics.GenericAPIView):
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
@@ -194,7 +195,7 @@ class RegisterOpenView(mixins.RetrieveModelMixin,
                 return respo
 
 
-class SalesPeriodCloseView(mixins.RetrieveModelMixin,
+class SalesPeriodCloseView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                            generics.GenericAPIView):
     queryset = SalesPeriod.objects.all()
     serializer_class = SalesPeriodSerializer
@@ -238,7 +239,7 @@ class SalesPeriodCloseView(mixins.RetrieveModelMixin,
                             content_type="application/json")
 
 
-class SalesPeriodListView(mixins.ListModelMixin,
+class SalesPeriodListView(SwipeLoginRequired, mixins.ListModelMixin,
                           generics.GenericAPIView):
     queryset = SalesPeriod.objects.all()
     serializer_class = SalesPeriodSerializer
@@ -247,7 +248,7 @@ class SalesPeriodListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class PaymentTypeOpenListView(mixins.ListModelMixin,
+class PaymentTypeOpenListView(SwipeLoginRequired, mixins.ListModelMixin,
                               generics.GenericAPIView):
     serializer_class = PaymentTypeSerializer
 
@@ -258,7 +259,7 @@ class PaymentTypeOpenListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class SalesPeriodView(mixins.RetrieveModelMixin,
+class SalesPeriodView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                       generics.GenericAPIView):
     queryset = SalesPeriod.objects.all()
     serializer_class = SalesPeriodSerializer
@@ -267,7 +268,7 @@ class SalesPeriodView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class SalesPeriodLatestView(mixins.ListModelMixin,
+class SalesPeriodLatestView(SwipeLoginRequired, mixins.ListModelMixin,
                             mixins.RetrieveModelMixin,
                             generics.GenericAPIView):
     serializer_class = SalesPeriodSerializer
@@ -282,7 +283,7 @@ class SalesPeriodLatestView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class LastCountView(mixins.ListModelMixin,
+class LastCountView(SwipeLoginRequired, mixins.ListModelMixin,
                             mixins.RetrieveModelMixin,
                             generics.GenericAPIView):
     serializer_class = RegisterCountSerializer

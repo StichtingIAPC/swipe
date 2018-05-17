@@ -10,9 +10,10 @@ from externalise.models import ExternaliseDocument, IncorrectClassError
 from externalise.serializers import ExternaliseDocumentSerializer
 from money.models import Cost
 from tools.util import raiseif
+from www.models import SwipeLoginRequired
 
 
-class ExternaliseDocumentView(mixins.RetrieveModelMixin,
+class ExternaliseDocumentView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                               generics.GenericAPIView):
     queryset = ExternaliseDocument.objects.all()
     serializer_class = ExternaliseDocumentSerializer
@@ -60,7 +61,7 @@ class ExternaliseRequest:
             return (article, self.count, cost)
 
 
-class ExternaliseDocumentListView(mixins.ListModelMixin,
+class ExternaliseDocumentListView(SwipeLoginRequired, mixins.ListModelMixin,
                                   generics.GenericAPIView):
     queryset = ExternaliseDocument.objects.all()
     serializer_class = ExternaliseDocumentSerializer
