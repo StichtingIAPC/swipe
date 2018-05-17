@@ -6,133 +6,138 @@ function trim(path) {
 		.replace(/\/$/, '');
 }
 
-export function crudActions(path) {
+export function crudActions(rawPath) {
+	const path = trim(rawPath);
+
 	return {
-		CREATE_FAIL: `${trim(path)}/create/fail`,
-		CREATE_FINALLY: `${trim(path)}/create/finally`,
-		CREATE_START: `${trim(path)}/create/start`,
-		CREATE_SUCCESS: `${trim(path)}/create/success`,
-		CREATE_SET_LOADING: `${trim(path)}/fetchAll/setLoading`,
-		DELETE_FAIL: `${trim(path)}/delete/fail`,
-		DELETE_FINALLY: `${trim(path)}/delete/finally`,
-		DELETE_START: `${trim(path)}/delete/start`,
-		DELETE_SUCCESS: `${trim(path)}/delete/success`,
-		DELETE_SET_LOADING: `${trim(path)}/fetchAll/setLoading`,
-		FETCH_ALL_FAIL: `${trim(path)}/fetchAll/fail`,
-		FETCH_ALL_FINALLY: `${trim(path)}/fetchAll/finally`,
-		FETCH_ALL_START: `${trim(path)}/fetchAll/start`,
-		FETCH_ALL_SUCCESS: `${trim(path)}/fetchAll/success`,
-		FETCH_ALL_SET_LOADING: `${trim(path)}/fetchAll/setLoading`,
-		FETCH_FAIL: `${trim(path)}/fetch/fail`,
-		FETCH_FINALLY: `${trim(path)}/fetch/finally`,
-		FETCH_START: `${trim(path)}/fetch/start`,
-		FETCH_SUCCESS: `${trim(path)}/fetch/success`,
-		FETCH_SET_LOADING: `${trim(path)}/fetchAll/setLoading`,
-		UPDATE_FAIL: `${trim(path)}/update/fail`,
-		UPDATE_FINALLY: `${trim(path)}/update/finally`,
-		UPDATE_START: `${trim(path)}/update/start`,
-		UPDATE_SUCCESS: `${trim(path)}/update/success`,
-		UPDATE_SET_LOADING: `${trim(path)}/fetchAll/setLoading`,
-		SET_FIELD: `${trim(path)}/setField`,
+		CREATE_FAIL: `${path}/create/fail`,
+		CREATE_FINALLY: `${path}/create/finally`,
+		CREATE_START: `${path}/create/start`,
+		CREATE_SUCCESS: `${path}/create/success`,
+		CREATE_SET_LOADING: `${path}/fetchAll/setLoading`,
+		DELETE_FAIL: `${path}/delete/fail`,
+		DELETE_FINALLY: `${path}/delete/finally`,
+		DELETE_START: `${path}/delete/start`,
+		DELETE_SUCCESS: `${path}/delete/success`,
+		DELETE_SET_LOADING: `${path}/fetchAll/setLoading`,
+		FETCH_ALL_FAIL: `${path}/fetchAll/fail`,
+		FETCH_ALL_FINALLY: `${path}/fetchAll/finally`,
+		FETCH_ALL_START: `${path}/fetchAll/start`,
+		FETCH_ALL_SUCCESS: `${path}/fetchAll/success`,
+		FETCH_ALL_SET_LOADING: `${path}/fetchAll/setLoading`,
+		FETCH_FAIL: `${path}/fetch/fail`,
+		FETCH_FINALLY: `${path}/fetch/finally`,
+		FETCH_START: `${path}/fetch/start`,
+		FETCH_SUCCESS: `${path}/fetch/success`,
+		FETCH_SET_LOADING: `${path}/fetchAll/setLoading`,
+		UPDATE_FAIL: `${path}/update/fail`,
+		UPDATE_FINALLY: `${path}/update/finally`,
+		UPDATE_START: `${path}/update/start`,
+		UPDATE_SUCCESS: `${path}/update/success`,
+		UPDATE_SET_LOADING: `${path}/fetchAll/setLoading`,
+		SET_FIELD: `${path}/setField`,
 	};
 }
 
-export function crudFunctions(path) {
+export function crudFunctions(rawPath) {
+	const path = trim(rawPath);
+
 	return {
 		createStart: () => ({
-			type: `${trim(path)}/create/start`,
+			type: `${path}/create/start`,
 		}),
 		createSuccess: data => ({
-			type: `${trim(path)}/create/success`,
+			type: `${path}/create/success`,
 			data,
 		}),
 		createFail: reason => ({
-			type: `${trim(path)}/create/fail`,
+			type: `${path}/create/fail`,
 			reason,
 		}),
 		createFinally: () => ({
-			type: `${trim(path)}/create/finally`,
+			type: `${path}/create/finally`,
 		}),
 		createSetLoading: (isLoading = true) => ({
-			type: `${trim(path)}/create/setLoading`,
+			type: `${path}/create/setLoading`,
 			isLoading,
 		}),
 		deleteStart: () => ({
-			type: `${trim(path)}/delete/start`,
+			type: `${path}/delete/start`,
 		}),
 		deleteSuccess: data => ({
-			type: `${trim(path)}/delete/success`,
+			type: `${path}/delete/success`,
 			data,
 		}),
 		deleteFail: reason => ({
-			type: `${trim(path)}/delete/fail`,
+			type: `${path}/delete/fail`,
 			reason,
 		}),
 		deleteFinally: () => ({
-			type: `${trim(path)}/delete/finally`,
+			type: `${path}/delete/finally`,
 		}),
 		deleteSetLoading: (isLoading = true) => ({
-			type: `${trim(path)}/delete/setLoading`,
+			type: `${path}/delete/setLoading`,
 			isLoading,
 		}),
 		updateStart: () => ({
-			type: `${trim(path)}/update/start`,
+			type: `${path}/update/start`,
 		}),
 		updateSuccess: data => ({
-			type: `${trim(path)}/update/success`,
+			type: `${path}/update/success`,
 			data,
 		}),
 		updateFail: reason => ({
-			type: `${trim(path)}/update/fail`,
+			type: `${path}/update/fail`,
 			reason,
 		}),
 		updateFinally: () => ({
-			type: `${trim(path)}/update/finally`,
+			type: `${path}/update/finally`,
 		}),
 		updateSetLoading: (isLoading = true) => ({
-			type: `${trim(path)}/update/setLoading`,
+			type: `${path}/update/setLoading`,
 			isLoading,
 		}),
 		fetchAll: () => ({
-			type: `${trim(path)}/fetchAll/start`,
+			type: `${path}/fetchAll/start`,
 		}),
 		fetchAllSuccess: data => ({
-			type: `${trim(path)}/fetchAll/success`,
+			type: `${path}/fetchAll/success`,
 			data,
 		}),
 		fetchAllFail: reason => ({
-			type: `${trim(path)}/fetchAll/fail`,
+			type: `${path}/fetchAll/fail`,
 			reason,
 		}),
 		fetchAllFinally: () => ({
-			type: `${trim(path)}/fetchAll/finally`,
+			type: `${path}/fetchAll/finally`,
 		}),
 		fetchAllSetLoading: (isLoading = true) => ({
-			type: `${trim(path)}/fetchAll/setLoading`,
+			type: `${path}/fetchAll/setLoading`,
 			isLoading,
 		}),
 		fetch: () => ({
-			type: `${trim(path)}/fetch/start`,
+			type: `${path}/fetch/start`,
 		}),
 		fetchSuccess: data => ({
-			type: `${trim(path)}/fetch/success`,
+			type: `${path}/fetch/success`,
 			data,
 		}),
 		fetchFail: reason => ({
-			type: `${trim(path)}/fetch/fail`,
+			type: `${path}/fetch/fail`,
 			reason,
 		}),
 		fetchFinally: () => ({
-			type: `${trim(path)}/fetch/finally`,
+			type: `${path}/fetch/finally`,
 		}),
 		fetchSetLoading: (isLoading = true) => ({
-			type: `${trim(path)}/fetch/setLoading`,
+			type: `${path}/fetch/setLoading`,
 			isLoading,
 		}),
 	};
 }
 
-export const curdReducers = (path, manyName = 'items', singleName = 'currentItem') => {
+
+export function crudReducers(path, manyName = 'items', singleName = 'currentItem') {
 	const actions = crudActions(path);
 
 	return {
@@ -167,9 +172,9 @@ export const curdReducers = (path, manyName = 'items', singleName = 'currentItem
 			], null, 'reason'),
 		},
 	};
-};
+}
 
-export const curdSagas = (path, api) => {
+export function curdSagas(path, api) {
 	const actions = crudActions(path);
 
 	const fetchSaga = function* ({ id }) {
@@ -245,16 +250,20 @@ export const curdSagas = (path, api) => {
 			yield takeEvery(actions.UPDATE_START, updateSaga);
 			yield takeEvery(actions.DELETE_START, deleteSaga);
 		},
-		fetchAll: function* () { yield takeEvery(actions.FETCH_ALL_START, fetchAllSaga); },
-		fetch: function* () { yield takeEvery(actions.FETCH_START, fetchSaga); },
-		create: function* () { yield takeEvery(actions.CREATE_START, createSaga); },
-		update: function* () { yield takeEvery(actions.UPDATE_START, updateSaga); },
-		delete: function* () { yield takeEvery(actions.DELETE_START, deleteSaga); },
+		fetchAll: function* () {
+			yield takeEvery(actions.FETCH_ALL_START, fetchAllSaga);
+		},
+		fetch: function* () {
+			yield takeEvery(actions.FETCH_START, fetchSaga);
+		},
+		create: function* () {
+			yield takeEvery(actions.CREATE_START, createSaga);
+		},
+		update: function* () {
+			yield takeEvery(actions.UPDATE_START, updateSaga);
+		},
+		delete: function* () {
+			yield takeEvery(actions.DELETE_START, deleteSaga);
+		},
 	};
-};
-
-
-console.dir(crudActions('/logistics/externalize/'));
-console.dir(crudFunctions('/logistics/externalize/'));
-console.dir(curdReducers('/logistics/externalize/'));
-console.dir(curdSagas('/logistics/externalize/'));
+}

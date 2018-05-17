@@ -11,13 +11,10 @@ let replacements = {};
 try {
 	// eslint-disable-next-line global-require
 	replacements = require(path.resolve(path.join(APP_DIR, 'config.local')));
-} catch (e) { console.log('No config.local.js found, continueing on without changing any settings')}
+} catch (e) { console.log('No config.local.js found, continueing on without changing any settings'); }
 
 const defaults = {
-	'__BACKEND_URL__': '`//${window.location.hostname}:8000`',
-	'process.env': {
-		NODE_ENV: JSON.stringify('develop'),
-	},
+	__BACKEND_URL__: '`//${window.location.hostname}:8000`',
 };
 
 
@@ -25,6 +22,7 @@ module.exports = {
 	entry: [
 		path.join(APP_DIR, 'app.js'),
 	],
+	mode: 'development',
 	output: {
 		path: BUILD_DIR,
 		publicPath: '/dist/',
@@ -45,14 +43,14 @@ module.exports = {
 				loaders: [ 'style-loader', 'css-loader' ],
 			}, {
 				test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-				loader: "url-loader?limit=10000&mimetype=application/font-woff",
+				loader: 'url-loader?limit=10000&mimetype=application/font-woff',
 			}, {
 				test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-				loader: "file-loader",
+				loader: 'file-loader',
 			},
 			{
 				test: /\.(jpg|jpeg|png|gif|svg)$/,
-				loader: "file-loader",
+				loader: 'file-loader',
 			},
 		],
 	},
@@ -63,7 +61,7 @@ module.exports = {
 		modules: [ 'node_modules' ],
 	},
 	devServer: {
-		headers: { "Access-Control-Allow-Origin": "*" },
+		headers: { 'Access-Control-Allow-Origin': '*' },
 		contentBase: './public/',
 	},
 };

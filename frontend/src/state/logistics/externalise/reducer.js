@@ -1,21 +1,21 @@
 import { combineReducers } from 'redux';
 import {
 	setFieldReducer,
-	booleanControlReducer,
 	resetFieldReducer,
 	collectReducers,
 	pathControlReducer,
 } from '../../../tools/reducerComponents';
-import {
-	LOGISTICS_EXTRNALIZE_FETCH_ALL_FINALLY,
-	LOGISTICS_EXTRNALIZE_FETCH_ALL_FAIL,
-	LOGISTICS_EXTRNALIZE_FETCH_ALL_SUCCESS,
-	LOGISTICS_EXTRNALIZE_NEW,
-	LOGISTICS_EXTRNALIZE_SET_FIELD,
-	LOGISTICS_EXTRNALIZE_CREATE_SUCCESS,
-	LOGISTICS_EXTRNALIZE_SET_VALIDATIONS,
-	LOGISTICS_EXTRNALIZE_SET_LOADING,
-} from './actions';
+import { crudReducers, crudActions } from '../../../tools/CRUDHelper';
+const {
+	FETCH_ALL_FINALLY,
+	FETCH_ALL_FAIL,
+	FETCH_ALL_SUCCESS,
+	SET_FIELD,
+	CREATE_START,
+	CREATE_SUCCESS,
+	SET_VALIDATIONS,
+	SET_LOADING,
+} = crudActions('/logistics/externalize/');
 
 const defaultExternalisation = {
 	id: null,
@@ -28,14 +28,14 @@ export default combineReducers({
 
 	activeObject: collectReducers(
 		resetFieldReducer([
-			LOGISTICS_EXTRNALIZE_NEW,
-			LOGISTICS_EXTRNALIZE_CREATE_SUCCESS,
+			CREATE_START,
+			CREATE_SUCCESS,
 		], defaultExternalisation),
 		pathControlReducer([
-			LOGISTICS_EXTRNALIZE_SET_FIELD,
+			SET_FIELD,
 		], defaultExternalisation),
 	),
 	validations: setFieldReducer([
-		LOGISTICS_EXTRNALIZE_SET_VALIDATIONS,
+		SET_VALIDATIONS,
 	], {}, 'validations'),
 });
