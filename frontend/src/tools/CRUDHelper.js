@@ -1,5 +1,5 @@
 import { booleanControlReducer, setFieldReducer } from './reducerComponents';
-import { takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery } from 'redux-saga/effects';
 
 function trim(path) {
 	return path.replace(/^\//, '')
@@ -93,7 +93,7 @@ export function crudFunctions(path) {
 			type: `${trim(path)}/update/setLoading`,
 			isLoading,
 		}),
-		fetchAllStart: () => ({
+		fetchAll: () => ({
 			type: `${trim(path)}/fetchAll/start`,
 		}),
 		fetchAllSuccess: data => ({
@@ -111,7 +111,7 @@ export function crudFunctions(path) {
 			type: `${trim(path)}/fetchAll/setLoading`,
 			isLoading,
 		}),
-		fetchStart: () => ({
+		fetch: () => ({
 			type: `${trim(path)}/fetch/start`,
 		}),
 		fetchSuccess: data => ({
@@ -132,11 +132,11 @@ export function crudFunctions(path) {
 	};
 }
 
-export const curdReducers = (path, setName = 'items', singleName = 'currentItem') => {
+export const curdReducers = (path, manyName = 'items', singleName = 'currentItem') => {
 	const actions = crudActions(path);
 
 	return {
-		[setName]: {
+		[manyName]: {
 			data: setFieldReducer([
 				actions.FETCH_ALL_SUCCESS,
 			], [], 'data'),
@@ -154,7 +154,7 @@ export const curdReducers = (path, setName = 'items', singleName = 'currentItem'
 		[singleName]: {
 			data: setFieldReducer([
 				actions.FETCH_SUCCESS,
-			], [], 'data'),
+			], null, 'data'),
 			isLoading: booleanControlReducer({
 				[actions.FETCH_SET_LOADING]: true,
 				[actions.FETCH_FINALLY]: false,
@@ -172,46 +172,89 @@ export const curdReducers = (path, setName = 'items', singleName = 'currentItem'
 export const curdSagas = (path, api) => {
 	const actions = crudActions(path);
 
-	const fetch = function* () {
-
-	};
-
-	const fetchAll = function* () {
-		if () {
-			return;
-		}
+	const fetchSaga = function* ({ id }) {
 		yield put(actions.fetchAllSetLoading());
 		try {
-			const externalizations = yield (yield call(api.getAll)).json();
+			const data = yield (yield call(api.get, id)).json();
 
-			const exts = [].concat.apply([], externalizations.map(e => e.externaliseline_set.map(en => ({
-				memo: e.memo,
-				count: en.count,
-				amount: en.cost,
-				article: en.article_type,
-			}))));
-
-			yield put(actions.fetchAllSuccess(exts));
+			yield put(actions.fetchSuccess(data));
 		} catch (e) {
-			console.error(e);
+			yield put(actions.fetchFail(e));
+		} finally {
+			yield put(actions.fetchFinally());
+		}
+	};
+
+	const fetchAllSaga = function* () {
+		yield put(actions.fetchSetLoading());
+		try {
+			const data = yield (yield call(api.getAll)).json();
+
+			yield put(actions.fetchAllSuccess(data));
+		} catch (e) {
 			yield put(actions.fetchAllFail(e));
 		} finally {
 			yield put(actions.fetchAllFinally());
 		}
 	};
 
+	const createSaga = function* ({ data }) {
+		yield put(actions.createSetLoading());
+		try {
+			const backendData = yield (yield call(api.create, data)).json();
+
+			yield put(actions.createSuccess(backendData));
+		} catch (e) {
+			yield put(actions.createFail(e));
+		} finally {
+			yield put(actions.createFinally());
+		}
+	};
+
+	const updateSaga = function* ({ id, data }) {
+		yield put(actions.updateSetLoading());
+		try {
+			const backendData = yield (yield call(api.update, id, data)).json();
+
+			yield put(actions.updateSuccess(backendData));
+		} catch (e) {
+			yield put(actions.updateFail(e));
+		} finally {
+			yield put(actions.updateFinally());
+		}
+	};
+
+	const deleteSaga = function* ({ id, data }) {
+		yield put(actions.deleteSetLoading());
+		try {
+			const backendData = yield (yield call(api.get, id, data)).json();
+
+			yield put(actions.deleteSuccess(backendData));
+		} catch (e) {
+			yield put(actions.deleteFail(e));
+		} finally {
+			yield put(actions.deleteFinally());
+		}
+	};
+
 	return {
-		call: function* () {
-			yield takeEvery(actions.FETCH_ALL_START, fetchAll);
-			yield takeEvery(actions.FETCH_START, fetch);
+		all: function* () {
+			yield takeEvery(actions.FETCH_ALL_START, fetchAllSaga);
+			yield takeEvery(actions.FETCH_START, fetchSaga);
+			yield takeEvery(actions.CREATE_START, createSaga);
+			yield takeEvery(actions.UPDATE_START, updateSaga);
+			yield takeEvery(actions.DELETE_START, deleteSaga);
 		},
-		fetchStart: fetch,
-		fetchAllStart: fetchAll,
+		fetchAll: function* () { yield takeEvery(actions.FETCH_ALL_START, fetchAllSaga); },
+		fetch: function* () { yield takeEvery(actions.FETCH_START, fetchSaga); },
+		create: function* () { yield takeEvery(actions.CREATE_START, createSaga); },
+		update: function* () { yield takeEvery(actions.UPDATE_START, updateSaga); },
+		delete: function* () { yield takeEvery(actions.DELETE_START, deleteSaga); },
 	};
 };
 
 
-console.log(crudActions('/logistics/externalize/'));
-console.log(crudFunctions('/logistics/externalize/'));
-console.log(curdReducers('/logistics/externalize/'));
-console.log(curdSagas('/logistics/externalize/'));
+console.dir(crudActions('/logistics/externalize/'));
+console.dir(crudFunctions('/logistics/externalize/'));
+console.dir(curdReducers('/logistics/externalize/'));
+console.dir(curdSagas('/logistics/externalize/'));
