@@ -223,7 +223,6 @@ class SalesPeriodCloseView(SwipeLoginRequired, mixins.RetrieveModelMixin,
         params.registercounts_denominationcounts = counts_and_denom_counts
         return params
 
-    @permReq('you.fuck')
     def post(self, request):
         sales_period = RegisterMaster.get_open_sales_period()
         if not sales_period:
