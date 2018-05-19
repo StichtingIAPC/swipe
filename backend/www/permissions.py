@@ -1,4 +1,4 @@
-CURRENCY_LIST = 'List Currencties'
+CURRENCY_LIST = 'List Currencies'
 CURRENCY_GET = 'Get Currency'
 CURRENCY_CREATE = 'Create Currency'
 CURRENCY_MODIFY = 'Modify Currency'

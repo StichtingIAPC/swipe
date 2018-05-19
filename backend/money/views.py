@@ -3,7 +3,8 @@ from rest_framework import mixins, generics
 
 from money.models import CurrencyData, Denomination, VAT, AccountingGroup
 from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer, AccountingGroupSerializer
-from www.models import swipe_authorize
+from www.models import swipe_authorize, swipe_auth
+from www.permissions import CURRENCY_LIST
 
 
 class CurrencyListView(mixins.ListModelMixin,
@@ -13,8 +14,8 @@ class CurrencyListView(mixins.ListModelMixin,
         .prefetch_related('denomination_set')
     serializer_class = CurrencySerializer
 
+    @swipe_auth(CURRENCY_LIST)
     def get(self, request, *args, **kwargs):
-        swipe_authorize(request, "doesNotExist")
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):

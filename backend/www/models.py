@@ -54,3 +54,18 @@ def swipe_authorize(request, permission):
                                              and not SwipePermission.user_has_permission(request.user, permission)):
         raise PermissionDenied
     return
+
+
+def swipe_auth(permission):
+    """
+    Decorator for the endpoints. Should contain the string version of the persmission
+    :type permission: str
+    :param permission: The permission string of the permission to check
+    :return: Does a permission check and returns a PermissionDenied if not the case
+    """
+    def swipe_auth_decorator(func):
+        def func_wrapper(zelf, request, *args, **kwargs):
+            swipe_authorize(request, permission)
+            return func(zelf, request, *args, **kwargs)
+        return func_wrapper
+    return swipe_auth_decorator
