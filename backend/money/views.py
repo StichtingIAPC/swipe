@@ -1,9 +1,8 @@
-from django.contrib.auth.decorators import login_required
 from rest_framework import mixins, generics
 
 from money.models import CurrencyData, Denomination, VAT, AccountingGroup
 from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer, AccountingGroupSerializer
-from www.models import swipe_authorize, swipe_auth
+from www.models import swipe_auth
 from www.permissions import CURRENCY_LIST
 from www.models import SwipeLoginRequired
 
