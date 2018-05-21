@@ -1,24 +1,19 @@
 import React, { Component } from 'react';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
-import {
-	createAction as createExternalise,
-	newAction as resetExternalise,
-	newAction as newExternalise,
-	setFieldAction as setExternaliseField,
-} from '../../../state/logistics/externalise/actions';
 
+import actions from '../../../state/logistics/externalise/actions';
 import Card from '../../base/Card';
 import ArticleTypeSelector from '../../article/ArticleTypeSelector';
 import { MoneyField } from '../../forms/fields';
 import { Button, ButtonToolbar, ControlLabel, FormControl, FormGroup, HelpBlock, Table } from 'react-bootstrap';
-import { getExternalisationActiveObjectValidations } from '../../../state/logistics/externalise/selectors';
+import { getExternalisationValidations } from '../../../state/logistics/externalise/selectors';
 import { hasError } from '../../../tools/validations/validators';
 
 class ExternaliseAdd extends Component {
-	setMemo = event => this.props.setExternaliseField('memo', event.target.value);
+	setMemo = event => this.props.setField('memo', event.target.value);
 
-	addArticle = () => this.props.setExternaliseField(
+	addArticle = () => this.props.setField(
 		'externaliseline_set',
 		this.props.externalise.externaliseline_set.concat([{
 			// eslint-disable-next-line
@@ -29,11 +24,11 @@ class ExternaliseAdd extends Component {
 			},
 			count: '',
 		}]));
-	removeArticle = index => () => this.props.setExternaliseField('externaliseline_set', this.props.externalise.externaliseline_set.filter((_, i) => i !== index));
+	removeArticle = index => () => this.props.setField('externaliseline_set', this.props.externalise.externaliseline_set.filter((_, i) => i !== index));
 
 	updateArticleField = (index, field) =>
 		ev => {
-			this.props.setExternaliseField(
+			this.props.setField(
 				'externaliseline_set',
 				this.props.externalise.externaliseline_set.map((el, i) => {
 					if (i === index) {
@@ -47,7 +42,7 @@ class ExternaliseAdd extends Component {
 			);
 		};
 	updateArticleFieldArticle = index => value => {
-		this.props.setExternaliseField(
+		this.props.setField(
 			'externaliseline_set',
 			this.props.externalise.externaliseline_set.map((el, i) => {
 				if (i === index) {
@@ -64,7 +59,7 @@ class ExternaliseAdd extends Component {
 		);
 	};
 	updateArticleFieldCount = index => ({ target: { value }}) => {
-		this.props.setExternaliseField(
+		this.props.setField(
 			'externaliseline_set',
 			this.props.externalise.externaliseline_set.map((el, i) => {
 				if (i === index) {
@@ -78,8 +73,8 @@ class ExternaliseAdd extends Component {
 		);
 	};
 
-	create = () => this.props.createExternalise(this.props.externalise);
-	reset = () => this.props.newExternalise();
+	create = () => this.props.createStart();
+	reset = () => this.props.startNew();
 
 	render() {
 		const validation_memo = this.props.validations ? this.props.validations['memo'] : {};
@@ -175,12 +170,11 @@ export default connect(
 	state => ({
 		externalise: state.logistics.externalise.activeObject,
 		error: state.logistics.externalise.error,
-		validations: getExternalisationActiveObjectValidations(state),
+		validations: getExternalisationValidations(state),
 	}),
 	{
-		reset: resetExternalise,
-		setExternaliseField,
-		createExternalise,
-		newExternalise,
+		setField: actions.setField,
+		createStart: actions.createStart,
+		startNew: actions.startNew,
 	},
 )(ExternaliseAdd);

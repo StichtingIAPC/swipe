@@ -1,4 +1,4 @@
-import {ARE_YOU_SURE_ACTION, areYouSureAction} from "../ui/actions";
+import { ARE_YOU_SURE_ACTION, areYouSureAction } from '../ui/actions';
 
 export function startLogin(username, password) {
 	return {
@@ -37,7 +37,7 @@ export function directLogout() {
 }
 
 export function logout() {
-	return areYouSureAction(directLogout(), "Are you sure you want to log out?", "Logout succesful!", "");
+	return areYouSureAction(directLogout(), 'Are you sure you want to log out?', 'Logout succesful!', '');
 }
 
 export function logoutSuccess() {

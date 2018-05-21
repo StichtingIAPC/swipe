@@ -3,25 +3,25 @@ import MoneyAmount from '../../money/MoneyAmount';
 import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
-import { fetchAllAction as fetchAllExternalisations } from '../../../state/logistics/externalise/actions';
+import { fetchAllStart } from '../../../state/logistics/externalise/actions';
 import {
-	getExternalisationData,
+	getExternailzeItems,
 	getExternalisationLoading,
 	getExternalisationPopulated
-} from "../../../state/logistics/externalise/selectors";
+} from '../../../state/logistics/externalise/selectors';
 import { Button, ButtonGroup, Table } from 'react-bootstrap';
 import { Box } from 'reactjs-admin-lte';
 
-class List extends Component {
-	componentWillMount() {
+class ExternalizeList extends Component {
+	componentDidMount() {
 		if (!this.props.isPopulated && !this.props.isLoading) {
-			this.props.fetchExternalisations();
+			this.props.fetchAllStart();
 		}
 	}
 
 	render() {
 		// eslint-disable-next-line react/style-prop-object
-		return <Box style="primary">
+		return <Box style={'primary'}>
 			<Box.Header>
 				<Box.Title>
 					Externalisations
@@ -31,7 +31,7 @@ class List extends Component {
 						<Button
 							bsSize="small"
 							title="Refresh"
-							onClick={this.props.fetchExternalisations}
+							onClick={this.props.fetchAllStart}
 							disabled={this.props.isLoading}>
 							<FontAwesome icon={`refresh ${this.props.isLoading ? 'fa-spin' : ''}`} />
 						</Button>
@@ -74,9 +74,11 @@ class List extends Component {
 
 export default connect(
 	state => ({
-		externalises: getExternalisationData(state),
+		externalises: getExternailzeItems(state),
 		isLoading: getExternalisationLoading(state),
 		isPopulated: getExternalisationPopulated(state),
 	}),
-	{ fetchExternalisations: fetchAllExternalisations },
-)(List);
+	{
+		fetchAllStart,
+	},
+)(ExternalizeList);
