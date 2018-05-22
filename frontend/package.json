@@ -8,6 +8,7 @@
     "dev": "yarn --pure-lockfile && webpack-dev-server --inline --hot --history-api-fallback",
     "lint": "yarn --pure-lockfile && eslint src",
     "lint-fix": "eslint src --fix",
+    "storybook": "start-storybook -p 9001",
     "test": "jest unit --watch",
     "test-once": "jest unit"
   },
@@ -52,6 +53,7 @@
     "sweetalert": "^2.1.0"
   },
   "devDependencies": {
+    "@storybook/react": "^3.4.5",
     "babel-core": "^6.24.1",
     "babel-eslint": "8",
     "babel-jest": "^21.2.0",
