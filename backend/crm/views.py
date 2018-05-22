@@ -25,38 +25,13 @@ class CustomerView(SwipeLoginRequired, mixins.RetrieveModelMixin,
         Customer.objects.filter(id=kwargs['pk']).delete()
         return HttpResponse(content={'deleted': True}, status=200)
 
-class CustomerListView(mixins.ListModelMixin,
+class CustomerListView(SwipeLoginRequired, mixins.ListModelMixin,
                    generics.GenericAPIView):
 
     def get_queryset(self):
         return Customer.objects.all()
 
     serializer_class = CustomerSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-
-class CustomerByNameView(mixins.RetrieveModelMixin,
-                         mixins.ListModelMixin,
-                       generics.GenericAPIView):
-
-    lookup_field = 'name'
-
-    serializer_class = CustomerSerializer
-
-    def get_queryset(self):
-        customers = Customer.objects.all()
-        persons = []
-        for customer in customers:
-            if hasattr(customer, 'person'):
-                if self.kwargs['name'] in customer.person.name:
-                    persons.append(customer)
-            elif hasattr(customer, 'organisation'):
-                if self.kwargs['name'] in customer.organisation.name:
-                    persons.append(customer)
-        print(persons)
-        return persons
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -91,7 +66,7 @@ class PersonCreateView(SwipeLoginRequired, mixins.CreateModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class OrganisationView(mixins.RetrieveModelMixin,
+class OrganisationView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                        mixins.UpdateModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
