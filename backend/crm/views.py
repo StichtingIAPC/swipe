@@ -23,6 +23,17 @@ class CustomerView(mixins.RetrieveModelMixin,
         Customer.objects.filter(id=kwargs['pk']).delete()
         return HttpResponse(content={'deleted':True}, status=200)
 
+class CustomerListView(mixins.ListModelMixin,
+                   generics.GenericAPIView):
+
+    def get_queryset(self):
+        return Customer.objects.all()
+
+    serializer_class = CustomerSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
 
 class CustomerByNameView(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
