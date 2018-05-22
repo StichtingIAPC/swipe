@@ -25,6 +25,17 @@ class CustomerView(SwipeLoginRequired, mixins.RetrieveModelMixin,
         Customer.objects.filter(id=kwargs['pk']).delete()
         return HttpResponse(content={'deleted': True}, status=200)
 
+class CustomerListView(SwipeLoginRequired, mixins.ListModelMixin,
+                   generics.GenericAPIView):
+
+    def get_queryset(self):
+        return Customer.objects.all()
+
+    serializer_class = CustomerSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
 
 class PersonView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                  mixins.UpdateModelMixin,
@@ -55,7 +66,7 @@ class PersonCreateView(SwipeLoginRequired, mixins.CreateModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class OrganisationView(mixins.RetrieveModelMixin,
+class OrganisationView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                        mixins.UpdateModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
