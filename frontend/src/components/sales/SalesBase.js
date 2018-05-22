@@ -24,7 +24,7 @@ import {
 	setAmountOfPaymentType,
 	toggleSplitPayment
 } from '../../state/sales/payments/actions';
-import { addToSalesList, addToSalesListAction, receiptAddProductAction } from '../../state/sales/sales/actions';
+import { addToSalesListAction, receiptAddProductAction } from '../../state/sales/sales/actions';
 
 class SalesBase extends React.Component {
 	componentWillMount() {

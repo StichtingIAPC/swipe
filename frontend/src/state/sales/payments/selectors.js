@@ -11,7 +11,7 @@ export const getPaymentsOnReceiptAsListForAPI = state => Object.keys(getPayments
 		money: getPaymentsOnReceipt(state)[id],
 		payment_type: id,
 	}))
-	.filter(it => new Big(it.money.amount).eq(0));
+	.filter(it => !(new Big(it.money.amount).eq(0)));
 export const getPaymentsOnReceiptDeficit = state => {
 	const result = new Big(getSalesTotal(state).amount)
 		.minus(Object.values(getPaymentsOnReceipt(state))

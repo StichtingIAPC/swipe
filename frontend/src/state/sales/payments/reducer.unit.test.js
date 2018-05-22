@@ -7,11 +7,13 @@ import {
 } from './actions';
 
 describe('Tests reducer for sales.payments', () => {
+	const defaultState = {
+		paymentIsSplit: false,
+		paymentTypes: {},
+		validations: {},
+	};
 	test('No Action', () => {
-		expect(paymentReducer(undefined, {})).toEqual({
-			paymentIsSplit: false,
-			paymentTypes: {},
-		});
+		expect(paymentReducer(undefined, {})).toEqual(defaultState);
 	});
 	test('Set new payment type', () => {
 		expect(paymentReducer(undefined, {
@@ -21,7 +23,7 @@ describe('Tests reducer for sales.payments', () => {
 				amount: '5',
 			},
 		})).toEqual({
-			paymentIsSplit: false,
+			...defaultState,
 			paymentTypes: {
 				7: {
 					amount: '5',
@@ -32,7 +34,7 @@ describe('Tests reducer for sales.payments', () => {
 
 	test('Reset payment types', () => {
 		expect(paymentReducer({
-			paymentIsSplit: false,
+			...defaultState,
 			paymentTypes: {
 				7: {
 					amount: '5',
@@ -41,14 +43,13 @@ describe('Tests reducer for sales.payments', () => {
 		}, {
 			type: RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT,
 		})).toEqual({
-			paymentIsSplit: false,
-			paymentTypes: {},
+			...defaultState,
 		});
 	});
 
 	test('Set existing payment type', () => {
 		expect(paymentReducer({
-			paymentIsSplit: false,
+			...defaultState,
 			paymentTypes: {
 				7: {
 					amount: '5',
@@ -59,7 +60,7 @@ describe('Tests reducer for sales.payments', () => {
 			field: '7',
 			value: { amount: '4' },
 		})).toEqual({
-			paymentIsSplit: false,
+			...defaultState,
 			paymentTypes: {
 				7: {
 					amount: '4',
@@ -72,8 +73,8 @@ describe('Tests reducer for sales.payments', () => {
 		expect(paymentReducer(undefined, {
 			type: TOGGLE_SPLIT_PAYMENT,
 		})).toEqual({
+			...defaultState,
 			paymentIsSplit: true,
-			paymentTypes: {},
 		});
 	});
 
@@ -84,8 +85,8 @@ describe('Tests reducer for sales.payments', () => {
 		}, {
 			type: TOGGLE_SPLIT_PAYMENT,
 		})).toEqual({
+			...defaultState,
 			paymentIsSplit: false,
-			paymentTypes: {},
 		});
 	});
 });

@@ -4,7 +4,7 @@ import {
 	SET_AMOUNT_OF_PAYMENT_TYPE_ON_RECEIPT,
 	RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT,
 	TOGGLE_SPLIT_PAYMENT,
-	resetPaymentTypes,
+	resetAmountOfPaymentTypes,
 	setAmountOfPaymentType,
 	toggleSplitPayment,
 } from './actions';
@@ -19,7 +19,7 @@ describe('Action tests for sales.payments', () => {
 	});
 
 	test('resetPaymentTypes', () => {
-		expect(resetPaymentTypes()).toEqual({
+		expect(resetAmountOfPaymentTypes()).toEqual({
 			type: RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT,
 		});
 	});
