@@ -12,7 +12,7 @@ export const setField = (field, value) => ({ type: SET_FIELD,
 	value });
 export const setValidations = () => ({ type: SET_VALIDATIONS });
 
-const actions = {
+export default {
 	...crudActions(path),
 	...crudFunctions(path),
 	START_NEW,
@@ -22,5 +22,3 @@ const actions = {
 	setField,
 	setValidations,
 };
-
-export default actions;

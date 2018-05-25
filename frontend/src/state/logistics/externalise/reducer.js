@@ -7,18 +7,4 @@ import {
 import { crudReducers } from '../../../tools/CRUDHelper';
 import actions from './actions';
 
-const defaultExternalisation = {
-	id: null,
-	memo: '',
-	externaliseline_set: [],
-};
-
-export default combineReducers({
-	...crudReducers('logistics/externalize'),
-	currentItem: resetFieldReducer([
-		actions.START_NEW,
-	], defaultExternalisation),
-	validations: setFieldReducer([
-		actions.SET_VALIDATIONS,
-	], {}, 'validations'),
-});
+export default crudReducers('logistics/externalize', 'currentItem', 'items');

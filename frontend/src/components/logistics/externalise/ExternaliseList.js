@@ -3,7 +3,7 @@ import MoneyAmount from '../../money/MoneyAmount';
 import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
-import { fetchAllStart } from '../../../state/logistics/externalise/actions';
+import actions from '../../../state/logistics/externalise/actions';
 import {
 	getExternailzeItems,
 	getExternalisationLoading,
@@ -79,6 +79,6 @@ export default connect(
 		isPopulated: getExternalisationPopulated(state),
 	}),
 	{
-		fetchAllStart,
+		fetchAllStart: actions.fetchAllStart,
 	},
 )(ExternalizeList);
