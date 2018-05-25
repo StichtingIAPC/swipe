@@ -1,7 +1,7 @@
 /* eslint-disable no-undefined,no-undef */
 import {
 	booleanControlReducer, collectReducers, objectControlReducer, pathControlReducer, resetFieldReducer,
-	setFieldReducer
+	setFieldReducer, mergeObjects
 } from './reducerComponents';
 
 describe('reducerComponent should run correctly with a basic implementation of such a reducer for component: ', () => {
@@ -151,5 +151,52 @@ describe('reducerComponent should run correctly with a basic implementation of s
 		expect(resetFieldReducerInstance(undefined, {})).toBe(false);
 		expect(resetFieldReducerInstance(true, { type: actionOne })).toBe(false);
 		expect(resetFieldReducerInstance(true, {})).toBe(true);
+	});
+
+	test('mergeObjects', () => {
+		const a = { a: 1 };
+		const b = { a: 2 };
+		const c = { a: [ 1, 2, 3 ]};
+		const d = {
+			a: {
+				a: 1,
+				b: 2,
+			},
+			b: [{ a: 2 }],
+		};
+		const e = {
+			a: {
+				c: 3,
+				d: 4,
+			},
+		};
+		const f = {
+			a: { c: 1000000 },
+			b: [{ a: 1 }],
+		};
+
+		expect(mergeObjects(a, b)).toEqual({ a: 3 });
+		expect(mergeObjects(a, c)).toEqual({ a: '11,2,3' });
+		expect(mergeObjects(c, a, (x, y) => x.concat(y))).toEqual({ a: [ 1, 2, 3, 1 ]});
+		expect(mergeObjects(d, e)).toEqual({
+			a: {
+				a: 1,
+				b: 2,
+				c: 3,
+				d: 4 },
+			b: [{ a: 2 }],
+		});
+		expect(mergeObjects(e, f)).toEqual({
+			a: {
+				c: 1000003,
+				d: 4,
+			},
+			b: [{ a: 1 }]});
+		expect(mergeObjects(e, f, (x, y) => [ x, y ])).toEqual({
+			a: {
+				c: [ 3, 1000000 ],
+				d: 4,
+			},
+			b: [{ a: 1 }]});
 	});
 });
