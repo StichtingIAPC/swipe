@@ -8,7 +8,7 @@
     "dev": "yarn --pure-lockfile && webpack-dev-server --inline --hot --history-api-fallback",
     "lint": "yarn --pure-lockfile && eslint src",
     "lint-fix": "eslint src --fix",
-    "storybook": "start-storybook -p 9001",
+    "storybook": "NODE_PATH=src start-storybook -p 9001",
     "test": "jest unit --watch",
     "test-once": "jest unit"
   },
@@ -33,6 +33,7 @@
     "history": "^4.7.2",
     "moment": "^2.20.1",
     "numeral": "^2.0.6",
+    "polished": "^1.9.2",
     "prop-types": "^15.5.10",
     "re-reselect": "1.0.1",
     "react": "16.2",
@@ -81,5 +82,10 @@
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.0",
     "yarn": "^1.1.0"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all",
+    "useTabs": true
   }
 }
