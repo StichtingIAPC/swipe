@@ -1,6 +1,13 @@
 import React from 'react';
-import { ThemeProvider } from 'styled-components';
-import { darken } from 'polished';
+import { ThemeProvider, injectGlobal } from 'styled-components';
+import { lighten, darken } from 'polished';
+
+// eslint-disable-next-line
+injectGlobal`
+	* {
+		box-sizing: border-box;
+	}
+`;
 
 export const theme = {
 	font: {
@@ -11,10 +18,15 @@ export const theme = {
 	color: {
 		black: '#2b2b2b',
 		white: '#ffffff',
-		primary: Object.assign('#4a90e2', {
+		primary: {
+			light: lighten(0.3, '#4a90e2'),
+			regular: '#4a90e2',
 			medium: darken(0.05, '#4a90e2'),
 			dark: darken(0.1, '#4a90e2'),
-		}),
+		},
+		secondary: {
+			regular: '#deedff',
+		},
 		positive: {
 			regular: '#2ecc71',
 			medium: darken(0.05, '#2ecc71'),
@@ -31,6 +43,8 @@ export const theme = {
 			dark: darken(0.1, '#f1c40f'),
 		},
 	},
+
+	radius: [0, 3],
 
 	spacing: 5,
 };
