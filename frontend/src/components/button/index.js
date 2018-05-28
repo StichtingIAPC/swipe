@@ -17,10 +17,11 @@ const Base = styled.button`
 	min-width: ${spacing(8)};
 	font-size: 1em;
 	font-family: ${props => props.theme.font.heading};
-	background: ${props => props.theme.color.primary};
+	background: ${props => props.theme.color.primary.regular};
 	color: ${props => props.theme.color.white};
 	padding: ${'0 2.7em'};
 	transition: 0.3s;
+	outline: 0;
 
 	&:focus,
 	&:hover {
@@ -29,7 +30,7 @@ const Base = styled.button`
 	}
 	&:active {
 		background: ${props => props.theme.color.primary.dark};
-    }
+	}
 `;
 
 const large = css`
