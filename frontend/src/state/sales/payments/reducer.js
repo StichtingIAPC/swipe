@@ -1,19 +1,31 @@
 /* eslint-disable no-undefined */
-import { ADD_PAYMENT_TYPE_TO_RECEIPT, REMOVE_PAYMENT_TYPE_FROM_RECEIPT, SET_PAYMENT_TYPES } from './actions';
-const initialState = {};
+import {
+	RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT,
+	SET_AMOUNT_OF_PAYMENT_TYPE_ON_RECEIPT,
+	SET_VALIDATIONS,
+	TOGGLE_SPLIT_PAYMENT
+} from './actions';
+import {
+	booleanControlReducer, collectReducers, objectControlReducer,
+	resetFieldReducer, setFieldReducer
+} from '../../../tools/reducerComponents';
+import { combineReducers } from 'redux';
 
-export default function payments(state = initialState, action) {
-	if (action.type === ADD_PAYMENT_TYPE_TO_RECEIPT) {
-		return { ...state, [action.paymentType]: action.amount };
-	}
-	if (action.type === REMOVE_PAYMENT_TYPE_FROM_RECEIPT) {
-		return { ...state, [action.paymentType]: undefined };
-	}
-	if (action.type === SET_PAYMENT_TYPES) {
-		return {
-			...state,
-			...action.paymentTypes,
-		};
-	}
-	return state;
-}
+export default combineReducers({
+	paymentTypes: collectReducers(
+		objectControlReducer(
+			[ SET_AMOUNT_OF_PAYMENT_TYPE_ON_RECEIPT ],
+			{}
+		),
+		resetFieldReducer(
+			[ RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT ],
+			{}
+		)),
+	paymentIsSplit: booleanControlReducer({
+		[TOGGLE_SPLIT_PAYMENT]: 'toggle',
+	},
+	false),
+	validations: setFieldReducer([
+		SET_VALIDATIONS,
+	], {}, 'validations'),
+});

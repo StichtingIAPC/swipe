@@ -19,6 +19,7 @@ export class MoneyField extends React.Component {
 					<InputGroup.Addon>{this.props.currencyObj.symbol}</InputGroup.Addon>
 					<FormControl
 						type="text"
+						value={this.props.value}
 						onChange={event => this.props.onChange(event.target.value.replace(',', '.'))}
 						name={this.props.name} />
 				</InputGroup>
