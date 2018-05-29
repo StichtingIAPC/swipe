@@ -6,6 +6,7 @@ export const setFieldReducer = (types, defaultValue, fieldName = 'value') =>
 			for (const field of fieldName.split('.')) {
 				tempAction = tempAction[field];
 			}
+			console.log(tempAction);
 			return tempAction;
 		}
 		return state;
