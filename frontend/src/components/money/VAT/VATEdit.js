@@ -1,9 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import DatePicker from 'react-datepicker';
 
 import { createvat, updatevat, fetchvat, setvatField } from '../../../state/money/vats/actions.js';
-import Form from '../../forms/Form';
+import Card from '../../base/Card';
 import { BoolField, StringField } from '../../forms/fields';
 import FontAwesome from '../../tools/icons/FontAwesome';
 import { resetvat } from "../../../state/money/vats/actions";
@@ -74,7 +73,7 @@ class VATEdit extends React.Component {
 		const { vat } = this.props;
 
 		return (
-			<Form
+			<Card
 				returnLink={vat.id ? `/money/vat/${vat.id}/` : '/money/'}
 				closeLink="/money/"
 				title={vat.id ? vat.name : 'New VAT'}
@@ -121,7 +120,7 @@ class VATEdit extends React.Component {
 						</table>
 					</div>
 				</div>
-			</Form>
+			</Card>
 		);
 	}
 }

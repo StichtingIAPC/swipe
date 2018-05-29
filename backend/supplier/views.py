@@ -6,9 +6,10 @@ from rest_framework import mixins, generics
 
 from supplier.models import Supplier
 from supplier.serializers import SupplierSerializer
+from www.models import SwipeLoginRequired
 
 
-class SupplierListView(mixins.ListModelMixin,
+class SupplierListView(SwipeLoginRequired, mixins.ListModelMixin,
                        mixins.CreateModelMixin,
                        generics.GenericAPIView):
     queryset = Supplier.objects.all()
@@ -21,7 +22,7 @@ class SupplierListView(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class SupplierView(mixins.UpdateModelMixin,
+class SupplierView(SwipeLoginRequired, mixins.UpdateModelMixin,
                    mixins.RetrieveModelMixin,
                    generics.GenericAPIView):
     queryset = Supplier.objects.all()

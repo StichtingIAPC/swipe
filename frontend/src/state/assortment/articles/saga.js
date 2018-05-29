@@ -2,15 +2,12 @@ import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 
 import * as actions from './actions.js';
-import * as api from '../../../api';
+import * as api from './api';
 import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
 function* fetchAllArticles({ redirectTo }) {
 	try {
-		const article = yield (yield call(
-			api.get,
-			'/article/',
-		)).json();
+		const article = yield (yield call(api.getAll)).json();
 
 		yield put(actions.fetchAllArticlesDone(article));
 		if (redirectTo) {
@@ -25,10 +22,7 @@ function* fetchAllArticles({ redirectTo }) {
 
 function* fetchArticle({ id }) {
 	try {
-		const newArticle = yield (yield call(
-			api.get,
-			`/article/${id}/`,
-		)).json();
+		const newArticle = yield (yield call(api.get, id)).json();
 
 		yield put(actions.fetchArticleDone(newArticle));
 	} catch (e) {
@@ -42,11 +36,7 @@ function* createArticle({ article }) {
 	const document = { ...article };
 
 	try {
-		const newArticle = yield (yield call(
-			api.post,
-			'/article/',
-			document,
-		)).json();
+		const newArticle = yield (yield call(api.post, document)).json();
 
 		yield put(actions.createArticleDone(newArticle));
 		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
@@ -61,11 +51,7 @@ function* updateArticle({ article }) {
 	const document = { ...article };
 
 	try {
-		const newArticle = yield (yield call(
-			api.put,
-			`/article/${article.id}/`,
-			document,
-		)).json();
+		const newArticle = yield (yield call(api.put, article.id, document)).json();
 
 		yield put(actions.updateArticleDone(newArticle));
 		yield put(actions.fetchAllArticles(`/articlemanager/${newArticle.id}/`));
@@ -80,10 +66,7 @@ function* deleteArticle({ article }) {
 	const document = { ...article };
 
 	try {
-		const newArticle = yield (yield call(
-			api.del,
-			`/article/${article.id}/`,
-		)).json();
+		const newArticle = yield (yield call(api.del, article.id, document)).json();
 
 		yield put(actions.deleteArticleDone(newArticle));
 		yield put(actions.fetchAllArticles(`/articlemanager/`));

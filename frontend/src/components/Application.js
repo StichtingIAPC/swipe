@@ -19,36 +19,41 @@ import ArticleManager from '../components/article/ArticleManager';
 import RegisterBase from '../components/register/RegisterBase';
 import LabelsBase from '../components/assortment/LabelsBase';
 import Profile from './authentication/Profile';
-import SalesExp from "./sales/SalesBase";
+import SalesExp from './sales/SalesBase';
+import Externalise from './logistics/Externalise';
+import WaitForLogin from './authentication/WaitForLogin';
 
 class Application extends React.Component {
 	render() {
 		const { match } = this.props;
 
 		return (
-			<div
-				className={`wrapper fixed${this.props.sidebarOpen ? ' sidebar-collapse sidebar-mini' : ' sidebar-open'}`}>
-				<Topbar name={this.props.name} sidebarToggle={this.props.toggleSidebar} />
-				<Sidebar />
-				<div className="content-wrapper">
-					<div className="content">
-						<Switch>
-							<Route path={`${match.path}dashboard`} component={Dashboard} />
-							<Route path={`${match.path}helloworld`} component={HelloWorld} />
-							<Route path={`${match.path}supplier`} component={SupplierBase} />
-							<Route path={`${match.path}money`} component={MoneyBase} />
-							<Route path={`${match.path}articlemanager`} component={ArticleManager} />
-							<Route path={`${match.path}register`} component={RegisterBase} />
-							<Route path={`${match.path}assortment`} component={LabelsBase} />
-							<Route path={`${match.path}profile`} component={Profile} />
-							<Route path={`${match.path}sales`} component={SalesExp} />
+			<WaitForLogin>
+				<div
+					className={`wrapper fixed${this.props.sidebarOpen ? ' sidebar-collapse sidebar-mini' : ' sidebar-open'}`}>
+					<Topbar name={this.props.name} sidebarToggle={this.props.toggleSidebar} />
+					<Sidebar />
+					<div className="content-wrapper">
+						<div className="content">
+							<Switch>
+								<Route path={`${match.path}dashboard`} component={Dashboard} />
+								<Route path={`${match.path}helloworld`} component={HelloWorld} />
+								<Route path={`${match.path}supplier`} component={SupplierBase} />
+								<Route path={`${match.path}money`} component={MoneyBase} />
+								<Route path={`${match.path}articlemanager`} component={ArticleManager} />
+								<Route path={`${match.path}register`} component={RegisterBase} />
+								<Route path={`${match.path}assortment`} component={LabelsBase} />
+								<Route path={`${match.path}profile`} component={Profile} />
+								<Route path={`${match.path}sales`} component={SalesExp} />
+								<Route path={`${match.path}logistics/externalise`} component={Externalise} />
 
-							{/* <Route path={`${match.path}/pos/register/state`} /> */}
-							<Route component={Error404} />
-						</Switch>
+								{/* <Route path={`${match.path}/pos/register/state`} /> */}
+								<Route component={Error404} />
+							</Switch>
+						</div>
 					</div>
 				</div>
-			</div>
+			</WaitForLogin>
 		);
 	}
 }

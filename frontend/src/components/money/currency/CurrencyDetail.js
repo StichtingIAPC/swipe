@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import Box from '../../base/Box';
-import { fetchCurrency } from "../../../state/money/currencies/actions";
+import { Box } from 'reactjs-admin-lte';
+import { fetchCurrency } from '../../../state/money/currencies/actions';
 
 /**
  * Created by Matthias on 26/11/2016.
@@ -34,7 +34,6 @@ class CurrencyDetail extends React.Component {
 					buttons={
 						<React.Fragment>
 							<Link to={`/money/currency/${currency.iso}/edit/`} className="btn btn-default btn-sm" title="Edit"><FontAwesome icon="edit" /></Link>
-							<a onClick={this.trash} className="btn btn-danger btn-sm" title="Delete"><FontAwesome icon="trash" /></a>
 						</React.Fragment>
 					} />
 				<Box.Body>

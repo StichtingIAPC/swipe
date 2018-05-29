@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createSupplier, updateSupplier } from '../../state/suppliers/actions.js';
-import Form from '../forms/Form';
+import Card from '../base/Card';
 import { StringField } from '../forms/fields';
 import { fetchSupplier, newSupplier, setSupplierField } from '../../state/suppliers/actions';
 
@@ -50,7 +50,7 @@ class SupplierEdit extends React.Component {
 		const NEW = supplier.id === null;
 
 		return (
-			<Form
+			<Card
 				title={`${NEW ? 'Add' : 'Edit'} supplier`}
 				onSubmit={this.submit}
 				onReset={this.reset}
@@ -60,7 +60,7 @@ class SupplierEdit extends React.Component {
 				<StringField onChange={this.setName} value={supplier.name} name="Name" />
 				<StringField onChange={this.setNotes} value={supplier.notes} name="Notes" />
 				<StringField onChange={this.setSearch_url} value={supplier.search_url} name="Search Url" />
-			</Form>
+			</Card>
 		);
 	}
 }

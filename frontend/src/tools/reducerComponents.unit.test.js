@@ -1,7 +1,7 @@
 /* eslint-disable no-undefined,no-undef */
 import {
 	booleanControlReducer, collectReducers, idToObjectMappingReducer, multiIdToObjectMappingReducer,
-	objectControlReducer, reducerMappedById, resetFieldReducer,
+	objectControlReducer, reducerMappedById, resetFieldReducer, pathControlReducer,
 	setFieldReducer,
 } from './reducerComponents';
 
@@ -54,6 +54,54 @@ describe('reducerComponent should run correctly with a basic implementation of s
 		expect(setFieldReducerInstance(undefined, action)).toEqual({});
 	});
 
+	test('pathControlReducer ', () => {
+		const actionOne = 'SETTER1';
+		const types = [ actionOne ];
+
+		const setFieldReducerInstance = pathControlReducer(types, {}, 'field1');
+
+		expect(setFieldReducerInstance(undefined, {})).toEqual({});
+
+		let action = { type: actionOne,
+			field: 'test',
+			value: 21 };
+
+		expect(setFieldReducerInstance(undefined, action)).toEqual({ test: 21 });
+
+		action = { type: actionOne,
+			field: 'potato',
+			value: 'chips' };
+		expect(setFieldReducerInstance({ test: 21 }, action)).toEqual({ test: 21,
+			potato: 'chips' });
+
+		action = { type: actionOne,
+			field: 'test',
+			value: 'chips' };
+		expect(setFieldReducerInstance({ test: 21 }, action)).toEqual({ test: 'chips' });
+
+		action = { type: actionOne,
+			field: 'test.a.b',
+			value: 'chips',
+		};
+		expect(setFieldReducerInstance({ test: { otherKey: 'abc' }}, action)).toEqual({ test: {
+			otherKey: 'abc',
+			a: { b: 'chips' },
+		}});
+
+		action = { type: actionOne,
+			field: 'test.a.b',
+			value: 'chips',
+		};
+		const obj = { test: {
+			otherKey: 'abc',
+			a: { b: 'chips' },
+		}};
+
+		expect(setFieldReducerInstance(obj, action)).toBe(obj);
+
+		action = { type: 'WRONG' };
+		expect(setFieldReducerInstance(undefined, action)).toEqual({});
+	});
 
 	test('booleanControlReducer', () => {
 		const truthyAction = { type: 'TRUTH_ACTION' };

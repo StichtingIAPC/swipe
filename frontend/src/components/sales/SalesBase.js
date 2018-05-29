@@ -8,25 +8,56 @@ import { articles } from '../../state/assortment/articles/actions';
 import { stock } from '../../state/stock/actions';
 import Selector from './productselector/Selector';
 import Receipt from './receipt/Receipt';
+import Customer from './receipt/Customer';
+import PaymentTypes from './receipt/PaymentTypes';
+import { Col, Row } from 'react-bootstrap';
+import { getPaymentTypes } from '../../state/sales/payments/selectors';
+import { setCustomer } from '../../state/sales/actions';
+import { getCustomer } from '../../state/sales/selectors';
+import { setPaymentTypes } from '../../state/sales/payments/actions';
+import { addToSalesList, addToSalesListAction, receiptAddProductAction } from '../../state/sales/sales/actions';
 
-class RegisterBase extends React.Component {
+class SalesBase extends React.Component {
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
 	}
 
+	addArticle = (article, count) => {
+		this.props.addArticle(article, count);
+	};
+
+	removeArticle = (article, count) => this.addArticle(article, -count);
+
+	setCustomer = customer => {
+		this.props.setCustomer(customer);
+	};
+
+	setPaymentTypes = paymentTypeDivision => {
+		this.props.setPaymentTypes(paymentTypeDivision);
+	};
+
 	render() {
 		return (
-			<div className="row">
-				<div className="col-xs-6 col-md-6">
-					<Selector />
-				</div>
-				<div className="col-xs-6 col-md-6">
-					<Receipt />
-				</div>
-				<div className="col-xs-6 col-md-8">
-					{this.props.requirementsLoaded ? this.props.children : null}
-				</div>
-			</div>
+			<React.Fragment>
+				<Row>
+					<Col xs={12} md={12}>
+						<Customer id="customer" onChange={this.setCustomer} customer={this.props.customer} />
+					</Col>
+				</Row>
+				<Row>
+					<Col xs={12} md={6}>
+						<Selector onArticleAdd={this.addArticle} stock={this.props.stock} receipt={this.props.receipt} />
+					</Col>
+					<Col xs={12} md={6}>
+						<Receipt onArticleRemove={this.removeArticle} receipt={this.props.receipt} />
+					</Col>
+				</Row>
+				<Row>
+					<Col xs={12} md={12}>
+						<PaymentTypes onPaymentTypesChanged={this.setPaymentTypes} paymentTypes={this.props.paymentTypes} />
+					</Col>
+				</Row>
+			</React.Fragment>
 		);
 	}
 }
@@ -43,12 +74,21 @@ export default connect(
 			},
 			article: {
 				articles,
-			}, sales: {
+			},
+			sales: {
 				stock,
 			},
-		}, state
-		),
+		}, state),
 		stock: state.stock.stock,
-		state: state,
-	})
-)(RegisterBase);
+		paymentTypes: getPaymentTypes(state),
+		customer: getCustomer(state),
+		receipt: state.sales.sales,
+		state,
+	}),
+	{
+		setCustomer,
+		setPaymentTypes,
+		addSale: addToSalesListAction,
+		addProduct: receiptAddProductAction,
+	}
+)(SalesBase);

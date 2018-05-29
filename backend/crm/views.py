@@ -4,12 +4,14 @@ from rest_framework import generics
 from rest_framework import mixins
 
 from crm.models import Customer, Person, Organisation, ContactOrganisation
-from crm.serializers import CustomerSerializer, PersonSerializer, OrganisationSerializer, DetailedContactOrganisationSerializer, \
+from crm.serializers import CustomerSerializer, PersonSerializer, OrganisationSerializer, \
+    DetailedContactOrganisationSerializer, \
     ContactOrganisationSerializer
+from www.models import SwipeLoginRequired
 
 
-class CustomerView(mixins.RetrieveModelMixin,
-                      generics.GenericAPIView):
+class CustomerView(SwipeLoginRequired, mixins.RetrieveModelMixin,
+                   generics.GenericAPIView):
 
     def get_queryset(self):
         return Customer.objects.all()
@@ -21,10 +23,21 @@ class CustomerView(mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         Customer.objects.filter(id=kwargs['pk']).delete()
-        return HttpResponse(content={'deleted':True}, status=200)
+        return HttpResponse(content={'deleted': True}, status=200)
+
+class CustomerListView(SwipeLoginRequired, mixins.ListModelMixin,
+                   generics.GenericAPIView):
+
+    def get_queryset(self):
+        return Customer.objects.all()
+
+    serializer_class = CustomerSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
-class PersonView(mixins.RetrieveModelMixin,
+class PersonView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                  mixins.UpdateModelMixin,
                  mixins.CreateModelMixin,
                  generics.GenericAPIView):
@@ -42,23 +55,21 @@ class PersonView(mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         Person.objects.filter(id=kwargs['pk']).delete()
-        return HttpResponse(content={'deleted':True}, status=200)
+        return HttpResponse(content={'deleted': True}, status=200)
 
 
-
-class PersonCreateView(mixins.CreateModelMixin,
+class PersonCreateView(SwipeLoginRequired, mixins.CreateModelMixin,
                        generics.GenericAPIView):
-
     serializer_class = PersonSerializer
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
 
-class OrganisationView(mixins.RetrieveModelMixin,
-                 mixins.UpdateModelMixin,
-                 mixins.CreateModelMixin,
-                 generics.GenericAPIView):
+class OrganisationView(SwipeLoginRequired, mixins.RetrieveModelMixin,
+                       mixins.UpdateModelMixin,
+                       mixins.CreateModelMixin,
+                       generics.GenericAPIView):
 
     def get_queryset(self):
         return Organisation.objects.all()
@@ -73,21 +84,21 @@ class OrganisationView(mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         Organisation.objects.filter(id=kwargs['pk']).delete()
-        return HttpResponse(content={'deleted':True}, status=200)
+        return HttpResponse(content={'deleted': True}, status=200)
 
-class OrganisationCreateView(mixins.CreateModelMixin,
-                       generics.GenericAPIView):
 
+class OrganisationCreateView(SwipeLoginRequired, mixins.CreateModelMixin,
+                             generics.GenericAPIView):
     serializer_class = OrganisationSerializer
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
 
-class ContactOrganisationView(mixins.RetrieveModelMixin,
-                 mixins.UpdateModelMixin,
-                 mixins.CreateModelMixin,
-                 generics.GenericAPIView):
+class ContactOrganisationView(SwipeLoginRequired, mixins.RetrieveModelMixin,
+                              mixins.UpdateModelMixin,
+                              mixins.CreateModelMixin,
+                              generics.GenericAPIView):
 
     def get_queryset(self):
         return ContactOrganisation.objects.all()
@@ -102,14 +113,12 @@ class ContactOrganisationView(mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         ContactOrganisation.objects.filter(id=kwargs['pk']).delete()
-        return HttpResponse(content={'deleted':True}, status=200)
+        return HttpResponse(content={'deleted': True}, status=200)
 
 
-class ContactOrganisationCreateView(mixins.CreateModelMixin,
-                       generics.GenericAPIView):
-
+class ContactOrganisationCreateView(SwipeLoginRequired, mixins.CreateModelMixin,
+                                    generics.GenericAPIView):
     serializer_class = ContactOrganisationSerializer
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
-
