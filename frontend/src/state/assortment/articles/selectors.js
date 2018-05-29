@@ -27,7 +27,6 @@ export function getCount(state, stock) {
 	} else {
 		return count;
 	}
-
 }
 
 export function getSalesTotal(state) {

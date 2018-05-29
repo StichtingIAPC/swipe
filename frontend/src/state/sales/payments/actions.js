@@ -1,9 +1,25 @@
 /* eslint-disable object-property-newline */
-export const ADD_PAYMENT_TYPE_TO_RECEIPT = 'sales/payments/paymentType/add';
-export const REMOVE_PAYMENT_TYPE_FROM_RECEIPT = 'sales/payments/paymentType/add';
-export const SET_PAYMENT_TYPES = 'sales/payments/paymentType/set';
 
-export const addPaymentType = (paymentType, amount) => ({ type: ADD_PAYMENT_TYPE_TO_RECEIPT, paymentType, amount });
-export const removePaymentType = paymentType => ({ type: REMOVE_PAYMENT_TYPE_FROM_RECEIPT, paymentType });
-export const setPaymentTypes = paymentTypes => ({ type: SET_PAYMENT_TYPES, paymentTypes });
+export const SET_AMOUNT_OF_PAYMENT_TYPE_ON_RECEIPT = 'sales/payments/paymentType/set';
+export const TOGGLE_SPLIT_PAYMENT = 'sales/payments/paymentType/toggleSplit';
+export const RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT = 'sales/payments/paymentType/reset';
+export const SET_VALIDATIONS = 'sales/payments/paymentType/validations';
 
+export const setAmountOfPaymentType = (paymentTypeID, amount) => ({
+	type: SET_AMOUNT_OF_PAYMENT_TYPE_ON_RECEIPT,
+	field: paymentTypeID,
+	value: amount,
+});
+
+export const resetAmountOfPaymentTypes = () => ({
+	type: RESET_AMOUNTS_OF_PAYMENT_TYPES_ON_RECEIPT,
+});
+
+export const toggleSplitPayment = () => ({
+	type: TOGGLE_SPLIT_PAYMENT,
+});
+
+export const setValidations = validations => ({
+	type: SET_VALIDATIONS,
+	validations,
+});
