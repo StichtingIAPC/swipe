@@ -17,7 +17,7 @@ function getIconForPaymentType(paymentType) {
 		case 'Invoice':
 			return 'file-text';
 		default:
-			return null;
+			return 'money';
 	}
 }
 
