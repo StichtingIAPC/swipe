@@ -2,7 +2,7 @@ import { put, takeEvery, select } from 'redux-saga/effects';
 import * as api from './api';
 import actions from './actions';
 import { curdSagas } from '../../../tools/CRUDHelper';
-import { getExternailzeCurrentItem, getExternailzeRootState } from './selectors';
+import { getExternailseCurrentItem, getExternailzeRootState } from './selectors';
 import { isMoney, validate, validator } from '../../../tools/validations/validators';
 
 
@@ -35,7 +35,7 @@ const validations = [
 ];
 
 export function* externalizeValidator() {
-	const current = yield select(getExternailzeCurrentItem);
+	const current = yield select(getExternailseCurrentItem);
 	const res = validate(current, validations);
 
 	yield put(actions.setValidations(res));

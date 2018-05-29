@@ -5,7 +5,7 @@ import FontAwesome from '../../tools/icons/FontAwesome';
 import { connect } from 'react-redux';
 import actions from '../../../state/logistics/externalise/actions';
 import {
-	getExternailzeItems,
+	getExternailseItems,
 	getExternalisationLoading,
 	getExternalisationPopulated
 } from '../../../state/logistics/externalise/selectors';
@@ -74,7 +74,7 @@ class ExternalizeList extends Component {
 
 export default connect(
 	state => ({
-		externalises: getExternailzeItems(state),
+		externalises: getExternailseItems(state),
 		isLoading: getExternalisationLoading(state),
 		isPopulated: getExternalisationPopulated(state),
 	}),

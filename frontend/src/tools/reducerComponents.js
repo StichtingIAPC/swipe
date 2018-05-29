@@ -101,6 +101,7 @@ const subMerge = (resultObject, objectA, objectB, mergeFunction) => {
 		}
 	}
 };
+
 /**
  * Recursively merges two objects and executes given function if it can't merge intuitively.
  *

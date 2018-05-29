@@ -1,5 +1,6 @@
 import { booleanControlReducer, setFieldReducer, collectReducers, mergeObjects } from './reducerComponents';
 import { call, put, takeEvery, select } from 'redux-saga/effects';
+import { combineReducers } from 'redux';
 
 /**
  * Removes beginning and trailing slashes, so I know what I'm dealing with.
@@ -184,7 +185,7 @@ export function crudReducers(path, manyName, singleName, customReducers) {
 
 	const actions = crudActions(path);
 
-	const generatedReducers = {
+	let generatedReducers = {
 		[manyName]: {
 			data: setFieldReducer([
 				actions.FETCH_ALL_SUCCESS,
@@ -217,12 +218,19 @@ export function crudReducers(path, manyName, singleName, customReducers) {
 		},
 	};
 
+	const combinedReducers = {};
+
 	if (customReducers) {
 		// noinspection JSValidateTypes
-		return mergeObjects(generatedReducers, customReducers, collectReducers);
+		generatedReducers = mergeObjects(generatedReducers, customReducers, collectReducers);
 	}
-	// noinspection JSValidateTypes
-	return generatedReducers;
+
+	for (const key in generatedReducers) {
+		if (generatedReducers.hasOwnProperty(key)) {
+			combinedReducers[key] = combineReducers(generatedReducers[key]);
+		}
+	}
+	return combineReducers(combinedReducers);
 }
 
 /**
