@@ -1,7 +1,3 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponseRedirect
-from django.views.generic import DetailView, CreateView, UpdateView, DeleteView
 from rest_framework import mixins, generics
 
 from supplier.models import Supplier
