@@ -1,10 +1,9 @@
-from collections import OrderedDict
-
 from rest_framework import mixins, generics
 
-from money.models import CurrencyData, Denomination, VAT, AccountingGroup, Currency, Money, Price, Cost
+from money.models import CurrencyData, Denomination, VAT, AccountingGroup
 from money.serializers import CurrencySerializer, DenominationSerializer, VATSerializer, AccountingGroupSerializer
-from tools.json_parsers import ParseError, DictParsers
+from www.models import swipe_auth
+from www.permissions import CURRENCY_LIST
 from www.models import SwipeLoginRequired
 
 
@@ -15,6 +14,7 @@ class CurrencyListView(SwipeLoginRequired, mixins.ListModelMixin,
         .prefetch_related('denomination_set')
     serializer_class = CurrencySerializer
 
+    @swipe_auth(CURRENCY_LIST)
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
