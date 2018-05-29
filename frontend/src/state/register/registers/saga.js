@@ -1,7 +1,13 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import * as api from './api';
-import { doneFetchingRegisters, registerFetchError, registerInputError, startFetchingRegisters } from './actions';
+import {
+	doneFetchingRegisters, REGISTER_CREATE,
+	REGISTER_FETCH_START, REGISTER_UPDATE,
+	registerFetchError,
+	registerInputError,
+	startFetchingRegisters
+} from './actions';
 
 function* fetchRegisters({ redirectTo } = {}) {
 	let msg = null;
@@ -66,8 +72,7 @@ function* updateRegister({ register } = {}) {
 }
 
 export default function* saga() {
-	yield takeLatest('REGISTER_FETCH_START', fetchRegisters);
-	yield takeEvery('REGISTER_CREATE', createRegister);
-	yield takeEvery('REGISTER_UPDATE', updateRegister);
-	yield takeEvery('REGISTER_DELETE', updateRegister);
+	yield takeLatest(REGISTER_FETCH_START, fetchRegisters);
+	yield takeEvery(REGISTER_CREATE, createRegister);
+	yield takeEvery(REGISTER_UPDATE, updateRegister);
 }

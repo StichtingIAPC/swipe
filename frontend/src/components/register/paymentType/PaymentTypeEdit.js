@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createPaymentType, updatePaymentType } from '../../../state/register/payment-types/actions.js';
+import { createPaymentType, updatePaymentType } from '../../../state/register/payment_types/actions.js';
 import Card from '../../base/Card';
 import { BoolField, StringField } from '../../forms/fields';
 

@@ -21,3 +21,13 @@ export function put(id, data) {
 export function del(id) {
 	return api('DELETE', `${ENDPOINT}${id}/`);
 }
+
+export const ENDPOINT_OPEN = '/register/opened/';
+
+export function getAllOpen() {
+	return api('GET', ENDPOINT_OPEN);
+}
+
+export function getOpen(id) {
+	return api('GET', `${ENDPOINT_OPEN}${id}/`);
+}
