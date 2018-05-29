@@ -1,26 +1,25 @@
 /* eslint-disable no-undefined,no-undef */
 
+import Big from 'big.js';
 
 import {
 	getPaymentsOnReceipt,
-	getPaymentTypes,
+	getPaymentsOnReceiptDeficit,
 	getPaymentsOnReceiptAsListForAPI,
 	getIsPaymentSplit
 } from './selectors';
 
 describe('Testing selector for state.payments', () => {
-	test('getPaymentTypes', () => {
-		const state = { register: { paymentTypes: { paymentTypes: [{
-			id: '7',
-			name: 'Meastro',
-			is_invoicing: false,
-		}]}}};
+	test('getPaymentsOnReceiptDeficit', () => {
+		const state = { sales: {
+			sales: [{
+				price: { amount: '100' },
+				count: 2,
+			}],
+			payments: { paymentTypes: { 7: { amount: '10' }}}}};
+		const test = getPaymentsOnReceiptDeficit(state);
 
-		expect(getPaymentTypes(state)).toEqual([{
-			id: '7',
-			name: 'Meastro',
-			is_invoicing: false,
-		}]);
+		expect(new Big(getPaymentsOnReceiptDeficit(state)).eq(190)).toBe(true);
 	});
 
 	test('getPaymentsOnReceipt', () => {

@@ -7,13 +7,10 @@ export const getPaymentsOnReceiptAsListForAPI = state => Object.keys(getPayments
 		money: getPaymentsOnReceipt(state)[id],
 		payment_type: id,
 	}))
-	.filter(it => !(new Big(it.money.amount).eq(0)));
-export const getPaymentsOnReceiptDeficit = state => {
-	const result = new Big(getSalesTotal(state).amount)
-		.minus(Object.values(getPaymentsOnReceipt(state))
-			.reduce((accumulator, payment) => accumulator.plus(payment.amount), new Big(0)))
-		.toFixed(5);
-	return result;
-};
+	.filter(it => !new Big(it.money.amount).eq(0));
+export const getPaymentsOnReceiptDeficit = state => new Big(getSalesTotal(state).amount)
+	.minus(Object.values(getPaymentsOnReceipt(state))
+		.reduce((accumulator, payment) => accumulator.plus(payment.amount), new Big(0)))
+	.toFixed(5);
 export const getIsPaymentSplit = state => state.sales.payments.paymentIsSplit;
 export const getPaymentTypesTotalValidations = state => state.sales.payments.validations;
