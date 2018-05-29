@@ -3,7 +3,7 @@ pip>=9.0
 setuptools>=8.0
 
 ## Django 1.10+ and utils
-Django~=1.11.0
+Django~=2.0.5
 docutils>=0.12
 
 ## Django-cors-headers to allow cross site references
