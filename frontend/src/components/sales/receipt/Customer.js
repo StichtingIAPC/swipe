@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import { getCustomerList } from '../../../state/crm/selectors';
-import { newAction as newExternalise } from '../../../state/logistics/externalise/actions';
 import { fetchCustomersAction } from '../../../state/crm/actions';
 
 class CustomerSelector extends React.Component {
