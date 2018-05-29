@@ -23,5 +23,5 @@ function* fetchAll() {
 
 
 export default function* saga() {
-	yield* takeEvery(actions.FETCH_CUSTOMERS_ACTION, fetchAll);
+	yield takeEvery(actions.FETCH_CUSTOMERS_ACTION, fetchAll);
 }
