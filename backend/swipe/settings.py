@@ -66,6 +66,8 @@ INSTALLED_APPS = (
     'stock_count',
     'pricing',
     'article_updater',
+    # Extra app runners
+    'www.apps.PermissionApplicationConfig'
 )
 
 MIDDLEWARE_CLASSES = [

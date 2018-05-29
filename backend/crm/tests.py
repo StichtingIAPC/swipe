@@ -1,7 +1,8 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from crm.exceptions import CyclicParenthoodError
-from crm.models import Organisation, Customer, Person, ContactOrganisation
+from crm.models import Organisation, Customer, Person, ContactOrganisation, SwipePermission, SwipePermissionGroup
 
 
 class OrganisationInheritanceTest(TestCase):
@@ -133,3 +134,36 @@ class BareCustomerCreationTest(TestCase):
 
         # Check if there are now 2 customers, the Person, and the ContactOrganisation
         self.assertEqual(len(Customer.objects.all()), 2)
+
+
+class PermissionTests(TestCase):
+
+    def setUp(self):
+        self.p1 = SwipePermission(name="Test1")
+        self.p2 = SwipePermission(name="Test2")
+        self.p3 = SwipePermission(name="Test3")
+        self.p4 = SwipePermission(name="Test4")
+        self.p1.save()
+        self.p2.save()
+        self.p3.save()
+        self.p4.save()
+        self.g1 = SwipePermissionGroup(name="Group1")
+        self.g2 = SwipePermissionGroup(name="Group2")
+        self.g1.save()
+        self.g2.save()
+        self.user1 = User(username="Testname")
+        self.user1.save()
+
+    def testConnection(self):
+        self.p1.groups.add(self.g1)
+        self.p1.groups.add(self.g2)
+        self.p2.groups.add(self.g1)
+        self.p3.groups.add(self.g2)
+        self.g1.users.add(self.user1)
+        self.assertEqual(SwipePermission.objects.filter(groups__name="Group2").count(), 2)
+        self.assertTrue(SwipePermission.objects.filter(groups__users=self.user1).exists())
+        self.assertTrue(SwipePermission.objects.filter(name="Test1", groups__users=self.user1).exists())
+        self.assertFalse(SwipePermission.objects.filter(name="Test3", groups__users=self.user1).exists())
+        self.assertTrue(SwipePermission.user_has_permission(self.user1, "Test1"))
+        self.assertFalse(SwipePermission.user_has_permission(self.user1, "Test3"))
+
