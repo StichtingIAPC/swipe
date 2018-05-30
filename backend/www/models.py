@@ -1,18 +1,7 @@
 from django.core.exceptions import PermissionDenied
 from crm.models import SwipePermission
+from rest_framework.permissions import IsAuthenticated
 import swipe.settings
-
-
-class BasePermission(object):
-
-    def has_permission(self, request, view):
-        return True
-
-
-class IsAuthenticated(BasePermission):
-
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated(request.user)
 
 
 class SwipeLoginRequired:
