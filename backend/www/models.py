@@ -1,13 +1,6 @@
-import inspect
-
-from django.apps import AppConfig
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
-from rest_framework.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied
 from crm.models import SwipePermission
 from rest_framework.permissions import IsAuthenticated
-
-
 import swipe.settings
 
 
