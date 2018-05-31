@@ -10,7 +10,8 @@ from crm.serializers import CustomerSerializer, PersonSerializer, OrganisationSe
 from www.models import SwipeLoginRequired
 
 
-class CustomerView(SwipeLoginRequired, mixins.RetrieveModelMixin,
+class CustomerView(SwipeLoginRequired,
+                   mixins.RetrieveModelMixin,
                    generics.GenericAPIView):
 
     def get_queryset(self):
@@ -25,13 +26,39 @@ class CustomerView(SwipeLoginRequired, mixins.RetrieveModelMixin,
         Customer.objects.filter(id=kwargs['pk']).delete()
         return HttpResponse(content={'deleted': True}, status=200)
 
-class CustomerListView(SwipeLoginRequired, mixins.ListModelMixin,
+class CustomerListView(SwipeLoginRequired,
+                       mixins.ListModelMixin,
                    generics.GenericAPIView):
 
     def get_queryset(self):
         return Customer.objects.all()
 
     serializer_class = CustomerSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class CustomerByNameView(SwipeLoginRequired,
+                         mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                       generics.GenericAPIView):
+
+    lookup_field = 'name'
+
+    serializer_class = CustomerSerializer
+
+    def get_queryset(self):
+        customers = Customer.objects.all()
+        persons = []
+        for customer in customers:
+            if hasattr(customer, 'person'):
+                if self.request.query_params['name'].lower() in customer.person.name.lower():
+                    persons.append(customer)
+            elif hasattr(customer, 'organisation'):
+                if self.request.query_params['name'].lower() in customer.organisation.name.lower():
+                    persons.append(customer)
+        return persons
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
