@@ -10,6 +10,7 @@ class CustomerSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         data = {}
+        data['id'] = instance.id
         # is the customer a person?
         if hasattr(instance, 'person'):
             data['type'] = "P"
