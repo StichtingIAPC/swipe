@@ -29,6 +29,7 @@ import { addToSalesListAction, receiptAddProductAction } from '../../state/sales
 class SalesBase extends React.Component {
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
+		this.props.fetchStock();
 	}
 
 	addArticle = (article, count) => {
@@ -113,5 +114,6 @@ export default connect(
 		toggleSplitPayment,
 		addSale: addToSalesListAction,
 		addProduct: receiptAddProductAction,
+		fetchStock: stock,
 	}
 )(SalesBase);
