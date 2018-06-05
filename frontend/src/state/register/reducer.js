@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 
-import paymentTypes from './payment-types/reducer.js';
+import paymentTypes from './payment_types/reducer.js';
 import registers from './registers/reducer.js';
 import { setFieldReducer } from '../../tools/reducerComponents';
 

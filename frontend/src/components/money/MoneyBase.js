@@ -26,7 +26,6 @@ export class MoneyBase extends React.Component {
 
 	render() {
 		const { match } = this.props;
-		console.log(this.props.availableRequirements);
 
 		return (
 			<div className="row">

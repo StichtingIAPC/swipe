@@ -17,7 +17,7 @@ function getIconForPaymentType(paymentType) {
 		case 'Invoice':
 			return 'file-text';
 		default:
-			return null;
+			return 'money';
 	}
 }
 
@@ -68,8 +68,8 @@ export default function PaymentTypes(props) {
 			{isSplit ?
 				<FormGroup
 					controlId="formPaymentTypesSplit"
-					validationState={totalErrorType}>
-					<HelpBlock>{totalValidationText}</HelpBlock>
+					validationState={totalErrorType} >
+					<HelpBlock >{totalValidationText}</HelpBlock >
 					{paymentTypes.map(paymentType =>
 						<Col md={3} key={paymentType.id} >
 							<ButtonToolbar block={true} >

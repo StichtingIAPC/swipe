@@ -1,9 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { connectMixin, fetchStateRequirementsFor } from '../../core/stateRequirements';
-import { registers } from '../../state/register/registers/actions.js';
+import { startFetchingRegisters } from '../../state/register/registers/actions.js';
 import { currencies } from '../../state/money/currencies/actions.js';
-import { paymentTypes } from '../../state/register/payment-types/actions.js';
+import { startFetchingPaymentTypes } from '../../state/register/payment_types/actions.js';
 import { articles } from '../../state/assortment/articles/actions';
 import { stock } from '../../state/stock/actions';
 import Selector from './productselector/Selector';
@@ -14,7 +14,6 @@ import { Col, Row } from 'react-bootstrap';
 import {
 	getIsPaymentSplit,
 	getPaymentsOnReceipt,
-	getPaymentTypes,
 	getPaymentTypesTotalValidations
 } from '../../state/sales/payments/selectors';
 import { setCustomer } from '../../state/sales/actions';
@@ -25,6 +24,7 @@ import {
 	toggleSplitPayment
 } from '../../state/sales/payments/actions';
 import { addToSalesListAction, receiptAddProductAction } from '../../state/sales/sales/actions';
+import { getActivePaymentTypes } from "../../state/register/payment_types/selectors";
 
 class SalesBase extends React.Component {
 	componentWillMount() {
@@ -84,8 +84,8 @@ export default connect(
 	state => ({
 		...connectMixin({
 			register: {
-				registers,
-				paymentTypes,
+				startFetchingRegisters,
+				startFetchingPaymentTypes,
 			},
 			money: {
 				currencies,
@@ -98,7 +98,7 @@ export default connect(
 			},
 		}, state),
 		stock: state.stock.stock,
-		paymentTypes: getPaymentTypes(state),
+		paymentTypes: getActivePaymentTypes(state),
 		paymentTypeAmounts: getPaymentsOnReceipt(state),
 		isSplit: getIsPaymentSplit(state),
 		salesTotal: getDummySalesTotal(state),

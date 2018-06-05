@@ -1,3 +1,10 @@
+import {
+	PAYMENT_TYPE_FETCH_DONE,
+	PAYMENT_TYPE_FETCH_ERROR,
+	PAYMENT_TYPE_FETCH_START,
+	PAYMENT_TYPE_INPUT_ERROR
+} from './actions';
+
 const initialState = {
 	paymentTypes: [],
 	fetching: false,
@@ -6,14 +13,14 @@ const initialState = {
 };
 
 export default function paymentTypeReducer(state = initialState, action) {
-	if (action.type === 'PAYMENT_TYPE_FETCH_START')		 		{
+	if (action.type === PAYMENT_TYPE_FETCH_START)		 		{
 		return {
 			...state,
 			fetching: true,
 			inputError: null,
 		};
 	}
-	if (action.type === 'PAYMENT_TYPE_FETCH_DONE')		 		{
+	if (action.type === PAYMENT_TYPE_FETCH_DONE)		 		{
 		return {
 			...state,
 			fetching: false,
@@ -21,13 +28,13 @@ export default function paymentTypeReducer(state = initialState, action) {
 			fetchError: null,
 		};
 	}
-	if (action.type === 'PAYMENT_TYPE_INPUT_ERROR')		 		{
+	if (action.type === PAYMENT_TYPE_INPUT_ERROR)		 		{
 		return {
 			...state,
 			inputError: action.error,
 		};
 	}
-	if (action.type === 'PAYMENT_TYPE_FETCH_ERROR')		 		{
+	if (action.type === PAYMENT_TYPE_FETCH_ERROR)		 		{
 		return {
 			...state,
 			fetchError: action.error,

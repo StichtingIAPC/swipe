@@ -1,13 +1,13 @@
-import paymentTypeSaga from './payment-types/saga';
+import paymentTypeSaga from './payment_types/saga';
 import registerSaga from './registers/saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
-import * as api from './api';
+import * as api from './registers/api';
 import { doneFetchingRegisterOpen, errorFetchingRegisterOpen } from './actions';
 
 
 function* fetchRegisterOpen() {
 	try {
-		const data = yield (yield call(api.getAll)).json();
+		const data = yield (yield call(api.getAllOpen)).json();
 
 		yield put(doneFetchingRegisterOpen(data !== null && data.length !== 0));
 	} catch (e) {

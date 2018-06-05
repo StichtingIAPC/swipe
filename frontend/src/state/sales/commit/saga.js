@@ -9,14 +9,12 @@ import { getSales } from '../sales/selectors';
 import { getCurrentUser } from '../../auth/selectors';
 
 function* createSalesTransaction() {
-	console.log((yield select(getCurrentUser)).id);
 	const document = {
 		payments: yield select(getPaymentsOnReceiptAsListForAPI),
 		transactionlines: yield select(getSales),
 		user: (yield select(getCurrentUser)).id,
 	};
 
-	console.log(document);
 	try {
 		const result = yield (yield call(
 			api,
