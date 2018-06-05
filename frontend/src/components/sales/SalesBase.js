@@ -29,6 +29,7 @@ import { getActivePaymentTypes } from "../../state/register/payment_types/select
 class SalesBase extends React.Component {
 	componentWillMount() {
 		fetchStateRequirementsFor(this);
+		this.props.fetchStock();
 	}
 
 	addArticle = (article, count) => {
@@ -50,7 +51,7 @@ class SalesBase extends React.Component {
 			<React.Fragment>
 				<Row>
 					<Col xs={12} md={12}>
-						<Customer onChange={this.setCustomer} customer={this.props.customer} />
+						<Customer id="customer" onChange={this.setCustomer} customer={this.props.customer} />
 					</Col>
 				</Row>
 				<Row>
@@ -113,5 +114,6 @@ export default connect(
 		toggleSplitPayment,
 		addSale: addToSalesListAction,
 		addProduct: receiptAddProductAction,
+		fetchStock: stock,
 	}
 )(SalesBase);

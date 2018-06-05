@@ -12,7 +12,6 @@ import sys
 
 from django.urls import reverse_lazy
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -67,16 +66,17 @@ INSTALLED_APPS = (
     'stock_count',
     'pricing',
     'article_updater',
+    # Extra app runners
+    'www.apps.PermissionApplicationConfig'
 )
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -102,7 +102,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'swipe.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
@@ -180,7 +179,6 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
@@ -256,13 +254,12 @@ COMPRESS_SCSS_COMPILER_CMD = (
 )
 
 COMPRESS_ES6_COMPILER_CMD = (
-    'export NODE_PATH="{paths}" && '
-    'browserify "{infile}" -o "{outfile}" --full-paths ' +
-    ('-d ' if DEBUG else '') +
-    '-t [ babelify '
-    '--presets [ es2016 ] ]'
+        'export NODE_PATH="{paths}" && '
+        'browserify "{infile}" -o "{outfile}" --full-paths ' +
+        ('-d ' if DEBUG else '') +
+        '-t [ babelify '
+        '--presets [ es2016 ] ]'
 )
-
 
 ##
 # SWIPE SETTINGS
@@ -301,8 +298,11 @@ SWIPE_JS_GLOBAL_VARS = {
     'api_endpoint': reverse_lazy('api')
 }
 
-# TODO: Explanation needed
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
 }
 
 # Token validity time

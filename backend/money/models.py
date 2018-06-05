@@ -713,6 +713,9 @@ class CurrencyData(models.Model):
     # Currency symbol
     symbol = models.CharField(max_length=5)
 
+    class Meta:
+        default_permissions = ()
+
     def __eq__(self, other):
         if isinstance(other, CurrencyData):
             return self.iso == other.iso

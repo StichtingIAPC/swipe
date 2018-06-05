@@ -15,9 +15,10 @@ from sales.models import Payment, Transaction, TransactionLine, SalesTransaction
 from sales.serializers import PaymentSerializer, TransactionSerializer
 from register.models import RegisterMaster, SalesPeriod
 from tools.json_parsers import DictParsers
+from www.models import SwipeLoginRequired
 
 
-class PaymentListView(mixins.ListModelMixin,
+class PaymentListView(SwipeLoginRequired, mixins.ListModelMixin,
                       generics.GenericAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
@@ -26,7 +27,7 @@ class PaymentListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class PaymentGroupView(mixins.RetrieveModelMixin,
+class PaymentGroupView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                        generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
@@ -49,7 +50,7 @@ class PaymentGroupView(mixins.RetrieveModelMixin,
         return HttpResponse(content = json.dumps(resultset, indent=4), content_type="application/json")
 
 
-class PaymentGroupOpenedView(mixins.RetrieveModelMixin,
+class PaymentGroupOpenedView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                              generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
@@ -72,7 +73,7 @@ class PaymentGroupOpenedView(mixins.RetrieveModelMixin,
         return HttpResponse(content = json.dumps(resultset, indent=4), content_type="application/json")
 
 
-class PaymentOpenListView(mixins.ListModelMixin,
+class PaymentOpenListView(SwipeLoginRequired, mixins.ListModelMixin,
                           generics.GenericAPIView):
     serializer_class = PaymentSerializer
 
@@ -87,7 +88,7 @@ class PaymentOpenListView(mixins.ListModelMixin,
             return Payment.objects.filter(transaction__salesperiod=opensalesperiod)
 
 
-class PaymentView(mixins.RetrieveModelMixin, generics.GenericAPIView):
+class PaymentView(SwipeLoginRequired, mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
 
@@ -95,7 +96,7 @@ class PaymentView(mixins.RetrieveModelMixin, generics.GenericAPIView):
         return self.retrieve(request, *args, **kwargs)
 
 
-class TransactionView(mixins.RetrieveModelMixin, generics.GenericAPIView):
+class TransactionView(SwipeLoginRequired, mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
 
@@ -103,7 +104,7 @@ class TransactionView(mixins.RetrieveModelMixin, generics.GenericAPIView):
         return self.retrieve(request, *args, **kwargs)
 
 
-class TransactionListView(mixins.ListModelMixin, generics.GenericAPIView):
+class TransactionListView(SwipeLoginRequired, mixins.ListModelMixin, generics.GenericAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
 
@@ -111,7 +112,7 @@ class TransactionListView(mixins.ListModelMixin, generics.GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
-class TransactionOpenView(mixins.ListModelMixin, generics.GenericAPIView):
+class TransactionOpenView(SwipeLoginRequired, mixins.ListModelMixin, generics.GenericAPIView):
     serializer_class = TransactionSerializer
 
     def get_queryset(self):
@@ -121,7 +122,7 @@ class TransactionOpenView(mixins.ListModelMixin, generics.GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
-class PaymentTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
+class PaymentTotalsView(SwipeLoginRequired, generics.GenericAPIView, mixins.ListModelMixin):
 
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -147,7 +148,7 @@ class PaymentTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
         return serialization
 
 
-class PaymentsLatestTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
+class PaymentsLatestTotalsView(SwipeLoginRequired, generics.GenericAPIView, mixins.ListModelMixin):
 
     def get(self, request, *args, **kwargs):
         sp = SalesPeriod.objects.all().latest('beginTime')
@@ -156,7 +157,7 @@ class PaymentsLatestTotalsView(generics.GenericAPIView, mixins.ListModelMixin):
         return HttpResponse(content=json.dumps(serialization, indent=4), content_type="application/json")
 
 
-class TransactionCreateView(generics.GenericAPIView, mixins.RetrieveModelMixin):
+class TransactionCreateView(SwipeLoginRequired, generics.GenericAPIView, mixins.RetrieveModelMixin):
 
     @staticmethod
     def deconstruct_post_body(body):
