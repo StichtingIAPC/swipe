@@ -6,12 +6,14 @@ import Big from 'big.js';
 
 const validations = [
 	validator('total', 'Total', a => {
-		if (!a.isSplit || new Big(a.total).eq(0)) {
+		const totalBig = new Big(a.total);
+
+		if (!a.isSplit || totalBig.eq(0)) {
 			return null;
 		}
 		return () => ({
 			type: 'error',
-			text: 'Split amount does not add up to total',
+			text: `Split amount does not add up to total. ${totalBig > 0 ? 'Deficit' : 'Excess'}: ${totalBig.abs()}`,
 		});
 	}),
 ];
