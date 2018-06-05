@@ -33,7 +33,7 @@ class SalesBase extends React.Component {
 	}
 
 	addArticle = (article, count) => {
-		this.props.addArticle(article, count);
+		this.props.addProduct(article, count);
 	};
 
 	removeArticle = (article, count) => this.addArticle(article, -count);

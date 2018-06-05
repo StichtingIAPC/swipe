@@ -49,7 +49,7 @@ class Selector extends React.Component {
 					<tbody>
 						{
 							this.props.stock.map(item => (
-								<tr key={item.article} onClick={() => this.props.onArticleAdd(item.id)}>
+								<tr key={item.article} onClick={() => this.props.onArticleAdd(item.article, 1)}>
 									<td>{this.props.article(item.article).name}</td>
 									<td><MoneyAmount money={item.price} /></td>
 								</tr>
