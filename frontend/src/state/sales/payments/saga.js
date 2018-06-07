@@ -6,13 +6,14 @@ import Big from 'big.js';
 
 const validations = [
 	validator('total', 'Total', a => {
-		console.log(a.total);
-		if (!a.isSplit || new Big(a.total).eq(0)) {
+		const totalBig = new Big(a.total);
+
+		if (!a.isSplit || totalBig.eq(0)) {
 			return null;
 		}
 		return () => ({
 			type: 'error',
-			text: 'Split amount does not add up to total',
+			text: `Split amount does not add up to total. ${totalBig > 0 ? 'Deficit' : 'Excess'}: ${totalBig.abs()}`,
 		});
 	}),
 ];
@@ -20,7 +21,6 @@ const validations = [
 export function* splitPaymentTypeValidator() {
 	const current = yield select(getPaymentsOnReceiptDeficit);
 	const isSplit = yield select(getIsPaymentSplit);
-	console.log(current);
 	const res = validate({ total: {
 		total: current,
 		isSplit,

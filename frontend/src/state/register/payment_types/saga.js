@@ -2,16 +2,18 @@ import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import * as api from './api';
 import {
-	doneFetchingPaymentTypes,
+	doneFetchingPaymentTypes, PAYMENT_TYPE_CREATE, PAYMENT_TYPE_FETCH_START, PAYMENT_TYPE_UPDATE,
 	paymentTypeFetchError,
 	paymentTypeInputError,
 	startFetchingPaymentTypes,
 } from './actions';
+import { startFetchingRegisters } from '../registers/actions';
 
 function* fetchPaymentTypes({ redirectTo } = {}) {
 	let msg = null;
 
 	try {
+		yield put(startFetchingRegisters());
 		const data = yield (yield call(api.getAll)).json();
 
 		yield put(doneFetchingPaymentTypes(data));
@@ -71,8 +73,7 @@ function* updatePaymentType({ paymentType } = {}) {
 }
 
 export default function* saga() {
-	yield takeLatest('PAYMENT_TYPE_FETCH_START', fetchPaymentTypes);
-	yield takeEvery('PAYMENT_TYPE_CREATE', createPaymentType);
-	yield takeEvery('PAYMENT_TYPE_UPDATE', updatePaymentType);
-	yield takeEvery('PAYMENT_TYPE_DELETE', updatePaymentType);
+	yield takeLatest(PAYMENT_TYPE_FETCH_START, fetchPaymentTypes);
+	yield takeEvery(PAYMENT_TYPE_CREATE, createPaymentType);
+	yield takeEvery(PAYMENT_TYPE_UPDATE, updatePaymentType);
 }
