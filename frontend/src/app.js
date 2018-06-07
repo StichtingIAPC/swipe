@@ -4,38 +4,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
-import { applyMiddleware, compose, createStore } from 'redux';
 import { Provider } from 'react-redux';
-import createSagaMiddleware from 'redux-saga';
 import Routes from './Routes.js';
-import createBrowserHistory from 'history/createBrowserHistory';
-import { ConnectedRouter, routerMiddleware, push } from 'react-router-redux';
-import 'font-awesome/css/font-awesome.min.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { ConnectedRouter, push } from 'react-router-redux';
 import 'admin-lte/dist/css/AdminLTE.min.css';
 import 'admin-lte/dist/css/skins/skin-blue.min.css';
+import 'font-awesome/css/font-awesome.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
+import 'react-select/dist/react-select.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/main.scss';
 // Pages
-import rootReducer from './state/reducer.js';
 import saga from './state/saga.js';
 import * as auth from './state/auth/actions';
 
-// Set up the Redux store
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-const sagaMiddleware = createSagaMiddleware();
+import store, { sagaMiddleware, history } from './state/store';
+export { history };
 
-export const history = createBrowserHistory();
-
-const routingMiddleware = routerMiddleware(history);
-
-const store = createStore(
-	rootReducer,
-	{},
-	composeEnhancers(applyMiddleware(routingMiddleware, sagaMiddleware))
-);
-
-// Run the main saga
 sagaMiddleware.run(saga);
 
 // Check if there is auth info to be restored

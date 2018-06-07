@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createPaymentType, updatePaymentType } from '../../../state/register/payment-types/actions.js';
-import Form from '../../forms/Form';
+import { createPaymentType, updatePaymentType } from '../../../state/register/payment_types/actions.js';
+import Card from '../../base/Card';
 import { BoolField, StringField } from '../../forms/fields';
 
 class PaymentTypeEdit extends React.Component {
@@ -54,7 +54,7 @@ class PaymentTypeEdit extends React.Component {
 
 	render() {
 		return (
-			<Form
+			<Card
 				title={`${this.state.id ? 'Edit' : 'Add'} payment type`}
 				onSubmit={::this.submit}
 				onReset={::this.reset}
@@ -68,7 +68,7 @@ class PaymentTypeEdit extends React.Component {
 					name="Payment type"
 					value={this.state.payment_type}
 					options={this.state.payment_types} />*/}
-			</Form>
+			</Card>
 		);
 	}
 }

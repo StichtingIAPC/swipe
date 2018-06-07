@@ -16,7 +16,7 @@ class RevaluationDocument(Blame):
     # A memo indicating the reason why the products were revaluated(generally this is important)
     memo = models.CharField(max_length=255)
 
-    stock_change_set = models.ForeignKey(StockChangeSet, null=True)
+    stock_change_set = models.ForeignKey(StockChangeSet, null=True, on_delete=models.PROTECT)
 
     @staticmethod
     def create_revaluation_document(user: User, article_type_cost_label_combinations, memo: str):
@@ -118,9 +118,9 @@ class RevaluationLine(Blame):
     financial administrators.
     """
     # The document the line is going to be on
-    revaluation_document = models.ForeignKey(RevaluationDocument)
+    revaluation_document = models.ForeignKey(RevaluationDocument, on_delete=models.PROTECT)
     # The articleType in the stock
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     # Cost of the articleType before revaluation
     former_cost = CostField()
     # Cost after revaluation

@@ -18,15 +18,15 @@ class SupplierBase extends React.Component {
 		return (
 			<div className="row">
 				<div className="col-xs-4 col-md-4">
-					<SupplierList supplierID={this.props.params.supplierID || ''} />
+					<SupplierList supplierID={match.params.supplierID || ''} />
 				</div>
 				<div className="col-xs-8 col-md-8">
 					{
 						this.props.requirementsLoaded ? (
 							<Switch>
-								<Route path={`${match.path}/create`} component={SupplierEdit} />
-								<Route path={`${match.path}/:supplierID/edit`} component={SupplierEdit} />
-								<Route path={`${match.path}/:supplierID`} component={SupplierDetail} />
+								<Route key="new" path={`${match.path}/create`} component={SupplierEdit} />
+								<Route key="old" path={`${match.path}/:supplierID/edit`} component={SupplierEdit} />
+								<Route key="old" path={`${match.path}/:supplierID`} component={SupplierDetail} />
 							</Switch>
 						) : null
 					}

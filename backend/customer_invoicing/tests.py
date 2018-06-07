@@ -18,13 +18,13 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         self.setup_base_data()
 
     def test_create_invoice_without_customer(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 3
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
-        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=order.pk,
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD,
                         currency=self.price_system_currency_1.currency)
@@ -33,13 +33,13 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
             Transaction.create_transaction(user=self.user_1, transaction_lines=[tl_1], payments=[pymnt_1], customer=None)
 
     def test_create_invoice_from_transaction_all_invoiced(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 3
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
-        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=order.pk,
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
@@ -54,7 +54,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         self.assertFalse(receipt_cust_invoice.handled)
 
     def test_create_invoice_no_invoicing(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         # Maestro register
@@ -62,7 +62,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
         SOLD = 1
-        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=order.pk,
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
@@ -70,7 +70,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         self.assertFalse(CustInvoice.objects.exists())
 
     def test_create_invoice_mixed_invoice_and_straight_payment(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         # Maestro register
@@ -80,7 +80,7 @@ class CustInvoiceTestReceiptInvoice(TestCase, TestData):
         SOLD = 1
         price = Price(amount=Decimal("3"), currency=self.currency_current, vat=1)
 
-        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("1"), currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
@@ -154,13 +154,13 @@ class CustInvoicePayments(TestCase, TestData):
         self.current_currency = Currency(USED_CURRENCY)
 
     def test_payment_all_invoiced_all_paid(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 1
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
-        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
@@ -172,13 +172,13 @@ class CustInvoicePayments(TestCase, TestData):
         self.assertTrue(receipt_cust_invoice.handled)
 
     def test_payments_all_invoice_partial_payment_too_little(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 1
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
-        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
@@ -190,13 +190,13 @@ class CustInvoicePayments(TestCase, TestData):
         self.assertFalse(receipt_cust_invoice.handled)
 
     def test_payments_all_invoice_partial_payment_too_much(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 1
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
-        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=self.price_system_currency_1, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=self.price_system_currency_1.amount * SOLD, currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
@@ -208,7 +208,7 @@ class CustInvoicePayments(TestCase, TestData):
         self.assertFalse(receipt_cust_invoice.handled)
 
     def test_payments_partial_invoice(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         # Maestro register
@@ -218,7 +218,7 @@ class CustInvoicePayments(TestCase, TestData):
         SOLD = 1
         price = Price(amount=Decimal("3"), currency=self.currency_current, vat=1)
 
-        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("1"), currency=self.current_currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_maestro)
@@ -233,14 +233,14 @@ class CustInvoicePayments(TestCase, TestData):
         self.assertTrue(receipt_invoice.handled)
 
     def test_payments_two_payments(self):
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 1
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
         price = Price(amount=Decimal("2"), currency=self.currency_current, vat=1)
-        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("2"), currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
@@ -274,14 +274,14 @@ class InvoiceFieldTests(TestCase, TestData):
         ptfv2.save()
 
         # Create a receipt with relevant customer
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 1
         # Invoice register
         self.register_4.open(counted_amount=Decimal(0))
         price = Price(amount=Decimal("2"), currency=self.currency_current, vat=1)
-        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("2"), currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
@@ -308,13 +308,13 @@ class InvoiceFieldTests(TestCase, TestData):
         InvoiceFieldPerson.objects.create(name=ptf, city=ptf3)
 
         # Some buying data
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 1
         self.register_4.open(counted_amount=Decimal(0))
         price = Price(amount=Decimal("2"), currency=self.currency_current, vat=1)
-        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("2"), currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)
@@ -344,13 +344,13 @@ class InvoiceFieldTests(TestCase, TestData):
         InvoiceFieldOrganisation.objects.create(name=ptf, city=ptf3)
 
         # Some buying data
-        self.create_custorders()
+        order = self.create_custorders()
         self.create_suporders()
         self.create_packingdocuments()
         SOLD = 1
         self.register_4.open(counted_amount=Decimal(0))
         price = Price(amount=Decimal("2"), currency=self.currency_current, vat=1)
-        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=1,
+        tl_1 = SalesTransactionLine(price=price, count=SOLD, order=order.id,
                                     article=self.articletype_1)
         money_1 = Money(amount=Decimal("2"), currency=self.price_system_currency_1.currency)
         pymnt_1 = Payment(amount=money_1, payment_type=self.paymenttype_invoice)

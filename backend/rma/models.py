@@ -25,7 +25,7 @@ class StockRMA(RMACause):
     """
     A broken product in the stock. Just for stock and not for a customer.
     """
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
 
     value = MoneyField()
 
@@ -56,11 +56,11 @@ class CustomerRMATask(models.Model):
     broken and need to be handled. Connects to a receipt.
     """
     # The customer
-    customer = models.ForeignKey(Customer)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
 
     handled = models.BooleanField(default=False)
 
-    receipt = models.ForeignKey(Transaction)
+    receipt = models.ForeignKey(Transaction, on_delete=models.PROTECT)
 
     def has_open_rmas_for_customer(self):
         return len(self.get_open_customer_rmas()) > 0
@@ -74,7 +74,7 @@ class CustomerTaskDescription(Blame):
     A description of the situation of the customer-RMA. Intended as a human readable/writable log.
     """
 
-    customer_rma_task = models.ForeignKey(CustomerRMATask)
+    customer_rma_task = models.ForeignKey(CustomerRMATask, on_delete=models.PROTECT)
 
     text = models.TextField()
 
@@ -87,9 +87,9 @@ class TestRMA(RMACause):
     An issue for an individual product,
     """
 
-    customer_rma_task = models.ForeignKey(CustomerRMATask)
+    customer_rma_task = models.ForeignKey(CustomerRMATask, on_delete=models.PROTECT)
 
-    transaction_line = models.ForeignKey(TransactionLine)
+    transaction_line = models.ForeignKey(TransactionLine, on_delete=models.PROTECT)
 
     state = models.CharField(max_length=3)
 
@@ -147,7 +147,7 @@ class TestRMAState(ImmutableBlame):
     CLOSED_STATES = ('R', 'F', 'O')
     STARTING_STATE = 'U'
 
-    test_rma = models.ForeignKey(TestRMA)
+    test_rma = models.ForeignKey(TestRMA, on_delete=models.PROTECT)
 
     state = models.CharField(max_length=3)
 
@@ -161,7 +161,7 @@ class DirectRefundRMA(RMACause):
     A cause for an RMA that happens when a customer is instantly refunded when he returns a (broken) product.
     """
 
-    refund_line = models.ForeignKey(RefundTransactionLine)
+    refund_line = models.ForeignKey(RefundTransactionLine, on_delete=models.PROTECT)
 
     @transaction.atomic()
     def save(self, *args, **kwargs):
@@ -186,9 +186,9 @@ class InternalRMA(Blame):
     handling of the problem.
     """
 
-    rma_cause = models.ForeignKey(RMACause)
+    rma_cause = models.ForeignKey(RMACause, on_delete=models.PROTECT)
 
-    customer = models.ForeignKey(Customer, null=True)
+    customer = models.ForeignKey(Customer, null=True, on_delete=models.PROTECT)
 
     state = models.CharField(max_length=3)
 
@@ -232,7 +232,7 @@ class InternalRMAState(ImmutableBlame):
     CLOSED_STATES = ('F', 'T', 'O')
     STARTING_STATE = 'B'
 
-    internal_rma = models.ForeignKey(InternalRMA)
+    internal_rma = models.ForeignKey(InternalRMA, on_delete=models.PROTECT)
 
     state = models.CharField(max_length=3)
 

@@ -23,7 +23,6 @@ const defaults = {
 
 module.exports = {
 	entry: [
-		'react-hot-loader/patch',
 		path.join(APP_DIR, 'app.js'),
 	],
 	output: {
@@ -31,12 +30,13 @@ module.exports = {
 		publicPath: '/dist/',
 		filename: 'bundle.js',
 	},
+	devtool: 'inline-source-map',
 	module: {
 		rules: [
 			{
 				test: /\.jsx?/,
 				exclude: /node_modules/,
-				loaders: [ 'react-hot-loader/webpack', 'babel-loader' ],
+				loaders: [ 'babel-loader' ],
 			}, {
 				test: /\.scss$/,
 				loaders: [ 'style-loader', 'css-loader', 'sass-loader' ],
@@ -58,11 +58,13 @@ module.exports = {
 	},
 	plugins: [
 		new webpack.DefinePlugin(Object.assign({}, defaults, replacements)),
+		new webpack.DefinePlugin({
+			"process.env": { NODE_ENV: "'production'" }
+		}),
 	],
 	resolve: {
 		modules: [ 'node_modules' ],
 	},
-	//devtool: 'cheap-module-source-map',
 	devServer: {
 		headers: { "Access-Control-Allow-Origin": "*" },
 		contentBase: './public/',

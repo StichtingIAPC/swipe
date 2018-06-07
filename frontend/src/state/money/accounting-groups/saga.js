@@ -1,88 +1,86 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import {
-	accountingGroupFetchError,
-	accountingGroupInputError,
-	doneFetchingAccountingGroups,
-	startFetchingAccountingGroups,
-} from './actions';
-import { get, post, put as api_put } from '../../../api.js';
 
-function* fetchAccountingGroups({ redirectTo }) {
-	let msg = null;
+import * as actions from './actions.js';
+import * as api from './api';
+import { cleanErrorMessage } from '../../../tools/sagaHelpers';
 
+function* fetchAllAccountingGroups({ redirectTo }) {
 	try {
-		const data = yield (yield call(
-			get,
-			'/money/accountinggroup/',
-		)).json();
+		const accountingGroups = yield (yield call(api.getAll)).json();
 
-		yield put(doneFetchingAccountingGroups(data));
+		yield put(actions.fetchAllAccountingGroupsDone(accountingGroups));
 		if (redirectTo) {
 			yield put(push(redirectTo));
 		}
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = yield e.json();
-		}
-
-		yield put(accountingGroupFetchError(msg));
+		yield put(actions.fetchAllAccountingGroupsFailed(cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.fetchAllAccountingGroupsFinally());
 	}
 }
 
-function* createAccountingGroup({ accGrp }) {
-	const accountingGroup = { ...accGrp };
-	let msg = null;
-
+function* fetchAccountingGroup({ id }) {
 	try {
-		const data = yield (yield call(
-			post,
-			'/money/accountinggroup/',
-			accountingGroup,
-		)).json();
+		const newAccountingGroup = yield (yield call(api.get, id)).json();
 
-		yield put(startFetchingAccountingGroups({ redirectTo: `/money/accountinggroup/${data.id}/` }));
+		yield put(actions.fetchAccountingGroupDone(newAccountingGroup));
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = yield e.json();
-		}
-
-		yield put(accountingGroupInputError(msg));
+		yield put(actions.fetchAccountingGroupFailed(id, cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.fetchAccountingGroupFinally());
 	}
 }
 
-function* updateAccountingGroup({ accGrp }) {
-	const accountingGroup = { ...accGrp };
-	let msg = null;
+function* createAccountingGroup({ accountingGroup }) {
+	const document = { ...accountingGroup };
 
 	try {
-		const data = yield (yield call(
-			api_put,
-			`/money/accountinggroup/${accountingGroup.id}/`,
-			accountingGroup,
-		)).json();
+		const newAccountingGroup = yield (yield call(api.post, document)).json();
 
-		yield put(startFetchingAccountingGroups({ redirectTo: `/money/accountinggroup/${data.id}/` }));
+		yield put(actions.createAccountingGroupDone(newAccountingGroup));
+		yield put(actions.fetchAllAccountingGroups(`/money/accountinggroups/${newAccountingGroup.id}/`));
 	} catch (e) {
-		if (e instanceof Error) {
-			msg = e.message;
-		}
-		if (e instanceof Response) {
-			msg = yield e.json();
-		}
+		yield put(actions.createAccountingGroupFailed(accountingGroup, cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.createAccountingGroupFinally());
+	}
+}
 
-		yield put(accountingGroupInputError(msg));
+function* updateAccountingGroup({ accountingGroup }) {
+	const document = { ...accountingGroup };
+
+	try {
+		const newAccountingGroup = yield (yield call(api.put, accountingGroup.id, document)).json();
+
+		yield put(actions.updateAccountingGroupDone(newAccountingGroup));
+		yield put(actions.fetchAllAccountingGroups(`/money/accountinggroups/${newAccountingGroup.id}/`));
+	} catch (e) {
+		yield put(actions.updateAccountingGroupFailed(accountingGroup, cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.updateAccountingGroupFinally());
+	}
+}
+
+function* deleteAccountingGroup({ accountingGroup }) {
+	const document = { ...accountingGroup };
+
+	try {
+		const newAccountingGroup = yield (yield call(api.del, accountingGroup.id, document)).json();
+
+		yield put(actions.deleteAccountingGroupDone(newAccountingGroup));
+		yield put(actions.fetchAllAccountingGroups(`/money/`));
+	} catch (e) {
+		yield put(actions.deleteAccountingGroupFailed(accountingGroup, cleanErrorMessage(e)));
+	} finally {
+		yield put(actions.deleteAccountingGroupFinally());
 	}
 }
 
 export default function* saga() {
-	yield takeLatest('ACCOUNTING_GROUP_FETCH_START', fetchAccountingGroups);
-	yield takeEvery('ACCOUNTING_GROUP_CREATE', createAccountingGroup);
-	yield takeEvery('ACCOUNTING_GROUP_UPDATE', updateAccountingGroup);
+	yield takeLatest('money/accounting-groups/FETCH_ALL', fetchAllAccountingGroups);
+	yield takeLatest('money/accounting-groups/FETCH', fetchAccountingGroup);
+	yield takeEvery('money/accounting-groups/CREATE', createAccountingGroup);
+	yield takeEvery('money/accounting-groups/UPDATE', updateAccountingGroup);
+	yield takeEvery('money/accounting-groups/DELETE', deleteAccountingGroup);
 }

@@ -35,7 +35,7 @@ class WishableType(models.Model):
 
 class SellableType(WishableType):
     # This abstract type can be sold. Handling of these types in the system is quite easy.
-    accounting_group = models.ForeignKey(AccountingGroup)
+    accounting_group = models.ForeignKey(AccountingGroup, on_delete=models.PROTECT)
 
     def get_vat_group(self):
         return self.accounting_group.vat_group
@@ -82,11 +82,11 @@ class AndProductType(WishableType):
 
 class ProductCombination(models.Model):
     # Helper class for the AndProductType. Has a number of ArticleTypes for inclusion in an AndProductType
-    article_type = models.ForeignKey(ArticleType)
+    article_type = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
 
     amount = models.IntegerField()
 
-    and_product = models.ForeignKey(AndProductType)
+    and_product = models.ForeignKey(AndProductType, on_delete=models.PROTECT)
 
     def __str__(self):
         return "{}:{}x; Member of {}".format(self.article_type.name, self.amount, self.and_product.name)

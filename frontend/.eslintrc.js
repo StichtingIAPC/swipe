@@ -198,7 +198,7 @@ module.exports = {
 		'id-blacklist': OFF,
 		'id-length': OFF,
 		'id-match': OFF,
-		'indent': [ ERROR, 'tab' ],
+		'indent': [ ERROR, 'tab', {"SwitchCase" : 1} ],
 		'jsx-quotes': [ WARN, 'prefer-double' ],
 		'key-spacing': [ ERROR, {
 			beforeColon: false,
@@ -248,7 +248,7 @@ module.exports = {
 		'no-continue': OFF,
 		'no-inline-comments': OFF,
 		'no-lonely-if': WARN,
-		'no-mixed-operators': ERROR,
+		'no-mixed-operators': OFF,
 		'no-mixed-spaces-and-tabs': [ ERROR, 'smart-tabs' ],
 		'no-multi-assign': WARN,
 		'no-multiple-empty-lines': [ WARN, {
@@ -370,7 +370,6 @@ module.exports = {
 		'react/self-closing-comp': WARN,
 		'react/style-prop-object': ERROR,
 
-		'react/jsx-boolean-value': [ ERROR, 'always' ],
 		'react/jsx-closing-bracket-location': [ ERROR, 'after-props' ],
 		'react/jsx-first-prop-new-line': [ ERROR, 'multiline' ],
 		'react/jsx-indent': [ ERROR, 'tab' ],

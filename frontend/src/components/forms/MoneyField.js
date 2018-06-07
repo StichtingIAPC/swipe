@@ -1,41 +1,43 @@
 import React from 'react';
+import fetchAllCurrencies from '../../state/money/currencies/actions';
 
-/**
- * Created by Matthias on 30/11/2016.
- */
+import { connect } from 'react-redux';
+import Card from '../base/Card';
+import PropTypes from 'prop-types';
+import { FormControl, FormGroup, InputGroup } from 'react-bootstrap';
+import { getCurrencyByIso } from '../../state/money/currencies/selectors';
 
-export default class MoneyField extends React.Component {
+export class MoneyField extends React.Component {
+	componentDidMount() {
+		this.props.fetchCurrencies();
+	}
+
 	render() {
-		const { currency, value, onChange, children, ...restProps } = this.props;
-
 		return (
-			<div className="input-group">
-				<span className="input-group-addon">{currency.symbol}</span>
-				<input
-					type="text"
-					className="form-control"
-					value={MoneyField.valueToString(value, currency)}
-					placeholder = {MoneyField.getPlaceholder(currency)}
-					onChange={onChange}
-					{...restProps} />
-				{children}
-			</div>
+			<FormGroup>
+				<InputGroup>
+					<InputGroup.Addon>{this.props.currencyObj.symbol}</InputGroup.Addon>
+					<FormControl
+						type="text"
+						value={this.props.value}
+						onChange={event => this.props.onChange(event.target.value.replace(',', '.'))}
+						name={this.props.name} />
+				</InputGroup>
+			</FormGroup>
 		);
 	}
-
-	static valueToString(value, currency) {
-		if (isNaN(Number(value.replace('.', '')))) {
-			return value;
-		}
-
-		let _value = value.replace('.', '');
-
-		_value = Number(_value) / Math.pow(10, currency.digits);
-		_value = _value === 0 ? '' : _value.toFixed(currency.digits);
-		return _value;
-	}
-
-	static getPlaceholder(currency) {
-		return `0.${'0'.repeat(currency.digits)}`;
-	}
 }
+
+export default connect(
+	(state, props) => ({
+		currencyObj: getCurrencyByIso(state, props.currency),
+	}),
+	{
+		fetchCurrencies: fetchAllCurrencies,
+	}
+)(MoneyField);
+Card.propTypes = {
+	currency: PropTypes.string.isRequired,
+	value: PropTypes.string.isRequired,
+	onChange: PropTypes.func.isRequired,
+};

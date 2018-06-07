@@ -41,13 +41,13 @@ class Register(models.Model):
 
     name = models.CharField(max_length=255, unique=True)
     # Currency used for this register. Unchangeable
-    currency = models.ForeignKey(CurrencyData)
+    currency = models.ForeignKey(CurrencyData, on_delete=models.PROTECT)
     # Indicates if register accepts cash or otherwise is a digital register
     is_cash_register = models.BooleanField(default=False)
     # Do we use this register right now?(Non-active registers should be empty)
     is_active = models.BooleanField(default=True)
     # How do people pay in this register?
-    payment_type = models.ForeignKey(PaymentType)
+    payment_type = models.ForeignKey(PaymentType, on_delete=models.PROTECT)
 
     def get_denominations(self):
         # Gets denominations from register based on its currency
@@ -296,6 +296,21 @@ class RegisterMaster:
             closed_register_counts_ids.append(reg.id)
         return RegisterCount.objects.filter(id__in=closed_register_counts_ids)
 
+    @staticmethod
+    # Gets the last register count for each register, dummied for registers without counts
+    def get_last_register_counts():
+        registers = Register.objects.all()
+        counts = []
+        for register in registers:
+            count_exists = RegisterCount.objects.filter(register=register).exists()
+            if count_exists:
+                counts.append(RegisterCount.objects.filter(register=register).latest('time_created'))
+            else:
+                counts.append(RegisterCount(register=register, sales_period_id=-1, is_opening_count=False,
+                                            amount=Decimal("0"),
+                                            time_created=timezone.now()))
+        return counts  # type: List[RegisterCount]
+
 
 class ConsistencyChecker:
     """
@@ -504,9 +519,9 @@ class RegisterCount(models.Model):
     The amount of currency and perhaps the denomination in the case of a cash register is stored here
     """
     # A register period has one or two counts
-    register = models.ForeignKey(Register)
+    register = models.ForeignKey(Register, on_delete=models.PROTECT)
     # The salesperiod of the count
-    sales_period = models.ForeignKey(SalesPeriod)
+    sales_period = models.ForeignKey(SalesPeriod, on_delete=models.PROTECT)
     # Indicates if this the opening or the closing count
     is_opening_count = models.BooleanField()
     # How much money is there at the moment of counting?
@@ -567,9 +582,9 @@ class DenominationCount(models.Model):
     Counting of the denominations in a cash register
     """
     # Every cash register count needs to count all of its denominations, amongst which is 'self'
-    register_count = models.ForeignKey(RegisterCount)
+    register_count = models.ForeignKey(RegisterCount, on_delete=models.PROTECT)
     # Denomination belonging to the currency of this register
-    denomination = models.ForeignKey(Denomination)
+    denomination = models.ForeignKey(Denomination, on_delete=models.PROTECT)
     # Number of pieces of denomination
     number = models.IntegerField()
 
@@ -590,9 +605,9 @@ class MoneyInOut(models.Model):
     Adds money to a register during an open register period
     """
     # Register to which
-    register = models.ForeignKey(Register)
+    register = models.ForeignKey(Register, on_delete=models.PROTECT)
     # Salesperiod where in/out took place
-    sales_period = models.ForeignKey(SalesPeriod)
+    sales_period = models.ForeignKey(SalesPeriod, on_delete=models.PROTECT)
     # Positive: ADD, negative: REMOVE moneys
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
 
@@ -615,9 +630,9 @@ class SalesPeriodDifference(models.Model):
     amount of money. Count is per type of money
     """
     # Period in which there is a difference
-    sales_period = models.ForeignKey(SalesPeriod)
+    sales_period = models.ForeignKey(SalesPeriod, on_delete=models.PROTECT)
     # Currency of the difference
-    currency_data = models.ForeignKey(CurrencyData)
+    currency_data = models.ForeignKey(CurrencyData, on_delete=models.PROTECT)
     # Amount of difference
     amount = models.DecimalField(max_digits=settings.MAX_DIGITS, decimal_places=settings.DECIMAL_PLACES, default=0.0)
 
@@ -626,7 +641,7 @@ class OpeningCountDifference(models.Model):
     # Difference that can occur when a register is opened. This indicated that money (dis)appeared between closing and
     # opening of the register.
     difference = MoneyField()
-    register_count = models.OneToOneField("RegisterCount")
+    register_count = models.OneToOneField("RegisterCount", on_delete=models.PROTECT)
 
     def __str__(self):
         return "[{}] : {}".format(self.register_count, self.difference)
@@ -636,7 +651,7 @@ class ClosingCountDifference(models.Model):
     # Difference that can occur when a sales period closes. Since this could have any reason, it cannot be pointed to
     # a single register. This makes it different from an OpeningCountDifference
     difference = MoneyField()
-    sales_period = models.ForeignKey("SalesPeriod")
+    sales_period = models.ForeignKey("SalesPeriod", on_delete=models.PROTECT)
 
 
 class InactiveError(Exception):

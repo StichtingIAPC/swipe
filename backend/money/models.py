@@ -49,7 +49,7 @@ class VATPeriod(models.Model):
     can be queried.
     """
     # The vat tariff group
-    vat = models.ForeignKey(VAT)
+    vat = models.ForeignKey(VAT, on_delete=models.PROTECT)
     # The date this vat rate is used.
     # NOTE: Date windows should not overlap as the current vate rate calculation becomes impossible
     begin_date = models.DateField()
@@ -60,7 +60,10 @@ class VATPeriod(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        relevant_vat_periods = VATPeriod.objects.filter(vat=self.vat)
+        if self.id != 0:
+            relevant_vat_periods = VATPeriod.objects.filter(vat=self.vat).exclude(id=self.id)
+        else:
+            relevant_vat_periods = VATPeriod.objects.filter(vat=self.vat)
         for period in relevant_vat_periods:
             if not period.end_date:
                 if self.begin_date >= period.begin_date:
@@ -78,7 +81,11 @@ class VATPeriod(models.Model):
                                    "Begin date {} "
                                    "falls between old period "
                                    "bounds {} and {}".format(self.begin_date, period.begin_date, period.end_date))
-                if self.end_date >= period.begin_date and self.end_date <= period.end_date:
+                if not self.end_date and self.begin_date <= period.end_date:
+                    raise VATError("Vat period overlap detected. Begin date {} and no enddate"
+                                   "falls between old period bounds {} and {}".format(self.begin_date,
+                                                                                      period.begin_date, period.end_date))
+                if self.end_date is not None and self.end_date >= period.begin_date and self.end_date <= period.end_date:
                     raise VATError("Vat period overlap detected. "
                                    "End date {} "
                                    "falls between old period "
@@ -91,7 +98,7 @@ class AccountingGroup(models.Model):
     # Number for internal administration
     accounting_number = models.IntegerField()
     # Vat group
-    vat_group = models.ForeignKey(VAT)
+    vat_group = models.ForeignKey(VAT, on_delete=models.PROTECT)
     # Group name
     name = models.CharField(max_length=255)
 
@@ -706,6 +713,9 @@ class CurrencyData(models.Model):
     # Currency symbol
     symbol = models.CharField(max_length=5)
 
+    class Meta:
+        default_permissions = ()
+
     def __eq__(self, other):
         if isinstance(other, CurrencyData):
             return self.iso == other.iso
@@ -723,7 +733,7 @@ class Denomination(models.Model):
     """
     The currency bundles that a currency has. A cash register can pay cash with only these means
     """
-    currency = models.ForeignKey(CurrencyData)
+    currency = models.ForeignKey(CurrencyData, on_delete=models.PROTECT)
     amount = models.DecimalField(decimal_places=DECIMAL_PLACES, max_digits=MAX_DIGITS)
 
     @classmethod

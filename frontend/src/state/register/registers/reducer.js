@@ -1,19 +1,21 @@
+import { REGISTER_FETCH_DONE, REGISTER_FETCH_ERROR, REGISTER_FETCH_INPUT_ERROR, REGISTER_FETCH_START } from './actions';
+
 const initialState = {
-	registers: null,
+	registers: [],
 	fetching: false,
 	fetchError: null,
 	inputError: null,
 };
 
 export default function registerReducer(state = initialState, action) {
-	if (action.type === 'REGISTER_FETCH_START')		 		{
+	if (action.type === REGISTER_FETCH_START)		 		{
 		return {
 			...state,
 			fetching: true,
 			inputError: null,
 		};
 	}
-	if (action.type === 'REGISTER_FETCH_DONE')		 		{
+	if (action.type === REGISTER_FETCH_DONE)		 		{
 		return {
 			...state,
 			fetching: false,
@@ -21,13 +23,13 @@ export default function registerReducer(state = initialState, action) {
 			fetchError: null,
 		};
 	}
-	if (action.type === 'REGISTER_INPUT_ERROR')		 		{
+	if (action.type === REGISTER_FETCH_INPUT_ERROR)		 		{
 		return {
 			...state,
 			inputError: action.error,
 		};
 	}
-	if (action.type === 'REGISTER_FETCH_ERROR')		 		{
+	if (action.type === REGISTER_FETCH_ERROR)		 		{
 		return {
 			...state,
 			fetchError: action.error,

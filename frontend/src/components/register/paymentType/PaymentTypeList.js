@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingPaymentTypes } from '../../../state/register/payment-types/actions.js';
+import { startFetchingPaymentTypes } from '../../../state/register/payment_types/actions.js';
 
 class PaymentTypeList extends React.Component {
 	constructor(props) {
@@ -21,11 +21,11 @@ class PaymentTypeList extends React.Component {
 					<div className="btn-group pull-right">
 						{
 							register.updating ? (
-								<Link
+								<a
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
 									<FontAwesome icon="refresh" />
-								</Link>
+								</a>
 							) : null
 						}
 						<Link
@@ -68,12 +68,12 @@ class PaymentTypeList extends React.Component {
 					<div className="box-tools">
 						<div className="input-group">
 							<div className="btn-group">
-								<Link
+								<a
 									className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
 									title="Refresh"
 									onClick={this.props.update}>
 									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
-								</Link>
+								</a>
 								<Link
 									className="btn btn-default btn-sm"
 									to="/register/paymenttype/create/"
@@ -81,9 +81,9 @@ class PaymentTypeList extends React.Component {
 									<FontAwesome icon="plus" />
 								</Link>
 							</div>
-							<Link className="btn btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
+							<a className="btn btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
 								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
-							</Link>
+							</a>
 						</div>
 					</div>
 				</div>

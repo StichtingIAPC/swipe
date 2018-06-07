@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { startFetchingAccountingGroups } from '../../../state/money/accounting-groups/actions.js';
+import { fetchAllAccountingGroups } from '../../../state/money/accounting-groups/actions.js';
+import { Box } from 'reactjs-admin-lte';
 
 class AccountingGroupList extends React.Component {
 	constructor(props) {
@@ -21,11 +22,11 @@ class AccountingGroupList extends React.Component {
 					<div className="btn-group pull-right">
 						{
 							accountingGroup.updating ? (
-								<Link
+								<a
 									className="btn btn-success btn-xs disabled"
 									title="Updating">
 									<FontAwesome icon="refresh" />
-								</Link>
+								</a>
 							) : null
 						}
 						<Link
@@ -46,48 +47,41 @@ class AccountingGroupList extends React.Component {
 		);
 	}
 
-	toggle(evt) {
+	toggle = evt => {
 		evt.preventDefault();
 		this.setState({ open: !this.state.open });
-	}
+	};
+
+	update = evt => {
+		evt.preventDefault();
+		this.props.fetchAllAccountingGroups();
+	};
 
 	render() {
 		return (
-			<div
-				className={
-					`box${
-						this.state.open ? '' : ' collapsed-box'
-					}${
-						this.props.errorMsg ? ' box-danger box-solid' : ''
-					}`
-				}>
-				<div className="box-header with-border">
-					<h3 className="box-title">
-						List of accounting groups
-					</h3>
-					<div className="box-tools">
-						<div className="input-group">
-							<div className="btn-group">
-								<Link
-									className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
-									title="Refresh"
-									onClick={this.props.update}>
-									<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
-								</Link>
-								<Link
-									className="btn btn-sm btn-default"
-									to="/money/accountinggroup/create/"
-									title="Create new accounting group">
-									<FontAwesome icon="plus" />
-								</Link>
-							</div>
-							<Link className="btn btn-sm btn-box-tool" onClick={::this.toggle} title={this.state.open ? 'Close box' : 'Open box'}>
-								<FontAwesome icon={this.state.open ? 'minus' : 'plus'} />
+			<Box
+				closable={true}
+				error={!!this.props.errorMsg}
+				header={{
+					title: 'List of accounting groups',
+					buttons: (
+						<React.Fragment>
+							<a
+								className={`btn btn-sm btn-default ${this.props.fetching ? 'disabled' : ''}`}
+								title="Refresh"
+								onClick={this.update}>
+								<FontAwesome icon={`refresh ${this.props.fetching ? 'fa-spin' : ''}`} />
+							</a>
+							<Link
+								className="btn btn-sm btn-default"
+								to="/money/accountinggroup/create/"
+								title="Create new accounting group">
+								<FontAwesome icon="plus" />
 							</Link>
-						</div>
-					</div>
-				</div>
-				<div className="box-body">
+						</React.Fragment>
+					),
+				}}>
+				<Box.Body>
 					<table className="table table-striped">
 						<thead>
 							<tr>
@@ -107,16 +101,16 @@ class AccountingGroupList extends React.Component {
 							)}
 						</tbody>
 					</table>
-				</div>
+				</Box.Body>
 				{
 					this.props.errorMsg ? (
-						<div className="box-footer">
+						<Box.Footer>
 							<FontAwesome icon="warning" />
 							<span>{this.props.errorMsg}</span>
-						</div>
+						</Box.Footer>
 					) : null
 				}
-			</div>
+			</Box>
 		);
 	}
 }
@@ -129,10 +123,7 @@ export default connect(
 		accountingGroups: state.money.accountingGroups.accountingGroups || [],
 		fetching: state.money.accountingGroups.fetching,
 	}),
-	dispatch => ({
-		update: evt => {
-			evt.preventDefault();
-			dispatch(startFetchingAccountingGroups());
-		},
-	})
+	{
+		fetchAllAccountingGroups,
+	}
 )(AccountingGroupList);

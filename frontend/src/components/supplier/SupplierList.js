@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import FontAwesome from '../tools/icons/FontAwesome';
-import { startFetchingSuppliers } from '../../state/suppliers/actions.js';
+import { fetchAllSuppliers } from '../../state/suppliers/actions.js';
 
 class SupplierList extends React.Component {
 	update(event) {
@@ -115,6 +115,6 @@ export default connect(
 		fetching: state.suppliers.fetching,
 	}),
 	{
-		update: startFetchingSuppliers,
+		update: fetchAllSuppliers,
 	}
 )(SupplierList);

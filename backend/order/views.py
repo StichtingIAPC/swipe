@@ -7,9 +7,10 @@ import json
 
 from order.models import *
 from order.serializers import OrderSerializer, OrderLineSerializer, OrderLineStateSerializer
+from www.models import SwipeLoginRequired
 
 
-class OrderListView(mixins.ListModelMixin,
+class OrderListView(SwipeLoginRequired, mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     generics.GenericAPIView):
 
@@ -84,7 +85,7 @@ class OrderRequest:
         return "customer: {}, user: {} , wishable_type_number_price_combinations: {}".format(self.customer, self.user, self.wishable_type_number_price_combinations)
 
 
-class OrderView(mixins.RetrieveModelMixin,
+class OrderView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                 generics.GenericAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -93,7 +94,7 @@ class OrderView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class CustomerOrderView(mixins.RetrieveModelMixin,
+class CustomerOrderView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                     generics.GenericAPIView):
     queryset = Order.objects.all().prefetch_related('customer')
     serializer_class = OrderSerializer
@@ -102,7 +103,7 @@ class CustomerOrderView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class OrderLineListView(mixins.ListModelMixin,
+class OrderLineListView(SwipeLoginRequired, mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     generics.GenericAPIView):
     queryset = OrderLine.objects.all()
@@ -112,7 +113,7 @@ class OrderLineListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class OrderLineView(mixins.RetrieveModelMixin,
+class OrderLineView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                     generics.GenericAPIView):
     queryset = OrderLine.objects.all()
     serializer_class = OrderLineSerializer
@@ -121,7 +122,7 @@ class OrderLineView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class OrderLineByStateView(mixins.ListModelMixin,
+class OrderLineByStateView(SwipeLoginRequired, mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     generics.GenericAPIView):
     serializer_class = OrderLineSerializer
@@ -136,7 +137,7 @@ class OrderLineByStateView(mixins.ListModelMixin,
         return HttpResponse(content=serializers.serialize('json', resultset, indent=4), content_type="application/json")
 
 
-class OrderLineStateListView(mixins.ListModelMixin,
+class OrderLineStateListView(SwipeLoginRequired, mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     generics.GenericAPIView):
     queryset = OrderLineState.objects.all()
@@ -146,7 +147,7 @@ class OrderLineStateListView(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-class OrderLineStateView(mixins.RetrieveModelMixin,
+class OrderLineStateView(SwipeLoginRequired, mixins.RetrieveModelMixin,
                 generics.GenericAPIView):
     queryset = OrderLineState.objects.all()
     serializer_class = OrderLineStateSerializer
@@ -155,7 +156,7 @@ class OrderLineStateView(mixins.RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class OrderLineStateByStateView(mixins.ListModelMixin,
+class OrderLineStateByStateView(SwipeLoginRequired, mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     generics.GenericAPIView):
     serializer_class = OrderLineStateSerializer
@@ -170,7 +171,7 @@ class OrderLineStateByStateView(mixins.ListModelMixin,
         return HttpResponse(content=serializers.serialize('json', resultset, indent=4), content_type="application/json")
 
 
-class OrderLineStateByOrderLineView(mixins.ListModelMixin,
+class OrderLineStateByOrderLineView(SwipeLoginRequired, mixins.ListModelMixin,
                 generics.GenericAPIView):
     serializer_class = OrderLineStateSerializer
 

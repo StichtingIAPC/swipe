@@ -1,154 +1,91 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import DatePicker from 'react-datepicker';
-import { createVAT, updateVAT } from '../../../state/money/vat/actions.js';
-import Form from '../../forms/Form';
+
+import { createvat, updatevat, fetchvat, setvatField } from '../../../state/money/vats/actions.js';
+import Card from '../../base/Card';
 import { BoolField, StringField } from '../../forms/fields';
 import FontAwesome from '../../tools/icons/FontAwesome';
+import { resetvat } from "../../../state/money/vats/actions";
+import VatPeriodRow from "./VatPeriodRow";
 
 class VATEdit extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = this.getResetState();
-		this.renderVATPeriodRow = ::this.renderVATPeriodRow;
-	}
-
-	getResetState(props = this.props) {
-		if (props.vat !== null) {
-			return { ...props.vat };
-		}
-		return {
-			name: '',
-			active: true,
-			vatperiod_set: [],
-		};
+	componentWillMount() {
+		this.reset();
 	}
 
 	reset() {
-		this.setState(this.getResetState());
-	}
-
-	componentWillReceiveProps(props) {
-		this.setState(this.getResetState(props));
-	}
-
-	save(evt) {
-		evt.preventDefault();
-		if (this.state.id) {
-			this.props.updateVAT(this.state);
+		if (this.props.match.params.vatId) {
+			this.props.fetchvat(this.props.match.params.vatId);
 		} else {
-			this.props.createVAT(this.state);
+			this.props.resetvat();
 		}
 	}
 
-	renderVATPeriodRow({ VATPeriod }) {
-		const updateValue = (name, nextValue) => this.setState(state => {
-			const nstate =
-				{
-					...state,
-					vatperiod_set: [
-						...state.vatperiod_set,
-					],
-				}
+	setName = ({ target: { value }}) => this.props.setvatField('name', value);
+	setActive = () => this.props.setvatField('active', !this.props.vat.active);
 
-			;
-			nstate.vatperiod_set[state.vatperiod_set.findIndex(e => e === VATPeriod)] = {
-				...VATPeriod,
-				[name]: nextValue,
-			};
-			return nstate;
-		});
-
-		const remove = () => this.setState(state => (
-			{
-				...state,
-				vatperiod_set: state.vatperiod_set.filter(el => el !== VATPeriod),
+	componentWillReceiveProps({ match, fetchvat: fetch, resetvat: reset }) {
+		if (this.props.match.params.vatId !== match.params.vatId) {
+			if (typeof match.params.vatId === 'undefined') {
+				reset();
+			} else {
+				fetch(match.params.vatId);
 			}
-		));
-
-		if (VATPeriod.id) {
-			return (
-				<tr>
-					<td>{VATPeriod.begin_date}</td>
-					<td>
-						{
-							VATPeriod.end_date ? VATPeriod.end_date : (
-								<DatePicker
-									minDate={VATPeriod.start_date}
-									dateFormat="YYYY-MM-DD"
-									onChange={val => updateValue('end_date', val)} />
-							)
-						}
-					</td>
-					<td>{VATPeriod.vatrate}</td>
-					<td />
-				</tr>
-			);
 		}
-		return (
-			<tr>
-				<td>
-					<DatePicker
-						selected={VATPeriod.begin_date}
-						maxDate={VATPeriod.end_date}
-						dateFormat="YYYY-MM-DD"
-						onChange={val => updateValue('begin_date', val)} />
-				</td>
-				<td>
-					<DatePicker
-						selected={VATPeriod.end_date}
-						minDate={VATPeriod.begin_date}
-						dateFormat="YYYY-MM-DD"
-						onChange={val => updateValue('end_date', val)} />
-				</td>
-				<td>
-					<input
-						type="number"
-						min="0"
-						step="0.001"
-						value={VATPeriod.vatrate}
-						onChange={evt => updateValue('vatrate', evt.target.value)} />
-				</td>
-				<td>
-					<div className="input-group">
-						<div className="btn-group-xs">
-							<a className="btn bnt-xs btn-danger" onClick={() => remove()}>
-								<FontAwesome icon="ban" />
-							</a>
-						</div>
-					</div>
-				</td>
-			</tr>
-		);
 	}
+
+	save = evt => {
+		evt.preventDefault();
+		const { vat } = this.props;
+
+		if (vat.id === null) {
+			this.props.createvat(vat);
+		} else {
+			this.props.updatevat(vat);
+		}
+	}
+
+	updateVatPeriod = (period, field, value) => this.props.setvatField(
+		'vatperiod_set',
+		this.props.vat.vatperiod_set.map(vatperiod => {
+			if (vatperiod === period) {
+				return {
+					...vatperiod,
+					[field]: value,
+				};
+			}
+			return vatperiod;
+		})
+	);
+
+	removeVatPeriod = period => this.props.setvatField('vatperiod_set', this.props.vat.vatperiod_set.filter(p => p !== period));
+
+	addVatPeriod = () => this.props.setvatField(
+		'vatperiod_set',
+		this.props.vat.vatperiod_set.concat([{
+			begin_date: null,
+			end_date: null,
+			vatrate: 1,
+		}])
+	);
 
 	render() {
-		const addVATPeriod = () => this.setState(state => ({
-			...state,
-			vatperiod_set: [
-				...state.vatperiod_set,
-				{
-					begin_date: '',
-					end_date: '',
-					vatrate: 1,
-				},
-			],
-		}));
+		const { vat } = this.props;
 
 		return (
-			<Form
-				returnLink={this.state.id ? `/money/vat/${this.state.id}/` : '/money/'}
+			<Card
+				returnLink={vat.id ? `/money/vat/${vat.id}/` : '/money/'}
 				closeLink="/money/"
-				title={this.state.id ? this.state.name : 'New VAT'}
-				onReset={::this.reset}
-				onSubmit={::this.save}
+				title={vat.id ? vat.name : 'New VAT'}
+				onReset={this.reset}
+				onSubmit={this.save}
 				error={this.props.errorMsg}>
 				<StringField
-					name="Name" value={this.state.name}
-					onChange={evt => this.setState({ name: evt.target.value })} />
+					name="Name" value={vat.name}
+					onChange={this.setName} />
 				<BoolField
-					name="Active" value={this.state.active}
-					onChange={() => this.setState(({ active }) => ({ active: !active }))} />
+					name="Active" value={vat.active}
+					onChange={this.setActive} />
 				<div className="form-group">
 					<label className="col-sm-3 control-label">VAT periods</label>
 					<div className="col-sm-9">
@@ -160,7 +97,7 @@ class VATEdit extends React.Component {
 									<th className="col-xs-3">Rate (* factor)</th>
 									<th className="col-xs-1">
 										<div className="btn-group-xs">
-											<a onClick={addVATPeriod} className="btn btn-">
+											<a onClick={this.addVatPeriod} className="btn btn-">
 												<FontAwesome icon="plus" />
 											</a>
 										</div>
@@ -169,9 +106,13 @@ class VATEdit extends React.Component {
 							</thead>
 							<tbody>
 								{
-									this.state.vatperiod_set.map(
+									vat.vatperiod_set.map(
 										(vp, i) => (
-											<this.renderVATPeriodRow key={vp.id || `new${i}`} VATPeriod={vp} />
+											<VatPeriodRow
+												key={vp.id || `new${i}`}
+												vatPeriod={vp}
+												delete={this.removeVatPeriod}
+												setVatPeriodField={this.updateVatPeriod} />
 										)
 									)
 								}
@@ -179,18 +120,21 @@ class VATEdit extends React.Component {
 						</table>
 					</div>
 				</div>
-			</Form>
+			</Card>
 		);
 	}
 }
 
 export default connect(
-	(state, ownProps) => ({
-		errorMsg: state.money.vat.inputError,
-		vat: state.money.vat.vats.find(obj => obj.id === ownProps.params.VATID) || null,
+	state => ({
+		errorMsg: state.money.vats.error,
+		vat: state.money.vats.activeObject,
 	}),
-	dispatch => ({
-		updateVAT: VAT => dispatch(updateVAT(VAT)),
-		createVAT: VAT => dispatch(createVAT(VAT)),
-	})
+	{
+		setvatField,
+		resetvat,
+		updatevat,
+		createvat,
+		fetchvat,
+	}
 )(VATEdit);

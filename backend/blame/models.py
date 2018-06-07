@@ -11,7 +11,7 @@ class BasicBlame(models.Model):
     class Meta:
         abstract = True
     date_created = models.DateTimeField(auto_now=True)
-    user_created = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_created_by")
+    user_created = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_created_by", on_delete=models.PROTECT)
 
 
 class Blame(BasicBlame):
@@ -25,7 +25,7 @@ class Blame(BasicBlame):
     class Meta:
         abstract = True
     date_modified = models.DateTimeField(auto_now_add=True)
-    user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by")
+    user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by", on_delete=models.PROTECT)
 
     def save(self, **kwargs):
         if not self.user_created_id:
@@ -82,9 +82,9 @@ class BlameLog(models.Model):
     """
     type = models.CharField(max_length=64)
     date_modified = models.DateTimeField(auto_now_add=True)
-    user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by")
+    user_modified = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modified_by", on_delete=models.PROTECT)
     obj_pk = models.IntegerField()
-    to_string = models.CharField(max_length=128)
+    to_string = models.CharField(max_length=500)
 
     def __str__(self):
         return "{} {} @ {} > {} :{}".format(self.date_modified, self.user_modified.__str__().ljust(8)[:8],

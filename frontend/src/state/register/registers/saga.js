@@ -1,16 +1,19 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
-import { get, post, put as api_put } from '../../../api.js';
-import { doneFetchingRegisters, registerFetchError, registerInputError, startFetchingRegisters } from './actions';
+import * as api from './api';
+import {
+	doneFetchingRegisters, REGISTER_CREATE,
+	REGISTER_FETCH_START, REGISTER_UPDATE,
+	registerFetchError,
+	registerInputError,
+	startFetchingRegisters
+} from './actions';
 
 function* fetchRegisters({ redirectTo } = {}) {
 	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			get,
-			'/register/',
-		)).json();
+		const data = yield (yield call(api.getAll)).json();
 
 		yield put(doneFetchingRegisters(data));
 		if (redirectTo) {
@@ -33,11 +36,7 @@ function* createRegister({ register } = {}) {
 	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			post,
-			'/register/',
-			document,
-		)).json();
+		const data = yield (yield call(api.post, document)).json();
 
 		yield put(startFetchingRegisters({ redirectTo: `/register/register/${data.id}/` }));
 	} catch (e) {
@@ -57,11 +56,7 @@ function* updateRegister({ register } = {}) {
 	let msg = null;
 
 	try {
-		const data = yield (yield call(
-			api_put,
-			`/register/${register.id}/`,
-			document,
-		)).json();
+		const data = yield (yield call(api.put, register.id, document)).json();
 
 		yield put(startFetchingRegisters({ redirectTo: `/register/register/${data.id}/` }));
 	} catch (e) {
@@ -77,8 +72,7 @@ function* updateRegister({ register } = {}) {
 }
 
 export default function* saga() {
-	yield takeLatest('REGISTER_FETCH_START', fetchRegisters);
-	yield takeEvery('REGISTER_CREATE', createRegister);
-	yield takeEvery('REGISTER_UPDATE', updateRegister);
-	yield takeEvery('REGISTER_DELETE', updateRegister);
+	yield takeLatest(REGISTER_FETCH_START, fetchRegisters);
+	yield takeEvery(REGISTER_CREATE, createRegister);
+	yield takeEvery(REGISTER_UPDATE, updateRegister);
 }

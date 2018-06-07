@@ -26,7 +26,7 @@ class PricingModel(models.Model):
     constMargin = models.DecimalField(max_digits=6, decimal_places=5)
     min_relative_margin_error = models.DecimalField(max_digits=6, decimal_places=5)
     max_relative_margin_error = models.DecimalField(max_digits=6, decimal_places=5)
-    custType = models.ForeignKey(Customer, null=True, blank=True)
+    custType = models.ForeignKey(Customer, null=True, blank=True, on_delete=models.PROTECT)
 
     @staticmethod
     def calc_price(cost: Cost,  vat_rate: Decimal, customer: Customer = None) -> Price:

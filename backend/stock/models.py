@@ -25,7 +25,7 @@ class Stock(StockLabeledLine):
         count: How many are in stock?
         book_value: What's the cost per product for this product?
     """
-    article = models.ForeignKey(ArticleType)
+    article = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     count = models.IntegerField()
     book_value = CostField()
 
@@ -149,7 +149,7 @@ class Stock(StockLabeledLine):
                     and int((merge_line.book_value.amount - stock_mod.book_value.amount) * 10 ** DECIMAL_PLACES) != 0 \
                     and stock_mod.get_count() < 0:
                 raise ValueError("book value changed during negative line, "
-                                 "from: {} to: {} ".format(merge_line.amount, stock_mod.book_value.amount))
+                                 "from: {} to: {} ".format(merge_line.book_value.amount, stock_mod.book_value.amount))
 
             old_cost = merge_line.book_value
             if stock_mod.get_count() + merge_line.count != 0:
@@ -279,7 +279,6 @@ class StockChangeSet(models.Model):
             raise ValueError("Source given for this StockChangeSet ({}) is not in the valid sources list: {}".format(
                 source, valid_sources
             ))
-
         # Check if the entry dictionaries are complete
         for entry in entries:
             stock_modification_keys = ['article', 'count', 'book_value', 'is_in']
@@ -305,7 +304,7 @@ class StockChangeSet(models.Model):
                 raise ValueError("Something went wrong while creating the a stock modification: {}".format(e))
 
         # Modify the stock for each StockChange now linked to the StockChangeSet we created
-        for modification in sl.stockchange_set.all():
+        for modification in sl.stockchange_set.all().order_by('id'):
             Stock.modify(modification)
 
         # Return the created StockChangeSet
@@ -320,11 +319,11 @@ class StockChange(StockLabeledLine):
         is_in: Is this an in  (True) or an out (False)
         memo:  description of why this stock change happened. It's optional.
     """
-    article = models.ForeignKey(ArticleType)
+    article = models.ForeignKey(ArticleType, on_delete=models.PROTECT)
     count = models.IntegerField()
     book_value = CostField()
 
-    change_set = models.ForeignKey(StockChangeSet)
+    change_set = models.ForeignKey(StockChangeSet, on_delete=models.PROTECT)
     is_in = models.BooleanField()
     memo = models.CharField(blank=True, max_length=255)
 
@@ -405,7 +404,7 @@ class StockLockLog(models.Model):
 
     locked = models.BooleanField()
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
 
 class LockError(Exception):
