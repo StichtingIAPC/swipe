@@ -77,13 +77,15 @@ class Selector extends React.Component {
 					</thead>
 					<tbody>
 						{
-							this.props.stock.map(item => (
-								<tr key={item.article} onClick={() => this.props.onArticleAdd(item.article, 1)}>
-									<td>{this.props.article(item.article).name}<LabelList labels={this.props.article(item.article).labels}/></td>
-									<td>{item.count}</td>
-									<td><MoneyAmount money={item.price} /></td>
-								</tr>
-							))
+							this.props.stock.filter(item => this.props.article(item.article).name
+								.toLowerCase().includes(this.state.search.toLowerCase()))
+								.map(item => (
+									<tr key={item.article} onClick={() => this.props.onArticleAdd(item.article, 1)}>
+										<td>{this.props.article(item.article).name}<LabelList labels={this.props.article(item.article).labels}/></td>
+										<td>{item.count}</td>
+										<td><MoneyAmount money={item.price} /></td>
+									</tr>
+								))
 						}
 					</tbody>
 				</Table>
