@@ -4,7 +4,7 @@ const OFF = 0;
 
 module.exports = {
 	globals: {
-		__BACKEND_URL__: true,
+		__BACKEND_URL__: true
 	},
 	env: {
 		browser: true,
@@ -44,7 +44,7 @@ module.exports = {
 		'no-empty-character-class': ERROR,
 		'no-ex-assign': ERROR,
 		'no-extra-boolean-cast': WARN,
-		'no-extra-parens': [ WARN, 'all', {
+		'no-extra-parens': [ WARN, "all", {
 			nestedBinaryExpressions: false,
 			ignoreJSX: 'all',
 		}],
@@ -71,7 +71,7 @@ module.exports = {
 		'class-methods-use-this': [ WARN, {
 			exceptMethods: [ 'render', 'trash' ],
 		}],
-		// 'complexity': [ ERROR, { 'max': 10 } ],
+		'complexity': [ ERROR, { 'max': 10 } ],
 		'consistent-return': WARN,
 		'curly': [ WARN, 'all' ],
 		'default-case': WARN,
@@ -375,15 +375,15 @@ module.exports = {
 		'react/jsx-indent': [ ERROR, 'tab' ],
 		'react/jsx-indent-props': [ ERROR, 'tab' ],
 		'react/jsx-key': ERROR,
-		'react/jsx-max-props-per-line': [ WARN, { maximum: 6 }],
+		'react/jsx-max-props-per-line': [ WARN, { 'maximum': 6 } ],
 		'react/jsx-no-duplicate-props': ERROR,
 		'react/jsx-no-undef': ERROR,
 		'react/jsx-pascal-case': WARN,
 		'react/jsx-tag-spacing': [ WARN, {
-			closingSlash: 'never',
-			afterOpening: 'never',
-			beforeSelfClosing: 'always',
-		}],
+			'closingSlash': 'never',
+			'afterOpening': 'never',
+			'beforeSelfClosing': 'always'
+		} ],
 
 		// React compatibility
 		'react/jsx-uses-react': ERROR,
