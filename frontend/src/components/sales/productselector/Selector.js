@@ -11,7 +11,7 @@ import fetchAllLabelTypes from "../../../state/assortment/label-types/actions";
 
 class Selector extends React.Component {
 	static propTypes = {
-		onArticleRemove: PropTypes.func.isRequired,
+		onArticleAdd: PropTypes.func.isRequired,
 		receipt: PropTypes.arrayOf(PropTypes.shape({
 			article: PropTypes.number.isRequired,
 			price: PropTypes.shape({
@@ -48,10 +48,6 @@ class Selector extends React.Component {
 
 	render() {
 		const labelsOfArticles = this.props.stock.map(s => this.props.article(s.article).labels);
-		const labels = Object.keys(labelsOfArticles).map(key => ({
-			label: key,
-			value: labelsOfArticles[key],
-		}));
 		return <Box>
 			<Box.Header>
 				<Box.Title>
