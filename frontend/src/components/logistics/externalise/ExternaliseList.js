@@ -6,13 +6,13 @@ import { connect } from 'react-redux';
 import actions from '../../../state/logistics/externalise/actions';
 import {
 	getExternailseItems,
-	getExternalisationLoading,
-	getExternalisationPopulated
+	getExternailseItemsLoading,
+	getExternailseItemsPopulated
 } from '../../../state/logistics/externalise/selectors';
 import { Button, ButtonGroup, Table } from 'react-bootstrap';
 import { Box } from 'reactjs-admin-lte';
 
-class ExternalizeList extends Component {
+class ExternaliseList extends Component {
 	componentDidMount() {
 		if (!this.props.isPopulated && !this.props.isLoading) {
 			this.props.fetchAllStart();
@@ -75,10 +75,10 @@ class ExternalizeList extends Component {
 export default connect(
 	state => ({
 		externalises: getExternailseItems(state),
-		isLoading: getExternalisationLoading(state),
-		isPopulated: getExternalisationPopulated(state),
+		isLoading: getExternailseItemsLoading(state),
+		isPopulated: getExternailseItemsPopulated(state),
 	}),
 	{
 		fetchAllStart: actions.fetchAllStart,
 	},
-)(ExternalizeList);
+)(ExternaliseList);

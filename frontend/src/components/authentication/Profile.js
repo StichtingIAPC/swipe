@@ -18,12 +18,12 @@ class Profile extends React.Component {
 					}}
 					className="box-body">
 					<p>
-						<img className="user-image" title="Gravatar" src={this.props.user.gravatarUrl}/>
+						<img className="user-image" title="Gravatar" src={this.props.user.gravatarUrl} />
 					</p>
 					<p>
-						<span>Username: </span>{this.props.user.username}<br/>
-						<span>Email address: </span>{this.props.user.email}<br/>
-						<span>Name: {this.props.user.firstName} {this.props.user.lastName} </span><br/>
+						<span>Username: </span>{this.props.user.username}<br />
+						<span>Email address: </span>{this.props.user.email}<br />
+						<span>Name: {this.props.user.firstName} {this.props.user.lastName} </span><br />
 					</p>
 				</div>
 			</div>

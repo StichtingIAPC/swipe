@@ -9,7 +9,7 @@ export const validator = (field, name, validatorFunction) => state => {
 	const errorMessageFunc = validatorFunction(state[field], state);
 
 	if (errorMessageFunc) {
-		return {[field]: errorMessageFunc(name)};
+		return { [field]: errorMessageFunc(name) };
 	}
 	return null;
 };
@@ -28,8 +28,8 @@ export const validate = (state, validators) => validators.reduce((memo, runner) 
  * @param state A part of the state that's a validation-result-object.
  * @returns {boolean} Does this thing contain an error?
  */
-export const hasError = (state) => {
-	for (let [key, value] of Object.entries(state)) {
+export const hasError = state => {
+	for (const [ key, value ] of Object.entries(state)) {
 		if (value.type === 'error') {
 			return true;
 		}
@@ -42,6 +42,4 @@ export const hasError = (state) => {
  * @param str String: the string
  * @returns boolean
  */
-export const isMoney = (str) => {
-	return str.match("^[0-9]{1,16}(\\.[0-9]{1,5})?$");
-};
+export const isMoney = str => str.match('^[0-9]{1,16}(\\.[0-9]{1,5})?$');

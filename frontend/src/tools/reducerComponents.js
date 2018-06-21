@@ -75,6 +75,7 @@ export const collectReducers = (...reducers) =>
 export const resetFieldReducer = (types, defaultValue) =>
 	(state = defaultValue, action) => types.includes(action.type) ? defaultValue : state;
 
+// eslint-disable-next-line complexity
 const subMerge = (resultObject, objectA, objectB, mergeFunction) => {
 	const keys = {};
 

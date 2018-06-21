@@ -7,7 +7,12 @@ import Card from '../../base/Card';
 import ArticleTypeSelector from '../../article/ArticleTypeSelector';
 import { MoneyField } from '../../forms/fields';
 import { Button, ButtonToolbar, ControlLabel, FormControl, FormGroup, HelpBlock, Table } from 'react-bootstrap';
-import { getExternalisationValidations } from '../../../state/logistics/externalise/selectors';
+import {
+	getExternailseCurrentItem,
+	getExternailseCurrentItemError,
+	getExternailseCurrentItemPopulated,
+	getExternalisationValidations
+} from '../../../state/logistics/externalise/selectors';
 import { hasError } from '../../../tools/validations/validators';
 
 class ExternaliseAdd extends Component {
@@ -15,7 +20,7 @@ class ExternaliseAdd extends Component {
 
 	addArticle = () => this.props.setField(
 		'externaliseline_set',
-		this.props.externalise.externaliseline_set.concat([{
+		this.props.externalise.externaliseline_set.concat({
 			// eslint-disable-next-line
 			article: undefined,
 			amount: {
@@ -23,7 +28,7 @@ class ExternaliseAdd extends Component {
 				amount: '',
 			},
 			count: '',
-		}]));
+		}));
 	removeArticle = index => () => this.props.setField('externaliseline_set', this.props.externalise.externaliseline_set.filter((_, i) => i !== index));
 
 	updateArticleField = (index, field) =>
@@ -81,9 +86,9 @@ class ExternaliseAdd extends Component {
 		const memoValidation = validation_memo ? validation_memo.text : '';
 		const memoErrorType = validation_memo ? validation_memo.type : 'success';
 
-		const externalizeSetValidation = this.props.validations ? this.props.validations['externaliseline_set'] : {};
-		const externalizeSetValidationText = externalizeSetValidation ? externalizeSetValidation.text : '';
-		const externalizeSetErrorType = externalizeSetValidation ? externalizeSetValidation.type : 'success';
+		const externaliseSetValidation = this.props.validations ? this.props.validations['externaliseline_set'] : {};
+		const externaliseSetValidationText = externaliseSetValidation ? externaliseSetValidation.text : '';
+		const externaliseSetErrorType = externaliseSetValidation ? externaliseSetValidation.type : 'success';
 
 		return <Card
 			title="Add new externalisation"
@@ -104,8 +109,8 @@ class ExternaliseAdd extends Component {
 					<HelpBlock>{memoValidation}</HelpBlock>
 				</FormGroup>
 				<FormGroup
-					controlId="externalizeSets"
-					validationState={externalizeSetErrorType}>
+					controlId="externaliseSets"
+					validationState={externaliseSetErrorType}>
 					<Table>
 						<thead>
 							<tr>
@@ -151,7 +156,7 @@ class ExternaliseAdd extends Component {
 						</tbody>
 					</Table>
 					<FormControl.Feedback />
-					<HelpBlock>{externalizeSetValidationText}</HelpBlock>
+					<HelpBlock>{externaliseSetValidationText}</HelpBlock>
 				</FormGroup>
 
 				<ButtonToolbar>
@@ -168,8 +173,8 @@ class ExternaliseAdd extends Component {
 
 export default connect(
 	state => ({
-		externalise: state.logistics.externalise.activeObject,
-		error: state.logistics.externalise.error,
+		externalise: getExternailseCurrentItem(state),
+		error: getExternailseCurrentItemError(state),
 		validations: getExternalisationValidations(state),
 	}),
 	{

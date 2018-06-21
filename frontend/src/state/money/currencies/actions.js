@@ -48,7 +48,7 @@ export function fetchCurrencyFailed(id, reason) {
 }
 
 export function fetchCurrencyFinally() {
-	return {type: 'money/currencies/FETCH_FINALLY'};
+	return { type: 'money/currencies/FETCH_FINALLY' };
 }
 
 export function createCurrency(currency) {
@@ -74,7 +74,7 @@ export function createCurrencyFailed(currency, reason) {
 }
 
 export function createCurrencyFinally() {
-	return {type: 'money/currencies/CREATE_FINALLY'};
+	return { type: 'money/currencies/CREATE_FINALLY' };
 }
 
 export function updateCurrency(currency) {
@@ -128,7 +128,7 @@ export function deleteCurrencyFailed(id, reason) {
 }
 
 export function deleteCurrencyFinally() {
-	return {type: 'money/currencies/DELETE_FINALLY'};
+	return { type: 'money/currencies/DELETE_FINALLY' };
 }
 
 export function setCurrencyField(field, value) {

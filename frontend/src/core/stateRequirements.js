@@ -1,4 +1,4 @@
-let LOG = true;
+const LOG = true;
 
 
 const isAvailableRecursively = ([ name, functor ], state = {}) => {

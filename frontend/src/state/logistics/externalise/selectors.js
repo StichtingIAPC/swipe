@@ -1,9 +1,15 @@
-export const getExternailseRootState = state => state.logistics.externalise;
+export const getExternaliseRootState = state => state.logistics.externalise;
 
-export const getExternailseCurrentItem = state => getExternailseRootState(state).currentItem;
-export const getExternailseItems = state => getExternailseRootState(state).items;
+const getItemsSubstate = state => getExternaliseRootState(state).items;
+const getCurrentItemSubstate = state => getExternaliseRootState(state).currentItem;
 
-export const getExternalisationLoading = state => getExternailseItems(state).isLoading;
-export const getExternalisationPopulated = state => getExternailseItems(state).isPopulated;
+export const getExternailseItems = state => getItemsSubstate(state).data;
+export const getExternailseItemsLoading = state => getItemsSubstate(state).isLoading;
+export const getExternailseItemsPopulated = state => getItemsSubstate(state).isPopulated;
 
-export const getExternalisationValidations = state => getExternailseRootState(state).validations;
+export const getExternailseCurrentItem = state => getCurrentItemSubstate(state).data;
+export const getExternailseCurrentItemLoading = state => getCurrentItemSubstate(state).isLoading;
+export const getExternailseCurrentItemPopulated = state => getCurrentItemSubstate(state).isPopulated;
+export const getExternailseCurrentItemError = state => getCurrentItemSubstate(state).error;
+
+export const getExternalisationValidations = state => getExternaliseRootState(state).validations;

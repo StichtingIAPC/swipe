@@ -9,7 +9,8 @@ export default function salesReducer(state = initialState, action) {
 		if (salesLine) {
 			return state.map(art => (art.id === action.article.id ? { ...art, count: newCount } : art));
 		}
-		return state.concat([{ ...action.article, count: newCount }]);
+		return state.concat([{ ...action.article,
+			count: newCount }]);
 	}
 	return state;
 }

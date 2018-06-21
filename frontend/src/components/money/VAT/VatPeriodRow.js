@@ -1,7 +1,7 @@
 import React from 'react';
 import DatePicker from 'react-datepicker';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import moment from "moment";
+import moment from 'moment';
 
 export default class VatPeriodRow extends React.Component {
 	setVatPeriodField = (name, value) => this.props.setVatPeriodField(this.props.vatPeriod, name, value);

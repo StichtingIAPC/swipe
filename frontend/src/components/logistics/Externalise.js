@@ -7,7 +7,6 @@ import ExternaliseAdd from './externalise/ExternaliseAdd';
 import { Col, Row } from 'react-bootstrap';
 
 export default class Externalise extends Component {
-
 	render() {
 		return (
 			<Switch>

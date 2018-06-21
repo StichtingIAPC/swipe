@@ -5,8 +5,8 @@ import { createvat, updatevat, fetchvat, setvatField } from '../../../state/mone
 import Card from '../../base/Card';
 import { BoolField, StringField } from '../../forms/fields';
 import FontAwesome from '../../tools/icons/FontAwesome';
-import { resetvat } from "../../../state/money/vats/actions";
-import VatPeriodRow from "./VatPeriodRow";
+import { resetvat } from '../../../state/money/vats/actions';
+import VatPeriodRow from './VatPeriodRow';
 
 class VATEdit extends React.Component {
 	componentWillMount() {

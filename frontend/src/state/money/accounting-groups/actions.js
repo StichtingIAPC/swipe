@@ -48,7 +48,7 @@ export function fetchAccountingGroupFailed(id, reason) {
 }
 
 export function fetchAccountingGroupFinally() {
-	return {type: 'money/accounting-groups/FETCH_FINALLY'};
+	return { type: 'money/accounting-groups/FETCH_FINALLY' };
 }
 
 export function createAccountingGroup(accountingGroup) {
@@ -74,7 +74,7 @@ export function createAccountingGroupFailed(accountingGroup, reason) {
 }
 
 export function createAccountingGroupFinally() {
-	return {type: 'money/accounting-groups/CREATE_FINALLY'};
+	return { type: 'money/accounting-groups/CREATE_FINALLY' };
 }
 
 export function updateAccountingGroup(accountingGroup) {
@@ -128,7 +128,7 @@ export function deleteAccountingGroupFailed(id, reason) {
 }
 
 export function deleteAccountingGroupFinally() {
-	return {type: 'money/accounting-groups/DELETE_FINALLY'};
+	return { type: 'money/accounting-groups/DELETE_FINALLY' };
 }
 
 export function setAccountingGroupField(field, value) {

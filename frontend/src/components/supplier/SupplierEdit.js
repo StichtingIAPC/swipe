@@ -24,7 +24,7 @@ class SupplierEdit extends React.Component {
 		}
 	}
 
-	submit = (evt) => {
+	submit = evt => {
 		evt.preventDefault();
 		if (this.props.supplier.id === null) {
 			this.props.createSupplier(this.props.supplier);

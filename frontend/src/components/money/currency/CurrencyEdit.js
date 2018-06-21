@@ -50,7 +50,7 @@ class CurrencyEdit extends React.Component {
 		const { currency } = this.props;
 
 		const updateDenom = index =>
-			(value) => {
+			value => {
 				this.props.setCurrencyField(
 					'denomination_set',
 					this.props.currency.denomination_set.map((el, i) => {
