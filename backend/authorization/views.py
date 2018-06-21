@@ -82,7 +82,7 @@ class Validate(View):
                 return JSONResponse({
                     'valid': False,
                     'expiry': expiry.strftime('%Y-%m-%d %H:%M'),
-                })
+                }, status=401)
 
             m = hashlib.md5()
             m.update(user.email.encode('utf-8'))
